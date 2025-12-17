@@ -15,6 +15,10 @@
   <meta name="citation_firstpage" content="100">
   <meta name="citation_lastpage" content="110">
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <!-- KaTeX 用于公式渲染 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
   
   <style>
     /* 评论区容器 */
@@ -39,6 +43,7 @@
     .msg-role.user { color: #42b983; } /* 用户绿色 */
     .msg-role.ai { color: #3b8eed; }   /* AI 蓝色 */
     .msg-content { margin-top: 4px; line-height: 1.6; color: #34495e; white-space: pre-wrap; }
+    .msg-content sup { vertical-align: super; font-size: 0.75em; }
     .msg-time { font-size: 0.8rem; color: #999; margin-left: 10px; }
 
     /* 输入区域 */
@@ -75,6 +80,20 @@
       // --- 核心：注册自定义插件 ---
       plugins: [
         function(hook, vm) {
+          // 确保 marked 开启 GFM 表格支持，并允许内联 HTML（用于聊天区 Markdown 渲染）
+          if (window.marked && window.marked.setOptions) {
+            const baseOptions = (window.marked.getDefaults && window.marked.getDefaults()) || {};
+            window.marked.setOptions(Object.assign({}, baseOptions, {
+              gfm: true,
+              breaks: false,
+              tables: true,
+              // 允许 <sup> 等内联 HTML 直接渲染，而不是被转义
+              sanitize: false,
+              mangle: false,
+              headerIds: false,
+            }));
+          }
+
           // 1. 解析当前文章 ID (简单用文件名作为 ID)
           const getPaperId = () => {
             return vm.route.file.replace('.md', ''); 
@@ -89,6 +108,142 @@
           };
 
           const defaultAuthors = ['Daily Paper Reader Team', 'Docsify Renderer'];
+
+          // 公共工具：在指定元素上渲染公式
+          const renderMathInEl = (el) => {
+            if (!window.renderMathInElement || !el) return;
+            window.renderMathInElement(el, {
+              delimiters: [
+                { left: "$$", right: "$$", display: true },
+                { left: "$", right: "$", display: false },
+              ],
+              throwOnError: false,
+            });
+          };
+
+          // 公共工具：简单表格 + 标记修正：
+          // 1）移除协议标记 [ANS]/[THINK]
+          // 2）移除表格行之间多余空行，避免把同一张表拆成两块
+          const normalizeTables = (markdown) => {
+            if (!markdown) return '';
+            // 清理历史遗留的协议标记
+            let text = markdown.replace(/\[ANS\]/g, '').replace(/\[THINK\]/g, '');
+
+            const lines = text.split('\n');
+            const isTableLine = (line) => /^\s*\|.*\|\s*$/.test(line);
+            const result = [];
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i];
+              const prev = result.length ? result[result.length - 1] : '';
+              const next = i + 1 < lines.length ? lines[i + 1] : '';
+              if (
+                line.trim() === '' &&
+                isTableLine(prev || '') &&
+                isTableLine(next || '')
+              ) {
+                // 跳过表格行之间的空行
+                continue;
+              }
+              result.push(line);
+            }
+            return result.join('\n');
+          };
+
+          const escapeHtml = (str) => {
+            return str
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;')
+              .replace(/'/g, '&#39;');
+          };
+
+          // 自定义表格渲染：检测 Markdown 表格块并手写生成 <table>，
+          // 其他内容仍交给 marked 渲染。
+          const renderMarkdownWithTables = (markdown) => {
+            const text = normalizeTables(markdown || '');
+            const lines = text.split('\n');
+            const isTableLine = (line) => /^\s*\|.*\|\s*$/.test(line);
+            const isAlignLine = (line) => /^\s*\|(?:\s*:?-+:?\s*\|)+\s*$/.test(line);
+
+            const parseRow = (line) => {
+              const trimmed = line.trim().replace(/^\|/, '').replace(/\|$/, '');
+              return trimmed.split('|').map((cell) => cell.trim());
+            };
+
+            const inlineRender = (cellText) => {
+              if (!cellText) return '';
+              if (window.marked && window.marked.parseInline) {
+                return window.marked.parseInline(cellText);
+              }
+              return escapeHtml(cellText);
+            };
+
+            const blocks = [];
+            let i = 0;
+
+            const flushParagraph = (paraLines) => {
+              const paraText = paraLines.join('\n').trim();
+              if (!paraText) return;
+              if (window.marked) {
+                blocks.push(window.marked.parse(`\n${paraText}\n`));
+              } else {
+                blocks.push(`<p>${escapeHtml(paraText)}</p>`);
+              }
+            };
+
+            while (i < lines.length) {
+              const line = lines[i];
+
+              // 检测表格块：当前行是表格行，下一行是对齐行
+              if (isTableLine(line) && i + 1 < lines.length && isAlignLine(lines[i + 1])) {
+                // 先把前面的段落刷掉
+                // （通过不断收集非表格行实现，这里假定没有前缀未刷段落）
+
+                const headerLine = lines[i];
+                const alignLine = lines[i + 1]; // 目前未使用，仅用来检测
+                i += 2;
+
+                const bodyLines = [];
+                while (i < lines.length && isTableLine(lines[i])) {
+                  bodyLines.push(lines[i]);
+                  i++;
+                }
+
+                const headers = parseRow(headerLine);
+                const rows = bodyLines.map(parseRow);
+
+                let html = '<table class="chat-table"><thead><tr>';
+                headers.forEach((h) => {
+                  html += `<th>${inlineRender(h)}</th>`;
+                });
+                html += '</tr></thead><tbody>';
+                rows.forEach((row) => {
+                  html += '<tr>';
+                  row.forEach((cell) => {
+                    html += `<td>${inlineRender(cell)}</td>`;
+                  });
+                  html += '</tr>';
+                });
+                html += '</tbody></table>';
+
+                blocks.push(html);
+              } else {
+                // 非表格块：收集到下一个表格或结尾
+                const paraLines = [];
+                while (
+                  i < lines.length &&
+                  !(isTableLine(lines[i]) && i + 1 < lines.length && isAlignLine(lines[i + 1]))
+                ) {
+                  paraLines.push(lines[i]);
+                  i++;
+                }
+                flushParagraph(paraLines);
+              }
+            }
+
+            return blocks.join('');
+          };
 
           const updateMetaTag = (name, content, options = {}) => {
             const old = document.querySelector(`meta[name="${name}"]`);
@@ -121,28 +276,43 @@
           // 3. 获取历史记录 (API)
           const loadHistory = async (paperId) => {
             try {
-              // 这里的 URL 换成你服务器的真实地址
               const res = await fetch(`/api/history?paper_id=${encodeURIComponent(paperId)}`);
               const data = await res.json();
-              
-              const html = data.map(msg => `
-                <div class="msg-item">
-                  <div>
-                    <span class="msg-role ${msg.role === 'ai' ? 'ai' : 'user'}">
-                        ${msg.role === 'ai' ? '🤖 AI 助手' : '👤 学术路人'}
-                    </span>
-                    <span class="msg-time">${msg.time || ''}</span>
-                  </div>
-                  <div class="msg-content">${msg.content}</div>
-                </div>
-              `).join('');
-              
-              document.getElementById('chat-history').innerHTML = html || '<div style="text-align:center; color:#999">暂无讨论，快来抢沙发！</div>';
-              
-              // 自动滚动到底部
+
               const historyDiv = document.getElementById('chat-history');
+              if (!data || !data.length) {
+                historyDiv.innerHTML = '<div style="text-align:center; color:#999">暂无讨论，快来抢沙发！</div>';
+                return;
+              }
+
+              historyDiv.innerHTML = '';
+              data.forEach(msg => {
+                const item = document.createElement('div');
+                item.className = 'msg-item';
+
+                const header = document.createElement('div');
+                const roleSpan = document.createElement('span');
+                roleSpan.className = 'msg-role ' + (msg.role === 'ai' ? 'ai' : 'user');
+                roleSpan.textContent = msg.role === 'ai' ? '🤖 AI 助手' : '👤 学术路人';
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'msg-time';
+                timeSpan.textContent = msg.time || '';
+                header.appendChild(roleSpan);
+                header.appendChild(timeSpan);
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'msg-content';
+                const markdown = msg.content || '';
+                contentDiv.innerHTML = renderMarkdownWithTables(markdown);
+                renderMathInEl(contentDiv);
+
+                item.appendChild(header);
+                item.appendChild(contentDiv);
+                historyDiv.appendChild(item);
+              });
+
               historyDiv.scrollTop = historyDiv.scrollHeight;
-              
+
             } catch (e) {
               console.error("加载失败", e);
             }
@@ -186,7 +356,7 @@
                     <span>思考过程</span>
                     <button class="thinking-toggle" style="margin-left:8px; font-size:0.75rem; padding:2px 6px;">折叠</button>
                   </div>
-                  <pre class="thinking-content" style="white-space:pre-wrap; margin-top:4px;"></pre>
+                  <div class="thinking-content" style="white-space:pre-wrap; margin-top:4px;"></div>
                 </div>
                 <div class="msg-content"></div>
             `;
@@ -201,21 +371,45 @@
             let answerBuffer = '';
             let thinkingCollapsed = false;
             let hasShownAnswer = false;
+            let renderTimer = null;
+            let streamBuffer = '';
 
             const applyThinkingCollapsedView = () => {
               if (!thinkingBuffer) return;
-              const lines = thinkingBuffer.split('\n');
-              if (!thinkingCollapsed) {
-                // 展开：显示全部思考内容
-                thinkingContent.textContent = thinkingBuffer;
-                toggleBtn.textContent = '折叠';
-              } else {
-                // 折叠：只显示前若干行
-                const maxLines = 3;
-                const shortText = lines.slice(0, maxLines).join('\n') + (lines.length > maxLines ? '\n...' : '');
-                thinkingContent.textContent = shortText;
+              const source = normalizeTables(thinkingBuffer);
+              const maxLines = 3;
+              let toRender = source;
+
+              if (thinkingCollapsed) {
+                const lines = source.split('\n');
+                toRender = lines.slice(0, maxLines).join('\n') + (lines.length > maxLines ? '\n...' : '');
                 toggleBtn.textContent = '展开';
+              } else {
+                toggleBtn.textContent = '折叠';
               }
+
+              thinkingContent.innerHTML = renderMarkdownWithTables(toRender);
+              renderMathInEl(thinkingContent);
+            };
+
+            const scheduleRender = () => {
+              if (renderTimer) return;
+              renderTimer = setTimeout(() => {
+                renderTimer = null;
+
+                // 渲染思考区
+                if (thinkingBuffer) {
+                  thinkingContainer.style.display = 'block';
+                  applyThinkingCollapsedView();
+                }
+
+                // 渲染正式回答区
+                if (answerBuffer) {
+                  const normalizedAnswer = normalizeTables(answerBuffer);
+                  aiAnswerDiv.innerHTML = renderMarkdownWithTables(normalizedAnswer);
+                  renderMathInEl(aiAnswerDiv);
+                }
+              }, 80);
             };
 
             toggleBtn.addEventListener('click', () => {
@@ -245,30 +439,41 @@
                 if (done) break;
                 const rawChunk = decoder.decode(value, { stream: true });
 
-                // 根据后端的前缀标记区分思考内容和正式回答：
-                // [THINK] 开头 -> 思考过程；[ANS] 开头 -> 答案内容
-                let chunk = rawChunk;
-                if (chunk.startsWith('[THINK]')) {
-                  chunk = chunk.slice('[THINK]'.length);
-                  thinkingBuffer += chunk;
-                  thinkingContainer.style.display = 'block';
-                  // 思考阶段默认展开
-                  thinkingCollapsed = false;
-                  applyThinkingCollapsedView();
-                } else if (chunk.startsWith('[ANS]')) {
-                  chunk = chunk.slice('[ANS]'.length);
-                  answerBuffer += chunk;
-                  aiAnswerDiv.textContent = answerBuffer;
-                  // 一旦进入答案阶段，若存在思考内容则折叠
-                  if (thinkingBuffer && !hasShownAnswer) {
-                    hasShownAnswer = true;
-                    thinkingCollapsed = true;
-                    applyThinkingCollapsedView();
+                // 使用按行 JSON 协议解析服务端推送的数据
+                streamBuffer += rawChunk;
+                const parts = streamBuffer.split('\n');
+                streamBuffer = parts.pop() || '';
+
+                for (const line of parts) {
+                  const trimmed = line.trim();
+                  if (!trimmed) continue;
+                  let msg;
+                  try {
+                    msg = JSON.parse(trimmed);
+                  } catch (e) {
+                    console.error('解析流式 JSON 失败:', e, trimmed);
+                    continue;
                   }
-                } else {
-                  // 兜底：当作答案内容
-                  answerBuffer += chunk;
-                  aiAnswerDiv.textContent = answerBuffer;
+
+                  if (msg.type === 'thinking') {
+                    thinkingBuffer += msg.content || '';
+                    thinkingContainer.style.display = 'block';
+                    // 思考阶段默认展开
+                    thinkingCollapsed = false;
+                    scheduleRender();
+                  } else if (msg.type === 'answer') {
+                    answerBuffer += msg.content || '';
+                    scheduleRender();
+                    // 一旦进入答案阶段，若存在思考内容则折叠
+                    if (thinkingBuffer && !hasShownAnswer) {
+                      hasShownAnswer = true;
+                      thinkingCollapsed = true;
+                      scheduleRender();
+                    }
+                  } else if (msg.type === 'error') {
+                    answerBuffer += `\n[ERROR] ${msg.content || ''}`;
+                    scheduleRender();
+                  }
                 }
 
                 historyDiv.scrollTop = historyDiv.scrollHeight;

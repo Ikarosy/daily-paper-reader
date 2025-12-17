@@ -1,6 +1,7 @@
 # /home/ubuntu/daily-paper/app/main.py
 import sqlite3
 import os
+import json
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -184,18 +185,21 @@ def chat_stream(req: ChatRequest):
                 # 一些模型会在 delta 中提供 “思考 / 推理” 内容（例如 reasoning_content 或 thinking 字段）
                 thinking = getattr(delta, "reasoning_content", None) or getattr(delta, "thinking", None)
                 if thinking:
-                    # 为了在前端区分思考内容与正式回答，这里加上前缀标记
-                    yield "[THINK]" + thinking
+                    # 以按行 JSON 的方式输出，前端根据 type 字段区分
+                    payload = {"type": "thinking", "content": thinking}
+                    yield json.dumps(payload, ensure_ascii=False) + "\n"
 
                 content_piece = getattr(delta, "content", None) or ""
                 if not content_piece:
                     continue
                 full_answer += content_piece
-                # 直接将增量文本片段写回前端，并加上前缀标记为答案内容
-                yield "[ANS]" + content_piece
+                # 流式输出答案内容
+                payload = {"type": "answer", "content": content_piece}
+                yield json.dumps(payload, ensure_ascii=False) + "\n"
         except Exception as e:
-            err_msg = f"[ERROR] {str(e)}"
-            yield err_msg
+            err_msg = f"{str(e)}"
+            payload = {"type": "error", "content": err_msg}
+            yield json.dumps(payload, ensure_ascii=False) + "\n"
             return
 
         # 流结束后，把完整回答写入数据库
