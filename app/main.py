@@ -313,12 +313,20 @@ def arxiv_search(query: str = Query(..., min_length=1, description="论文标题
     # 1. 如果是 arxiv 链接或 ID，优先按 ID 精确查询
     arxiv_id = None
     if "arxiv.org" in raw:
-        # 简单提取 /abs/<id> 或 /pdf/<id>.pdf 中的 id
-        parts = raw.split("/")
-        for p in parts:
-            if "." in p:
-                arxiv_id = p.replace(".pdf", "")
-                break
+        # 提取 arxiv ID，支持多种格式
+        # https://arxiv.org/abs/2512.07961
+        # https://arxiv.org/pdf/2512.07961.pdf
+        # http://arxiv.org/abs/2512.07961v1
+        import re
+        # 匹配 /abs/ 或 /pdf/ 后面的 ID
+        match = re.search(r'/(?:abs|pdf)/(\d{4}\.\d{4,5}(?:v\d+)?)', raw)
+        if match:
+            arxiv_id = match.group(1)
+        else:
+            # 如果没匹配到，尝试更宽松的匹配
+            match = re.search(r'(\d{4}\.\d{4,5}(?:v\d+)?)', raw)
+            if match:
+                arxiv_id = match.group(1)
     elif ":" not in raw and " " not in raw and len(raw) >= 9 and "." in raw:
         # 粗略认为是 arxiv id，如 2512.12345 或 2512.12345v2
         arxiv_id = raw
