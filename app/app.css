@@ -114,6 +114,80 @@
   cursor: not-allowed;
 }
 
+/* 聊天区底部工具条与设置面板 */
+.chat-footer {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #666;
+}
+.chat-settings-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background: #f8f8f8;
+  cursor: pointer;
+}
+.chat-settings-btn:hover {
+  background: #f0f0f0;
+}
+.chat-model-select {
+  margin-left: 8px;
+  font-size: 12px;
+  padding: 3px 6px;
+}
+.chat-status {
+  margin-left: 8px;
+  font-size: 12px;
+  color: #888;
+}
+.chat-settings-panel {
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 4px;
+  background: #f8f8f8;
+  border: 1px solid #ddd;
+  font-size: 12px;
+}
+.chat-settings-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.chat-settings-row label {
+  flex: 0 0 64px;
+  text-align: right;
+}
+.chat-settings-row input,
+.chat-settings-row select {
+  flex: 1;
+  padding: 4px 6px;
+  font-size: 12px;
+}
+.chat-settings-inline-status {
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: #999;
+}
+.chat-settings-actions {
+  text-align: right;
+  margin-top: 4px;
+}
+.chat-settings-actions button {
+  padding: 4px 10px;
+  font-size: 12px;
+  margin-left: 6px;
+}
+.chat-settings-hint {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #999;
+}
+
 /* 覆盖 Docsify 主题默认的中间滚动容器，只保留最外层页面滚动 */
 .content {
   height: auto !important;

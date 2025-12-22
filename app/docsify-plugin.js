@@ -201,6 +201,13 @@ window.$docsify = {
         document.head.appendChild(meta);
       };
 
+      // 导出给外部模块（例如聊天模块）复用
+      window.DPRMarkdown = {
+        normalizeTables,
+        renderMarkdownWithTables,
+        renderMathInEl,
+      };
+
       // 3. 侧边栏按“日期”折叠的辅助函数
       const setupCollapsibleSidebarByDay = () => {
         const nav = document.querySelector('.sidebar-nav');
@@ -385,285 +392,6 @@ window.$docsify = {
         });
       };
 
-      // 5. 渲染评论区的 HTML 结构
-      const renderChatUI = () => {
-        return `
-          <div id="paper-chat-container">
-            <div class="chat-header">💬 公共研讨区 (Public Discussion)</div>
-            <div id="chat-history">
-                <div style="text-align:center; color:#999">正在加载讨论记录...</div>
-            </div>
-            <div class="input-area">
-              <textarea id="user-input" rows="3" placeholder="针对这篇论文提问，所有人可见..."></textarea>
-              <button id="send-btn">发送</button>
-            </div>
-          </div>
-        `;
-      };
-
-      // 6. 获取历史记录 (API)
-      const loadHistory = async (paperId) => {
-        try {
-          const res = await fetch(
-            `${window.API_BASE_URL}/api/history?paper_id=${encodeURIComponent(
-              paperId,
-            )}`,
-          );
-          const data = await res.json();
-
-          const historyDiv = document.getElementById('chat-history');
-          if (!data || !data.length) {
-            historyDiv.innerHTML =
-              '<div style="text-align:center; color:#999">暂无讨论，快来抢沙发！</div>';
-            return;
-          }
-
-          historyDiv.innerHTML = '';
-          data.forEach((msg) => {
-            const item = document.createElement('div');
-            item.className = 'msg-item';
-
-            const header = document.createElement('div');
-            const roleSpan = document.createElement('span');
-            const isThinking = msg.role === 'thinking';
-            const isAi = msg.role === 'ai' || isThinking;
-            roleSpan.className = 'msg-role ' + (isAi ? 'ai' : 'user');
-            roleSpan.textContent = isThinking
-              ? '🧠 AI 思考过程'
-              : msg.role === 'ai'
-                ? '🤖 AI 助手'
-                : '👤 学术路人';
-            const timeSpan = document.createElement('span');
-            timeSpan.className = 'msg-time';
-            timeSpan.textContent = msg.time || '';
-            header.appendChild(roleSpan);
-            header.appendChild(timeSpan);
-
-            if (!isThinking) {
-              const contentDiv = document.createElement('div');
-              contentDiv.className = 'msg-content';
-              const markdown = msg.content || '';
-              contentDiv.innerHTML = renderMarkdownWithTables(markdown);
-              renderMathInEl(contentDiv);
-
-              item.appendChild(header);
-              item.appendChild(contentDiv);
-              historyDiv.appendChild(item);
-              return;
-            }
-
-            // 思考消息：渲染为可折叠的历史思考区域
-            const thinkingContainer = document.createElement('div');
-            thinkingContainer.className = 'thinking-history-container';
-
-            const thinkingHeader = document.createElement('div');
-            thinkingHeader.className = 'thinking-history-header';
-            const titleSpan = document.createElement('span');
-            titleSpan.textContent = '思考过程';
-            const toggleBtn = document.createElement('button');
-            toggleBtn.className = 'thinking-history-toggle';
-            toggleBtn.textContent = '展开';
-            thinkingHeader.appendChild(titleSpan);
-            thinkingHeader.appendChild(toggleBtn);
-
-            const thinkingContent = document.createElement('div');
-            thinkingContent.className =
-              'msg-content thinking-history-content thinking-collapsed';
-            const markdown = msg.content || '';
-            thinkingContent.innerHTML = renderMarkdownWithTables(markdown);
-            renderMathInEl(thinkingContent);
-
-            thinkingContainer.appendChild(thinkingHeader);
-            thinkingContainer.appendChild(thinkingContent);
-
-            // 默认折叠，点击按钮展开/折叠
-            toggleBtn.addEventListener('click', () => {
-              const collapsed = thinkingContent.classList.toggle(
-                'thinking-collapsed',
-              );
-              toggleBtn.textContent = collapsed ? '展开' : '折叠';
-            });
-
-            item.appendChild(header);
-            item.appendChild(thinkingContainer);
-            historyDiv.appendChild(item);
-          });
-
-          historyDiv.scrollTop = historyDiv.scrollHeight;
-        } catch (e) {
-          console.error('加载失败', e);
-        }
-      };
-
-      // 7. 发送消息 (API)
-      const sendMessage = async () => {
-        const input = document.getElementById('user-input');
-        const btn = document.getElementById('send-btn');
-        const question = input.value.trim();
-        const paperId = getPaperId();
-
-        const paperContent =
-          (document.querySelector('.markdown-section') || {}).innerText || '';
-
-        if (!question) return;
-
-        input.disabled = true;
-        btn.disabled = true;
-        btn.innerText = '思考中...';
-
-        const historyDiv = document.getElementById('chat-history');
-        historyDiv.innerHTML += `
-            <div class="msg-item">
-                <div><span class="msg-role user">👤 你</span></div>
-                <div class="msg-content">${question}</div>
-            </div>
-        `;
-        historyDiv.scrollTop = historyDiv.scrollHeight;
-
-        const aiItem = document.createElement('div');
-        aiItem.className = 'msg-item';
-        aiItem.innerHTML = `
-            <div>
-              <span class="msg-role ai">🤖 AI 助手</span>
-            </div>
-            <div class="thinking-container" style="margin-top:8px; border-left:3px solid #ddd; padding-left:8px; font-size:0.85rem; color:#666; display:none;">
-              <div style="display:flex; align-items:center; justify-content:space-between;">
-                <span>思考过程</span>
-                <button class="thinking-toggle" style="margin-left:8px; font-size:0.75rem; padding:2px 6px;">折叠</button>
-              </div>
-              <div class="thinking-content" style="white-space:pre-wrap; margin-top:4px;"></div>
-            </div>
-            <div class="msg-content"></div>
-        `;
-        historyDiv.appendChild(aiItem);
-
-        const thinkingContainer = aiItem.querySelector('.thinking-container');
-        const thinkingContent = aiItem.querySelector('.thinking-content');
-        const toggleBtn = aiItem.querySelector('.thinking-toggle');
-        const aiAnswerDiv = aiItem.querySelector('.msg-content');
-
-        let thinkingBuffer = '';
-        let answerBuffer = '';
-        let thinkingCollapsed = false;
-        let hasShownAnswer = false;
-        let renderTimer = null;
-        let streamBuffer = '';
-
-        const applyThinkingCollapsedView = () => {
-          if (!thinkingBuffer) return;
-          const source = normalizeTables(thinkingBuffer);
-          const maxLines = 3;
-          let toRender = source;
-
-          if (thinkingCollapsed) {
-            const lines = source.split('\n');
-            if (lines.length > maxLines) {
-              toRender =
-                lines.slice(0, maxLines).join('\n') +
-                '\n...（已折叠，点击展开查看更多思考过程）';
-            }
-          }
-
-          thinkingContent.innerHTML = renderMarkdownWithTables(toRender);
-          renderMathInEl(thinkingContent);
-        };
-
-        const scheduleRender = () => {
-          if (renderTimer) return;
-          renderTimer = requestAnimationFrame(() => {
-            renderTimer = null;
-            if (thinkingBuffer) {
-              thinkingContainer.style.display = 'block';
-              applyThinkingCollapsedView();
-            }
-
-            if (answerBuffer) {
-              hasShownAnswer = true;
-              const cleaned = answerBuffer
-                .replace(/\[THINK\][\s\S]*?\[\/THINK\]/g, '')
-                .replace(/\[ANS\]/g, '')
-                .trim();
-              aiAnswerDiv.innerHTML =
-                renderMarkdownWithTables(cleaned || '（空响应）');
-              renderMathInEl(aiAnswerDiv);
-            }
-          });
-        };
-
-        toggleBtn.addEventListener('click', () => {
-          thinkingCollapsed = !thinkingCollapsed;
-          toggleBtn.textContent = thinkingCollapsed ? '展开' : '折叠';
-          applyThinkingCollapsedView();
-        });
-
-        try {
-          const resp = await fetch(
-            `${window.API_BASE_URL}/api/chat_stream`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                paper_id: paperId,
-                question,
-                paper_content: paperContent,
-              }),
-            },
-          );
-
-          if (!resp.ok || !resp.body) {
-            aiAnswerDiv.textContent = '请求失败，请稍后重试。';
-            return;
-          }
-
-          const reader = resp.body.getReader();
-          const decoder = new TextDecoder('utf-8');
-
-          while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            streamBuffer += decoder.decode(value, { stream: true });
-
-            let boundary = streamBuffer.lastIndexOf('\n');
-            if (boundary === -1) continue;
-
-            const chunk = streamBuffer.slice(0, boundary);
-            streamBuffer = streamBuffer.slice(boundary + 1);
-
-            const lines = chunk.split('\n');
-            for (const line of lines) {
-              if (!line.trim()) continue;
-              let msg;
-              try {
-                msg = JSON.parse(line);
-              } catch {
-                continue;
-              }
-              if (msg.type === 'thinking') {
-                thinkingBuffer += msg.content || '';
-                scheduleRender();
-              } else if (msg.type === 'answer') {
-                answerBuffer += msg.content || '';
-                scheduleRender();
-              } else if (msg.type === 'error') {
-                answerBuffer += `\n[ERROR] ${msg.content || ''}`;
-                scheduleRender();
-              }
-            }
-
-            historyDiv.scrollTop = historyDiv.scrollHeight;
-          }
-
-          input.value = '';
-        } catch (e) {
-          alert('发送失败，请重试');
-        } finally {
-          input.disabled = false;
-          btn.disabled = false;
-          btn.innerText = '发送';
-          input.focus();
-        }
-      };
-
       // --- Docsify 生命周期钩子 ---
       hook.doneEach(function () {
         // 当前路由对应的“论文 ID”（简单用文件名去掉 .md）
@@ -671,7 +399,7 @@ window.$docsify = {
         const routePath = vm.route && vm.route.path ? vm.route.path : '';
         const lowerId = (paperId || '').toLowerCase();
 
-        // 首页（如 README.md 或根路径）不展示公共研讨区，只做数学渲染和 Zotero 元数据更新
+        // 首页（如 README.md 或根路径）不展示研讨区，只做数学渲染和 Zotero 元数据更新
         const isHomePage =
           !paperId ||
           lowerId === 'readme' ||
@@ -682,36 +410,10 @@ window.$docsify = {
         const mainContent = document.querySelector('.markdown-section');
         if (mainContent) {
           renderMathInEl(mainContent);
-
-          if (!isHomePage) {
-            // B. 非首页时才将 Chat UI 追加到文章底部
-            const div = document.createElement('div');
-            div.innerHTML = renderChatUI();
-            mainContent.appendChild(div);
-          }
         }
 
-        if (!isHomePage) {
-          // C. 绑定事件（仅在存在评论区时绑定）
-          const sendBtnEl = document.getElementById('send-btn');
-          if (sendBtnEl) {
-            sendBtnEl.addEventListener('click', sendMessage);
-          }
-
-          const inputEl = document.getElementById('user-input');
-          if (inputEl) {
-            inputEl.addEventListener('keydown', (e) => {
-              if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
-                e.preventDefault();
-                sendMessage();
-              }
-            });
-          }
-
-          // D. 初始加载数据（仅在页面加载时请求一次）
-          if (paperId) {
-            loadHistory(paperId);
-          }
+        if (!isHomePage && window.PrivateDiscussionChat) {
+          window.PrivateDiscussionChat.initForPage(paperId);
         }
 
         // ----------------------------------------------------
