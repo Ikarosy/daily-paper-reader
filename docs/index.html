@@ -294,20 +294,20 @@
       padding-top: 8px;
       padding-right: 8px;  /* 给右侧留出空间 */
     }
-    /* 美化滚动条样式 - 粉色区域 */
+    /* 美化滚动条样式 - 紫色区域（订阅/新引用） */
     #arxiv-search-results::-webkit-scrollbar {
       width: 8px;
     }
     #arxiv-search-results::-webkit-scrollbar-track {
-      background: #fce4ec;
+      background: #f5f0ff;  /* 非常接近白色的淡紫色 */
       border-radius: 4px;
     }
     #arxiv-search-results::-webkit-scrollbar-thumb {
-      background: #f8bbd0;
+      background: #e0d4ff;  /* 很浅的紫色 */
       border-radius: 4px;
     }
     #arxiv-search-results::-webkit-scrollbar-thumb:hover {
-      background: #f48fb1;
+      background: #c9b8ff;  /* hover 时稍微加深一点 */
     }
     
     /* 美化滚动条样式 - 绿色区域（关键词） */
@@ -347,15 +347,15 @@
       width: 6px;
     }
     #arxiv-tracked-list::-webkit-scrollbar-track {
-      background: #fce4ec;
+      background: #f5f0ff;  /* 非常接近白色的淡紫色 */
       border-radius: 3px;
     }
     #arxiv-tracked-list::-webkit-scrollbar-thumb {
-      background: #f8bbd0;
+      background: #e0d4ff;  /* 很浅的紫色 */
       border-radius: 3px;
     }
     #arxiv-tracked-list::-webkit-scrollbar-thumb:hover {
-      background: #f48fb1;
+      background: #c9b8ff;  /* hover 时稍微加深一点 */
     }
     
     /* 美化滚动条样式 - 模态框整体 */
@@ -404,7 +404,7 @@
     }
     #arxiv-search-section {
       margin-top: 8px;
-      background: #fce4ec; /* 淡粉色 */
+      background: #f5f0ff; /* 与淡绿/淡蓝相近、接近白色 */
     }
     .arxiv-result-item {
       padding: 6px 8px;
@@ -418,12 +418,12 @@
       border-radius: 4px;
     }
     .arxiv-result-item:hover {
-      background-color: #fdd5e3;
+      background-color: #ede4ff;  /* 非常浅的紫色 hover */
       border-radius: 4px;
     }
     .arxiv-result-item.selected {
-      background-color: #f8bbd0;
-      border-left: 3px solid #ec407a;
+      background-color: #e0d4ff;  /* 选中时稍深一点但仍接近白色 */
+      border-left: 3px solid #6a3fc1;  /* 更饱和的紫色高亮条 */
       padding-left: 5px;
       border-radius: 4px;
     }
@@ -454,8 +454,8 @@
       color: #1565c0;
     }
     .tag-pink {
-      background-color: #fce4ec;
-      color: #c2185b;
+      background-color: #f5f0ff;  /* 与浅绿/浅蓝一致的浅度 */
+      color: #5a2bb8;             /* 略微更饱和的紫色文字 */
     }
     .arxiv-result-meta {
       flex: 1;
