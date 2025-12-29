@@ -6,10 +6,13 @@ window.SubscriptionsManager = (function () {
   let panel = null;
   let input = null;
   let searchBtn = null;
+  let saveBtn = null;
   let closeBtn = null;
   let resultsEl = null;
   let msgEl = null;
   let lastSearchTs = 0;
+  let hasUnsavedChanges = false;
+  let draftConfig = null;
 
   const ensureOverlay = () => {
     if (overlay && panel) return;
@@ -27,6 +30,7 @@ window.SubscriptionsManager = (function () {
           <div style="font-weight:600;">后台管理</div>
           <div style="display:flex; gap:8px; align-items:center;">
             <button id="github-auth-btn" class="arxiv-tool-btn" style="padding:2px 10px; background:#6c757d; color:white;">未登录</button>
+            <button id="arxiv-config-save-btn" class="arxiv-tool-btn" style="padding:2px 10px; background:#17a2b8; color:white;">保存</button>
             <button id="arxiv-search-close-btn" class="arxiv-tool-btn" style="padding:2px 6px;">关闭</button>
           </div>
         </div>
@@ -60,8 +64,15 @@ window.SubscriptionsManager = (function () {
         <div id="arxiv-subscriptions">
           <div id="arxiv-top-row">
             <div id="arxiv-keywords-pane" class="arxiv-pane">
-              <div style="font-weight:500; margin-bottom:4px;">订阅关键词</div>
-              <div id="arxiv-keywords-list" style="font-size:12px; height:120px; overflow-y:auto; border:1px solid #eee; padding:6px; border-radius:4px; background:#fff; margin-bottom:4px;"></div>
+              <div style="font-weight:500; margin-bottom:4px;">
+                订阅关键词
+                <span
+                  class="arxiv-tip"
+                  data-tip="占位说明：这里可以展示订阅关键词的使用说明。"
+                  style="display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; margin-left:4px; border-radius:50%; border:1px solid #999; font-size:11px; line-height:16px; color:#666; cursor:default; position:relative; vertical-align:middle; transform: translateY(-3px);"
+                >!</span>
+              </div>
+              <div id="arxiv-keywords-list" style="font-size:12px; height:130px; overflow-y:auto; border:1px solid #eee; padding:6px; border-radius:4px; background:#fff; margin-bottom:4px;"></div>
               <div style="display:flex; gap:4px; margin-top:auto; align-items:center; max-width:100%;">
                 <input id="arxiv-keyword-input" type="text"
                   placeholder="新增关键词，如 llm"
@@ -78,8 +89,15 @@ window.SubscriptionsManager = (function () {
             </div>
 
             <div id="arxiv-zotero-pane" class="arxiv-pane">
-              <div style="font-weight:500; margin-bottom:4px;">智能订阅（LLM Query）</div>
-              <div id="zotero-list" style="font-size:12px; height:120px; overflow-y:auto; border:1px solid #eee; padding:6px; border-radius:4px; background:#fff; margin-bottom:4px;"></div>
+              <div style="font-weight:500; margin-bottom:4px;">
+                智能订阅（LLM Query）
+                <span
+                  class="arxiv-tip"
+                  data-tip="占位说明：这里可以展示智能订阅（LLM Query）的配置建议。"
+                  style="display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; margin-left:4px; border-radius:50%; border:1px solid #999; font-size:11px; line-height:16px; color:#666; cursor:default; position:relative; vertical-align:middle; transform: translateY(-3px);"
+                >!</span>
+              </div>
+              <div id="zotero-list" style="font-size:12px; height:130px; overflow-y:auto; border:1px solid #eee; padding:6px; border-radius:4px; background:#fff; margin-bottom:4px;"></div>
               <div style="display:flex; gap:4px; margin-top:auto; align-items:center; max-width:100%;">
                 <input id="zotero-id-input" type="text"
                   placeholder="输入偏好描述 / 查询语句，如: small LLM for code"
@@ -98,10 +116,16 @@ window.SubscriptionsManager = (function () {
         </div>
 
         <div id="arxiv-search-section" class="arxiv-pane">
-          <div style="font-weight:500; margin-bottom:4px;">订阅论文新引用</div>
-          <div id="arxiv-tracked-list" style="font-size:12px; max-height:120px; overflow-y:auto; overflow-x:hidden; border:1px solid #eee; padding:6px; border-radius:4px; background:#fff; margin-bottom:8px;"></div>
+          <div style="font-weight:500; margin-bottom:4px;">
+            订阅论文新引用
+            <span
+              class="arxiv-tip"
+              data-tip="占位说明：这里可以展示如何使用 Semantic Scholar ID 跟踪新引用。"
+              style="display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; margin-left:4px; border-radius:50%; border:1px solid #999; font-size:11px; line-height:16px; color:#666; cursor:default; position:relative; vertical-align:middle; transform: translateY(-3px);"
+            >!</span>
+          </div>
+          <div id="arxiv-tracked-list" style="font-size:12px; height:130px; overflow-y:auto; overflow-x:hidden; border:1px solid #eee; padding:6px; border-radius:4px; background:#fff; margin-bottom:8px;"></div>
 
-          <div style="font-weight:500; margin-bottom:4px;">通过 Arxiv 搜索新增需跟踪的论文</div>
           <div style="display:flex; gap:4px; margin-bottom:4px; max-width:100%;">
             <input id="arxiv-search-input" type="text"
               placeholder="输入 Arxiv 关键词或链接"
@@ -118,9 +142,57 @@ window.SubscriptionsManager = (function () {
     document.body.appendChild(overlay);
     panel = document.getElementById('arxiv-search-panel');
 
+    // 初始化标题处的小提示气泡
+    const initTips = () => {
+      let tipEl = document.getElementById('arxiv-tip-popup');
+      if (!tipEl) {
+        tipEl = document.createElement('div');
+        tipEl.id = 'arxiv-tip-popup';
+        tipEl.style.position = 'fixed';
+        tipEl.style.zIndex = '9999';
+        tipEl.style.padding = '6px 8px';
+        tipEl.style.fontSize = '11px';
+        tipEl.style.borderRadius = '4px';
+        tipEl.style.background = 'rgba(0,0,0,0.78)';
+        tipEl.style.color = '#fff';
+        tipEl.style.pointerEvents = 'none';
+        tipEl.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+        tipEl.style.maxWidth = '260px';
+        tipEl.style.lineHeight = '1.4';
+        tipEl.style.display = 'none';
+        document.body.appendChild(tipEl);
+      }
+
+      const showTip = (e) => {
+        const target = e.currentTarget;
+        const text = target.getAttribute('data-tip') || '';
+        if (!text) return;
+        tipEl.textContent = text;
+        const rect = target.getBoundingClientRect();
+        const top = rect.bottom + 6;
+        const left = rect.left;
+        tipEl.style.top = `${top}px`;
+        tipEl.style.left = `${left}px`;
+        tipEl.style.display = 'block';
+      };
+
+      const hideTip = () => {
+        tipEl.style.display = 'none';
+      };
+
+      panel.querySelectorAll('.arxiv-tip').forEach((el) => {
+        if (el._tipBound) return;
+        el._tipBound = true;
+        el.addEventListener('mouseenter', showTip);
+        el.addEventListener('mouseleave', hideTip);
+      });
+    };
+    initTips();
+
     // 绑定基础 DOM 引用
     input = document.getElementById('arxiv-search-input');
     searchBtn = document.getElementById('arxiv-search-btn');
+    saveBtn = document.getElementById('arxiv-config-save-btn');
     closeBtn = document.getElementById('arxiv-search-close-btn');
     resultsEl = document.getElementById('arxiv-search-results');
     msgEl = document.getElementById('arxiv-search-msg');
@@ -169,7 +241,8 @@ window.SubscriptionsManager = (function () {
     }
 
     const reloadAll = () => {
-      loadSubscriptions();
+      // 仅基于本地草稿配置重新渲染，不触发远程加载
+      renderFromDraft();
     };
 
     // 交给子模块管理各自区域
@@ -222,18 +295,112 @@ window.SubscriptionsManager = (function () {
     if (resultsEl) {
       resultsEl.innerHTML = '';
     }
+    // 打开面板时从远端拉取一次配置，写入本地草稿
     loadSubscriptions();
-    if (input) {
-      setTimeout(() => input.focus(), 50);
-    }
   };
 
-  const closeOverlay = () => {
+  const reallyCloseOverlay = () => {
     if (!overlay) return;
     overlay.classList.remove('show');
     setTimeout(() => {
       overlay.style.display = 'none';
     }, 300);
+  };
+
+  const showUnsavedDialog = () => {
+    if (!overlay) return;
+    let dialog = document.getElementById('arxiv-unsaved-dialog');
+    if (!dialog) {
+      dialog = document.createElement('div');
+      dialog.id = 'arxiv-unsaved-dialog';
+      dialog.style.position = 'fixed';
+      dialog.style.top = '0';
+      dialog.style.left = '0';
+      dialog.style.right = '0';
+      dialog.style.bottom = '0';
+      dialog.style.display = 'flex';
+      dialog.style.alignItems = 'center';
+      dialog.style.justifyContent = 'center';
+      dialog.style.background = 'rgba(0,0,0,0.35)';
+      dialog.style.zIndex = '9999';
+      dialog.innerHTML = `
+        <div style="background:#fff; padding:16px 20px; border-radius:8px; max-width:320px; box-shadow:0 4px 12px rgba(0,0,0,0.15); font-size:13px;">
+          <div style="font-weight:600; margin-bottom:8px;">配置尚未保存</div>
+          <div style="margin-bottom:12px; color:#555; line-height:1.5;">
+            检测到订阅配置有变更但尚未保存，你希望如何处理？
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:8px;">
+            <button id="arxiv-unsaved-discard" class="arxiv-tool-btn" style="padding:6px 10px; font-size:12px;">直接关闭</button>
+            <button id="arxiv-unsaved-save-exit" class="arxiv-tool-btn" style="padding:6px 10px; font-size:12px; background:#17a2b8; color:#fff;">退出并保存</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(dialog);
+
+      const discardBtn = dialog.querySelector('#arxiv-unsaved-discard');
+      const saveExitBtn = dialog.querySelector('#arxiv-unsaved-save-exit');
+
+      if (discardBtn && !discardBtn._bound) {
+        discardBtn._bound = true;
+        discardBtn.addEventListener('click', () => {
+          // 丢弃本地草稿中的未保存修改，下次打开将重新从远端加载
+          draftConfig = null;
+          hasUnsavedChanges = false;
+          dialog.style.display = 'none';
+          reallyCloseOverlay();
+        });
+      }
+
+      if (saveExitBtn && !saveExitBtn._bound) {
+        saveExitBtn._bound = true;
+        saveExitBtn.addEventListener('click', async () => {
+          if (
+            !window.SubscriptionsGithubToken ||
+            !window.SubscriptionsGithubToken.saveConfig
+          ) {
+            if (msgEl) {
+              msgEl.textContent = '当前无法保存配置，请先完成 GitHub 登录。';
+              msgEl.style.color = '#c00';
+            }
+            return;
+          }
+          try {
+            if (msgEl) {
+              msgEl.textContent = '正在保存配置...';
+              msgEl.style.color = '#666';
+            }
+            await window.SubscriptionsGithubToken.saveConfig(
+              draftConfig || {},
+              'chore: save dashboard config when closing panel',
+            );
+            hasUnsavedChanges = false;
+            dialog.style.display = 'none';
+            if (msgEl) {
+              msgEl.textContent = '配置已保存并关闭。';
+              msgEl.style.color = '#080';
+            }
+            reallyCloseOverlay();
+          } catch (e) {
+            console.error(e);
+            if (msgEl) {
+              msgEl.textContent = '保存配置失败，请稍后重试。';
+              msgEl.style.color = '#c00';
+            }
+          }
+        });
+      }
+    } else {
+      dialog.style.display = 'flex';
+    }
+  };
+
+  const closeOverlay = () => {
+    if (!overlay) return;
+    if (hasUnsavedChanges) {
+      showUnsavedDialog();
+      return;
+    }
+    reallyCloseOverlay();
   };
 
   const renderResults = (items) => {
@@ -248,6 +415,13 @@ window.SubscriptionsManager = (function () {
       const row = document.createElement('div');
       row.className = 'arxiv-result-item';
       if (idx === 0) row.classList.add('selected');
+       // 缓存元信息，供后续写入 config.yaml 使用
+       row._meta = {
+         title: item.title || '',
+         authors: item.authors || [],
+         published: item.published || '',
+         arxiv_id: item.arxiv_id || '',
+       };
       const allAuthors = item.authors || [];
       const displayAuthors =
         allAuthors.slice(0, 5).join(', ') +
@@ -380,35 +554,60 @@ window.SubscriptionsManager = (function () {
       msgEl.style.color = '#c00';
       return;
     }
-    msgEl.textContent = '正在加入后台...';
+    msgEl.textContent = '已加入本地草稿（保存后才会同步到云端）。';
     msgEl.style.color = '#666';
     try {
-      const res = await fetch(`${window.API_BASE_URL}/api/arxiv_track`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ arxiv_id: arxivId, alias }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        msgEl.textContent = data.detail || '加入后台失败';
-        msgEl.style.color = '#c00';
+      // 从当前搜索结果中找到选中的条目，补充元信息
+      let selectedMeta = null;
+      if (resultsEl) {
+        const selectedRow = document.querySelector('.arxiv-result-item.selected');
+        if (selectedRow && selectedRow._meta) {
+          selectedMeta = selectedRow._meta;
+        }
+      }
+
+      // 仅更新本地草稿配置
+      draftConfig = draftConfig || {};
+      if (!draftConfig.subscriptions) draftConfig.subscriptions = {};
+      const subs = draftConfig.subscriptions;
+      const list = Array.isArray(subs.tracked_papers)
+        ? subs.tracked_papers.slice()
+        : [];
+
+      const base = {
+        arxiv_id: arxivId,
+        alias,
+      };
+      if (selectedMeta) {
+        base.title = selectedMeta.title || '';
+        base.authors = selectedMeta.authors || [];
+        base.published = selectedMeta.published || '';
+      }
+
+      const existingIndex = list.findIndex(
+        (x) => x && x.arxiv_id === arxivId,
+      );
+      if (existingIndex >= 0) {
+        list[existingIndex] = Object.assign({}, list[existingIndex], base);
       } else {
-        msgEl.textContent =
-          '已加入后台（如果之前已存在则会忽略）。';
-        msgEl.style.color = '#080';
-        if (typeof loadSubscriptions === 'function') {
-          loadSubscriptions();
-        }
-        const reChecked = document.querySelector(
-          'input[name="arxiv-choice"]:checked',
-        );
-        if (reChecked) {
-          const selRow = reChecked.closest('.arxiv-result-item');
-          const aliasInput = selRow
-            ? selRow.querySelector('.arxiv-track-alias-input')
-            : null;
-          if (aliasInput) aliasInput.value = '';
-        }
+        list.push(base);
+      }
+
+      subs.tracked_papers = list;
+      draftConfig.subscriptions = subs;
+      hasUnsavedChanges = true;
+
+      // 仅基于草稿重新渲染
+      renderFromDraft();
+      const reChecked = document.querySelector(
+        'input[name="arxiv-choice"]:checked',
+      );
+      if (reChecked) {
+        const selRow = reChecked.closest('.arxiv-result-item');
+        const aliasInput = selRow
+          ? selRow.querySelector('.arxiv-track-alias-input')
+          : null;
+        if (aliasInput) aliasInput.value = '';
       }
     } catch (e) {
       console.error(e);
@@ -417,25 +616,72 @@ window.SubscriptionsManager = (function () {
     }
   };
 
+  const renderFromDraft = () => {
+    const config = draftConfig || {};
+    const subs = (config && config.subscriptions) || {};
+
+    const keywords = Array.isArray(subs.keywords) ? subs.keywords : [];
+    const llmQueries = Array.isArray(subs.llm_queries) ? subs.llm_queries : [];
+    const trackedPapers = Array.isArray(subs.tracked_papers) ? subs.tracked_papers : [];
+
+    if (window.SubscriptionsKeywords && window.SubscriptionsKeywords.render) {
+      window.SubscriptionsKeywords.render(
+        keywords.map((item, idx) => {
+          if (typeof item === 'string') {
+            return { id: idx, keyword: item, alias: '' };
+          }
+          return {
+            id: idx,
+            keyword: item.keyword || '',
+            alias: item.alias || '',
+          };
+        }),
+      );
+    }
+
+    if (window.SubscriptionsTrackedPapers && window.SubscriptionsTrackedPapers.render) {
+      window.SubscriptionsTrackedPapers.render(
+        trackedPapers.map((item, idx) => ({
+          id: idx,
+          arxiv_id: item.arxiv_id || '',
+          alias: item.alias || '',
+          title: item.title || '',
+          authors: item.authors || [],
+          published: item.published || '',
+        })),
+      );
+    }
+
+    if (window.SubscriptionsZotero && window.SubscriptionsZotero.render) {
+      window.SubscriptionsZotero.render(
+        llmQueries.map((item, idx) => ({
+          id: idx,
+          zotero_id: item.query || '',
+          alias: item.alias || '',
+        })),
+      );
+    }
+  };
+
   const loadSubscriptions = async () => {
     try {
-      const res = await fetch(`${window.API_BASE_URL}/api/subscriptions`);
-      if (!res.ok) return;
-      const data = await res.json();
-      if (window.SubscriptionsKeywords && window.SubscriptionsKeywords.render) {
-        window.SubscriptionsKeywords.render(data.keywords || []);
+      if (!window.SubscriptionsGithubToken || !window.SubscriptionsGithubToken.loadConfig) {
+        console.warn('SubscriptionsGithubToken.loadConfig 不可用，无法从 config.yaml 加载订阅配置。');
+        return;
       }
-      if (
-        window.SubscriptionsTrackedPapers &&
-        window.SubscriptionsTrackedPapers.render
-      ) {
-        window.SubscriptionsTrackedPapers.render(data.tracked_papers || []);
-      }
-      if (window.SubscriptionsZotero && window.SubscriptionsZotero.render) {
-        window.SubscriptionsZotero.render(data.zotero_accounts || []);
-      }
+      const { config } = await window.SubscriptionsGithubToken.loadConfig();
+      // 将远端配置作为本地草稿的基准
+      draftConfig = config || {};
+      renderFromDraft();
+
+      // 每次成功从远端加载后，将“未保存变更”标记清零
+      hasUnsavedChanges = false;
     } catch (e) {
-      console.error(e);
+      console.error('加载订阅配置失败：', e);
+      if (msgEl) {
+        msgEl.textContent = '加载订阅配置失败，请确认已配置 GitHub Token。';
+        msgEl.style.color = '#c00';
+      }
     }
   };
 
@@ -455,6 +701,40 @@ window.SubscriptionsManager = (function () {
     if (searchBtn && !searchBtn._bound) {
       searchBtn._bound = true;
       searchBtn.addEventListener('click', doSearch);
+    }
+    if (saveBtn && !saveBtn._bound) {
+      saveBtn._bound = true;
+      saveBtn.addEventListener('click', async () => {
+        if (!window.SubscriptionsGithubToken || !window.SubscriptionsGithubToken.saveConfig) {
+          if (msgEl) {
+            msgEl.textContent = '当前无法保存配置，请先完成 GitHub 登录。';
+            msgEl.style.color = '#c00';
+          }
+          return;
+        }
+        try {
+          if (msgEl) {
+            msgEl.textContent = '正在保存配置...';
+            msgEl.style.color = '#666';
+          }
+          // 使用当前本地草稿配置写入远端
+          await window.SubscriptionsGithubToken.saveConfig(
+            draftConfig || {},
+            'chore: save dashboard config from panel',
+          );
+          hasUnsavedChanges = false;
+          if (msgEl) {
+            msgEl.textContent = '配置已保存。';
+            msgEl.style.color = '#080';
+          }
+        } catch (e) {
+          console.error(e);
+          if (msgEl) {
+            msgEl.textContent = '保存配置失败，请稍后重试。';
+            msgEl.style.color = '#c00';
+          }
+        }
+      });
     }
     if (input && !input._bound) {
       input._bound = true;
@@ -495,5 +775,12 @@ window.SubscriptionsManager = (function () {
     openOverlay,
     closeOverlay,
     loadSubscriptions,
+    markConfigDirty: () => {
+      hasUnsavedChanges = true;
+    },
+    updateDraftConfig: (updater) => {
+      draftConfig = updater(draftConfig || {}) || draftConfig;
+      hasUnsavedChanges = true;
+    },
   };
 })();

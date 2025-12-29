@@ -9,7 +9,7 @@ actions:
     operation: 4
     data: >-
       // === 1. 定义标记 ===
-
+    
       const MARKER_SUMMARY = "【🤖 AI Summary】";
 
       const MARKER_CHAT = "【💬 Chat History】";

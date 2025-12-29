@@ -126,6 +126,172 @@ window.SubscriptionsGithubToken = (function () {
     }
   };
 
+  // 根据本地存储的 Token 推断仓库 owner/name
+  const getRepoInfo = () => {
+    const tokenData = loadGithubToken();
+    if (!tokenData || !tokenData.token) return null;
+
+    let owner = '';
+    let repo = '';
+
+    if (tokenData.repo && tokenData.repo.includes('/')) {
+      const parts = tokenData.repo.split('/');
+      owner = parts[0];
+      repo = parts[1];
+    } else {
+      // 兜底：从当前 URL 推断
+      const currentUrl = window.location.href;
+      const githubPagesMatch = currentUrl.match(
+        /https?:\/\/([^.]+)\.github\.io\/([^\/]+)/,
+      );
+      if (githubPagesMatch) {
+        owner = githubPagesMatch[1];
+        repo = githubPagesMatch[2];
+      }
+    }
+
+    if (!owner || !repo) return null;
+    return {
+      owner,
+      repo,
+      token: tokenData.token,
+    };
+  };
+
+  // 通用 GitHub API 调用封装
+  const githubApiRequest = async (path, options = {}) => {
+    const info = getRepoInfo();
+    if (!info) {
+      throw new Error('未配置有效的 GitHub Token 或仓库信息');
+    }
+    const url =
+      path.startsWith('http') ?
+        path :
+        `https://api.github.com${path}`;
+    const headers = Object.assign(
+      {
+        Authorization: `token ${info.token}`,
+        Accept: 'application/vnd.github.v3+json',
+      },
+      options.headers || {},
+    );
+    const res = await fetch(url, { ...options, headers });
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(
+        `GitHub API 调用失败：${res.status} ${res.statusText} - ${text}`,
+      );
+    }
+    return res.json();
+  };
+
+  // 读取 config.yaml 并解析为 JS 对象
+  const loadConfig = async () => {
+    const info = getRepoInfo();
+    if (!info) {
+      throw new Error('未配置有效的 GitHub Token 或仓库信息');
+    }
+    const res = await fetch(
+      `https://api.github.com/repos/${info.owner}/${info.repo}/contents/config.yaml`,
+      {
+        headers: {
+          Authorization: `token ${info.token}`,
+          Accept: 'application/vnd.github.v3+json',
+        },
+      },
+    );
+    if (!res.ok) {
+      throw new Error('无法读取 config.yaml，请确认文件已存在且 Token 有权限。');
+    }
+    const data = await res.json();
+    const content = atob(data.content.replace(/\n/g, ''));
+    const yaml = window.jsyaml || window.jsYaml || window.jsYAML;
+    if (!yaml || typeof yaml.load !== 'function') {
+      throw new Error('前端缺少 YAML 解析库（js-yaml），无法解析 config.yaml。');
+    }
+    const cfg = yaml.load(content) || {};
+    return { config: cfg, sha: data.sha };
+  };
+
+  // 更新 config.yaml：接收一个 updater(config) 回调，返回新的 config 对象
+  const updateConfig = async (updater, commitMessage = 'chore: update config.yaml from dashboard') => {
+    const info = getRepoInfo();
+    if (!info) {
+      throw new Error('未配置有效的 GitHub Token 或仓库信息');
+    }
+    const { config: current, sha } = await loadConfig();
+    const next = typeof updater === 'function' ? updater({ ...(current || {}) }) || current : current;
+    const yaml = window.jsyaml || window.jsYaml || window.jsYAML;
+    if (!yaml || typeof yaml.dump !== 'function') {
+      throw new Error('前端缺少 YAML 序列化库（js-yaml），无法写入 config.yaml。');
+    }
+    const newContent = yaml.dump(next, { lineWidth: 120 });
+    const body = {
+      message: commitMessage,
+      content: btoa(unescape(encodeURIComponent(newContent))),
+      sha,
+    };
+    const res = await fetch(
+      `https://api.github.com/repos/${info.owner}/${info.repo}/contents/config.yaml`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `token ${info.token}`,
+          Accept: 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      },
+    );
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(
+        `写入 config.yaml 失败：${res.status} ${res.statusText} - ${text}`,
+      );
+    }
+    return res.json();
+  };
+
+  // 使用给定的 config 对象保存到远端 config.yaml（用于“保存”按钮）
+  const saveConfig = async (configObject, commitMessage = 'chore: save dashboard config from panel') => {
+    const info = getRepoInfo();
+    if (!info) {
+      throw new Error('未配置有效的 GitHub Token 或仓库信息');
+    }
+    // 仅用于获取当前文件的 sha
+    const { sha } = await loadConfig();
+    const yaml = window.jsyaml || window.jsYaml || window.jsYAML;
+    if (!yaml || typeof yaml.dump !== 'function') {
+      throw new Error('前端缺少 YAML 序列化库（js-yaml），无法写入 config.yaml。');
+    }
+    const safeConfig = configObject || {};
+    const newContent = yaml.dump(safeConfig, { lineWidth: 120 });
+    const body = {
+      message: commitMessage,
+      content: btoa(unescape(encodeURIComponent(newContent))),
+      sha,
+    };
+    const res = await fetch(
+      `https://api.github.com/repos/${info.owner}/${info.repo}/contents/config.yaml`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `token ${info.token}`,
+          Accept: 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      },
+    );
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(
+        `写入 config.yaml 失败：${res.status} ${res.statusText} - ${text}`,
+      );
+    }
+    return res.json();
+  };
+
   const init = (dom) => {
     const {
       githubAuthBtn,
@@ -287,6 +453,8 @@ window.SubscriptionsGithubToken = (function () {
   return {
     init,
     loadGithubToken,
+    loadConfig,
+    updateConfig,
+    saveConfig,
   };
 })();
-

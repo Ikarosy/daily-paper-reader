@@ -11,16 +11,123 @@ import fitz  # PyMuPDF
 import requests
 import openai
 
+# 项目根目录与配置文件路径
+ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
+CONFIG_FILE = os.path.join(ROOT_DIR, "config.yaml")
+
+
+def load_config() -> dict:
+    """
+    从仓库根目录读取 config.yaml。
+    如果文件不存在或解析失败，则返回空字典，并保持向后兼容旧逻辑。
+    """
+    if not os.path.exists(CONFIG_FILE):
+        return {}
+
+    try:
+        import yaml  # type: ignore
+    except Exception:
+        # 未安装 PyYAML 时仅给出提示，不影响旧逻辑使用
+        print("[WARN] 未安装 PyYAML，无法解析 config.yaml，将退回旧配置逻辑。")
+        return {}
+
+    try:
+        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+            if isinstance(data, dict):
+                return data
+            print("[WARN] config.yaml 顶层结构不是字典，将忽略该配置文件。")
+            return {}
+    except Exception as e:
+        print(f"[WARN] 读取 config.yaml 失败，将退回旧配置逻辑：{e}")
+        return {}
+
+
+CONFIG: dict = load_config()
+
+
+def resolve_docs_dir() -> str:
+    """
+    解析文档目录，优先级：
+    1. 环境变量 DOCS_DIR
+    2. config.yaml 中 crawler.docs_dir（支持相对路径）
+    3. 默认：<项目根>/docs
+    """
+    # 1. 环境变量最高优先级
+    docs_dir = os.getenv("DOCS_DIR")
+
+    # 2. 配置文件中的 crawler.docs_dir
+    crawler_cfg = (CONFIG or {}).get("crawler") or {}
+    cfg_docs_dir = crawler_cfg.get("docs_dir")
+    if not docs_dir and cfg_docs_dir:
+        # 支持相对路径（相对项目根目录）
+        if os.path.isabs(cfg_docs_dir):
+            docs_dir = cfg_docs_dir
+        else:
+            docs_dir = os.path.join(ROOT_DIR, cfg_docs_dir)
+
+    # 3. 默认值
+    if not docs_dir:
+        docs_dir = os.path.join(ROOT_DIR, "docs")
+
+    return docs_dir
+
+
+def get_crawler_params() -> tuple[int, int]:
+    """
+    读取抓取相关配置：
+    - days_window：搜索时间窗口（天），默认 10
+    - max_results：最大结果数，默认 50
+
+    优先级：
+    1. 环境变量 ARXIV_DAYS_WINDOW / ARXIV_MAX_RESULTS
+    2. config.yaml 中 crawler.days_window / crawler.max_results
+       （如果存在则覆盖环境变量）
+    3. 内置默认值
+    """
+    # 内置默认值
+    days_window = 10
+    max_results = 50
+
+    # 先读取环境变量
+    try:
+        days_window = int(os.getenv("ARXIV_DAYS_WINDOW", str(days_window)))
+    except Exception:
+        pass
+    try:
+        max_results = int(os.getenv("ARXIV_MAX_RESULTS", str(max_results)))
+    except Exception:
+        pass
+
+    # 再用 config.yaml 覆盖（如果存在）
+    crawler_cfg = (CONFIG or {}).get("crawler") or {}
+    if "days_window" in crawler_cfg:
+        try:
+            days_window = int(crawler_cfg["days_window"])
+        except Exception:
+            print("[WARN] config.yaml 中 crawler.days_window 解析失败，使用已有值。")
+    if "max_results" in crawler_cfg:
+        try:
+            max_results = int(crawler_cfg["max_results"])
+        except Exception:
+            print("[WARN] config.yaml 中 crawler.max_results 解析失败，使用已有值。")
+
+    # 合理性保护
+    if days_window < 1:
+        days_window = 1
+    if max_results < 1:
+        max_results = 1
+
+    return days_window, max_results
+
+
 # 配置
-DOCS_DIR = os.path.expanduser("~/workplace/daily-paper-reader/docs")
+DOCS_DIR = resolve_docs_dir()
+CRAWLER_DAYS_WINDOW, CRAWLER_MAX_RESULTS = get_crawler_params()
 TODAY = datetime.date.today().strftime("%Y-%m-%d")
 
 # 与后端共用的数据库文件路径（如果存在，则可从中读取订阅关键词）
-DB_FILE = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)),
-    "app",
-    "chat.db",
-)
+DB_FILE = os.path.join(ROOT_DIR, "app", "chat.db")
 
 # 大模型配置（与 app/main.py 保持一致）
 LLM_API_KEY = os.getenv("LLM_API_KEY")
@@ -33,10 +140,30 @@ if LLM_API_KEY:
 
 def get_keywords() -> list[str]:
     """
-    优先从数据库 subscriptions_keywords 中读取订阅关键词；
+    优先从 config.yaml 中的 subscriptions.keywords 读取订阅关键词；
+    如果未配置或为空，再从数据库 subscriptions_keywords 中读取；
     如果数据库或表不存在，或者列表为空，则回退到环境变量 ARXIV_KEYWORDS；
     如果仍然为空，则使用一个默认示例，方便本地调试。
     """
+    # 0. 首选 config.yaml 中的 subscriptions.keywords
+    config_keywords: list[str] = []
+    subs_cfg = (CONFIG or {}).get("subscriptions") or {}
+    cfg_keywords = subs_cfg.get("keywords")
+    if isinstance(cfg_keywords, list):
+        for item in cfg_keywords:
+            if isinstance(item, str):
+                kw = item.strip()
+                if kw:
+                    config_keywords.append(kw)
+            elif isinstance(item, dict):
+                # 兼容对象形式：{ keyword: "...", alias: "..." }
+                kw = (item.get("keyword") or "").strip()
+                if kw:
+                    config_keywords.append(kw)
+
+    if config_keywords:
+        return config_keywords
+
     # 1. 先尝试从数据库读取订阅关键词
     try:
         if os.path.exists(DB_FILE):
@@ -89,10 +216,12 @@ def search_arxiv_today(keywords: list[str], max_results: int = 50) -> list[dict]
     if not keywords:
         return []
 
-    # 最近 N 天的窗口（按 UTC），默认 2 天，避免本地时区与 arXiv UTC 不一致导致“今天”查不到结果
-    days_window = int(os.getenv("ARXIV_DAYS_WINDOW", "10"))
-    if days_window < 1:
-        days_window = 1
+    # 最近 N 天的窗口（按 UTC），使用全局抓取配置
+    days_window = CRAWLER_DAYS_WINDOW
+    # 使用配置中的 max_results 作为默认上限，允许调用方显式传入覆盖
+    if max_results <= 0:
+        max_results = CRAWLER_MAX_RESULTS
+
     utc_today = datetime.datetime.utcnow().date()
     cutoff_date = utc_today - datetime.timedelta(days=days_window - 1)
 
@@ -425,9 +554,12 @@ def main():
     keywords = get_keywords()
     print(f"[INFO] 今日日期：{TODAY}")
     print(f"[INFO] 使用关键词（OR 逻辑）：{keywords}")
-    print(f"[INFO] UTC 当前日期：{datetime.datetime.utcnow().date()}，窗口天数：{os.getenv('ARXIV_DAYS_WINDOW', '2')}天")
+    print(
+        f"[INFO] UTC 当前日期：{datetime.datetime.utcnow().date()}，"
+        f"窗口天数：{CRAWLER_DAYS_WINDOW} 天，最大论文数：{CRAWLER_MAX_RESULTS}"
+    )
 
-    papers = search_arxiv_today(keywords)
+    papers = search_arxiv_today(keywords, max_results=CRAWLER_MAX_RESULTS)
     if not papers:
         print("[INFO] 今天没有匹配到符合条件的新论文。")
         return

@@ -70,11 +70,30 @@ window.SubscriptionsTrackedPapers = (function () {
       if (btn._bound) return;
       btn._bound = true;
       btn.addEventListener('click', async () => {
-        const id = btn.getAttribute('data-id');
-        if (!id) return;
+        const idStr = btn.getAttribute('data-id');
+        if (idStr == null) return;
+        const index = parseInt(idStr, 10);
+        if (Number.isNaN(index)) return;
         try {
-          await fetch(`${window.API_BASE_URL}/api/arxiv_track/${id}`, {
-            method: 'DELETE',
+          if (
+            !window.SubscriptionsManager ||
+            !window.SubscriptionsManager.updateDraftConfig
+          ) {
+            throw new Error('缺少本地草稿更新能力');
+          }
+          window.SubscriptionsManager.updateDraftConfig((cfg) => {
+            const next = cfg || {};
+            if (!next.subscriptions) next.subscriptions = {};
+            const subs = next.subscriptions;
+            const list = Array.isArray(subs.tracked_papers)
+              ? subs.tracked_papers.slice()
+              : [];
+            if (index >= 0 && index < list.length) {
+              list.splice(index, 1);
+            }
+            subs.tracked_papers = list;
+            next.subscriptions = subs;
+            return next;
           });
           if (typeof reloadAll === 'function') reloadAll();
         } catch (err) {
@@ -92,6 +111,12 @@ window.SubscriptionsTrackedPapers = (function () {
     trackedListEl = context.trackedListEl || null;
     msgEl = context.msgEl || null;
     reloadAll = context.reloadAll || null;
+
+    // 首次挂载时渲染占位提示，避免面板初次打开时列表区域为空白
+    if (trackedListEl && !trackedListEl._initialized) {
+      trackedListEl._initialized = true;
+      render([]);
+    }
   };
 
   return {
@@ -99,4 +124,3 @@ window.SubscriptionsTrackedPapers = (function () {
     render,
   };
 })();
-

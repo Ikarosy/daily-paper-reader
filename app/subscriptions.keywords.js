@@ -54,16 +54,38 @@ window.SubscriptionsKeywords = (function () {
       if (btn._bound) return;
       btn._bound = true;
       btn.addEventListener('click', async () => {
-        const id = btn.getAttribute('data-id');
-        if (!id) return;
+        const idStr = btn.getAttribute('data-id');
+        if (idStr == null) return;
+        const index = parseInt(idStr, 10);
+        if (Number.isNaN(index)) return;
         try {
-          await fetch(
-            `${window.API_BASE_URL}/api/subscriptions/keyword/${id}`,
-            { method: 'DELETE' },
-          );
+          if (
+            !window.SubscriptionsManager ||
+            !window.SubscriptionsManager.updateDraftConfig
+          ) {
+            throw new Error('缺少本地草稿更新能力');
+          }
+          window.SubscriptionsManager.updateDraftConfig((cfg) => {
+            const next = cfg || {};
+            if (!next.subscriptions) next.subscriptions = {};
+            const subs = next.subscriptions;
+            const list = Array.isArray(subs.keywords)
+              ? subs.keywords.slice()
+              : [];
+            if (index >= 0 && index < list.length) {
+              list.splice(index, 1);
+            }
+            subs.keywords = list;
+            next.subscriptions = subs;
+            return next;
+          });
           if (typeof reloadAll === 'function') reloadAll();
         } catch (err) {
           console.error(err);
+          if (msgEl) {
+            msgEl.textContent = '删除关键词失败，请稍后重试';
+            msgEl.style.color = '#c00';
+          }
         }
       });
     });
@@ -89,29 +111,30 @@ window.SubscriptionsKeywords = (function () {
     }
 
     try {
-      const res = await fetch(
-        `${window.API_BASE_URL}/api/subscriptions/keyword`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ keyword, alias }),
-        },
-      );
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        if (msgEl) {
-          msgEl.textContent = data.detail || '新增关键词失败';
-          msgEl.style.color = '#c00';
-        }
-      } else {
-        if (msgEl) {
-          msgEl.textContent = '关键词已新增。';
-          msgEl.style.color = '#080';
-        }
-        keywordInput.value = '';
-        keywordAliasInput.value = '';
-        if (typeof reloadAll === 'function') reloadAll();
+      if (
+        !window.SubscriptionsManager ||
+        !window.SubscriptionsManager.updateDraftConfig
+      ) {
+        throw new Error('缺少本地草稿更新能力');
       }
+      window.SubscriptionsManager.updateDraftConfig((cfg) => {
+        const next = cfg || {};
+        if (!next.subscriptions) next.subscriptions = {};
+        const subs = next.subscriptions;
+        const list = Array.isArray(subs.keywords) ? subs.keywords.slice() : [];
+        list.push({ keyword, alias });
+        subs.keywords = list;
+        next.subscriptions = subs;
+        return next;
+      });
+
+      if (msgEl) {
+        msgEl.textContent = '关键词已添加到本地草稿，点击「保存」后才会同步到云端。';
+        msgEl.style.color = '#666';
+      }
+      keywordInput.value = '';
+      keywordAliasInput.value = '';
+      if (typeof reloadAll === 'function') reloadAll();
     } catch (e) {
       console.error(e);
       if (msgEl) {
@@ -128,6 +151,12 @@ window.SubscriptionsKeywords = (function () {
     addBtn = context.keywordAddBtn || null;
     msgEl = context.msgEl || null;
     reloadAll = context.reloadAll || null;
+
+    // 首次挂载时渲染占位提示，避免面板初次打开时列表区域为空白
+    if (keywordsListEl && !keywordsListEl._initialized) {
+      keywordsListEl._initialized = true;
+      render([]);
+    }
 
     if (addBtn && !addBtn._bound) {
       addBtn._bound = true;
@@ -149,4 +178,3 @@ window.SubscriptionsKeywords = (function () {
     render,
   };
 })();
-

@@ -53,13 +53,31 @@ window.SubscriptionsZotero = (function () {
       if (btn._bound) return;
       btn._bound = true;
       btn.addEventListener('click', async () => {
-        const id = btn.getAttribute('data-id');
-        if (!id) return;
+        const idStr = btn.getAttribute('data-id');
+        if (idStr == null) return;
+        const index = parseInt(idStr, 10);
+        if (Number.isNaN(index)) return;
         try {
-          await fetch(
-            `${window.API_BASE_URL}/api/subscriptions/zotero/${id}`,
-            { method: 'DELETE' },
-          );
+          if (
+            !window.SubscriptionsManager ||
+            !window.SubscriptionsManager.updateDraftConfig
+          ) {
+            throw new Error('缺少本地草稿更新能力');
+          }
+          window.SubscriptionsManager.updateDraftConfig((cfg) => {
+            const next = cfg || {};
+            if (!next.subscriptions) next.subscriptions = {};
+            const subs = next.subscriptions;
+            const list = Array.isArray(subs.llm_queries)
+              ? subs.llm_queries.slice()
+              : [];
+            if (index >= 0 && index < list.length) {
+              list.splice(index, 1);
+            }
+            subs.llm_queries = list;
+            next.subscriptions = subs;
+            return next;
+          });
           if (typeof reloadAll === 'function') reloadAll();
         } catch (err) {
           console.error(err);
@@ -88,34 +106,35 @@ window.SubscriptionsZotero = (function () {
       return;
     }
     try {
-      const res = await fetch(
-        `${window.API_BASE_URL}/api/subscriptions/zotero`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            // 复用后端字段：zotero_id 存放 query，api_key 使用占位符
-            zotero_id: query,
-            api_key: 'LLM_QUERY',
-            alias,
-          }),
-        },
-      );
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        if (msgEl) {
-          msgEl.textContent = data.detail || '新增智能订阅失败';
-          msgEl.style.color = '#c00';
-        }
-      } else {
-        if (msgEl) {
-          msgEl.textContent = '智能订阅已新增。';
-          msgEl.style.color = '#080';
-        }
-        zoteroIdInput.value = '';
-        zoteroAliasInput.value = '';
-        if (typeof reloadAll === 'function') reloadAll();
+      if (
+        !window.SubscriptionsManager ||
+        !window.SubscriptionsManager.updateDraftConfig
+      ) {
+        throw new Error('缺少本地草稿更新能力');
       }
+      window.SubscriptionsManager.updateDraftConfig((cfg) => {
+        const next = cfg || {};
+        if (!next.subscriptions) next.subscriptions = {};
+        const subs = next.subscriptions;
+        const list = Array.isArray(subs.llm_queries)
+          ? subs.llm_queries.slice()
+          : [];
+        list.push({
+          query,
+          alias,
+        });
+        subs.llm_queries = list;
+        next.subscriptions = subs;
+        return next;
+      });
+
+      if (msgEl) {
+        msgEl.textContent = '智能订阅已添加到本地草稿，点击「保存」后才会同步到云端。';
+        msgEl.style.color = '#666';
+      }
+      zoteroIdInput.value = '';
+      zoteroAliasInput.value = '';
+      if (typeof reloadAll === 'function') reloadAll();
     } catch (e) {
       console.error(e);
       if (msgEl) {
@@ -132,6 +151,12 @@ window.SubscriptionsZotero = (function () {
     zoteroAddBtn = context.zoteroAddBtn || null;
     msgEl = context.msgEl || null;
     reloadAll = context.reloadAll || null;
+
+    // 首次挂载时渲染占位提示，避免面板初次打开时列表区域为空白
+    if (zoteroListEl && !zoteroListEl._initialized) {
+      zoteroListEl._initialized = true;
+      render([]);
+    }
 
     if (zoteroAddBtn && !zoteroAddBtn._bound) {
       zoteroAddBtn._bound = true;
