@@ -150,6 +150,10 @@ window.PrivateDiscussionChat = (function () {
           <button id="send-btn">发送</button>
         </div>
         <div class="chat-footer">
+          <div class="chat-footer-controls">
+            <button id="chat-sidebar-toggle-btn" class="chat-footer-icon-btn" type="button">☰</button>
+            <button id="chat-settings-toggle-btn" class="chat-footer-icon-btn" type="button">⚙️</button>
+          </div>
           <select id="chat-llm-model-select" class="chat-model-select"></select>
           <span id="chat-status" class="chat-status"></span>
         </div>
@@ -733,6 +737,8 @@ window.PrivateDiscussionChat = (function () {
     const inputEl = document.getElementById('user-input');
     const statusEl = document.getElementById('chat-status');
     const modelSelect = document.getElementById('chat-llm-model-select');
+    const chatSidebarBtn = document.getElementById('chat-sidebar-toggle-btn');
+    const chatSettingsBtn = document.getElementById('chat-settings-toggle-btn');
 
     const inGuestMode =
       window.DPR_ACCESS_MODE === 'guest' || window.DPR_ACCESS_MODE === 'locked';
@@ -814,6 +820,39 @@ window.PrivateDiscussionChat = (function () {
         }
       };
       document.addEventListener('dpr-access-mode-changed', handler);
+    }
+
+    // 小屏幕下聊天区侧边栏开关与后台管理按钮
+    if (chatSidebarBtn && !chatSidebarBtn._bound) {
+      chatSidebarBtn._bound = true;
+      chatSidebarBtn.addEventListener('click', () => {
+        const toggle = document.querySelector('.sidebar-toggle');
+        if (toggle) toggle.click();
+      });
+    }
+
+    if (chatSettingsBtn && !chatSettingsBtn._bound) {
+      chatSettingsBtn._bound = true;
+      chatSettingsBtn.addEventListener('click', () => {
+        // 复用底部齿轮按钮的行为：发出 ensure-arxiv-ui 和 load-arxiv-subscriptions 事件
+        const ensureEvent = new CustomEvent('ensure-arxiv-ui');
+        document.dispatchEvent(ensureEvent);
+
+        setTimeout(() => {
+          const loadEvent = new CustomEvent('load-arxiv-subscriptions');
+          document.dispatchEvent(loadEvent);
+
+          const overlay = document.getElementById('arxiv-search-overlay');
+          if (overlay) {
+            overlay.style.display = 'flex';
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                overlay.classList.add('show');
+              });
+            });
+          }
+        }, 100);
+      });
     }
 
     renderHistory(paperId).catch(() => {});

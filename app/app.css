@@ -117,7 +117,7 @@
 #paper-chat-container::before {
   content: '';
   position: fixed;
-  left: 0;
+  left: var(--sidebar-width, 260px);
   right: 0;
   bottom: 0;
   height: 135px; /* 覆盖输入框及其下方区域 */
@@ -130,13 +130,29 @@
 #paper-chat-container::after {
   content: '';
   position: fixed;
-  left: 0;
+  left: var(--sidebar-width, 260px);
   right: 0;
   bottom: 135px; /* 从纯白遮罩顶部开始 */
   height: 40px;
   pointer-events: none;
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, #ffffff 100%);
   z-index: 1498;
+}
+
+/* 大屏幕下：在左侧 sidebar 底部增加一条纯白遮罩带，
+   避免论文列表文字出现在底部按钮所在的行 */
+@media (min-width: 769px) {
+  .sidebar::after {
+    content: '';
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width, 260px);
+    height: 48px;
+    background: #ffffff;
+    pointer-events: none;
+    z-index: 1500;
+  }
 }
 
 #paper-chat-container .input-area {
@@ -309,6 +325,54 @@ body.close .chat-footer {
   outline: none;
   border-color: rgba(66, 185, 131, 0.4);
   background: rgba(255, 255, 255, 0.95);
+}
+
+/* 聊天区底部的侧边栏开关与后台管理按钮（仅在小屏幕下显示） */
+.chat-footer-controls {
+  display: none; /* 默认仅模型选择靠左，大屏不显示这两个按钮 */
+  align-items: center;
+  gap: 4px;
+}
+
+.chat-footer-icon-btn {
+  width: 25px;
+  height: 25px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 15px;
+  color: #888;
+  border-radius: 4px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.chat-footer-icon-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .chat-footer-controls {
+    display: flex;
+  }
+  .chat-footer-icon-btn {
+    display: flex;
+  }
+  /* 小屏时隐藏左下角固定的图标，只保留聊天区里的两个按钮 */
+  .custom-toggle-btn,
+  .sidebar-toggle {
+    display: none;
+  }
+  .chat-footer {
+    justify-content: flex-start;
+    gap: 4px;
+  }
+  .chat-model-select {
+    margin-left: 0;
+  }
 }
 
 .chat-settings-btn {
@@ -517,10 +581,12 @@ article.markdown-section {
   }
 
   #paper-chat-container::before {
+    left: 0;
     height: 120px;
   }
 
   #paper-chat-container::after {
+    left: 0;
     bottom: 120px;
   }
 
