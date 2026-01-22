@@ -192,6 +192,7 @@
       // - Summarized_LLM_API_KEY：用户输入的柏拉图 API Key
       // - Summarized_LLM_BASE_URL：默认 https://api.bltcy.ai/v1/chat/completions
       // - Summarized_LLM_MODEL：用户选择的总结模型
+      // - BLT_API_KEY：写入后端流水线使用的 BLT_API_KEY（与 Summarized_LLM_API_KEY 相同）
       // - Reranker_LLM_API_KEY：与 Summarized_LLM_API_KEY 相同
       // - Reranker_LLM_BASE_URL：默认 https://api.bltcy.ai/v1/rerank
       // - Reranker_LLM_MODEL：默认 qwen3-reranker-4b
@@ -202,6 +203,7 @@
       const secretNameSummKey = 'Summarized_LLM_API_KEY';
       const secretNameSummUrl = 'Summarized_LLM_BASE_URL';
       const secretNameSummModel = 'Summarized_LLM_MODEL';
+      const secretNameBltKey = 'BLT_API_KEY';
       const secretNameRerankKey = 'Reranker_LLM_API_KEY';
       const secretNameRerankUrl = 'Reranker_LLM_BASE_URL';
       const secretNameRerankModel = 'Reranker_LLM_MODEL';
@@ -244,6 +246,7 @@
         { name: secretNameSummKey, value: encSummKey },
         { name: secretNameSummUrl, value: encSummUrl },
         { name: secretNameSummModel, value: encSummModel },
+        { name: secretNameBltKey, value: encSummKey },
         { name: secretNameRerankKey, value: encRerankKey },
         { name: secretNameRerankUrl, value: encRerankUrl },
         { name: secretNameRerankModel, value: encRerankModel },
