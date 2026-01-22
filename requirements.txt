@@ -1,13 +1,6 @@
-fastapi 
-uvicorn 
-sqlite3 
-openai 
-pydantic<2.12
+openai
 requests
 pymupdf
 arxiv
 numpy
 sentence-transformers
-pyzotero
-
-#nginx

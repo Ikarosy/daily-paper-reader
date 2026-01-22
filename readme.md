@@ -11,11 +11,11 @@
 Fork 后的仓库默认会自动暂停功能，你需要手动激活它：
 
 1. 进入你 Fork 后的仓库，点击顶部的 **Actions** 标签页。
-2. 点击绿色的 **I understand my workflows...** 按钮启用 Actions。
-3. 在左侧菜单点击 **Upstream Sync** (或你设定的 Action 名字)。
+2. 点击绿色的 **I understand my workflows, go ahead and enable them** 按钮启用 Actions。
+3. 在左侧菜单点击 **daily-paper-reader**。
 4. 点击右侧的 **Run workflow** 按钮，再点击绿色的 **Run workflow** 确认。
-   > ⚡️ **这一步非常关键！** 它会立即构建你的网站，并生成用于展示的网页分支。
-   > *等待约 1-2 分钟，直到圆圈图标变成绿色的对勾 ✅。*
+   > ⚡️ **这一步非常关键！** 它会生成 `docs/` 与 `archive/*/recommend`，并提交回主分支。
+   > *等待约 3-8 分钟，直到圆圈图标变成绿色的对勾 ✅。*
 
 
 ### 第三步：开启网页预览
@@ -23,8 +23,8 @@ Fork 后的仓库默认会自动暂停功能，你需要手动激活它：
 2. 在左侧菜单栏找到并点击 **Pages**。
 3. 在 **Build and deployment** 下：
    - **Source**: 选择 `Deploy from a branch`
-   - **Branch**: 选择 `gh-pages` 分支 (如果看不到此选项，请确认第二步已成功完成)
-   - 文件夹选择 `/ (root)`
+   - **Branch**: 选择 `main`
+   - 文件夹选择 `/docs`
 4. 点击 **Save**。
 
 🎉 **大功告成！**
@@ -50,6 +50,23 @@ Fork 后的仓库默认会自动暂停功能，你需要手动激活它：
 
 ---
 **🎉 恭喜！等待约 1 分钟，刷新页面，你就会看到顶部的链接，那就是你的专属网站！**
+
+---
+
+## 🔧 配置与更新规则（很重要）
+
+### 配置文件（用户区）
+- `config.yaml` 是用户配置文件，上游不会再修改它。
+- 新增配置项会在代码里用默认值兜底，旧配置不会崩。
+
+### 数据产出（每日更新区）
+- `docs/`：网页内容（每天更新）。
+- `archive/*/recommend`：推荐结果（每天更新）。
+- `archive/carryover.json`、`archive/arxiv_seen.json`、`archive/crawl_state.json`：保留的运行状态文件。
+- `archive/*/raw`、`archive/*/filtered`、`archive/*/rank` 会在流程结束后清理。
+
+### 代码区（上游维护）
+除 `archive/` 和 `docs/` 之外的所有文件均视为代码区，上游会持续更新。
 
 
 
