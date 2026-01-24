@@ -33,6 +33,7 @@ def call_blt_text(
     messages: List[Dict[str, str]],
     temperature: float,
     max_tokens: int,
+    response_format: Dict[str, Any] | None = None,
 ) -> str:
     client.kwargs.update(
         {
@@ -40,7 +41,7 @@ def call_blt_text(
             "max_tokens": int(max_tokens),
         }
     )
-    resp = client.chat(messages=messages)
+    resp = client.chat(messages=messages, response_format=response_format)
     return (resp.get("content") or "").strip()
 
 
@@ -145,18 +146,13 @@ def translate_title_and_abstract_to_zh(title: str, abstract: str) -> Tuple[str, 
         "你是一名熟悉机器学习与自然科学论文的专业翻译，请将英文标题和摘要翻译为自然、准确的中文。"
         "保持学术风格，尽量保留专有名词，不要额外添加评论。"
     )
-    user_parts: list[str] = []
-    if title:
-        user_parts.append(f"【标题 Title】\n{title}")
-    if abstract:
-        user_parts.append(f"【摘要 Abstract】\n{abstract}")
-    user_text = "\n\n".join(user_parts)
+    payload = {"title": title, "abstract": abstract}
+    user_text = json.dumps(payload, ensure_ascii=False)
 
     user_prompt = (
-        "请将上面的英文标题和摘要分别翻译成中文，并严格使用下面的输出格式：\n"
-        "【标题（中文）】\n<中文标题>\n\n"
-        "【摘要（中文）】\n<中文摘要>\n"
-        "不要输出任何其它说明文字。"
+        "请将上面的 JSON 中的 title 与 abstract 翻译成中文，并严格输出 JSON：\n"
+        "{\"title_zh\": \"...\", \"abstract_zh\": \"...\"}\n"
+        "要求：只输出 JSON，不要输出任何其它说明文字。"
     )
     messages = [
         {"role": "system", "content": system_prompt},
@@ -164,66 +160,42 @@ def translate_title_and_abstract_to_zh(title: str, abstract: str) -> Tuple[str, 
         {"role": "user", "content": user_prompt},
     ]
     try:
-        content = call_blt_text(LLM_CLIENT, messages, temperature=0.2, max_tokens=1024)
+        schema = {
+            "type": "object",
+            "properties": {
+                "title_zh": {"type": "string"},
+                "abstract_zh": {"type": "string"},
+            },
+            "required": ["title_zh", "abstract_zh"],
+            "additionalProperties": False,
+        }
+        use_json_object = "gemini" in (getattr(LLM_CLIENT, "model", "") or "").lower()
+        if use_json_object:
+            response_format = {"type": "json_object"}
+        else:
+            response_format = {
+                "type": "json_schema",
+                "json_schema": {"name": "translate_zh", "schema": schema, "strict": True},
+            }
+        content = call_blt_text(
+            LLM_CLIENT,
+            messages,
+            temperature=0.2,
+            max_tokens=4000,
+            response_format=response_format,
+        )
     except Exception:
         return "", ""
 
-    zh_title = ""
-    zh_abstract = ""
     try:
-        parts = content.split("【摘要（中文）】", 1)
-        title_block = parts[0]
-        abstract_block = parts[1] if len(parts) > 1 else ""
-        t = title_block.split("【标题（中文）】", 1)
-        if len(t) == 2:
-            zh_title = t[1].strip()
-        zh_abstract = abstract_block.strip()
+        obj = json.loads(content)
+        if not isinstance(obj, dict):
+            return "", ""
+        zh_title = str(obj.get("title_zh") or "").strip()
+        zh_abstract = str(obj.get("abstract_zh") or "").strip()
     except Exception:
         return "", ""
     return zh_title, zh_abstract
-
-
-def looks_truncated(text: str) -> bool:
-    """
-    经验性判断：模型输出是否像“被截断/未写完”。
-    典型现象：以逗号/冒号/顿号/左括号等结尾。
-    """
-    s = (text or "").strip()
-    if not s:
-        return False
-    if s.endswith(("，", ",", "：", ":", "；", ";", "、", "（", "(", "—", "-", "…")):
-        return True
-    return False
-
-
-def quick_summary_is_valid(text: str) -> bool:
-    """
-    快速摘要的格式校验：
-    - 必须包含 **问题** / **方法** / **结论** 三行
-    - 每行必须以中文句号/问号/感叹号或英文标点结尾，避免半句
-    """
-    s = (text or "").strip()
-    if not s:
-        return False
-
-    lines = [l.strip() for l in s.splitlines() if l.strip()]
-    want = {"**问题**", "**方法**", "**结论**"}
-    got = set()
-    for l in lines:
-        for k in want:
-            if l.startswith(k):
-                got.add(k)
-    if got != want:
-        return False
-
-    def line_ok(prefix: str) -> bool:
-        line = next((l for l in lines if l.startswith(prefix)), "")
-        if not line:
-            return False
-        # 必须以句末标点结束，避免“在/中/的”等半句截断
-        return line.endswith(("。", "！", "？", ".", "!", "?"))
-
-    return line_ok("**问题**") and line_ok("**方法**") and line_ok("**结论**")
 
 
 def quick_summary_invalid_reason(text: str) -> str:
@@ -395,7 +367,7 @@ def generate_deep_summary(md_file_path: str, txt_file_path: str, max_retries: in
             last = summary
             if os.getenv("DPR_DEBUG_STEP6") == "1":
                 log(f"[DEBUG][STEP6] deep_summary attempt={attempt} len={len(summary)} tail={summary[-20:]!r}")
-            if "（完）" in summary and not looks_truncated(summary):
+            if "（完）" in summary:
                 return summary
             # 续写一次：避免输出被截断
             cont_messages = [
@@ -408,7 +380,7 @@ def generate_deep_summary(md_file_path: str, txt_file_path: str, max_retries: in
             merged = f"{summary}\n\n{cont}".strip()
             if os.getenv("DPR_DEBUG_STEP6") == "1":
                 log(f"[DEBUG][STEP6] deep_summary_cont attempt={attempt} len={len(cont)} merged_tail={merged[-20:]!r}")
-            if "（完）" in merged and not looks_truncated(merged):
+            if "（完）" in merged:
                 return merged
         except Exception as e:
             log(f"[WARN] 精读总结失败（第 {attempt} 次）：{e}")
@@ -423,25 +395,63 @@ def generate_quick_summary(title: str, abstract: str, max_retries: int = 3) -> s
         return None
 
     system_prompt = "你是论文速读助手，请用中文输出一个简短速览摘要。"
-    user_prompt = f"标题：{title}\n摘要：{abstract}"
-    format_prompt = (
-        "请严格按下面格式输出 3 行（每行必须以句号“。”结束）：\n"
-        "**问题**：<一句话>\n"
-        "**方法**：<一句话>\n"
-        "**结论**：<一句话>\n\n"
-        "不要输出其它说明文字。"
+    payload = {"title": title, "abstract": abstract}
+    user_text = json.dumps(payload, ensure_ascii=False)
+    user_prompt = (
+        "请基于上面的 JSON，输出一个中文速览摘要，严格返回 JSON（不要输出任何其它文字）：\n"
+        "{\"problem\":\"...\",\"method\":\"...\",\"conclusion\":\"...\"}\n"
+        "要求：每个字段尽量一句话。"
     )
-    messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}, {"role": "user", "content": format_prompt}]
+
+    schema = {
+        "type": "object",
+        "properties": {
+            "problem": {"type": "string"},
+            "method": {"type": "string"},
+            "conclusion": {"type": "string"},
+        },
+        "required": ["problem", "method", "conclusion"],
+        "additionalProperties": False,
+    }
+    use_json_object = "gemini" in (getattr(LLM_CLIENT, "model", "") or "").lower()
+    if use_json_object:
+        response_format = {"type": "json_object"}
+    else:
+        response_format = {
+            "type": "json_schema",
+            "json_schema": {"name": "quick_summary", "schema": schema, "strict": True},
+        }
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_text},
+        {"role": "user", "content": user_prompt},
+    ]
 
     for attempt in range(1, max_retries + 1):
         try:
-            summary = call_blt_text(LLM_CLIENT, messages, temperature=0.2, max_tokens=512)
-            summary = (summary or "").strip()
-            if not summary:
+            content = call_blt_text(
+                LLM_CLIENT,
+                messages,
+                temperature=0.2,
+                max_tokens=1024,
+                response_format=response_format,
+            )
+            obj = json.loads(content)
+            if not isinstance(obj, dict):
                 continue
-            if os.getenv("DPR_DEBUG_STEP6") == "1":
-                log(f"[DEBUG][STEP6] quick_summary attempt={attempt} len={len(summary)} valid={quick_summary_is_valid(summary)} reason={quick_summary_invalid_reason(summary)}")
-            return summary
+            problem = str(obj.get("problem") or "").strip()
+            method = str(obj.get("method") or "").strip()
+            conclusion = str(obj.get("conclusion") or "").strip()
+            if not (problem and method and conclusion):
+                continue
+            return "\n".join(
+                [
+                    f"**问题**：{ensure_single_sentence_end(problem)}",
+                    f"**方法**：{ensure_single_sentence_end(method)}",
+                    f"**结论**：{ensure_single_sentence_end(conclusion)}",
+                ]
+            )
         except Exception as e:
             log(f"[WARN] 速读总结失败（第 {attempt} 次）：{e}")
             time.sleep(2 * attempt)
@@ -692,7 +702,7 @@ def process_paper(
 
         if section == "deep":
             tail = extract_section_tail(existing, "论文详细总结（自动生成）")
-            if tail and not looks_truncated(tail):
+            if tail:
                 return paper_id, title
 
             pdf_url = str(paper.get("link") or paper.get("pdf_url") or "").strip()

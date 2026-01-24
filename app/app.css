@@ -914,6 +914,38 @@ article.markdown-section {
   max-width: var(--sidebar-max-width, 480px);
 }
 
+/* 侧边栏字体：让中英文在同一套字体栈里更协调 */
+.sidebar,
+.sidebar .sidebar-nav,
+.sidebar .sidebar-nav a,
+.sidebar .sidebar-day-toggle-label,
+.sidebar .dpr-sidebar-title,
+.sidebar .dpr-sidebar-tags,
+.sidebar .dpr-sidebar-tag {
+  font-family: var(
+    --dpr-sidebar-font,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Microsoft YaHei",
+    "Noto Sans CJK SC",
+    "Noto Sans SC",
+    Arial,
+    sans-serif
+  );
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 标题稍微收紧字重，避免中文显得“粗一号” */
+.sidebar .dpr-sidebar-title {
+  font-weight: 500;
+}
+
 /* 大屏下：收起侧边栏时按当前实际宽度整块滑出视口，避免拖宽后仍残留一条 */
 @media (min-width: 769px) {
   body.close .sidebar {

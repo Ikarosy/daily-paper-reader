@@ -76,7 +76,7 @@ class LLMClient:
         # 实例级别的累计耗时（秒）
         self._cum_time_seconds: float = 0.0
         self.kwargs: Dict[str, Any] = {
-            'max_tokens': 1024,  # 更安全的默认值，避免超过部分模型上限
+            'max_tokens': 4000,  # 更安全的默认值，避免超过部分模型上限
             'temperature': 0.6,
             'top_p': 0.3,
             'top_k': 50,
@@ -142,10 +142,10 @@ class LLMClient:
         if response_format is not None:
             payload['response_format'] = response_format
 
-        # 对输出 token 上限做保护（部分模型 4k 上限，统一取不超过 4096）
+        # 对输出 token 上限做保护（部分模型 4k 上限，统一取不超过 10000）
         try:
-            if isinstance(payload.get('max_tokens'), int) and payload['max_tokens'] > 4096:
-                payload['max_tokens'] = 4096
+            if isinstance(payload.get('max_tokens'), int) and payload['max_tokens'] > 10000:
+                payload['max_tokens'] = 10000
         except Exception:
             pass
 
