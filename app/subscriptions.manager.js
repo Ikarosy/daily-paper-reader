@@ -29,8 +29,8 @@ window.SubscriptionsManager = (function () {
         <div id="arxiv-search-panel-header">
           <div style="font-weight:600;">后台管理</div>
           <div style="display:flex; gap:8px; align-items:center;">
-            <button id="arxiv-config-save-btn" class="arxiv-tool-btn" style="padding:2px 10px; background:#17a2b8; color:white;">保存</button>
-            <button id="arxiv-open-workflows-btn" class="arxiv-tool-btn" style="padding:2px 10px; background:#6c757d; color:white;">立即触发</button>
+            <button id="arxiv-config-save-btn" class="arxiv-tool-btn" style="padding:2px 10px; background:#2e7d32; color:white;">保存</button>
+            <button id="arxiv-open-workflows-btn" class="arxiv-tool-btn" style="padding:2px 10px; background:#17a2b8; color:white;">立即触发</button>
             <button id="arxiv-open-secret-setup-btn" class="arxiv-tool-btn" style="padding:2px 10px;">密钥配置</button>
             <button id="arxiv-search-close-btn" class="arxiv-tool-btn" style="padding:2px 6px;">关闭</button>
           </div>
@@ -268,7 +268,7 @@ window.SubscriptionsManager = (function () {
           </div>
           <div style="display:flex; justify-content:flex-end; gap:8px;">
             <button id="arxiv-unsaved-discard" class="arxiv-tool-btn" style="padding:6px 10px; font-size:12px;">直接关闭</button>
-            <button id="arxiv-unsaved-save-exit" class="arxiv-tool-btn" style="padding:6px 10px; font-size:12px; background:#17a2b8; color:#fff;">退出并保存</button>
+            <button id="arxiv-unsaved-save-exit" class="arxiv-tool-btn" style="padding:6px 10px; font-size:12px; background:#2e7d32; color:#fff;">退出并保存</button>
           </div>
         </div>
       `;

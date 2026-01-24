@@ -50,6 +50,16 @@ def log(message: str) -> None:
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     print(f"[{ts}] {message}", flush=True)
 
+def log_substep(code: str, name: str, phase: str) -> None:
+    """
+    用于前端解析的子步骤标记。
+    格式： [SUBSTEP] 5.1 - xxx START/END
+    """
+    phase = str(phase or "").strip().upper()
+    if phase not in ("START", "END"):
+        phase = "INFO"
+    log(f"[SUBSTEP] {code} - {name} {phase}")
+
 
 def group_start(title: str) -> None:
     print(f"::group::{title}", flush=True)
@@ -275,7 +285,18 @@ def build_scored_papers(papers: List[Dict[str, Any]], llm_ranked: List[Dict[str,
             continue
         paper = dict(paper_map[pid])
         paper["llm_score"] = score
-        paper["llm_evidence"] = str(item.get("evidence") or "").strip()
+        evidence_cn = str(item.get("evidence_cn") or "").strip()
+        evidence_en = str(item.get("evidence_en") or "").strip()
+        tldr_cn = str(item.get("tldr_cn") or "").strip()
+        tldr_en = str(item.get("tldr_en") or "").strip()
+        legacy = str(item.get("evidence") or "").strip()
+        # 优先保存中英双语；同时保留 llm_evidence 作为“默认展示”字段（优先中文）
+        paper["llm_evidence_en"] = evidence_en or legacy
+        paper["llm_evidence_cn"] = evidence_cn or (evidence_en or legacy)
+        paper["llm_evidence"] = paper["llm_evidence_cn"]
+        paper["llm_tldr_en"] = tldr_en
+        paper["llm_tldr_cn"] = tldr_cn or tldr_en
+        paper["llm_tldr"] = paper["llm_tldr_cn"]
         paper["llm_tags"] = normalize_tags(item.get("tags"))
         merged[pid] = paper
 
@@ -685,15 +706,19 @@ def main() -> None:
     if not modes:
         raise ValueError("modes must include at least one of: standard, extend, spark")
 
-    # 检查输入文件是否存在，如果不存在则只使用 carryover
-    if not os.path.exists(input_path):
-        log(f"[INFO] 输入文件不存在：{input_path}（今天没有新论文，将只使用 carryover）")
-        papers = []
-        llm_ranked = []
-    else:
-        data = load_json(input_path)
-        papers = data.get("papers") or []
-        llm_ranked = data.get("llm_ranked") or []
+    log_substep("5.1", "加载输入数据", "START")
+    try:
+        # 检查输入文件是否存在，如果不存在则只使用 carryover
+        if not os.path.exists(input_path):
+            log(f"[INFO] 输入文件不存在：{input_path}（今天没有新论文，将只使用 carryover）")
+            papers = []
+            llm_ranked = []
+        else:
+            data = load_json(input_path)
+            papers = data.get("papers") or []
+            llm_ranked = data.get("llm_ranked") or []
+    finally:
+        log_substep("5.1", "加载输入数据", "END")
 
     if not papers or not llm_ranked:
         log("[INFO] 今天没有新论文，将只使用 carryover 生成推荐。")
@@ -702,19 +727,27 @@ def main() -> None:
     log(f"[INFO] config tags={tag_count} | {tag_list}")
     log(f"[INFO] arxiv_paper_setting mode={mode_text} days_window={carryover_days}")
 
-    scored_papers = build_scored_papers(papers, llm_ranked)
     group_start(f"Step 5 - select {os.path.basename(input_path)}")
-    log(f"[INFO] scored_papers={len(scored_papers)}")
+    log_substep("5.2", "构建评分论文列表", "START")
+    try:
+        scored_papers = build_scored_papers(papers, llm_ranked)
+        log(f"[INFO] scored_papers={len(scored_papers)}")
+    finally:
+        log_substep("5.2", "构建评分论文列表", "END")
 
     archive_root = os.path.join(ROOT_DIR, "archive")
     today_date = parse_date_str(TODAY_STR)
     seen_ids = collect_seen_ids(archive_root, TODAY_STR)
-    carryover_items, _delta = load_recent_carryover(
-        CARRYOVER_PATH,
-        today_date,
-        carryover_days,
-    )
-    candidates = build_candidates(scored_papers, carryover_items, seen_ids)
+    log_substep("5.3", "加载 carryover 并构建候选集", "START")
+    try:
+        carryover_items, _delta = load_recent_carryover(
+            CARRYOVER_PATH,
+            today_date,
+            carryover_days,
+        )
+        candidates = build_candidates(scored_papers, carryover_items, seen_ids)
+    finally:
+        log_substep("5.3", "加载 carryover 并构建候选集", "END")
 
     if not candidates:
         log("[INFO] 没有候选论文（新论文=0 且 carryover=0），将写入空推荐结果并更新 carryover。")
@@ -751,6 +784,7 @@ def main() -> None:
 
     recommended_ids: set = set()
 
+    log_substep("5.4", "按模式生成推荐结果", "START")
     for mode in modes:
         cfg = MODES.get(mode) or {}
         result = process_mode(
@@ -774,7 +808,9 @@ def main() -> None:
                 pid = str(item.get("id") or item.get("paper_id") or "").strip()
                 if pid:
                     recommended_ids.add(pid)
+    log_substep("5.4", "按模式生成推荐结果", "END")
 
+    log_substep("5.5", "写入 carryover 状态", "START")
     carryover_out = build_carryover_out(candidates, recommended_ids, carryover_days)
     carryover_payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -783,6 +819,7 @@ def main() -> None:
         "items": carryover_out,
     }
     save_json(carryover_payload, CARRYOVER_PATH)
+    log_substep("5.5", "写入 carryover 状态", "END")
 
     group_end()
 

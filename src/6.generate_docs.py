@@ -48,6 +48,16 @@ def log(message: str) -> None:
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     print(f"[{ts}] {message}", flush=True)
 
+def log_substep(code: str, name: str, phase: str) -> None:
+    """
+    用于前端解析的子步骤标记。
+    格式： [SUBSTEP] 6.1 - xxx START/END
+    """
+    phase = str(phase or "").strip().upper()
+    if phase not in ("START", "END"):
+        phase = "INFO"
+    log(f"[SUBSTEP] {code} - {name} {phase}")
+
 
 def load_config() -> dict:
     if not os.path.exists(CONFIG_FILE):
@@ -173,6 +183,75 @@ def translate_title_and_abstract_to_zh(title: str, abstract: str) -> Tuple[str, 
     return zh_title, zh_abstract
 
 
+def looks_truncated(text: str) -> bool:
+    """
+    经验性判断：模型输出是否像“被截断/未写完”。
+    典型现象：以逗号/冒号/顿号/左括号等结尾。
+    """
+    s = (text or "").strip()
+    if not s:
+        return False
+    if s.endswith(("，", ",", "：", ":", "；", ";", "、", "（", "(", "—", "-", "…")):
+        return True
+    return False
+
+
+def extract_section_tail(md_text: str, heading: str) -> str:
+    """
+    从 md 中提取某个自动生成段落（heading）后的尾部内容。
+    返回不含 heading 的文本（strip 后）。
+    """
+    if not md_text:
+        return ""
+    key = f"## {heading}"
+    idx = md_text.rfind(key)
+    if idx == -1:
+        return ""
+    return md_text[idx + len(key) :].strip()
+
+
+def strip_auto_sections(md_text: str) -> str:
+    """
+    发送给 LLM 的“论文 Markdown 元数据”只保留正文前半段，避免把旧的自动总结/速览再喂回模型。
+    """
+    if not md_text:
+        return ""
+    markers = [
+        "\n\n---\n\n## 论文详细总结（自动生成）",
+        "\n\n---\n\n## 速览摘要（自动生成）",
+    ]
+    cut_points = [md_text.find(m) for m in markers if md_text.find(m) != -1]
+    if not cut_points:
+        return md_text
+    cut = min(cut_points)
+    return md_text[:cut].rstrip()
+
+
+def upsert_auto_block(md_path: str, heading: str, content: str) -> None:
+    """
+    将自动生成内容写入 md：
+    - 若已存在同名 heading，则替换从该块开始到文件末尾
+    - 否则追加到文件末尾
+    """
+    key = f"## {heading}"
+    block = f"\n\n---\n\n{key}\n\n{content}".rstrip() + "\n"
+
+    with open(md_path, "r", encoding="utf-8") as f:
+        txt = f.read()
+
+    idx = txt.rfind(key)
+    if idx == -1:
+        new_txt = txt.rstrip() + block
+    else:
+        start = txt.rfind("\n\n---\n\n", 0, idx)
+        if start == -1:
+            start = idx
+        new_txt = txt[:start].rstrip() + block
+
+    with open(md_path, "w", encoding="utf-8") as f:
+        f.write(new_txt)
+
+
 def generate_deep_summary(md_file_path: str, txt_file_path: str, max_retries: int = 3) -> str | None:
     if LLM_CLIENT is None:
         log("[WARN] 未配置 BLT_API_KEY，跳过精读总结。")
@@ -181,7 +260,7 @@ def generate_deep_summary(md_file_path: str, txt_file_path: str, max_retries: in
         return None
 
     with open(md_file_path, "r", encoding="utf-8") as f:
-        paper_md_content = f.read()
+        paper_md_content = strip_auto_sections(f.read())
 
     paper_txt_content = ""
     if os.path.exists(txt_file_path):
@@ -202,7 +281,8 @@ def generate_deep_summary(md_file_path: str, txt_file_path: str, max_retries: in
         "6. 论文的主要结论与发现。\n"
         "7. 优点：方法或实验设计上有哪些亮点。\n"
         "8. 不足与局限：包括实验覆盖、偏差风险、应用限制等。\n\n"
-        "请用分层标题和项目符号（Markdown 格式）组织上述内容，语言尽量简洁但信息要尽量完整。"
+        "请用分层标题和项目符号（Markdown 格式）组织上述内容，语言尽量简洁但信息要尽量完整。\n"
+        "要求：最后单独输出一行“（完）”作为结束标记。"
     )
 
     messages = [{"role": "system", "content": system_prompt}]
@@ -211,15 +291,31 @@ def generate_deep_summary(md_file_path: str, txt_file_path: str, max_retries: in
     messages.append({"role": "user", "content": f"### 论文 Markdown 元数据 ###\n{paper_md_content}"})
     messages.append({"role": "user", "content": user_prompt})
 
+    last = ""
     for attempt in range(1, max_retries + 1):
         try:
-            summary = call_blt_text(LLM_CLIENT, messages, temperature=0.3, max_tokens=2048)
-            if summary.strip():
-                return summary.strip()
+            summary = call_blt_text(LLM_CLIENT, messages, temperature=0.3, max_tokens=4096)
+            summary = (summary or "").strip()
+            if not summary:
+                continue
+            last = summary
+            if "（完）" in summary and not looks_truncated(summary):
+                return summary
+            # 续写一次：避免输出被截断
+            cont_messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": "你上一次的总结可能被截断了，请从中断处继续补全，不要重复已输出内容。"},
+                {"role": "user", "content": f"上一次输出如下：\n\n{summary}\n\n请继续补全，最后以一行“（完）”结束。"},
+            ]
+            cont = call_blt_text(LLM_CLIENT, cont_messages, temperature=0.3, max_tokens=2048)
+            cont = (cont or "").strip()
+            merged = f"{summary}\n\n{cont}".strip()
+            if "（完）" in merged and not looks_truncated(merged):
+                return merged
         except Exception as e:
             log(f"[WARN] 精读总结失败（第 {attempt} 次）：{e}")
             time.sleep(2 * attempt)
-    return None
+    return last or None
 
 
 def generate_quick_summary(title: str, abstract: str, max_retries: int = 3) -> str | None:
@@ -228,22 +324,37 @@ def generate_quick_summary(title: str, abstract: str, max_retries: int = 3) -> s
             return abstract.strip()[:200]
         return None
 
-    system_prompt = (
-        "你是论文速读助手，请用中文输出一个简短速览摘要。"
-        "必须包含：问题、方法、结论（或贡献）。"
-        "总长度不超过 120 字。"
-    )
+    system_prompt = "你是论文速读助手，请用中文输出一个简短速览摘要。"
     user_prompt = f"标题：{title}\n摘要：{abstract}"
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt},
-    ]
+    format_prompt = (
+        "请严格按下面格式输出 3 行（每行必须以句号“。”结束）：\n"
+        "**问题**：<一句话>\n"
+        "**方法**：<一句话>\n"
+        "**结论**：<一句话>\n\n"
+        "要求：总长度尽量控制在 180 字以内，避免输出被截断；不要输出其它说明文字。"
+    )
+    messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}, {"role": "user", "content": format_prompt}]
 
     for attempt in range(1, max_retries + 1):
         try:
             summary = call_blt_text(LLM_CLIENT, messages, temperature=0.2, max_tokens=512)
-            if summary.strip():
-                return summary.strip()
+            summary = (summary or "").strip()
+            if not summary:
+                continue
+            if looks_truncated(summary):
+                # 再请求一次“重新输出完整版本”，尽量避免末尾被截断
+                fix_messages = [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                    {"role": "user", "content": format_prompt},
+                    {"role": "user", "content": "注意：上一版输出疑似被截断，请重新输出一版完整可读的 3 行内容，每行必须以句号“。”结尾。"},
+                ]
+                fixed = call_blt_text(LLM_CLIENT, fix_messages, temperature=0.2, max_tokens=512)
+                fixed = (fixed or "").strip()
+                if fixed and not looks_truncated(fixed):
+                    return fixed
+            if not looks_truncated(summary):
+                return summary
         except Exception as e:
             log(f"[WARN] 速读总结失败（第 {attempt} 次）：{e}")
             time.sleep(2 * attempt)
@@ -256,11 +367,31 @@ def build_tags_html(section: str, llm_tags: List[str]) -> str:
         tags_html.append('<span class="tag-label tag-blue">精读区</span>')
     else:
         tags_html.append('<span class="tag-label tag-green">速读区</span>')
+    seen = set()
     for tag in llm_tags:
-        text = str(tag).strip()
-        if not text:
+        raw = str(tag).strip()
+        if not raw:
             continue
-        tags_html.append(f'<span class="tag-label tag-pink">{text}</span>')
+        kind, label = split_sidebar_tag(raw)
+        label = (label or "").strip()
+        if not label:
+            continue
+        if label in seen:
+            continue
+        seen.add(label)
+
+        # 使用“面板”里的配色语义：
+        # - keyword: 绿色
+        # - query:   蓝色
+        # - paper:   紫色（预留）
+        css = {
+            "keyword": "tag-green",
+            "query": "tag-blue",
+            "paper": "tag-pink",
+        }.get(kind, "tag-pink")
+        tags_html.append(
+            f'<span class="tag-label {css}">{html.escape(label)}</span>'
+        )
     return " ".join(tags_html)
 
 
@@ -384,7 +515,7 @@ def build_markdown_content(
 ) -> str:
     def meta_line(label: str, value: str) -> str:
         v = (value or "").strip()
-        return f"**{label}**: {v} \\\\" if v else ""
+        return f"**{label}**: {v} \\" if v else ""
 
     title = (paper.get("title") or "").strip()
     authors = paper.get("authors") or []
@@ -393,7 +524,18 @@ def build_markdown_content(
         published = published[:10]
     pdf_url = str(paper.get("link") or paper.get("pdf_url") or "").strip()
     score = paper.get("llm_score")
-    evidence = (paper.get("llm_evidence") or "").strip()
+    evidence = (
+        paper.get("llm_evidence_cn")
+        or paper.get("llm_evidence")
+        or paper.get("llm_evidence_en")
+        or ""
+    ).strip()
+    tldr = (
+        paper.get("llm_tldr_cn")
+        or paper.get("llm_tldr")
+        or paper.get("llm_tldr_en")
+        or ""
+    ).strip()
     abstract_en = (paper.get("abstract") or "").strip()
     if not abstract_en:
         abstract_en = "arXiv did not provide an abstract for this paper."
@@ -414,6 +556,8 @@ def build_markdown_content(
         lines.append(meta_line("Score", str(score)))
     if evidence:
         lines.append(meta_line("Evidence", evidence))
+    if tldr:
+        lines.append(meta_line("TLDR", tldr))
     lines.append("")
     lines.append("---")
     lines.append("")
@@ -438,7 +582,40 @@ def process_paper(
     md_path, txt_path, paper_id = prepare_paper_paths(docs_dir, date_str, title, arxiv_id)
 
     if os.path.exists(md_path):
-        return paper_id, title
+        # 修复模式：若自动总结/速览存在“被截断”的迹象，则仅重生成该段落，不改动前面正文
+        try:
+            with open(md_path, "r", encoding="utf-8") as f:
+                existing = f.read()
+        except Exception:
+            existing = ""
+
+        if section == "deep":
+            tail = extract_section_tail(existing, "论文详细总结（自动生成）")
+            if tail and not looks_truncated(tail):
+                return paper_id, title
+
+            pdf_url = str(paper.get("link") or paper.get("pdf_url") or "").strip()
+            ensure_text_content(pdf_url, txt_path)
+            summary = generate_deep_summary(md_path, txt_path)
+            if summary:
+                upsert_auto_block(md_path, "论文详细总结（自动生成）", summary)
+            return paper_id, title
+        else:
+            tail = extract_section_tail(existing, "速览摘要（自动生成）")
+            if tail and not looks_truncated(tail):
+                return paper_id, title
+
+            abstract_en = (paper.get("abstract") or "").strip()
+            summary = generate_quick_summary(title, abstract_en)
+            if summary and looks_truncated(summary):
+                summary = None
+            if not summary:
+                tldr = (paper.get("llm_tldr_cn") or paper.get("llm_tldr") or "").strip()
+                if tldr:
+                    summary = f"**TLDR**：{tldr}。"
+            if summary:
+                upsert_auto_block(md_path, "速览摘要（自动生成）", summary)
+            return paper_id, title
 
     pdf_url = str(paper.get("link") or paper.get("pdf_url") or "").strip()
     ensure_text_content(pdf_url, txt_path)
@@ -455,15 +632,17 @@ def process_paper(
     if section == "deep":
         summary = generate_deep_summary(md_path, txt_path)
         if summary:
-            with open(md_path, "a", encoding="utf-8") as f:
-                f.write("\n\n---\n\n## 论文详细总结（自动生成）\n\n")
-                f.write(summary)
+            upsert_auto_block(md_path, "论文详细总结（自动生成）", summary)
     else:
         summary = generate_quick_summary(title, abstract_en)
+        if summary and looks_truncated(summary):
+            summary = None
+        if not summary:
+            tldr = (paper.get("llm_tldr_cn") or paper.get("llm_tldr") or "").strip()
+            if tldr:
+                summary = f"**TLDR**：{tldr}。"
         if summary:
-            with open(md_path, "a", encoding="utf-8") as f:
-                f.write("\n\n---\n\n## 速览摘要（自动生成）\n\n")
-                f.write(summary)
+            upsert_auto_block(md_path, "速览摘要（自动生成）", summary)
 
     return paper_id, title
 
@@ -570,9 +749,13 @@ def main() -> None:
         log(f"[WARN] recommend 文件不存在（今天可能没有新论文）：{recommend_path}，将跳过 Step 6。")
         return
 
+    log_substep("6.1", "读取 recommend 结果", "START")
     payload = {}
-    with open(recommend_path, "r", encoding="utf-8") as f:
-        payload = json.load(f)
+    try:
+        with open(recommend_path, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+    finally:
+        log_substep("6.1", "读取 recommend 结果", "END")
     deep_list = payload.get("deep_dive") or []
     quick_list = payload.get("quick_skim") or []
     if not deep_list and not quick_list:
@@ -582,16 +765,22 @@ def main() -> None:
     deep_entries: List[Tuple[str, str, List[Tuple[str, str]]]] = []
     quick_entries: List[Tuple[str, str, List[Tuple[str, str]]]] = []
 
+    log_substep("6.2", "生成精读区文章", "START")
     for paper in deep_list:
         pid, title = process_paper(paper, "deep", date_str, docs_dir)
         deep_entries.append((pid, title, extract_sidebar_tags(paper)))
+    log_substep("6.2", "生成精读区文章", "END")
 
+    log_substep("6.3", "生成速读区文章", "START")
     for paper in quick_list:
         pid, title = process_paper(paper, "quick", date_str, docs_dir)
         quick_entries.append((pid, title, extract_sidebar_tags(paper)))
+    log_substep("6.3", "生成速读区文章", "END")
 
     sidebar_path = os.path.join(docs_dir, "_sidebar.md")
+    log_substep("6.4", "更新侧边栏", "START")
     update_sidebar(sidebar_path, date_str, deep_entries, quick_entries)
+    log_substep("6.4", "更新侧边栏", "END")
     log(f"[OK] docs updated: {docs_dir}")
 
 

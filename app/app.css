@@ -242,11 +242,104 @@ body.close #paper-chat-container .input-area {
   background: #fafafa;
 }
 
+#dpr-workflow-body {
+  flex: 1;
+  padding: 10px 12px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .dpr-wf-card {
   border: 1px solid #eee;
   border-radius: 10px;
   background: #fff;
   padding: 10px 12px;
+}
+
+/* 最近运行列表 */
+.dpr-wf-recent-block {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 8px;
+  margin-top: 8px;
+}
+.dpr-wf-recent-block:first-child {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.dpr-wf-recent-block-title {
+  font-weight: 600;
+  color: #555;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.dpr-wf-recent-item {
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  background: transparent;
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.dpr-wf-recent-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.dpr-wf-recent-item.is-active {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.dpr-wf-recent-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+#dpr-workflow-recent.is-loading {
+  opacity: 0.75;
+}
+
+#dpr-workflow-recent.is-loading::after {
+  content: "刷新中…";
+  display: block;
+  margin-top: 6px;
+  color: #999;
+  font-size: 11px;
+}
+
+.dpr-wf-recent-item:focus-visible {
+  outline: 2px solid rgba(23, 162, 184, 0.35);
+  outline-offset: 2px;
+}
+
+.dpr-wf-recent-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dpr-wf-recent-badge {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.dpr-wf-recent-time {
+  color: #888;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.dpr-wf-recent-sub {
+  margin-top: 2px;
+  color: #777;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dpr-wf-job {
@@ -258,6 +351,41 @@ body.close #paper-chat-container .input-area {
 .dpr-wf-job-title {
   font-weight: 600;
   margin-bottom: 6px;
+}
+
+.dpr-wf-job-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.dpr-wf-job-meta-text {
+  color: #666;
+  font-size: 12px;
+}
+
+.dpr-wf-substeps {
+  border: 1px dashed #eee;
+  border-radius: 8px;
+  background: #fafafa;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+
+.dpr-wf-substep-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #555;
+}
+
+.dpr-wf-substep-line {
+  color: #555;
+  margin: 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dpr-wf-steps {

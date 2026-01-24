@@ -189,11 +189,22 @@ def call_filter(
                     "type": "object",
                     "properties": {
                         "id": {"type": "string"},
-                        "evidence": {"type": "string"},
+                        "evidence_en": {"type": "string"},
+                        "evidence_cn": {"type": "string"},
+                        "tldr_en": {"type": "string"},
+                        "tldr_cn": {"type": "string"},
                         "score": {"type": "number"},
                         "tags": {"type": "array", "items": {"type": "string"}},
                     },
-                    "required": ["id", "evidence", "score", "tags"],
+                    "required": [
+                        "id",
+                        "evidence_en",
+                        "evidence_cn",
+                        "tldr_en",
+                        "tldr_cn",
+                        "score",
+                        "tags",
+                    ],
                     "additionalProperties": False,
                 },
             }
@@ -239,19 +250,25 @@ def call_filter(
         "Papers:\n"
         f"{json.dumps(docs, ensure_ascii=False)}\n\n"
         "Output JSON format example:\n"
-        "{\"results\": [{\"id\": \"paper_id\", \"evidence\": \"short phrase\", \"score\": 7, \"tags\": [\"tag1\", \"tag2\"]}]}\n\n"
+        "{\"results\": [{\"id\": \"paper_id\", \"evidence_en\": \"short English phrase\", \"evidence_cn\": \"简短中文短语\", \"tldr_en\": \"one-sentence TLDR\", \"tldr_cn\": \"一句话 TLDR\", \"score\": 7, \"tags\": [\"tag1\", \"tag2\"]}]}\n\n"
         "Requirement: You MUST return exactly one result for every input paper. "
         "The results length must match the papers length, and every input id must appear once.\n\n"
         "Output must be a single-line JSON string. "
         "Do not include line breaks inside any string fields. "
-        "Avoid double quotes inside evidence text.\n\n"
+        "Avoid double quotes inside evidence text fields.\n\n"
         "Task: Identify papers worth recommending, using divergent thinking. "
-        "Evidence should be a short phrase linking the paper to the queries or interests. "
-        "Evidence does NOT need to be a direct quote. "
+        "Evidence must be provided in both languages: "
+        "evidence_en (English) and evidence_cn (Chinese). "
+        "They should be short phrases linking the paper to the queries or interests; "
+        "they do NOT need to be direct quotes. "
+        "Also generate TLDR in both languages: tldr_en and tldr_cn. "
+        "TLDR should be one sentence summarizing what the paper does and why it matters. "
+        "Keep TLDR concise: <= 120 characters in English and <= 60 Chinese characters. "
         "Then give a score (0-10). "
         "Tags must be selected from the provided tags (use tag values only). "
         "Tag values already include prefixes like \"keyword:\" or \"query:\", keep them as-is. "
-        "If unrelated, use evidence=\"not relevant\", score 0, and tags=[]."
+        "If unrelated, use evidence_en=\"not relevant\", evidence_cn=\"不相关\", "
+        "tldr_en=\"not relevant\", tldr_cn=\"不相关\", score 0, and tags=[]."
     )
 
     resp = client.chat(
@@ -389,7 +406,21 @@ def process_file(
                 score = float(item.get("score", 0))
             except Exception:
                 score = 0.0
-            evidence = str(item.get("evidence", "")).strip()
+            # 新字段：中英双语 evidence（兼容旧字段 evidence）
+            evidence_en = str(item.get("evidence_en") or "").strip()
+            evidence_cn = str(item.get("evidence_cn") or "").strip()
+            tldr_en = str(item.get("tldr_en") or "").strip()
+            tldr_cn = str(item.get("tldr_cn") or "").strip()
+            legacy = str(item.get("evidence", "")).strip()
+            if not evidence_en:
+                evidence_en = legacy
+            if not evidence_cn:
+                # 若模型未返回中文 evidence，则回退为英文（下游可再做翻译/展示策略）
+                evidence_cn = legacy or evidence_en
+            if not tldr_en:
+                tldr_en = "not relevant" if score <= 0 else evidence_en
+            if not tldr_cn:
+                tldr_cn = "不相关" if score <= 0 else (evidence_cn or tldr_en)
             tags = item.get("tags")
             if not isinstance(tags, list):
                 tags = []
@@ -399,7 +430,10 @@ def process_file(
                 merged[pid] = {
                     "paper_id": pid,
                     "score": score,
-                    "evidence": evidence,
+                    "evidence_en": evidence_en,
+                    "evidence_cn": evidence_cn,
+                    "tldr_en": tldr_en,
+                    "tldr_cn": tldr_cn,
                     "tags": tags,
                 }
 
