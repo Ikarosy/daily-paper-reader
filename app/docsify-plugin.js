@@ -502,19 +502,29 @@ window.$docsify = {
         let latestDay = '';
 
         items.forEach((li) => {
-          if (li.dataset.dayToggleApplied === '1') return;
-
           const childUl = li.querySelector(':scope > ul');
           const directLink = li.querySelector(':scope > a');
           if (!childUl || directLink) return;
 
-          // 取第一个文本节点作为标签文本
+          // 取日期文本：
+          // - 初次：li 的第一个文本节点
+          // - 已初始化过：wrapper 内的 label
+          let rawText = '';
+          let firstTextNode = null;
           const first = li.firstChild;
-          if (!first || first.nodeType !== Node.TEXT_NODE) return;
-          const rawText = (first.textContent || '').trim();
+          if (first && first.nodeType === Node.TEXT_NODE) {
+            rawText = (first.textContent || '').trim();
+            firstTextNode = first;
+          } else {
+            const label = li.querySelector(
+              ':scope > .sidebar-day-toggle .sidebar-day-toggle-label',
+            );
+            rawText = (label && (label.textContent || '').trim()) || '';
+          }
+
           if (!/^\d{4}-\d{2}-\d{2}$/.test(rawText)) return;
 
-          dayItems.push({ li, text: rawText, first });
+          dayItems.push({ li, text: rawText, firstTextNode });
           if (!latestDay || rawText > latestDay) {
             latestDay = rawText;
           }
@@ -550,27 +560,81 @@ window.$docsify = {
           }
         };
 
+        const DAY_ANIM_MS = 240;
+
+        const setDayCollapsed = (li, collapsed, options = {}) => {
+          const { animate = true } = options || {};
+          const ul = li.querySelector(':scope > ul');
+          if (!ul) return;
+          ul.classList.add('sidebar-day-content');
+
+          const doAnimate = animate && !prefersReducedMotion();
+          if (!doAnimate) {
+            ul.style.transition = 'none';
+            ul.style.maxHeight = collapsed ? '0px' : `${ul.scrollHeight}px`;
+            ul.style.opacity = collapsed ? '0' : '1';
+            requestAnimationFrame(() => {
+              ul.style.transition = '';
+            });
+            return;
+          }
+
+          if (collapsed) {
+            ul.style.maxHeight = `${ul.scrollHeight}px`;
+            ul.style.opacity = '0';
+            requestAnimationFrame(() => {
+              ul.style.maxHeight = '0px';
+            });
+          } else {
+            ul.style.opacity = '1';
+            ul.style.maxHeight = '0px';
+            requestAnimationFrame(() => {
+              ul.style.maxHeight = `${ul.scrollHeight}px`;
+            });
+          }
+
+          setTimeout(() => {
+            try {
+              if (!li.classList.contains('sidebar-day-collapsed')) {
+                ul.style.maxHeight = `${ul.scrollHeight}px`;
+              }
+            } catch {
+              // ignore
+            }
+          }, DAY_ANIM_MS + 30);
+        };
+
         // 第二遍：真正安装折叠行为
-        dayItems.forEach(({ li, text: rawText, first }) => {
-          if (li.dataset.dayToggleApplied === '1') return;
+        dayItems.forEach(({ li, text: rawText, firstTextNode }) => {
+          const childUl = li.querySelector(':scope > ul');
+          if (childUl) childUl.classList.add('sidebar-day-content');
 
-          // 创建可点击的容器（包含日期文字和小箭头）
-          const wrapper = document.createElement('div');
-          wrapper.className = 'sidebar-day-toggle';
+          // 复用或创建 wrapper（包含日期文字和小箭头）
+          let wrapper = li.querySelector(':scope > .sidebar-day-toggle');
+          if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.className = 'sidebar-day-toggle';
 
-          const labelSpan = document.createElement('span');
-          labelSpan.className = 'sidebar-day-toggle-label';
-          labelSpan.textContent = rawText;
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'sidebar-day-toggle-label';
+            labelSpan.textContent = rawText;
 
-          const arrowSpan = document.createElement('span');
-          arrowSpan.className = 'sidebar-day-toggle-arrow';
-          arrowSpan.textContent = '▾';
+            const arrowSpan = document.createElement('span');
+            arrowSpan.className = 'sidebar-day-toggle-arrow';
+            arrowSpan.textContent = '▾';
 
-          wrapper.appendChild(labelSpan);
-          wrapper.appendChild(arrowSpan);
+            wrapper.appendChild(labelSpan);
+            wrapper.appendChild(arrowSpan);
 
-          // 用 wrapper 替换原始文本节点
-          li.replaceChild(wrapper, first);
+            // 用 wrapper 替换原始文本节点
+            if (firstTextNode && firstTextNode.parentNode === li) {
+              li.replaceChild(wrapper, firstTextNode);
+            }
+          }
+
+          const labelSpan = wrapper.querySelector('.sidebar-day-toggle-label');
+          if (labelSpan) labelSpan.textContent = rawText;
+          const arrowSpan = wrapper.querySelector('.sidebar-day-toggle-arrow');
 
           // 决定默认展开 / 收起：
           // - 如果本次是“出现了新的一天”：清空历史，只展开最新一天；
@@ -595,25 +659,60 @@ window.$docsify = {
 
           if (collapsed) {
             li.classList.add('sidebar-day-collapsed');
-            arrowSpan.textContent = '▸';
+            if (arrowSpan) arrowSpan.textContent = '▸';
           } else {
             li.classList.remove('sidebar-day-collapsed');
-            arrowSpan.textContent = '▾';
+            if (arrowSpan) arrowSpan.textContent = '▾';
           }
 
-          wrapper.addEventListener('click', () => {
-            const collapsed = li.classList.toggle('sidebar-day-collapsed');
-            arrowSpan.textContent = collapsed ? '▸' : '▾';
-            state[rawText] = collapsed ? 'closed' : 'open';
-            state.__latestDay = latestDay;
-            ensureStateSaved();
-            // 若当前选中论文位于被折叠的日期下，隐藏选中高亮层，避免“残留高亮”
-            requestAnimationFrame(() => {
-              syncSidebarActiveIndicator({ animate: false });
-            });
-          });
+          // 初始化一次高度（不做动画，避免首次渲染闪动）
+          setDayCollapsed(li, collapsed, { animate: false });
 
-          li.dataset.dayToggleApplied = '1';
+          // 绑定点击：使用 capture 阶段，确保即使旧版本已有 handler 也能覆盖
+          if (!wrapper.dataset.dprDayToggleBound) {
+            wrapper.dataset.dprDayToggleBound = '1';
+            wrapper.addEventListener(
+              'click',
+              (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+                const collapsed = li.classList.toggle('sidebar-day-collapsed');
+                if (arrowSpan) arrowSpan.textContent = collapsed ? '▸' : '▾';
+                setDayCollapsed(li, collapsed, { animate: true });
+                state[rawText] = collapsed ? 'closed' : 'open';
+                state.__latestDay = latestDay;
+                ensureStateSaved();
+                requestAnimationFrame(() => {
+                  syncSidebarActiveIndicator({ animate: false });
+                });
+              },
+              true,
+            );
+          }
+
+          li.dataset.dayToggleApplied = '2';
+        });
+
+        // 每次 doneEach 触发时都刷新一次“已展开分组”的 max-height：
+        // 避免 active 项显示评价按钮等导致内容高度变化后被截断，从而出现“只有灰色高亮但看不到文字”的错觉。
+        requestAnimationFrame(() => {
+          try {
+            nav
+              .querySelectorAll('li:not(.sidebar-day-collapsed) > ul.sidebar-day-content')
+              .forEach((ul) => {
+                // 仅做“静默修正”，避免因为 max-height 变化触发过渡，导致侧边栏看起来“滚动/刷新”一下
+                const prevTransition = ul.style.transition;
+                ul.style.transition = 'none';
+                ul.style.maxHeight = `${ul.scrollHeight}px`;
+                ul.style.opacity = '1';
+                requestAnimationFrame(() => {
+                  ul.style.transition = prevTransition || '';
+                });
+              });
+          } catch {
+            // ignore
+          }
         });
       };
 
@@ -985,6 +1084,17 @@ window.$docsify = {
         }
 
         showSidebarActiveIndicator();
+
+        // 选中高亮层配色：根据 good/bad 状态切换（用于“已打勾/打叉”的选中底色）
+        try {
+          const isGood =
+            li.classList && li.classList.contains('sidebar-paper-good');
+          const isBad = li.classList && li.classList.contains('sidebar-paper-bad');
+          indicator.classList.toggle('is-good', !!isGood && !isBad);
+          indicator.classList.toggle('is-bad', !!isBad && !isGood);
+        } catch {
+          // ignore
+        }
 
         const x = li.offsetLeft;
         const y = li.offsetTop;

@@ -457,10 +457,12 @@ body.sidebar-resizing .sidebar::after {
   color: #777;
 }
 
-/* 关键词标签 - 绿色背景 + 深绿文字 */
+/* 关键词标签：冷灰/蓝灰（与浅蓝/浅紫区分，且避免绿/青） */
 .sidebar-nav .dpr-sidebar-tag-keyword {
-  background-color: #e8f5e9;
-  color: #2e7d32;
+  /* 稍微偏米色的冷灰（greige），避免偏黄过暖 */
+  background-color: #f5f3ef;
+  color: #3b3a36;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 4px;
 }
 
@@ -551,21 +553,21 @@ body.sidebar-resizing .sidebar::after {
 /* 输入框滚动条样式与关键词面板一致，隐藏上下小三角 */
 #paper-chat-container #user-input {
   scrollbar-width: thin;
-  scrollbar-color: #a5d6a7 #e8f5e9;
+  scrollbar-color: #c7c1b8 #ece7df;
 }
 #paper-chat-container #user-input::-webkit-scrollbar {
   width: 6px;
 }
 #paper-chat-container #user-input::-webkit-scrollbar-track {
-  background: #e8f5e9;
+  background: #f5f3ef;
   border-radius: 3px;
 }
 #paper-chat-container #user-input::-webkit-scrollbar-thumb {
-  background: #a5d6a7;
+  background: #c7c1b8;
   border-radius: 3px;
 }
 #paper-chat-container #user-input::-webkit-scrollbar-thumb:hover {
-  background: #81c784;
+  background: #b1aba2;
 }
 #paper-chat-container #user-input::-webkit-scrollbar-button {
   height: 0;
@@ -1145,14 +1147,23 @@ article.markdown-section {
   opacity: 0;        /* 隐藏小三角但保留占位，避免布局抖动 */
   pointer-events: none;
 }
-.sidebar-day-collapsed > ul {
-  display: none;
+
+/* 日期分组展开/收起动效：由 JS 动态设置 max-height，这里负责过渡效果 */
+.sidebar-day-content {
+  overflow: hidden;
+  max-height: none;
+  opacity: 1;
+  transition: max-height 240ms ease, opacity 160ms ease;
+  will-change: max-height, opacity;
+}
+.sidebar-day-collapsed > .sidebar-day-content {
+  opacity: 0;
 }
 
 /* 评价为“好”的论文（浅绿色文字，保持白底，仅文字变色） */
 .sidebar-nav li.sidebar-paper-good {
-  background-color: #ffffff;
-  border-radius: 4px;
+  background-color: transparent;
+  border-radius: 20px;
 }
 .sidebar-nav li.sidebar-paper-good > a {
   color: #73d13d; /* 更浅的绿色 */
@@ -1160,8 +1171,8 @@ article.markdown-section {
 
 /* 评价为"一般"的论文（浅红色文字，保持白底，仅文字变色） */
 .sidebar-nav li.sidebar-paper-bad {
-  background-color: #ffffff;
-  border-radius: 4px;
+  background-color: transparent;
+  border-radius: 20px;
 }
 .sidebar-nav li.sidebar-paper-bad > a {
   color: #ff7875; /* 浅红色 */
@@ -1203,8 +1214,24 @@ article.markdown-section {
   border-radius: 20px;
   opacity: 0;
   pointer-events: none;
-  z-index: 0;
+  z-index: 1;
   transition: opacity 120ms ease-out;
+}
+
+/* good/bad 的 hover：用更明显的浅绿/浅红（比默认灰稍深一点） */
+.sidebar-nav li.sidebar-paper-item.sidebar-paper-good::before {
+  opacity: 1;
+  background-color: rgba(76, 175, 80, 0.1);
+}
+.sidebar-nav li.sidebar-paper-item.sidebar-paper-bad::before {
+  opacity: 1;
+  background-color: rgba(244, 67, 54, 0.09);
+}
+.sidebar-nav li.sidebar-paper-item.sidebar-paper-good:hover::before {
+  background-color: rgba(76, 175, 80, 0.16);
+}
+.sidebar-nav li.sidebar-paper-item.sidebar-paper-bad:hover::before {
+  background-color: rgba(244, 67, 54, 0.14);
 }
 
 /* 选中态滑动高亮层：一个元素在 sidebar 内平滑移动，覆盖整行 */
@@ -1220,23 +1247,39 @@ article.markdown-section {
   border-radius: 20px;
   background-color: #f0f0f0; /* 选中：深一点的灰色 */
   pointer-events: none;
-  z-index: 1; /* 高于 hover 伪元素 */
+  z-index: 0; /* 放在内容之下，避免遮住文字/标签 */
   transform: translate3d(0, 0, 0);
   transition: transform var(--dpr-transition-ms, 320ms) ease-out,
     height var(--dpr-transition-ms, 320ms) ease-out,
     width var(--dpr-transition-ms, 320ms) ease-out;
 }
 
+/* 选中态：如果该条目已打勾/打叉，则选中底色改为浅绿/浅红 */
+.sidebar-nav .dpr-sidebar-active-indicator.is-good {
+  background-color: rgba(76, 175, 80, 0.18);
+}
+.sidebar-nav .dpr-sidebar-active-indicator.is-bad {
+  background-color: rgba(244, 67, 54, 0.16);
+}
+
 .sidebar-nav li.sidebar-paper-item {
   position: relative;
-  z-index: 2; /* 让文字/图标在高亮层之上 */
+  z-index: 2; /* 高于 indicator/hover 背景 */
 }
 
 /* 确保文字/图标始终在 hover 浅灰层之上（避免被 ::before 盖住） */
 .sidebar-nav li.sidebar-paper-item > a,
 .sidebar-nav li.sidebar-paper-item .sidebar-paper-rating-icons {
   position: relative;
-  z-index: 2;
+  z-index: 3;
+}
+
+/* 进一步兜底：标题/标签也强制在“滑动高亮层”之上，避免被遮罩盖住 */
+.sidebar-nav li.sidebar-paper-item .dpr-sidebar-title,
+.sidebar-nav li.sidebar-paper-item .dpr-sidebar-tags,
+.sidebar-nav li.sidebar-paper-item .dpr-sidebar-tag {
+  position: relative;
+  z-index: 3;
 }
 .sidebar-nav li.sidebar-paper-item > a {
   text-decoration: none;
@@ -1648,15 +1691,15 @@ article.markdown-section {
   width: 6px;
 }
 #arxiv-keywords-list::-webkit-scrollbar-track {
-  background: #e8f5e9;
+  background: #f5f3ef;
   border-radius: 3px;
 }
 #arxiv-keywords-list::-webkit-scrollbar-thumb {
-  background: #a5d6a7;
+  background: #c7c1b8;
   border-radius: 3px;
 }
 #arxiv-keywords-list::-webkit-scrollbar-thumb:hover {
-  background: #81c784;
+  background: #b1aba2;
 }
 
 /* 美化滚动条样式 - 蓝色区域（Zotero） */
@@ -1727,7 +1770,8 @@ article.markdown-section {
   flex: 1 1 0;
   min-width: 0;
   box-sizing: border-box;
-  background: #e8f5e9;
+  /* 后台面板：关键词区域使用冷灰/蓝灰，避免黄暖色与绿/青 */
+  background: #f5f3ef;
   display: flex;
   flex-direction: column;
 }
@@ -1783,8 +1827,10 @@ article.markdown-section {
   white-space: nowrap;
 }
 .tag-green {
-  background-color: #e8f5e9;
-  color: #2e7d32;
+  /* 关键词标签：冷灰/蓝灰（历史 class 名保留） */
+  background-color: #f5f3ef;
+  color: #3b3a36;
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 .tag-blue {
   background-color: #e3f2fd;
