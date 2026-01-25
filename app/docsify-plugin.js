@@ -649,11 +649,11 @@ window.$docsify = {
         }
       };
 
-      const markSidebarReadState = (currentPaperId) => {
-        const nav = document.querySelector('.sidebar-nav');
-        if (!nav) return;
+	      const markSidebarReadState = (currentPaperId) => {
+	        const nav = document.querySelector('.sidebar-nav');
+	        if (!nav) return;
 
-        const state = loadReadState();
+	        const state = loadReadState();
         if (currentPaperId) {
           if (!state[currentPaperId]) {
             state[currentPaperId] = 'read';
@@ -677,80 +677,85 @@ window.$docsify = {
           }
         };
 
-        const links = nav.querySelectorAll('a[href*="#/"]');
-        links.forEach((a) => {
-          const href = a.getAttribute('href') || '';
-          const m = href.match(/#\/(.+)$/);
-          if (!m) return;
-          const paperIdFromHref = m[1].replace(/\/$/, '');
-          const li = a.closest('li');
-          if (!li) return;
-          // 标记这是一个具体论文条目，方便样式细化（避免整天标题一起高亮）
-          li.classList.add('sidebar-paper-item');
+	        const links = nav.querySelectorAll('a[href*="#/"]');
+	        links.forEach((a) => {
+	          const href = a.getAttribute('href') || '';
+	          const m = href.match(/#\/(.+)$/);
+	          if (!m) return;
+	          const paperIdFromHref = m[1].replace(/\/$/, '');
+	          const li = a.closest('li');
+	          if (!li) return;
+	          // 标记这是一个具体论文条目，方便样式细化（避免整天标题一起高亮）
+	          li.classList.add('sidebar-paper-item');
 
-          // 为侧边栏条目追加“不错 / 一般”圆圈图标按钮
-          let actionWrapper = li.querySelector('.sidebar-paper-rating-icons');
-          if (!actionWrapper) {
-            actionWrapper = document.createElement('span');
-            actionWrapper.className = 'sidebar-paper-rating-icons';
+	          // 为侧边栏条目追加“不错 / 一般”圆圈图标按钮
+	          let actionWrapper = li.querySelector('.sidebar-paper-rating-icons');
+	          let goodIcon = actionWrapper
+	            ? actionWrapper.querySelector('.sidebar-paper-rating-icon.good')
+	            : null;
+	          let badIcon = actionWrapper
+	            ? actionWrapper.querySelector('.sidebar-paper-rating-icon.bad')
+	            : null;
+	          if (!actionWrapper) {
+	            actionWrapper = document.createElement('span');
+	            actionWrapper.className = 'sidebar-paper-rating-icons';
 
-            const goodIcon = document.createElement('button');
-            goodIcon.className = 'sidebar-paper-rating-icon good';
-            goodIcon.title = '标记为「不错」';
-            goodIcon.innerHTML = '✓';
+	            goodIcon = document.createElement('button');
+	            goodIcon.className = 'sidebar-paper-rating-icon good';
+	            goodIcon.title = '标记为「不错」';
+	            goodIcon.innerHTML = '✓';
 
-            const badIcon = document.createElement('button');
-            badIcon.className = 'sidebar-paper-rating-icon bad';
-            badIcon.title = '标记为「一般」';
-            badIcon.innerHTML = '✕';
+	            badIcon = document.createElement('button');
+	            badIcon.className = 'sidebar-paper-rating-icon bad';
+	            badIcon.title = '标记为「一般」';
+	            badIcon.innerHTML = '✕';
 
-            const state = loadReadState();
-            const syncIconState = () => {
-              const s = state[paperIdFromHref];
-              goodIcon.classList.toggle('active', s === 'good');
-              badIcon.classList.toggle('active', s === 'bad');
-            };
+	            goodIcon.addEventListener('click', (e) => {
+	              e.preventDefault();
+	              e.stopPropagation();
+	              const latestState = loadReadState();
+	              const current = latestState[paperIdFromHref];
+	              if (current === 'good') {
+	                latestState[paperIdFromHref] = 'read';
+	              } else {
+	                latestState[paperIdFromHref] = 'good';
+	              }
+	              saveReadState(latestState);
+	              // 重新应用整棵侧边栏的已读/评价样式，确保当前选中项立即刷新
+	              markSidebarReadState(null);
+	            });
 
-            goodIcon.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const current = state[paperIdFromHref];
-              if (current === 'good') {
-                state[paperIdFromHref] = 'read';
-              } else {
-                state[paperIdFromHref] = 'good';
-              }
-              saveReadState(state);
-              syncIconState();
-              applyLiState(li, paperIdFromHref);
-              // 重新应用整棵侧边栏的已读/评价样式，确保当前选中项立即刷新
-              markSidebarReadState(null);
-            });
+	            badIcon.addEventListener('click', (e) => {
+	              e.preventDefault();
+	              e.stopPropagation();
+	              const latestState = loadReadState();
+	              const current = latestState[paperIdFromHref];
+	              if (current === 'bad') {
+	                latestState[paperIdFromHref] = 'read';
+	              } else {
+	                latestState[paperIdFromHref] = 'bad';
+	              }
+	              saveReadState(latestState);
+	              markSidebarReadState(null);
+	            });
 
-            badIcon.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const current = state[paperIdFromHref];
-              if (current === 'bad') {
-                state[paperIdFromHref] = 'read';
-              } else {
-                state[paperIdFromHref] = 'bad';
-              }
-              saveReadState(state);
-              syncIconState();
-              applyLiState(li, paperIdFromHref);
-              markSidebarReadState(null);
-            });
+	            actionWrapper.appendChild(goodIcon);
+	            actionWrapper.appendChild(badIcon);
+	            a.parentNode.insertBefore(actionWrapper, a.nextSibling);
+	          }
 
-            actionWrapper.appendChild(goodIcon);
-            actionWrapper.appendChild(badIcon);
-            a.parentNode.insertBefore(actionWrapper, a.nextSibling);
-            syncIconState();
-          }
+	          // 无论按钮是否刚创建，都要基于“最新 state”刷新激活态（支持空格键切换）
+	          try {
+	            const s = state[paperIdFromHref];
+	            if (goodIcon) goodIcon.classList.toggle('active', s === 'good');
+	            if (badIcon) badIcon.classList.toggle('active', s === 'bad');
+	          } catch {
+	            // ignore
+	          }
 
-          applyLiState(li, paperIdFromHref);
-        });
-      };
+	          applyLiState(li, paperIdFromHref);
+	        });
+	      };
 
       // 侧边栏/正文的论文页标题条：英文右侧，中文左侧，中间竖线
       const isPaperRouteFile = (file) => {
