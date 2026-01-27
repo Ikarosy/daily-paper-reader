@@ -522,11 +522,17 @@ window.$docsify = {
             rawText = (label && (label.textContent || '').trim()) || '';
           }
 
-          if (!/^\d{4}-\d{2}-\d{2}$/.test(rawText)) return;
+          const rangeMatch = rawText.match(
+            /^(\d{4}-\d{2}-\d{2})\s*~\s*(\d{4}-\d{2}-\d{2})$/,
+          );
+          const isSingleDay = /^\d{4}-\d{2}-\d{2}$/.test(rawText);
+          if (!isSingleDay && !rangeMatch) return;
 
-          dayItems.push({ li, text: rawText, firstTextNode });
-          if (!latestDay || rawText > latestDay) {
-            latestDay = rawText;
+          const dayKey = rangeMatch ? rangeMatch[2] : rawText; // 用区间“结束日”参与最新日判断
+
+          dayItems.push({ li, text: rawText, firstTextNode, dayKey });
+          if (!latestDay || dayKey > latestDay) {
+            latestDay = dayKey;
           }
         });
 
@@ -605,9 +611,10 @@ window.$docsify = {
         };
 
         // 第二遍：真正安装折叠行为
-        dayItems.forEach(({ li, text: rawText, firstTextNode }) => {
+        dayItems.forEach(({ li, text: rawText, firstTextNode, dayKey }) => {
           const childUl = li.querySelector(':scope > ul');
           if (childUl) childUl.classList.add('sidebar-day-content');
+          const key = dayKey || rawText;
 
           // 复用或创建 wrapper（包含日期文字和小箭头）
           let wrapper = li.querySelector(':scope > .sidebar-day-toggle');
@@ -642,7 +649,7 @@ window.$docsify = {
           // - 否则（首次使用且没有历史）：仅“最新一天”展开，其余收起。
           let collapsed;
           if (isNewDay) {
-            collapsed = rawText === latestDay ? false : true;
+            collapsed = key === latestDay ? false : true;
           } else if (hasAnyState) {
             const saved = state[rawText];
             if (saved === 'open') {
@@ -651,10 +658,10 @@ window.$docsify = {
               collapsed = true;
             } else {
               // 新出现的日期：默认跟最新一天策略走
-              collapsed = rawText === latestDay ? false : true;
+              collapsed = key === latestDay ? false : true;
             }
           } else {
-            collapsed = rawText === latestDay ? false : true;
+            collapsed = key === latestDay ? false : true;
           }
 
           if (collapsed) {

@@ -661,6 +661,35 @@ def process_mode(
         "quick_skim": sanitize_items(quick_selected),
     }
 
+def force_all_into_quick(result: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    将精读区合并进速览区，确保所有论文都归入 quick_skim。
+    规则：保留“精读优先”（高分在前）的顺序：deep_dive 在前，quick_skim 在后；按 id 去重。
+    """
+    deep = result.get("deep_dive") or []
+    quick = result.get("quick_skim") or []
+    merged: List[Dict[str, Any]] = []
+    seen: set[str] = set()
+    for item in list(deep) + list(quick):
+        if not isinstance(item, dict):
+            continue
+        pid = str(item.get("id") or item.get("paper_id") or "").strip()
+        if not pid or pid in seen:
+            continue
+        seen.add(pid)
+        merged.append(item)
+
+    copied = dict(result)
+    copied["deep_dive"] = []
+    copied["quick_skim"] = merged
+
+    stats = dict((copied.get("stats") or {}))
+    stats["deep_selected"] = 0
+    stats["quick_selected"] = len(merged)
+    stats["forced_all_quick"] = True
+    copied["stats"] = stats
+    return copied
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(
@@ -683,6 +712,11 @@ def main() -> None:
         type=str,
         default=None,
         help="comma separated modes (standard,extend,spark). default: config arxiv_paper_setting.mode",
+    )
+    parser.add_argument(
+        "--all-quick",
+        action="store_true",
+        help="Force all selected papers into quick_skim (deep_dive will be empty).",
     )
 
     args = parser.parse_args()
@@ -794,6 +828,8 @@ def main() -> None:
             cfg,
             carryover_ratio=CARRYOVER_RATIO,
         )
+        if args.all_quick:
+            result = force_all_into_quick(result)
         output_path = os.path.join(output_dir, f"arxiv_papers_{TODAY_STR}.{mode}.json")
         stats = result.get("stats") or {}
         log(f"[STATS] {json.dumps(stats, ensure_ascii=False)}")

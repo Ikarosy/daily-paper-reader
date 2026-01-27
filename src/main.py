@@ -3,6 +3,7 @@ import argparse
 import os
 import subprocess
 import sys
+from datetime import datetime, timedelta, timezone
 
 
 SRC_DIR = os.path.dirname(__file__)
@@ -33,9 +34,27 @@ def main() -> None:
         default=8,
         help="Batch size for embedding retrieval (default: 8).",
     )
+    parser.add_argument(
+        "--fetch-ignore-seen",
+        action="store_true",
+        help="Pass --ignore-seen to Step1 (fetch arxiv), ignoring archive/arxiv_seen.json.",
+    )
+    parser.add_argument(
+        "--fetch-days",
+        type=int,
+        default=None,
+        help="Pass --days to Step1 (fetch arxiv). Default: use config.yaml/state logic.",
+    )
     args = parser.parse_args()
 
     python = sys.executable
+
+    sidebar_date_label = None
+    if args.fetch_days is not None:
+        days = max(int(args.fetch_days), 1)
+        end_date = datetime.now(timezone.utc).date()
+        start_date = end_date - timedelta(days=days - 1)
+        sidebar_date_label = f"{start_date:%Y-%m-%d} ~ {end_date:%Y-%m-%d}"
 
     if args.run_enrich:
         run_step(
@@ -45,7 +64,12 @@ def main() -> None:
 
     run_step(
         "Step 1 - fetch arxiv",
-        [python, os.path.join(SRC_DIR, "1.fetch_paper_arxiv.py")],
+        [
+            python,
+            os.path.join(SRC_DIR, "1.fetch_paper_arxiv.py"),
+            *(["--days", str(args.fetch_days)] if args.fetch_days is not None else []),
+            *(["--ignore-seen"] if args.fetch_ignore_seen else []),
+        ],
     )
     run_step(
         "Step 2.1 - BM25",
@@ -76,11 +100,23 @@ def main() -> None:
     )
     run_step(
         "Step 5 - Select",
-        [python, os.path.join(SRC_DIR, "5.select_papers.py")],
+        [
+            python,
+            os.path.join(SRC_DIR, "5.select_papers.py"),
+            *(["--all-quick"] if args.fetch_days is not None else []),
+        ],
     )
     run_step(
         "Step 6 - Generate Docs",
-        [python, os.path.join(SRC_DIR, "6.generate_docs.py")],
+        [
+            python,
+            os.path.join(SRC_DIR, "6.generate_docs.py"),
+            *(
+                ["--sidebar-date-label", sidebar_date_label]
+                if sidebar_date_label
+                else []
+            ),
+        ],
     )
 
 

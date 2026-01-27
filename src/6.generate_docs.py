@@ -815,6 +815,7 @@ def update_sidebar(
     date_str: str,
     deep_entries: List[Tuple[str, str, List[Tuple[str, str]]]],
     quick_entries: List[Tuple[str, str, List[Tuple[str, str]]]],
+    date_label: str | None = None,
 ) -> None:
     def render_sidebar_tag(kind: str, label: str) -> str:
         safe_kind = html.escape(kind or "other")
@@ -823,8 +824,11 @@ def update_sidebar(
             return f'<span class="dpr-sidebar-tag dpr-sidebar-tag-{safe_kind}">{label}</span>'
         return f'<span class="dpr-sidebar-tag dpr-sidebar-tag-{safe_kind}">{html.escape(label)}</span>'
 
-    date_label = format_date_str(date_str)
-    day_heading = f"  * {date_label}\n"
+    effective_label = (date_label or "").strip() or format_date_str(date_str)
+    # 用隐藏 marker 做稳定定位，避免“展示标题”变更导致无法覆盖更新
+    marker = f"<!--dpr-date:{date_str}-->"
+    day_heading = f"  * {effective_label} {marker}\n"
+    legacy_day_heading = f"  * {format_date_str(date_str)}\n"
 
     lines: List[str] = []
     if os.path.exists(sidebar_path):
@@ -847,7 +851,12 @@ def update_sidebar(
         line = lines[i]
         if line.startswith("* "):
             break
-        if line == day_heading:
+        # 优先按 marker 精准匹配
+        if marker in line:
+            day_idx = i
+            break
+        # 兼容历史格式（没有 marker）
+        if line == legacy_day_heading:
             day_idx = i
             break
 
@@ -895,6 +904,12 @@ def main() -> None:
     parser.add_argument("--date", type=str, default=TODAY_STR, help="date string YYYYMMDD.")
     parser.add_argument("--mode", type=str, default=None, help="mode for recommend file.")
     parser.add_argument("--docs-dir", type=str, default=None, help="override docs dir.")
+    parser.add_argument(
+        "--sidebar-date-label",
+        type=str,
+        default=None,
+        help="侧边栏日期标题展示文本（例如：2026-01-01 ~ 2026-01-27）。不填则使用单日日期。",
+    )
     parser.add_argument(
         "--sidebar-only",
         action="store_true",
@@ -996,7 +1011,13 @@ def main() -> None:
 
     sidebar_path = os.path.join(docs_dir, "_sidebar.md")
     log_substep("6.4", "更新侧边栏", "START")
-    update_sidebar(sidebar_path, date_str, deep_entries, quick_entries)
+    update_sidebar(
+        sidebar_path,
+        date_str,
+        deep_entries,
+        quick_entries,
+        date_label=args.sidebar_date_label,
+    )
     log_substep("6.4", "更新侧边栏", "END")
     log(f"[OK] docs updated: {docs_dir}")
 

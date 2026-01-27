@@ -134,10 +134,15 @@ def group_end() -> None:
 def fetch_all_domains_metadata_robust(
     days: int | None = None,
     output_file: str | None = None,
+    ignore_seen: bool = False,
 ) -> None:
     # 1. 计算时间窗口（优先使用上次抓取时间）
     end_date = datetime.now(timezone.utc)
-    seen_ids, latest_published_at = load_seen_state()
+    if ignore_seen:
+        log("🧹 [Global Ingest] ignore_seen=true：将忽略 arxiv_seen（不跳过已见论文，不使用 latest_published_at）。")
+        seen_ids, latest_published_at = set(), None
+    else:
+        seen_ids, latest_published_at = load_seen_state()
     if days is None:
         days = resolve_days_window(1)
     if latest_published_at:
@@ -269,5 +274,31 @@ def fetch_all_domains_metadata_robust(
     group_end()
 
 if __name__ == "__main__":
-    # 建议先用 days=1 测试一下，没问题再跑更长时间窗口
-    fetch_all_domains_metadata_robust()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="抓取 arXiv 多领域论文元数据（按提交时间窗口）。")
+    parser.add_argument(
+        "--days",
+        type=int,
+        default=None,
+        help="抓取窗口天数（优先级高于 config.yaml）。不填则使用 config.yaml 的 days_window。",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default=None,
+        help="输出 JSON 文件路径（默认写入 archive/YYYYMMDD/raw/arxiv_papers_YYYYMMDD.json）。",
+    )
+    parser.add_argument(
+        "--ignore-seen",
+        action="store_true",
+        help="本次运行忽略 archive/arxiv_seen.json：不跳过已见论文，也不使用其中的 latest_published_at 作为窗口起点。",
+    )
+    args = parser.parse_args()
+
+    # 建议先用 --days 1 测试一下，没问题再跑更长时间窗口
+    fetch_all_domains_metadata_robust(
+        days=args.days,
+        output_file=args.output,
+        ignore_seen=bool(args.ignore_seen),
+    )
