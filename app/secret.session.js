@@ -676,6 +676,9 @@
           <button id="secret-setup-back" type="button" class="secret-gate-btn secondary">
             上一步
           </button>
+          <button id="secret-setup-close" type="button" class="secret-gate-btn secondary">
+            关闭
+          </button>
           <button id="secret-setup-generate" type="button" class="secret-gate-btn primary">
             保存配置
           </button>
@@ -696,9 +699,10 @@
       const platoStatusEl = document.getElementById('secret-setup-plato-status');
       const errorEl = document.getElementById('secret-setup-error');
       const backBtn = document.getElementById('secret-setup-back');
+      const closeBtn = document.getElementById('secret-setup-close');
       const genBtn = document.getElementById('secret-setup-generate');
 
-      if (!githubInput || !githubVerifyBtn || !platoInput || !platoVerifyBtn || !backBtn || !genBtn) return;
+      if (!githubInput || !githubVerifyBtn || !platoInput || !platoVerifyBtn || !backBtn || !closeBtn || !genBtn) return;
 
       let githubOk = false;
       let platoOk = false;
@@ -706,6 +710,11 @@
       backBtn.addEventListener('click', () => {
         // 返回第 1 步，重新设置密码
         renderInitStep1();
+      });
+
+      closeBtn.addEventListener('click', () => {
+        // 直接关闭弹窗
+        closeModal();
       });
 
       githubVerifyBtn.addEventListener('click', async () => {

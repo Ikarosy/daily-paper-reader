@@ -826,8 +826,12 @@ def build_markdown_content(
     section: str,
     zh_title: str,
     zh_abstract: str,
-    tags_html: str,
+    tags_list: List[str],
 ) -> str:
+    """
+    生成论文 Markdown 内容，使用 YAML front matter 存储元数据。
+    前端通过解析 front matter 渲染页面布局。
+    """
     title = (paper.get("title") or "").strip()
     authors = paper.get("authors") or []
     published = str(paper.get("published") or "").strip()
@@ -873,92 +877,82 @@ def build_markdown_content(
             elif line.startswith("**Conclusion**：") or line.startswith("**Conclusion**:"):
                 glance_conclusion = line.split("：", 1)[-1].split(":", 1)[-1].strip()
 
-    # 构建新布局 HTML
-    lines = []
-
-    # 标题区域（双列）
-    lines.append('<div class="paper-title-row">')
-    if zh_title:
-        lines.append(f'<h1 class="paper-title-zh">{zh_title}</h1>')
-    lines.append(f'<h1 class="paper-title-en">{title}</h1>')
-    lines.append('</div>')
-    lines.append('')
-
-    # 中间区域（左侧基本信息 + 右侧 Evidence/TLDR）
-    lines.append('<div class="paper-meta-row">')
-
-    # 左侧：基本信息
-    lines.append('<div class="paper-meta-left">')
-    lines.append(f'<p><strong>Authors</strong>: {", ".join(authors) if authors else "Unknown"}</p>')
-    lines.append(f'<p><strong>Date</strong>: {published or "Unknown"}</p>')
-    if pdf_url:
-        lines.append(f'<p><strong>PDF</strong>: <a href="{pdf_url}" target="_blank">{pdf_url}</a></p>')
-    if tags_html:
-        lines.append(f'<p><strong>Tags</strong>: {tags_html}</p>')
-    if score is not None:
-        lines.append(f'<p><strong>Score</strong>: {score}</p>')
-    lines.append('</div>')
-
-    # 右侧：Evidence 和 TLDR（优先使用速览生成的 TLDR）
-    lines.append('<div class="paper-meta-right">')
-    if evidence:
-        lines.append(f'<p><strong>Evidence</strong>: {evidence}</p>')
     # 优先使用速览生成的 TLDR（100字左右），否则使用原来的 TLDR
     display_tldr = glance_tldr if glance_tldr else tldr
+
+    # 辅助函数：转义 YAML 字符串中的特殊字符
+    def yaml_escape(s: str) -> str:
+        if not s:
+            return '""'
+        # 如果包含特殊字符，用双引号包裹并转义内部双引号
+        if any(c in s for c in [':', '#', '"', "'", '\n', '[', ']', '{', '}', ',', '&', '*', '!', '|', '>', '%', '@', '`']):
+            return '"' + s.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n') + '"'
+        return s
+
+    # 构建 YAML front matter
+    lines = ["---"]
+    lines.append(f"title: {yaml_escape(title)}")
+    if zh_title:
+        lines.append(f"title_zh: {yaml_escape(zh_title)}")
+    lines.append(f"authors: {yaml_escape(', '.join(authors) if authors else 'Unknown')}")
+    lines.append(f"date: {yaml_escape(published or 'Unknown')}")
+    if pdf_url:
+        lines.append(f"pdf: {yaml_escape(pdf_url)}")
+    if tags_list:
+        # 保留完整的 kind:label 格式，前端渲染时再处理
+        lines.append(f"tags: [{', '.join(yaml_escape(t) for t in tags_list)}]")
+    if score is not None:
+        lines.append(f"score: {score}")
+    if evidence:
+        lines.append(f"evidence: {yaml_escape(evidence)}")
     if display_tldr:
-        lines.append(f'<p><strong>TLDR</strong>: {display_tldr}</p>')
-    lines.append('</div>')
+        lines.append(f"tldr: {yaml_escape(display_tldr)}")
 
-    lines.append('</div>')
-    lines.append('')
-
-    # 速览区域（四列）
-    if glance_tldr or glance_motivation or glance_method or glance_result or glance_conclusion:
-        lines.append('<div class="paper-glance-section">')
-        lines.append('<h2 class="paper-glance-title">速览</h2>')
-        lines.append('<div class="paper-glance-row">')
-
-        # Motivation
-        lines.append('<div class="paper-glance-col">')
-        lines.append('<div class="paper-glance-label">Motivation</div>')
-        lines.append(f'<div class="paper-glance-content">{glance_motivation or "-"}</div>')
-        lines.append('</div>')
-
-        # Method
-        lines.append('<div class="paper-glance-col">')
-        lines.append('<div class="paper-glance-label">Method</div>')
-        lines.append(f'<div class="paper-glance-content">{glance_method or "-"}</div>')
-        lines.append('</div>')
-
-        # Result
-        lines.append('<div class="paper-glance-col">')
-        lines.append('<div class="paper-glance-label">Result</div>')
-        lines.append(f'<div class="paper-glance-content">{glance_result or "-"}</div>')
-        lines.append('</div>')
-
-        # Conclusion
-        lines.append('<div class="paper-glance-col">')
-        lines.append('<div class="paper-glance-label">Conclusion</div>')
-        lines.append(f'<div class="paper-glance-content">{glance_conclusion or "-"}</div>')
-        lines.append('</div>')
-
-        lines.append('</div>')
-
-        lines.append('</div>')
-        lines.append('')
+    # 速览字段
+    if glance_motivation:
+        lines.append(f"motivation: {yaml_escape(glance_motivation)}")
+    if glance_method:
+        lines.append(f"method: {yaml_escape(glance_method)}")
+    if glance_result:
+        lines.append(f"result: {yaml_escape(glance_result)}")
+    if glance_conclusion:
+        lines.append(f"conclusion: {yaml_escape(glance_conclusion)}")
 
     lines.append("---")
     lines.append("")
 
+    # 正文部分：摘要
     if zh_abstract:
-        lines.append("")
         lines.append("## 摘要")
         lines.append(zh_abstract)
+        lines.append("")
 
     lines.append("## Abstract")
     lines.append(abstract_en)
 
     return "\n".join(lines)
+
+
+def build_tags_list(section: str, llm_tags: List[str]) -> List[str]:
+    """
+    构建标签列表，保留 kind:label 格式。
+    """
+    tags: List[str] = []
+    seen = set()
+    for tag in llm_tags:
+        raw = str(tag).strip()
+        if not raw:
+            continue
+        kind, label = split_sidebar_tag(raw)
+        label = (label or "").strip()
+        if not label:
+            continue
+        dedup_key = f"{kind}:{label}"
+        if dedup_key in seen:
+            continue
+        seen.add(dedup_key)
+        tags.append(dedup_key)
+    return tags
 
 
 def process_paper(
@@ -992,6 +986,68 @@ def process_paper(
                 existing = f.read()
         except Exception:
             existing = ""
+
+        # 若已存在 Markdown，但缺少中文标题/中文摘要，则在“重新跑 Step6”时自动补齐
+        # （历史上 --glance-only 或部分修复流程不会写入中文标题/摘要）
+        if not glance_only and existing:
+            try:
+                lines = existing.splitlines()
+                # 判断顶部是否已有两行 H1（英文+中文）
+                h1_count = 0
+                for line in lines[:6]:
+                    if line.startswith("# "):
+                        h1_count += 1
+                    elif line.strip() == "":
+                        # 允许空行，但一旦遇到非 H1 非空行就停止
+                        continue
+                    else:
+                        break
+
+                has_zh_title = h1_count >= 2
+                has_zh_abstract = "## 摘要" in existing
+                need_zh = (not has_zh_title) or (not has_zh_abstract)
+
+                if need_zh:
+                    zh_title, zh_abstract = translate_title_and_abstract_to_zh(
+                        title, abstract_en
+                    )
+                    updated = existing
+
+                    if (not has_zh_title) and zh_title:
+                        # 插入到第一行英文标题之后
+                        out_lines: List[str] = []
+                        inserted = False
+                        for i, line in enumerate(lines):
+                            out_lines.append(line)
+                            if i == 0 and line.startswith("# "):
+                                out_lines.append(f"# {zh_title}")
+                                inserted = True
+                        if inserted:
+                            updated = "\n".join(out_lines)
+
+                    if (not has_zh_abstract) and zh_abstract:
+                        # 插入到 `## Abstract` 之前（若不存在则追加在末尾）
+                        if "## Abstract" in updated:
+                            updated = updated.replace(
+                                "## Abstract",
+                                "## 摘要\n" + zh_abstract.strip() + "\n\n## Abstract",
+                                1,
+                            )
+                        else:
+                            updated = (
+                                updated.rstrip()
+                                + "\n\n## 摘要\n"
+                                + zh_abstract.strip()
+                                + "\n"
+                            )
+
+                    if updated != existing:
+                        with open(md_path, "w", encoding="utf-8") as f:
+                            f.write(updated + ("\n" if not updated.endswith("\n") else ""))
+                        existing = updated
+            except Exception:
+                # 补齐中文标题/摘要失败时不影响其它生成逻辑
+                pass
 
         # 已存在速览则默认不重复生成（避免重复 LLM 调用），除非 force_glance=true
         has_glance = "## 速览" in existing
@@ -1074,8 +1130,8 @@ def process_paper(
         glance = generate_glance_overview(title, abstract_en) or build_glance_fallback(paper)
         if glance:
             paper["_glance_overview"] = glance
-        tags_html = build_tags_html(section, paper.get("llm_tags") or [])
-        content = build_markdown_content(paper, section, "", "", tags_html)
+        tags_list = build_tags_list(section, paper.get("llm_tags") or [])
+        content = build_markdown_content(paper, section, "", "", tags_list)
         os.makedirs(os.path.dirname(md_path), exist_ok=True)
         with open(md_path, "w", encoding="utf-8") as f:
             f.write(content)
@@ -1086,11 +1142,11 @@ def process_paper(
     ensure_text_content(pdf_url, txt_path)
 
     zh_title, zh_abstract = translate_title_and_abstract_to_zh(title, abstract_en)
-    tags_html = build_tags_html(section, paper.get("llm_tags") or [])
+    tags_list = build_tags_list(section, paper.get("llm_tags") or [])
     glance = generate_glance_overview(title, abstract_en) or build_glance_fallback(paper)
     if glance:
         paper["_glance_overview"] = glance
-    content = build_markdown_content(paper, section, zh_title, zh_abstract, tags_html)
+    content = build_markdown_content(paper, section, zh_title, zh_abstract, tags_list)
 
     os.makedirs(os.path.dirname(md_path), exist_ok=True)
     with open(md_path, "w", encoding="utf-8") as f:

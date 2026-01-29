@@ -1097,18 +1097,21 @@ body.dpr-paper-page .dpr-title-cn {
   text-align: left;
   font-weight: 600;
   color: #1f1f1f;
+  order: 0;
 }
 
 body.dpr-paper-page .dpr-title-en {
-  text-align: right;
+  text-align: left;
   font-weight: 600;
   color: #1f1f1f;
+  order: 2;
 }
 
 body.dpr-paper-page .dpr-title-sep {
   width: 1px;
   background: rgba(0, 0, 0, 0.12);
   border-radius: 1px;
+  order: 1;
 }
 
 /* 只有一个标题时：占满左侧，右侧隐藏 */
@@ -2409,6 +2412,7 @@ article.markdown-section {
   line-height: 1.4;
   flex: 1;
   min-width: 280px;
+  text-align: left;
 }
 
 .paper-title-zh {
@@ -2455,12 +2459,8 @@ article.markdown-section {
 
 .paper-meta-left p strong,
 .paper-meta-right p strong {
-  color: #333;
-  font-weight: 600;
-}
-
-.paper-meta-right p strong {
   color: #e74c3c;
+  font-weight: 600;
 }
 
 /* 速览区域 */
@@ -2536,11 +2536,17 @@ article.markdown-section {
     gap: 16px;
   }
 
+  /* 小屏幕下调整顺序：Authors区域(right)先显示，Evidence区域(left)后显示 */
   .paper-meta-left {
+    order: 2;
     border-right: none;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
     padding-right: 0;
-    padding-bottom: 12px;
+    padding-top: 12px;
+  }
+
+  .paper-meta-right {
+    order: 1;
   }
 
   .paper-glance-row {

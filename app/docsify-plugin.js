@@ -1463,17 +1463,29 @@ window.$docsify = {
         // 防止重复插入
         const existing = root.querySelector('.dpr-title-bar');
         if (existing) existing.remove();
-
         const h1s = Array.from(root.querySelectorAll('h1'));
         if (!h1s.length) return;
 
-        // 约定：如果有两个 h1，则第一个为英文、第二个为中文；
-        // 如果只有一个 h1，则认为是“单标题”，放在左侧（cn 区），避免 dpr-title-single 隐藏右侧后变空白。
-        let enTitle = (h1s[0].textContent || '').trim();
-        let cnTitle = (h1s[1] ? (h1s[1].textContent || '').trim() : '').trim();
-        if (h1s.length === 1) {
-          cnTitle = enTitle;
-          enTitle = '';
+        // 优先从带有 paper-title-zh / paper-title-en 类名的 h1 中获取标题（frontmatter 渲染）
+        const paperTitleZh = root.querySelector('h1.paper-title-zh');
+        const paperTitleEn = root.querySelector('h1.paper-title-en');
+
+        let cnTitle = '';
+        let enTitle = '';
+
+        if (paperTitleZh || paperTitleEn) {
+          // 新格式：从 frontmatter 渲染的带类名 h1 中获取
+          cnTitle = paperTitleZh ? (paperTitleZh.textContent || '').trim() : '';
+          enTitle = paperTitleEn ? (paperTitleEn.textContent || '').trim() : '';
+        } else {
+          // 旧格式兼容：如果有两个 h1，则第一个为英文、第二个为中文；
+          // 如果只有一个 h1，则认为是"单标题"，放在左侧（cn 区）
+          enTitle = (h1s[0].textContent || '').trim();
+          cnTitle = (h1s[1] ? (h1s[1].textContent || '').trim() : '').trim();
+          if (h1s.length === 1) {
+            cnTitle = enTitle;
+            enTitle = '';
+          }
         }
 
         // 隐藏原始 h1，但保留在 DOM 里供复制/SEO/元信息提取兜底
@@ -2230,6 +2242,181 @@ window.$docsify = {
         document.addEventListener('touchmove', onTouchMove, { passive: false });
         document.addEventListener('touchend', onTouchEnd, { passive: true });
       };
+
+      // --- 解析 YAML front matter 并转换为 HTML ---
+      const parseFrontMatter = (content) => {
+        if (!content || !content.startsWith('---')) {
+          return { meta: null, body: content };
+        }
+        const endIdx = content.indexOf('\n---', 3);
+        if (endIdx === -1) {
+          return { meta: null, body: content };
+        }
+        const yamlStr = content.slice(4, endIdx).trim();
+        const body = content.slice(endIdx + 4).trim();
+
+        // 简单解析 YAML（不依赖外部库）
+        const meta = {};
+        const lines = yamlStr.split('\n');
+        for (const line of lines) {
+          const colonIdx = line.indexOf(':');
+          if (colonIdx === -1) continue;
+          const key = line.slice(0, colonIdx).trim();
+          let value = line.slice(colonIdx + 1).trim();
+
+          // 处理数组格式 [a, b, c]
+          if (value.startsWith('[') && value.endsWith(']')) {
+            const inner = value.slice(1, -1);
+            // 简单分割，处理引号内的逗号
+            const items = [];
+            let current = '';
+            let inQuote = false;
+            let quoteChar = '';
+            for (let i = 0; i < inner.length; i++) {
+              const c = inner[i];
+              if (!inQuote && (c === '"' || c === "'")) {
+                inQuote = true;
+                quoteChar = c;
+              } else if (inQuote && c === quoteChar) {
+                inQuote = false;
+              } else if (!inQuote && c === ',') {
+                items.push(current.trim());
+                current = '';
+                continue;
+              }
+              current += c;
+            }
+            if (current.trim()) items.push(current.trim());
+            // 去除引号
+            meta[key] = items.map(s => s.replace(/^["']|["']$/g, ''));
+          } else {
+            // 去除引号
+            meta[key] = value.replace(/^["']|["']$/g, '').replace(/\\n/g, '\n').replace(/\\"/g, '"');
+          }
+        }
+        return { meta, body };
+      };
+
+      // 根据 front matter 生成论文页面 HTML
+      const renderPaperFromMeta = (meta) => {
+        if (!meta) return '';
+
+        const escapeHtml = (s) => {
+          if (!s) return '';
+          return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        };
+
+        // 解析标签，生成带颜色的 HTML
+        const renderTags = (tags) => {
+          if (!tags || !tags.length) return '';
+          return tags.map(tag => {
+            const [kind, label] = tag.includes(':') ? tag.split(':', 2) : ['other', tag];
+            const css = { keyword: 'tag-green', query: 'tag-blue', paper: 'tag-pink' }[kind] || 'tag-pink';
+            return `<span class="tag-label ${css}">${escapeHtml(label)}</span>`;
+          }).join(' ');
+        };
+
+        const lines = [];
+
+        // 标题区域
+        lines.push('<div class="paper-title-row">');
+        if (meta.title_zh) {
+          lines.push(`<h1 class="paper-title-zh">${escapeHtml(meta.title_zh)}</h1>`);
+        }
+        if (meta.title) {
+          lines.push(`<h1 class="paper-title-en">${escapeHtml(meta.title)}</h1>`);
+        }
+        lines.push('</div>');
+        lines.push('');
+
+        // 中间区域
+        lines.push('<div class="paper-meta-row">');
+
+        // 左侧：Evidence 和 TLDR
+        lines.push('<div class="paper-meta-left">');
+        if (meta.evidence) {
+          lines.push(`<p><strong>Evidence</strong>: ${escapeHtml(meta.evidence)}</p>`);
+        }
+        if (meta.tldr) {
+          lines.push(`<p><strong>TLDR</strong>: ${escapeHtml(meta.tldr)}</p>`);
+        }
+        lines.push('</div>');
+
+        // 右侧：基本信息
+        lines.push('<div class="paper-meta-right">');
+        lines.push(`<p><strong>Authors</strong>: ${escapeHtml(meta.authors || 'Unknown')}</p>`);
+        lines.push(`<p><strong>Date</strong>: ${escapeHtml(meta.date || 'Unknown')}</p>`);
+        if (meta.pdf) {
+          lines.push(`<p><strong>PDF</strong>: <a href="${escapeHtml(meta.pdf)}" target="_blank">${escapeHtml(meta.pdf)}</a></p>`);
+        }
+        if (meta.tags && meta.tags.length) {
+          lines.push(`<p><strong>Tags</strong>: ${renderTags(meta.tags)}</p>`);
+        }
+        if (meta.score !== undefined && meta.score !== null) {
+          lines.push(`<p><strong>Score</strong>: ${escapeHtml(String(meta.score))}</p>`);
+        }
+        lines.push('</div>');
+
+        lines.push('</div>');
+        lines.push('');
+
+        // 速览区域
+        if (meta.motivation || meta.method || meta.result || meta.conclusion) {
+          lines.push('<div class="paper-glance-section">');
+          lines.push('<h2 class="paper-glance-title">速览</h2>');
+          lines.push('<div class="paper-glance-row">');
+
+          lines.push('<div class="paper-glance-col">');
+          lines.push('<div class="paper-glance-label">Motivation</div>');
+          lines.push(`<div class="paper-glance-content">${escapeHtml(meta.motivation || '-')}</div>`);
+          lines.push('</div>');
+
+          lines.push('<div class="paper-glance-col">');
+          lines.push('<div class="paper-glance-label">Method</div>');
+          lines.push(`<div class="paper-glance-content">${escapeHtml(meta.method || '-')}</div>`);
+          lines.push('</div>');
+
+          lines.push('<div class="paper-glance-col">');
+          lines.push('<div class="paper-glance-label">Result</div>');
+          lines.push(`<div class="paper-glance-content">${escapeHtml(meta.result || '-')}</div>`);
+          lines.push('</div>');
+
+          lines.push('<div class="paper-glance-col">');
+          lines.push('<div class="paper-glance-label">Conclusion</div>');
+          lines.push(`<div class="paper-glance-content">${escapeHtml(meta.conclusion || '-')}</div>`);
+          lines.push('</div>');
+
+          lines.push('</div>');
+          lines.push('</div>');
+          lines.push('');
+        }
+
+        // 注意：在 Markdown 中插入 HTML block（如 <hr>）后，需要一个“空行”才能让后续的 `##` 等 Markdown 正常解析。
+        // 这里通过追加两个空行，确保最终输出以 `<hr>\n\n` 结尾。
+        lines.push('<hr>');
+        lines.push('');
+        lines.push('');
+
+        return lines.join('\n');
+      };
+
+      // --- Docsify beforeEach 钩子：解析 front matter ---
+      hook.beforeEach(function (content) {
+        const file = vm && vm.route ? vm.route.file : '';
+        // 只对论文页面处理
+        if (!isPaperRouteFile(file)) {
+          return content;
+        }
+
+        const { meta, body } = parseFrontMatter(content);
+        if (!meta) {
+          return content;
+        }
+
+        // 生成论文页面 HTML + 正文
+        const paperHtml = renderPaperFromMeta(meta);
+        return paperHtml + body;
+      });
 
       // --- Docsify 生命周期钩子 ---
       hook.doneEach(function () {
