@@ -1,8 +1,8 @@
 {
-  "mode": "standard",
-  "generated_at": "2026-02-03T13:01:12.139417+00:00",
+  "mode": "spark",
+  "generated_at": "2026-02-03T13:01:12.139832+00:00",
   "stats": {
-    "mode": "standard",
+    "mode": "spark",
     "tag_count": 0,
     "deep_divecandidates": 0,
     "deep_cap": null,
