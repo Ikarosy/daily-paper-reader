@@ -1,0 +1,16 @@
+{
+  "mode": "spark",
+  "generated_at": "2026-02-17T04:39:01.787353+00:00",
+  "stats": {
+    "mode": "spark",
+    "tag_count": 0,
+    "deep_divecandidates": 0,
+    "deep_cap": null,
+    "deep_selected": 0,
+    "quick_candidates": 0,
+    "quick_skim_target": 10,
+    "quick_selected": 0
+  },
+  "deep_dive": [],
+  "quick_skim": []
+}
