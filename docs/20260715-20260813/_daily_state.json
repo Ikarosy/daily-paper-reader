@@ -1,0 +1,105 @@
+{
+  "date": "20260715-20260813",
+  "date_label": "2026-07-15 ~ 2026-08-13",
+  "generated_at": "2026-08-13 03:11:46 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.01078v1",
+      "route": "20260715-20260813/2608.01078v1-attend-to-your-own-thoughts-breaking-the-barrier-for-post-training-quantization-of-reasoning-llms-through-the-lens-of-158-bit-quantization",
+      "title": "Attend to Your Own Thoughts: Breaking the Barrier for Post-Training Quantization of Reasoning LLMs through the Lens of 1.58-Bit Quantization",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向推理大模型的1.58比特三值训练后量化，提出AYOT校准方案，直接针对极低比特量化并取得先进结果",
+      "first_seen_at": "2026-08-13 03:11:46 UTC",
+      "updated_at": "2026-08-13 03:11:46 UTC"
+    },
+    {
+      "paper_id": "2608.04048v1",
+      "route": "20260715-20260813/2608.04048v1-recurrent-residual-quantization-a-progressive-multi-precision-representation-for-llms",
+      "title": "Recurrent Residual Quantization: A Progressive Multi-Precision Representation for LLMs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "以2比特基座加残差实现多精度表示，是极低比特量化核心方法。",
+      "first_seen_at": "2026-08-13 03:11:46 UTC",
+      "updated_at": "2026-08-13 03:11:46 UTC"
+    },
+    {
+      "paper_id": "2607.21076v1",
+      "route": "20260715-20260813/2607.21076v1-c-ptq-fisher-weighted-channel-wise-sensitivity-for-post-training-quantization-of-mllms",
+      "title": "C-PTQ: Fisher-weighted Channel-wise Sensitivity for Post-training Quantization of MLLMs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向多模态大语言模型低比特量化的Fisher加权通道敏感度方法",
+      "first_seen_at": "2026-08-13 03:11:46 UTC",
+      "updated_at": "2026-08-13 03:11:46 UTC"
+    },
+    {
+      "paper_id": "2607.28589v1",
+      "route": "20260715-20260813/2607.28589v1-mixfrag-fragility-guided-mixed-precision-post-training-quantization-for-vision-transformers",
+      "title": "MixFrag: Fragility-Guided Mixed-Precision Post-Training Quantization for Vision Transformers",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向视觉Transformer的混合精度训练后量化，基于脆弱性引导位宽分配，提供了先进的PTQ结果",
+      "first_seen_at": "2026-08-13 03:11:46 UTC",
+      "updated_at": "2026-08-13 03:11:46 UTC"
+    },
+    {
+      "paper_id": "2608.03919v1",
+      "route": "20260715-20260813/2608.03919v1-low-dimensional-high-leverage-subspace-optimization-beyond-full-parameter-coupled-training-for-neural-network-quantization",
+      "title": "Low-Dimensional High-Leverage Subspace Optimization: Beyond Full-Parameter Coupled Training for Neural Network Quantization",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "通过低维高杠杆子空间优化低比特神经网络量化，直接针对极低比特精度退化问题。",
+      "first_seen_at": "2026-08-13 03:11:46 UTC",
+      "updated_at": "2026-08-13 03:11:46 UTC"
+    },
+    {
+      "paper_id": "2608.07019v1",
+      "route": "20260715-20260813/2608.07019v1-requant-fixed-grid-discrete-refinement-for-post-training-quantization",
+      "title": "ReQuant: Fixed-Grid Discrete Refinement for Post-Training Quantization",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向低位宽模型训练后量化的精化方法",
+      "first_seen_at": "2026-08-13 03:11:46 UTC",
+      "updated_at": "2026-08-13 03:11:46 UTC"
+    }
+  ]
+}

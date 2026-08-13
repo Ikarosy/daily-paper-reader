@@ -1,0 +1,385 @@
+Title: Low-Dimensional High-Leverage Subspace Optimization: Beyond Full-Parameter Coupled Training for Neural Network Quantization
+
+URL Source: https://arxiv.org/pdf/2608.03919v1
+
+Published Time: Wed, 05 Aug 2026 01:21:16 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# Low-Dimensional High-Leverage Subspace Optimization: Beyond Full-Parameter Coupled Training for Neural Network Quantization 
+
+# Peng Xia 1, Junbiao Pang 1∗, Zheng Huang 1
+
+> 1
+
+School of Information Science and Technology, Beijing University of Technology, Beijing, China {xiapeng@emails.bjut.edu.cn, junbiao_pang@bjut.edu.cn} 
+
+Abstract 
+
+Low-bit quantization suffers severe accuracy degradation on compact networks, rooted in the dominant full-parameter cou-pled training paradigm that ignores parameter subspace het-erogeneity. Their limited feature redundancy leaves little room to absorb quantization errors. Conventional pipelines adopt monolithic optimization: PTQ reconstructs fixed pretrained models without improving inherent quantization friendliness; QAT updates all parameters jointly, suffering from gradient coupling between backbone weights and calibration parame-ters. In this paper, we identify normalization affine parame-ters as a low-dimensional high-leverage subspace dominating quantization robustness, and propose Normalization Affine Preconditioning (NAP) for targeted subspace optimization. For PTQ, NAP freezes backbone weights and fine-tunes only affine parameters under the target fake-quantization graph on full-precision models, proactively boosting quantization friendliness before downstream reconstruction. For QAT, we introduce an alternating QAT-NAP schema that decouples fea-ture learning and numerical calibration, breaking the perfor-mance ceiling of saturated joint training. Theoretical analysis confirms BN affine parameters fully cancel the channel-wise affine component of quantization distortion, while nonlinear rounding and clipping residuals form the irreducible error boundary; distillation-guided NAP acts as directional flat-ness optimization, projecting teacher-student logit mismatch onto the restricted subspace. Experiments on ImageNet and CIFAR-100 show NAP recovers severely collapsed low-bit quantization, consistently boosts reconstruction-based PTQ, and outperforms saturated full-parameter QAT with negligi-ble tuning cost. This work reveals the principle of targeted low-dimensional subspace optimization, offering a new per-spective beyond full-parameter coupled training for efficient deep learning. 
+
+# Introduction 
+
+Post-training quantization (PTQ) compresses neural net-works by converting full-precision weights and activations into low-bit representations without costly end-to-end re-training. Conventional PTQ pipelines calibrate quantization ranges or equalize layer responses before quantization (Jacob et al. 2018; Nagel et al. 2019). Recent reconstruction-based methods further improve accuracy by learning rounding de-cisions (Nagel et al. 2020), reconstructing blocks (Li et al. 
+
+> ∗
+
+Corresponding author. 
+
+Figure 1: Diagnostic study after saturated LSQ+ QAT. 
+
+All adaptation branches start from the same LSQ+ QAT checkpoint on CIFAR-100 MobileNetV2. The FP32 accuracy of the pretrained model is 71.3%. 2021a), randomly dropping activation quantization during optimization (Wei et al. 2022), or compensating predic-tion differences (Liu et al. 2023a). These techniques have substantially improved moderate-bit quantization, but ex-treme low-bit weight–activation quantization remains brittle. The problem is particularly severe for compact models such as MobileNetV2 (Sandler et al. 2018), whose depthwise-separable structure and limited channel redundancy amplify clipping, rounding, and scale mismatch (Nagel et al. 2022; Wei et al. 2022). Most quantization pipelines implicitly treat all trainable parameters as equally useful adaptation variables. Our di-agnostic in Fig. 1 challenges this assumption. Starting from the same saturated LSQ+ checkpoint, matched extra QAT provides only marginal improvement, while quantizer-only tuning can even degrade performance. In contrast, updat-ing only BN affine parameters improves W4A4 accuracy from 68.21% to 69.83% and W2A4 accuracy from 63.42% to 65.86%. This branch updates only 34.2K parameters, ap-proximately 1.43% of the full-QAT trainable state. The result indicates that normalization affine parameters constitute an under-exploited, low-dimensional response-control subspace rather than an arbitrary sparse parameter subset. Motivated by this observation, we propose Normalization 
+
+Affine Pre-conditioning (NAP). NAP freezes convolutional and linear weights and adapts only the scale and shift param-eters already present in normalization layers. For PTQ, the adaptation is performed under the same fake-quantized graph arXiv:2608.03919v1 [cs.CV] 4 Aug 2026 used for evaluation or downstream reconstruction. For sat-urated QAT checkpoints, NAP provides a lightweight post-QAT adaptation stage. For RMSNorm-based language mod-els, we further alternate between normalization-scale updates and group-wise quantization-scale updates while keeping the backbone frozen. This formulation separates feature parame-ters, response-control parameters, and discretization param-eters instead of optimizing them monolithically. Our analysis explains both the leverage and the limits of this subspace. BN affine parameters act as channel-wise gain and offset controllers, while RMSNorm retains only the gain term (Ioffe and Szegedy 2015; Zhang and Sennrich 2019). Under a local affine-distortion model, these param-eters can compensate the structured scale-and-shift com-ponent of quantization error, whereas nonlinear rounding, clipping, and sample-dependent residuals remain outside the affine subspace. From the prediction perspective, distillation-guided NAP solves a local projection problem: the teacher– student mismatch defines the desired correction and the normalization-affine Jacobian determines which component is expressible without changing backbone weights. Our contributions are summarized as follows: 
+
+• We systematically characterize normalization affine pa-rameters as a low-dimensional, high-leverage response-control subspace for low-bit quantization across BN- and RMSNorm-based architectures. 
+
+• We propose a target-aligned NAP framework supporting pre-conditioning before PTQ, affine adaptation after satu-rated QAT, and alternating optimization of normalization responses and quantization scales. 
+
+• We provide a residual-aware local analysis that dis-tinguishes affine-compensable distortion from irre-ducible rounding and clipping residuals, and inter-prets distillation-guided NAP as projection onto the normalization-affine response subspace. 
+
+• Experiments on ImageNet, CIFAR-100, Cityscapes, and Qwen2.5-3B-Instruct evaluate NAP across classification, semantic segmentation, and language modeling, while controlled studies identify its backend sensitivity, data dependence, and failure cases. 
+
+# Related Work 
+
+Post-Training Quantization and Quantization-Aware Training 
+
+PTQ reduces model precision without end-to-end retrain-ing. Early methods calibrate clipping ranges, correct bias, or equalize channel responses (Jacob et al. 2018; Nagel et al. 2019). Reconstruction-based methods subsequently improve low-bit accuracy by learning rounding decisions or matching intermediate representations. AdaRound (Nagel et al. 2020) optimizes weight rounding, BRECQ (Li et al. 2021a) performs block-wise reconstruction, QDrop (Wei et al. 2022) stochastically disables activation quantization during reconstruction, and PD-Quant (Liu et al. 2023a) in-troduces prediction-aware objectives. QAT instead exposes the model to fake quantization dur-ing training. Representative methods learn clipping ranges, smooth the discrete quantizer, or optimize step sizes and off-sets, including PACT (Choi et al. 2018), DSQ (Gong et al. 2019), LSQ (Esser et al. 2020), and LSQ+ (Bhalgat et al. 2020). Weight oscillations can destabilize low-bit QAT, mo-tivating oscillation dampening and iterative weight freezing (Nagel et al. 2022); StableQAT develops a bounded Fourier-based surrogate for ultra-low-bit optimization (Chen et al. 2026). NAP is complementary to these approaches: it iso-lates the normalization affine subspace before PTQ, after saturated QAT, or between quantization-scale updates. 
+
+Quantization-Friendly Transformations 
+
+A complementary line of work changes the parameteri-zation observed by the quantizer. Cross-layer equalization redistributes channel ranges without changing the repre-sented function (Nagel et al. 2019). SmoothQuant trans-fers activation-outlier difficulty to weights through equiv-alent channel-wise scaling (Xiao et al. 2023), while Om-niQuant learns clipping thresholds and equivalent transfor-mations under block-wise reconstruction (Shao et al. 2024). Rotation-based methods such as QuaRot and SpinQuant sup-press outliers using invariant random or learned rotations (Ashkboos et al. 2024; Liu et al. 2025). FlatQuant further learns layer-specific affine transformations for full weight– activation quantization (Sun et al. 2025). These methods in-troduce auxiliary scales, rotations, or transformation matri-ces. NAP instead optimizes affine parameters already present in BN or RMSNorm and therefore adds no inference branch. 
+
+Large Language Model Quantization 
+
+LLM quantization has developed along weight-only, weight– activation, and QAT directions. GPTQ uses approximate second-order information for one-shot weight-only quantiza-tion (Frantar et al. 2023), whereas AWQ protects activation-salient weight channels through equivalent scaling (Lin et al. 2024). SmoothQuant targets hardware-friendly W8A8 infer-ence (Xiao et al. 2023), while OmniQuant, QuaRot, Spin-Quant, and FlatQuant extend accurate quantization toward lower-bit weight–activation settings (Shao et al. 2024; Ashk-boos et al. 2024; Liu et al. 2025; Sun et al. 2025). LLM-QAT uses data-free distillation to train low-bit weights, activa-tions, and KV caches (Liu et al. 2023b); EfficientQAT lowers training cost through block-wise all-parameter optimization followed by end-to-end quantization-parameter tuning (Chen et al. 2025). The closest prior work to our RMSNorm experiments is Norm Tweaking (Li et al. 2024), which updates normalization-layer weights to align quantized and full-precision activation distributions for LLM PTQ. Accord-ingly, NAP does not claim to be the first normalization-only quantization method. Its distinction is a unified normalization-affine formulation across BN-based CNNs and RMSNorm-based LLMs, explicit alignment with the tar-get fake-quantized graph, use before PTQ and after saturated QAT, and alternating response/quantization-grid optimiza-tion. The residual-aware analysis and matched parameter-subspace controls further characterize when this intrinsic affine subspace is effective and where it fails. Figure 2: Target-aligned normalization affine pre-conditioning. The full-precision teacher is fixed, while the fake-quantized student updates only normalization affine pa-rameters. The adapted channel responses reduce the scale and offset mismatch presented to the target quantization backend. 
+
+Low-Dimensional Adaptation Subspaces 
+
+Parameter-efficient adaptation suggests that small parame-ter subsets can exert disproportionately large control over network behavior. Normalization affine parameters are espe-cially relevant because each gain or bias coefficient is broad-cast over an entire channel. BN provides learnable scale and shift parameters (Ioffe and Szegedy 2015), whereas RM-SNorm retains only a learnable scale (Zhang and Sennrich 2019). Prior normalization-only studies primarily target do-main adaptation, fine-tuning efficiency, or LLM PTQ. NAP formulates these parameters as a unified response-control subspace for CNN and LLM quantization: unlike full QAT, it freezes backbone weights; unlike quantizer-only tuning, it changes the responses presented to the quantizer; and un-like static reparameterization, it is optimized under the target backend graph. 
+
+# Method 
+
+Overview and Problem Formulation 
+
+Let f (x; W, Φ) denote a pretrained network, where W
+
+contains convolutional and linear weights and Φ contains the affine parameters of normalization layers. For BN (Ioffe and Szegedy 2015), Φ contains the channel-wise scale and shift parameters (γ, β); for RMSNorm (Zhang and Sennrich 2019), Φ contains only the scale parameters γ. We use 
+
+Φ = {γl, βl}Ll=1 , (1) with βl omitted for normalization layers without a learnable shift. NAP is based on a simple decomposition of model adap-tation. Backbone weights W determine the learned fea-tures, quantization parameters Ω determine the discretiza-tion grid, and normalization affine parameters Φ regulate the channel-wise responses seen by the quantizers. Instead of updating all three parameter groups jointly, NAP isolates the low-dimensional response-control subspace Φ. This de-sign gives rise to three uses considered in this paper: (i) pre-conditioning before PTQ, (ii) affine adaptation after a saturated QAT checkpoint, and (iii) alternating optimization of normalization affine parameters and quantization scales. 
+
+Target-Aligned NAP for PTQ 
+
+Let GB denote the fake-quantized graph induced by a tar-get backend B, including quantization insertion points, ob-servers, granularity, clipping rules, and weight/activation quantizers. A uniform fake quantizer is written as 
+
+Q(u; s, z ) = s
+
+h
+
+clip 
+
+j u
+
+s
+
+m
+
++ z, q min , q max 
+
+
+
+− z
+
+i
+
+, (2) where s and z are the scale and zero-point. After calibration on Dc, the quantization parameters are fixed as Ω0. The target fake-quantized student and the fixed full-precision teacher are 
+
+zq = efq (x; W0, Φ, Ω0, GB) , (3) 
+
+z0 = f (x; W0, Φ0) . (4) NAP freezes convolutional and linear weights and updates only the normalization affine parameters: 
+
+∇WLNAP = 0, ∇ΦLNAP ̸ = 0. (5) We use a task loss together with prediction-level knowl-edge distillation (Hinton, Vinyals, and Dean 2015). The task loss is classification cross-entropy for image classifi-cation, pixel-wise cross-entropy for semantic segmentation, and next-token negative log-likelihood for language model-ing. Let pT (z) = softmax( z/T ). The NAP objective is 
+
+LNAP = Ltask (zq , y ) + λKD T 2 KL ( pT (z0)∥pT (zq )) .
+
+(6) The task term keeps the fake-quantized model predictive, while the distillation term preserves the decision structure of the fixed teacher. In our main low-bit experiments, we additionally use a weak channel-scale regularizer 
+
+LCS = 1
+
+L
+
+> L
+
+X
+
+> l=1
+
+Var c [log ( |γl,c | + ϵ)] , (7) which discourages a few normalization channels from dom-inating the activation range. The implemented objective is therefore LNAP + λCS LCS , with a small coefficient specified in the experimental protocol. Crucially, all terms are opti-mized under the same graph GB used for evaluation or down-stream reconstruction. Changing the graph changes both the quantization residual and the directions through which Φ
+
+can correct it; therefore a NAP checkpoint is not expected to transfer perfectly across mismatched backends. 
+
+NAP after QAT and Alternating NAP-QAT 
+
+NAP can also be applied to a saturated QAT checkpoint 
+
+(Wqat , Φqat , Ωqat ). In this setting, the backbone and quanti-zation parameters are fixed and only the normalization affine parameters are adapted: 
+
+Φ∗ = arg min  
+
+> Φ
+
+LNAP (Wqat , Φ, Ωqat ) . (8) This post-QAT form tests whether a saturated jointly trained model still contains an under-exploited affine adaptation di-rection. For large language models, we additionally use an alter-nating variant that decouples quantization-grid adaptation from response adaptation. Backbone weights remain frozen. We denote by Lq the same target-graph task-and-distillation objective when it is optimized with respect to the quanti-zation parameters. At alternating round r, we first update group-wise quantization scales while fixing normalization parameters, 
+
+Ωr+1 ← arg min  
+
+> Ω
+
+Lq (W0, Φr , Ω) , (9) and then update RMSNorm scales while fixing the quantiza-tion grid, 
+
+Φr+1 ← arg min  
+
+> Φ
+
+LNAP 
+
+ W0, Φ, Ωr+1  . (10) We refer to this block-coordinate procedure as NAP-QAT. QScale-QAT adapts only Ω, RMSNorm-NAP adapts only 
+
+Φ, and NAP-QAT alternates between the two complemen-tary subspaces. This formulation also clarifies that the large-model experiments do not perform full-parameter QAT. 
+
+Why Is the Affine Subspace High-Leverage? 
+
+Channel-wise broadcast control. For a normalized fea-ture channel hl,c , the affine response is 
+
+al,c = γl,c hl,c + βl,c , (11) where βl,c = 0 for RMSNorm. A small affine update gives 
+
+∆al,c = hl,c ∆γl,c + 1∆βl,c . (12) Thus, one or two scalar parameters modify an entire channel over all spatial positions or tokens. The parameter space is small, but its response is broadcast over a high-dimensional activation tensor. 
+
+Residual-aware affine compensation. Consider a pre-BN activation whose quantized counterpart admits the local de-composition 
+
+bac = αcac + δc + ec, αc > 0, (13) where αcac + δc is the structured channel-wise affine com-ponent and ec contains rounding, clipping, saturation, and sample-dependent residuals. Let ρc = pσ2 
+
+> c
+
++ ϵ and let 
+
+(γ0 
+
+> c
+
+, β 0 
+
+> c
+
+) be the original BN affine parameters. Choosing 
+
+γ∗ 
+
+> c
+
+= γ0
+
+> c
+
+αc
+
+, (14) 
+
+β∗ 
+
+> c
+
+= β0 
+
+> c
+
+− γ0
+
+> c
+
+αcρc
+
+[( αc − 1) μc + δc] (15) yields 
+
+by∗ 
+
+> c
+
+= y0 
+
+> c
+
++ γ0
+
+> c
+
+αcρc
+
+ec. (16) Therefore BN affine parameters can exactly cancel the scale-and-shift component under this local model, while nonlinear residuals remain. RMSNorm has no shift parameter, so it can compensate the multiplicative component but not a general additive offset. This distinction explains why normalization affine parameters are high-leverage without claiming that they can recover information destroyed by severe clipping. 
+
+Algorithm 1 Target-Aligned Normalization Affine Pre-conditioning 
+
+Require: Pretrained model f (·; W0, Φ0), target graph GB,calibration set Dc, tuning set Dt
+
+Ensure: Adapted normalization parameters Φ∗ 
+
+> 1:
+
+Calibrate GB on Dc and fix Ω0 
+
+> 2:
+
+Freeze W0 and enable gradients only for Φ 
+
+> 3:
+
+Initialize Φ ← Φ0 
+
+> 4:
+
+for each mini-batch (x, y ) ∈ D t do  
+
+> 5:
+
+Compute fixed teacher output using Eq. (4)  
+
+> 6:
+
+Compute fake-quantized student output using Eq. (3)  
+
+> 7:
+
+Compute LNAP + λCS LCS using Eqs. (6) and (7)  
+
+> 8:
+
+Update only Φ 
+
+> 9:
+
+end for  
+
+> 10:
+
+return Φ∗ ← Φ
+
+Local projection view. Let ez = z0 − zq (Φ0) be the teacher–student logit mismatch before adaptation. For a small affine update, 
+
+zq (Φ0 + ∆ Φ) ≈ zq (Φ0) + Jq ∆Φ, (17) where Jq is the logit Jacobian under the target quantized graph. Locally, the distillation term seeks 
+
+min  
+
+> ∆Φ
+
+∥ez − Jq ∆Φ∥2 
+
+> Hz
+
+. (18) NAP therefore corrects the component of the quantization-induced mismatch that is expressible in the normalization affine response subspace. We treat this as a local mechanism rather than a claim of globally flatter minima. 
+
+Algorithm and Complexity 
+
+NAP adds no inference branch. BN affine parameters can be folded into the preceding convolution, and RMSNorm scales remain part of the original model structure. Optimizer states are maintained only for Φ, or for Φ and Ω in NAP-QAT. Nevertheless, forward and backward activation compu-tation still contributes to wall-clock time; we therefore report trainable parameters and measured time rather than equating parameter count with end-to-end cost. 
+
+# Experiments 
+
+Experimental Protocol 
+
+Tasks and models. We evaluate NAP in four settings. We use MobileNetV2 (Sandler et al. 2018) on ImageNet-1K (Deng et al. 2009) for extreme weight–activation PTQ, MobileNetV2 QAT checkpoints on CIFAR-100 (Krizhevsky 2009) for post-QAT adaptation, and an ImageNet-pretrained ResNet34-based U-Net (He et al. 2016; Ronneberger, Fis-cher, and Brox 2015) on Cityscapes (Cordts et al. 2016) for semantic segmentation. We further evaluate Qwen2.5-3B-Instruct (Qwen Team 2024) on held-out OSCAR (Or-tiz Suárez, Romary, and Sagot 2020), C4 (Raffel et al. 2020), and WikiText-2 (Merity et al. 2016). We report ImageNet and CIFAR-100 top-1 accuracy, Cityscapes mIoU, and language-model perplexity. Quantization settings. The CNN experiments are im-plemented with MQBench (Li et al. 2021b). Weights use symmetric per-output-channel quantization. The MQBench Academic backend uses MSE observers and 
+
+FixedFakeQuantize ; activations are quantized asym-metrically and per-tensor, while the lightweight stan-dalone graph uses unsigned activation quantization after ReLU/ReLU6. The reported ImageNet results quantize the full network, whereas the CIFAR-100 QAT diagnostic keeps the first and last layers at 8 bits. For Qwen2.5-3B-Instruct, weights use symmetric group-wise linear quantization with group size 128, activations use symmetric per-token quan-tization, and the language-model head is excluded. Because standard AWQ is weight-only (Lin et al. 2024), we use AWQ-style for experiments that combine activation-aware channel scaling with additional activation quantization. 
+
+CNN optimization. For ImageNet, standalone NAP is tuned for 20 epochs on the full training set, and backend-aligned NAP before QDrop is tuned for 10 epochs. Both use AdamW with learning rate 5 × 10 −4, zero weight decay, batch size 128, distillation temperature T = 4 , λKD = 1 .0,
+
+λCS = 10 −4, and gradient-norm clipping at 1.0. Batch-Norm running statistics are frozen. Quantizer calibration uses 20 mini-batches and at most 5K training images; ob-servers are recalibrated after each tuning epoch. QDrop (Wei et al. 2022) uses block-wise reconstruction with 32 calibra-tion batches, 20K reconstruction iterations, stochastic drop probability 0.5, scale learning rate 4 × 10 −5, warm-up ratio 0.2, rounding regularization weight 0.01, temperature range 
+
+[20 , 2] , and learned hard-sigmoid rounding. For the CIFAR-100 LSQ+ diagnostic, the base QAT stage is run for 100 epochs with SGD, momentum 0.9, learning rate 10 −3, weight decay 5 × 10 −4, and cosine decay. The post-QAT affine stage uses batch size 128 for 20 additional epochs with learning rate 10 −4, zero weight decay, T = 4 , and λKD = 1 .0; quan-tizer parameters and BN running statistics are fixed. The Cityscapes experiment uses 512 × 512 crops, batch size 4, and 128 fixed calibration images. 
+
+Large-model optimization. All large-model adaptation methods use 128 OSCAR documents for calibration and 1,920 disjoint documents for tuning. Training sequences have length 256 and batch size 1. AWQ-style equalization, inspired by AWQ (Lin et al. 2024), uses α = 0 .5 and 16 calibration batches. RMSNorm-NAP, QScale-QAT, and NAP-QAT use AdamW for at most 200 steps with learning rate 5 × 10 −4,zero weight decay, T = 1 , λCE = 1 , λKD = 1 , maxi-mum gradient norm 1.0, and automatic mixed precision. The channel-scale coefficient is 10 −4 for RMSNorm-NAP and NAP-QAT and zero for QScale-QAT. NAP-QAT alternates 10 QScale steps and 10 RMSNorm steps while keeping all backbone weights frozen. Perplexity is computed on 128 held-out blocks of length 2,048 for each corpus. 
+
+Hardware, software, and runs. All non-LLM experi-ments were conducted on one NVIDIA GeForce RTX 3090 GPU with 24 GB memory using PyTorch and MQBench. Large-model experiments were conducted on two MetaX C600-A GPUs, each with approximately 72 GB memory, us-          
+
+> Model Method FP32 Quant. Acc. ↑
+> W4A4 W3A4
+> MobileNetV2 RTN 71.87 0.33 0.11 QDrop 60.71 51.75 NAP (Ours) 66.11 51.07 NAP + QDrop 62.91 53.45
+
+Table 1: ImageNet-1K results with MobileNetV2. Results are top-1 accuracy (%). ing Ubuntu 22.04, Python 3.10, MetaX/MACA PyTorch 2.6, Transformers 4.51.3, vLLM 0.10.0, and MACA AI 3.2.0.2. The reported perplexity experiments use the Transformers eager-attention path rather than vLLM. Random seed 42 is used throughout. Unless otherwise stated, each table entry is obtained from a single run. Source code and resolved exper-iment configurations will be released upon publication. 
+
+Compared methods. RTN directly applies calibrated rounding without reconstruction. QDrop (Wei et al. 2022) is a reconstruction-based PTQ backend. NAP is evaluated both as a standalone target-graph adaptation and as a pre-conditioning stage before QDrop. For QAT checkpoints, we compare PACT (Choi et al. 2018), DSQ (Gong et al. 2019), LSQ (Esser et al. 2020), LSQ+ (Bhalgat et al. 2020), os-cillation dampening and iterative freezing (Nagel et al. 2022), and StableQAT (Chen et al. 2026). For language mod-els, we compare RTN, AWQ-style scaling, RMSNorm-NAP, QScale-QAT, and their alternating combination. 
+
+Extreme PTQ on ImageNet 
+
+Table 1 shows that the original MobileNetV2 parameteri-zation is extremely fragile under full weight-and-activation quantization: RTN falls from 71 .87% to 0.33% at W4A4 and to 0.11% at W3A4. Updating only normalization affine parameters recovers W4A4 accuracy to 66 .11% , exceeding QDrop by 5.40 points without updating convolutional or lin-ear weights. At W3A4, NAP alone and QDrop are similar, while NAP+QDrop reaches the best accuracy of 53 .45% .These results support two conclusions. First, the pretrained response parameterization is a major source of extreme low-bit fragility. Second, NAP and reconstruction are comple-mentary only when their fake-quantization graphs and oper-ating bit-widths are aligned; the combination is not uniformly superior in every setting. 
+
+Post-QAT Affine Adaptation 
+
+We evaluate NAP on checkpoints produced by PACT (Choi et al. 2018), DSQ (Gong et al. 2019), LSQ (Esser et al. 2020), LSQ+ (Bhalgat et al. 2020), the oscillation-dampening and iterative-freezing variants of OOQ (Nagel et al. 2022), and StableQAT (Chen et al. 2026). Table 2 tests whether normalization affine directions re-main useful after conventional QAT has saturated. At W4A4, NAP improves LSQ+, OOQ-Dampen, OOQ-Freeze, and StableQAT, with the strongest result of 70 .68% obtained on OOQ-Freeze. At W2A4, NAP improves LSQ+, OOQ-Dampen, and StableQAT, and NAP+StableQAT reaches Method W/A Val. Acc. (%)                                                 
+
+> Full precision 32/32 71.30 PACT 4/4 64.06 (-7.24) DSQ 4/4 67.36 (-3.94) LSQ 4/4 69.01 (-2.29) LSQ+ 4/4 68.21 (-3.09) OOQ-Dampen 4/4 66.21 (-5.09) OOQ-Freeze 4/4 70.02 (-1.28) StableQAT 4/4 68.24 (-3.06) NAP + LSQ+ 4/4 69.83 (-1.47) NAP + OOQ-Dampen 4/4 68.07 (-3.23) NAP + OOQ-Freeze 4/4 70.68 (-0.62) NAP + StableQAT 4/4 69.12 (-2.18) PACT 2/4 57.90 (-13.40) DSQ 2/4 62.81 (-8.49) LSQ 2/4 64.58 (-6.72) LSQ+ 2/4 63.42 (-7.88) OOQ-Dampen 2/4 66.23 (-5.07) OOQ-Freeze 2/4 67.42 (-3.88) StableQAT 2/4 66.09 (-5.21) NAP + LSQ+ 2/4 65.86 (-5.44) NAP + OOQ-Dampen 2/4 68.25 (-3.05) NAP + OOQ-Freeze 2/4 62.81 (-8.49) NAP + StableQAT 2/4 68.50 (-2.80)
+
+Table 2: Post-QAT adaptation on CIFAR-100 with Mo-bileNetV2. Values in parentheses denote the drop from the 71.30% FP32 baseline.           
+
+> Architecture Method FP32 Quantized mIoU ↑
+> W4A4 W3A4
+> U-Net RTN 68.52 3.27 1.24 QDrop 66.45 58.21 NAP (Ours) 67.21 59.07 NAP (Ours) + QDrop 66.78 61.36
+
+Table 3: Cityscapes semantic segmentation with U-Net. Re-sults are mIoU (%). 
+
+68 .50% . However, NAP degrades the W2A4 OOQ-Freeze checkpoint from 67 .42% to 62 .81% . Thus, the affine sub-space remains useful after QAT, but its benefit is not uncon-ditional: when a checkpoint already encodes a highly spe-cialized low-bit parameterization, an additional affine update may interfere with the learned quantization solution. This negative case motivates backend- and checkpoint-aligned adaptation rather than a universal post-hoc claim. 
+
+Cross-Task and Cross-Architecture Generalization 
+
+The Cityscapes results in Table 3 show that the normalization affine subspace is not specific to image classification. Direct RTN collapses to 3.27% mIoU at W4A4, whereas NAP re-stores 67 .21% , only 1.31 points below the FP32 model and 0.76 points above QDrop. Under the more aggressive W3A4 setting, NAP+QDrop obtains 61 .36% , improving QDrop by 3.15 points. The same pattern as ImageNet emerges: NAP alone is particularly strong at W4A4, while its combination                                                      
+
+> Method Bits Perplexity ↓
+> OSCAR C4 WikiText-2
+> Full precision FP16 14.41 13.02 9.47 RTN W8A8 15.64 14.08 10.20 RTN W4A16 20.34 18.31 13.42 RTN W4A8 21.27 19.14 14.03 RTN W4A4 1.13 ×10 59.24 ×10 47.81 ×10 4
+> AWQ-style W8A8 14.58 13.17 9.56 AWQ-style W4A16 15.97 14.31 10.45 AWQ-style W4A8 16.21 14.55 10.62 AWQ-style W4A4 483.57 423.82 296.74 RMSNorm-NAP W4A4 426.49 374.65 262.83 QScale-QAT W4A4 233.27 204.17 143.62
+> NAP-QAT (Ours) W4A4 166.65 147.92 104.37
+
+Table 4: Perplexity of Qwen2.5-3B-Instruct. Lower is better. We use group-wise weight quantization with group size 128 and per-token activation quantization. with reconstruction becomes more useful as the bit-width decreases. Table 4 extends the analysis to an RMSNorm-based lan-guage model. RTN W4A4 is unusable, with perplexity above 
+
+7.8×10 4 on all three corpora. AWQ-style scaling reduces the error substantially but still produces an OSCAR perplexity of 483.57. RMSNorm-NAP improves this value to 426.49, QScale-QAT to 233.27, and alternating NAP-QAT to 166.65. The same ordering holds on C4 and WikiText-2. These results support the proposed two-subspace view: response adapta-tion and quantization-grid adaptation are complementary. At the same time, the remaining gap to FP16 is large, showing that RMSNorm scale adaptation cannot fully compensate severe 4-bit activation clipping and rounding. 
+
+Why Does NAP Work? 
+
+Normalization is not an arbitrary sparse subset. Ta-ble 5 compares NAP with equal-size random, gradient-based, Fisher-based, and classifier subsets. All sparse controls use 34.2K trainable parameters. NAP reaches 66 .11% at W4A4, whereas the best equal-size control, Top-Fisher, reaches only 
+
+18 .35% . NAP also exceeds full-model tuning by 1.83 points while requiring less than one percent of its trainable pa-rameters. The result shows that the gain is not explained by sparsity alone. 
+
+Knowledge distillation and backend alignment. Table 6 separates teacher guidance from graph alignment. Remov-ing KD reduces W4A4 accuracy from 66 .11% to 61 .50% ,indicating that label supervision alone does not preserve the teacher decision structure as effectively. More impor-tantly, transferring a NAP checkpoint to a mismatched fake-quantized graph yields only 48 .72% . The 17.39-point gap to matched NAP confirms that NAP learns backend-specific compensation rather than a generic channel rescaling. 
+
+Parameter efficiency is not data efficiency. NAP main-tains optimizer states for only 34.2K parameters and requires Subset Params. W4A4 W3A3 Time                                 
+
+> RTN 00.33 0.09 –Random equal-size 34.2K 2.56 0.21 0.98 ×
+> Top-gradient equal-size 34.2K 12.48 2.67 1.07 ×
+> Top-Fisher equal-size 34.2K 18.35 4.92 1.22 ×
+> Classifier subset 34.2K 0.81 0.12 0.94 ×
+> NoNorm 3.47M 57.42 31.68 1.71 ×
+> NAP 34.2K 66.11 40.21 1.00 ×
+> Full tuning 3.52M 64.28 38.74 1.83 ×
+
+Table 5: Matched parameter-subspace comparison on Ima-geNet MobileNetV2. Time is normalized to NAP and in-cludes parameter-selection overhead.           
+
+> Method W4A4 Acc. Gain
+> RTN 0.33 –NAP without KD 61.50 +61.17 NAP with mismatched graph 48.72 +48.39 NAP full 66.11 +65.78
+
+Table 6: Ablation on ImageNet MobileNetV2 under W4A4 quantization. 
+
+1.00 × normalized time, compared with 1.83 × for full tun-ing. However, Table 7 shows that the current ImageNet im-plementation is strongly dependent on tuning-data coverage. Using 5K or 10K images fails to recover the collapsed model, whereas full-data tuning reaches 66 .11% . NAP is therefore parameter-efficient but, in its present form, not a calibration-only or few-shot method. This distinction is important when comparing it with conventional PTQ methods that use only a small calibration set. Overall, the controlled experiments support the central claim of this paper: normalization affine parameters form a low-dimensional but unusually effective response-control subspace. They also identify clear boundaries: the adaptation is backend-specific, can conflict with some saturated QAT solutions, depends on sufficient tuning data, and cannot re-cover nonlinear information loss under extremely aggressive activation quantization. 
+
+# Conclusion 
+
+We introduced NAP, a target-aligned normalization affine adaptation framework for low-bit neural network quantiza-tion. Rather than treating all trainable parameters as equally useful, NAP freezes backbone weights and optimizes the ex-isting normalization affine subspace. The same principle sup-ports pre-conditioning before PTQ, lightweight adaptation after saturated QAT, and alternating response/quantization-scale optimization for large language models. Our analysis explains the method through channel-wise broadcast control, affine compensation, and local projection of quantization-induced prediction mismatch. Across ImageNet classification, CIFAR-100 QAT check-points, Cityscapes segmentation, and Qwen2.5-3B-Instruct, normalization affine adaptation consistently recovers asubstantial portion of low-bit degradation. The matched-       
+
+> Model Bits FP32 Tuning Samples 5K 10K Full
+> MobileNetV2 W4A4 71.87 2.98 3.88 66.11
+> W3A3 0.09 0.11 40.21
+
+Table 7: Effect of NAP tuning-set size on ImageNet Mo-bileNetV2. Results are top-1 accuracy (%), where higher is better. FP32 denotes the full-precision baseline. subspace study further shows that its effectiveness is not explained by parameter count alone. At the same time, the experiments expose the method’s limits: NAP is sensitive to the target fake-quantization graph, requires broad tuning-data coverage in the current ImageNet setting, is not universally additive to every QAT checkpoint, and cannot fully correct severe rounding and clipping residuals. These findings posi-tion normalization affine parameters as a high-leverage but bounded quantization adaptation subspace, and suggest that future work should combine this response-control mecha-nism with stronger reconstruction, data-efficient tuning, and hardware-native low-bit deployment. 
+
+# References 
+
+Ashkboos, S.; Mohtashami, A.; Croci, M. L.; Li, B.; Cameron, P.; Jaggi, M.; Alistarh, D.; Hoefler, T.; and Hens-man, J. 2024. QuaRot: Outlier-Free 4-Bit Inference in Ro-tated LLMs. In Advances in Neural Information Processing Systems , volume 37. Bhalgat, Y.; Lee, J.; Nagel, M.; Blankevoort, T.; and Kwak, N. 2020. LSQ+: Improving Low-Bit Quantization Through Learnable Offsets and Better Initialization. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW) .Chen, M.; Shao, W.; Xu, P.; Wang, J.; Gao, P.; Zhang, K.; and Luo, P. 2025. EfficientQAT: Efficient Quantization-Aware Training for Large Language Models. In Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , 10081–10100. Asso-ciation for Computational Linguistics. Chen, T.; Chen, S.; Qu, X.; Zhao, D.; Yan, R.; Ko, J.; Liang, L.; and Cameron, P. 2026. StableQAT: Stable Quantization-Aware Training at Ultra-Low Bitwidths. arXiv preprint arXiv:2601.19320 .Choi, J.; Wang, Z.; Venkataramani, S.; Chuang, P. I.-J.; Srini-vasan, V.; and Gopalakrishnan, K. 2018. PACT: Parameter-ized Clipping Activation for Quantized Neural Networks. In International Conference on Learning Representations (ICLR) .Cordts, M.; Omran, M.; Ramos, S.; Rehfeld, T.; Enzweiler, M.; Benenson, R.; Franke, U.; Roth, S.; and Schiele, B. 2016. The Cityscapes Dataset for Semantic Urban Scene Understanding. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition , 3213–3223. Deng, J.; Dong, W.; Socher, R.; Li, L.-J.; Li, K.; and Fei-Fei, L. 2009. ImageNet: A Large-Scale Hierarchical Image Database. In Proceedings of the IEEE Conference on Com-puter Vision and Pattern Recognition , 248–255. Esser, S. K.; McKinstry, J. L.; Bablani, D.; Appuswamy, R.; and Modha, D. S. 2020. Learned Step Size Quantization. In International Conference on Learning Representations (ICLR) .Frantar, E.; Ashkboos, S.; Hoefler, T.; and Alistarh, D. 2023. GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers. In International Conference on Learning Representations (ICLR) .Gong, R.; Liu, X.; Jiang, S.; Li, T.; Hu, P.; Lin, J.; Yu, F.; and Yan, J. 2019. Differentiable Soft Quantization: Bridging Full-Precision and Low-Bit Neural Networks. In Proceed-ings of the IEEE/CVF International Conference on Computer Vision , 4852–4861. He, K.; Zhang, X.; Ren, S.; and Sun, J. 2016. Deep Residual Learning for Image Recognition. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition ,770–778. Hinton, G.; Vinyals, O.; and Dean, J. 2015. Distill-ing the Knowledge in a Neural Network. arXiv preprint arXiv:1503.02531 .Ioffe, S.; and Szegedy, C. 2015. Batch Normalization: Ac-celerating Deep Network Training by Reducing Internal Co-variate Shift. In Proceedings of the 32nd International Con-ference on Machine Learning (ICML) .Jacob, B.; Kligys, S.; Chen, B.; Zhu, M.; Tang, M.; Howard, A.; Adam, H.; and Kalenichenko, D. 2018. Quantization and training of neural networks for efficient integer-arithmetic-only inference. In Proceedings of the IEEE conference on computer vision and pattern recognition , 2704–2713. Krizhevsky, A. 2009. Learning Multiple Layers of Features from Tiny Images. Technical report, University of Toronto. Li, L.; Li, Q.; Zhang, B.; and Chu, X. 2024. Norm Tweaking: High-Performance Low-Bit Quantization of Large Language Models. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 38, 18536–18544. Li, Y.; Gong, R.; Tan, X.; Yang, Y.; Hu, P.; Zhang, Q.; Yu, F.; Wang, W.; and Gu, S. 2021a. BRECQ: Pushing the Limit of Post-Training Quantization by Block Reconstruction. In In-ternational Conference on Learning Representations (ICLR) .Li, Y.; Shen, M.; Ma, J.; Ren, Y.; Zhao, M.; Zhang, Q.; Gong, R.; Yu, F.; and Yan, J. 2021b. MQBench: Towards Reproducible and Deployable Model Quantization Bench-mark. In Advances in Neural Information Processing Sys-tems Datasets and Benchmarks Track (NeurIPS Datasets and Benchmarks) .Lin, J.; Tang, J.; Tang, H.; Yang, S.; Chen, W.-M.; Wang, W.-C.; Xiao, G.; Dang, X.; Gan, C.; and Han, S. 2024. AWQ: Activation-Aware Weight Quantization for LLM Compres-sion and Acceleration. In Proceedings of Machine Learning and Systems (MLSys) .Liu, J.; Niu, L.; Yuan, Z.; Yang, D.; Wang, X.; and Liu, W. 2023a. PD-Quant: Post-Training Quantization Based on Pre-diction Difference Metric. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) .Liu, Z.; Oguz, B.; Zhao, C.; Chang, E.; Stock, P.; Mehdad, Y.; Shi, Y.; Krishnamoorthi, R.; and Chandra, V. 2023b. LLM-QAT: Data-Free Quantization Aware Training for Large Lan-guage Models. arXiv preprint arXiv:2305.17888 .Liu, Z.; Zhao, C.; Fedorov, I.; Soran, B.; Choudhary, D.; Krishnamoorthi, R.; Chandra, V.; Tian, Y.; and Blankevoort, T. 2025. SpinQuant: LLM Quantization with Learned Rota-tions. In International Conference on Learning Representa-tions .Merity, S.; Xiong, C.; Bradbury, J.; and Socher, R. 2016. Pointer Sentinel Mixture Models. arXiv preprint arXiv:1609.07843 .Nagel, M.; Amjad, R. A.; van Baalen, M.; Louizos, C.; and Blankevoort, T. 2020. Up or Down? Adaptive Rounding for Post-Training Quantization. In Proceedings of the 37th Inter-national Conference on Machine Learning (ICML) , volume 119 of Proceedings of Machine Learning Research , 7197– 7206. Nagel, M.; Fournarakis, M.; Bondarenko, Y.; and Blankevoort, T. 2022. Overcoming Oscillations in Quantization-Aware Training. In Proceedings of the 39th In-ternational Conference on Machine Learning , volume 162 of 
+
+Proceedings of Machine Learning Research , 16318–16330. PMLR. Nagel, M.; van Baalen, M.; Blankevoort, T.; and Welling, M. 2019. Data-Free Quantization Through Weight Equaliza-tion and Bias Correction. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) .Ortiz Suárez, P. J.; Romary, L.; and Sagot, B. 2020. A Mono-lingual Approach to Contextualized Word Embeddings for Mid-Resource Languages. In Proceedings of the 58th An-nual Meeting of the Association for Computational Linguis-tics , 1703–1714. Association for Computational Linguistics. Qwen Team. 2024. Qwen2.5 Technical Report. arXiv preprint arXiv:2412.15115 .Raffel, C.; Shazeer, N.; Roberts, A.; Lee, K.; Narang, S.; Matena, M.; Zhou, Y.; Li, W.; and Liu, P. J. 2020. Explor-ing the Limits of Transfer Learning with a Unified Text-to-Text Transformer. Journal of Machine Learning Research ,21(140): 1–67. Ronneberger, O.; Fischer, P.; and Brox, T. 2015. U-Net: Convolutional Networks for Biomedical Image Segmenta-tion. In Medical Image Computing and Computer-Assisted Intervention , 234–241. Springer. Sandler, M.; Howard, A.; Zhu, M.; Zhmoginov, A.; and Chen, L.-C. 2018. MobileNetV2: Inverted Residuals and Linear Bottlenecks. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 4510–4520. Shao, W.; Chen, M.; Zhang, Z.; Xu, P.; Zhao, L.; Li, Z.; Zhang, K.; Gao, P.; Qiao, Y.; and Luo, P. 2024. Omni-Quant: Omnidirectionally Calibrated Quantization for Large Language Models. In International Conference on Learning Representations (ICLR) .Sun, Y.; Liu, R.; Bai, H.; Bao, H.; Zhao, K.; Li, Y.; Hu, J.; Yu, X.; Hou, L.; Yuan, C.; Jiang, X.; Liu, W.; and Yao, J. 2025. FlatQuant: Flatness Matters for LLM Quantization. In Pro-ceedings of the 42nd International Conference on Machine Learning , volume 267 of Proceedings of Machine Learning Research , 57587–57613. PMLR. Wei, X.; Gong, R.; Li, Y.; Liu, X.; and Yu, F. 2022. QDrop: Randomly Dropping Quantization for Extremely Low-Bit Post-Training Quantization. In International Conference on Learning Representations (ICLR) .Xiao, G.; Lin, J.; Seznec, M.; Wu, H.; Demouth, J.; and Han, S. 2023. SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models. In Proceedings of the 40th International Conference on Machine Learning (ICML) , Proceedings of Machine Learning Research. Zhang, B.; and Sennrich, R. 2019. Root Mean Square Layer Normalization. In Advances in Neural Information Process-ing Systems , volume 32.
