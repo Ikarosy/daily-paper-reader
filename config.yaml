@@ -39,7 +39,7 @@ subscriptions:
           keyword_cn: 标量量化
           query: s
         - keyword: LLM
-          keyword_cn: 大模型
+          keyword_cn: 大语言模型
           query: L
         - keyword: vector quantization (VQ)
           keyword_cn: 向量量化
@@ -63,7 +63,7 @@ subscriptions:
           enabled: true
           source: manual
           note: ''
-      updated_at: '2026-08-13T04:37:51.651Z'
+      updated_at: '2026-08-13T04:38:27.322Z'
 source_backends:
   arxiv:
     papers_table: arxiv_papers
