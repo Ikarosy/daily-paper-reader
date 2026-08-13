@@ -25,3 +25,38 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
+  intent_profiles:
+    - tag: wbv
+      description: 极低比特VQ
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: vector quantization (VQ)
+          keyword_cn: 向量量化
+          query: p
+        - keyword: PTQ
+          keyword_cn: 训练后量化
+          query: P
+      intent_queries:
+        - query: papers provide SoTA/advanced results
+          query_cn: 我关注先进实验结果
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-08-13T03:04:56.441Z'
+source_backends:
+  arxiv:
+    papers_table: arxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_arxiv_papers
+    vector_rpc_exact: match_arxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_arxiv_papers_bm25
+    sync_table: arxiv_sync_status
+    sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
