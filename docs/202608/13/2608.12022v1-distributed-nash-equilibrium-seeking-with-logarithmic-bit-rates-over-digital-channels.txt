@@ -1,0 +1,1525 @@
+Title: Distributed Nash Equilibrium Seeking with Logarithmic Bit Rates over Digital Channels
+
+URL Source: https://arxiv.org/pdf/2608.12022v1
+
+Published Time: Thu, 13 Aug 2026 00:53:13 GMT
+
+Number of Pages: 21
+
+Markdown Content:
+# Distributed Nash Equilibrium Seeking with Logarithmic Bit Rates over Digital Channels 
+
+Zihao Ren, Chengyang Jiang, Lei Wang, Yang Liu, and Kemi Ding ∗
+
+Abstract 
+
+This paper introduces quantization techniques to reduce the communication complexity in the dis-tributed Nash equilibrium (NE) seeking problem, achieving an exponential reduction in bit rates over digital channels. The goal of distributed NE seeking algorithms is to coordinate agents in a network game toward equilibrium through iterative message exchanges among them via a communication network. The computational complexity of this distributed algorithm critically depends on network communication overhead in the digital channel, motivating the development of communication reduction mechanism. Regarding this, we proposed some quantizers based on sparsification and uniform quantization through a general class of ultimate-boundedness-based quantizers. Based on this, we propose a Passivity-Based NE seeking Algorithm with Time-varying scaling Error state Quantization (PBA-TEQ), and show that the linear convergence can be achieved under a sufficient condition. Moreover, when employing either the scalarization quantizer or the greedy quantizer, both belonging to the ultimate-boundedness-based quantizers, within the PBA-TEQ framework, we establish a lower bound on communication complexity of log 2(O(nd )) bit rates per transmission to achieve unbiased linear convergence, with n being the num-ber of agents and d being the dimension of the decision state of the network game. Numerical simulation examples are provided to validate our theoretical results. 
+
+Keywords: Nash equilibrium seeking; digital channels; network games; quantization 
+
+# 1 Introduction 
+
+Game theory has wide applications in areas such as generative adversarial networks, artificial intelli-gence, robust/resilient control problems, power allocation and even social policy-making [1–7]. In these applications, network games involving multiple agents connected through a network, such as smart grids and drone swarms, have been extensively studied. For such games, agents and their communication links are denoted by nodes and edges in a network, respectively. Each agent maintains its own decision vector and a cost function, the value of which is collectively determined by the decision vectors of all agents. In this context, centralized algorithms that rely on global observations or a central agent, such as those in [8] and [9], become ineffective. Instead, distributed Nash equilibrium (NE) seeking algorithms, which operate under partial decision information and depend on information communication through the network, have gained significant attention. In general, the distributed NE seeking algorithms can be divided into continuous-time and discrete-time types [10]. The work in [11] studies the continuous-time leader-following consensus-based flow, in which each agent’s estimate of the global decision state is updated by both network consensus and the local decision 
+
+> ∗
+
+Z. Ren and L. Wang are with the College of Control Science and Engineering, Zhejiang University, China (Email: zhren2000@zju.edu.cn, lei.wangzju@zju.edu.cn). C. Jiang and K. Ding are with the Department of Automation and Intel-ligent Manufacturing (AIM), Southern University of Science and Technology, China (Email: 12433001@mail.sustech.edu.cn, dingkm@sustech.edu.cn). Y. Liu is with the Department of Security Research, ByteDance, China (Email: li-uyang.fromthu@bytedance.com). Corresponding author: Lei Wang. 
+
+1arXiv:2608.12022v1 [eess.SY] 12 Aug 2026 vector, as the latter is updated based on the gradient of the cost function. Another continuous-time flow is the passivity-based flow studied in [12, 13]. In this flow, the estimate vector is updated based on the cost function and the network consensus, as the component corresponding to this agent in the estimate vector acts as the agent’s decision vector. For discrete-time algorithms, the first focus is on the discretization of the above two flows [14]. Other algorithms based on gossip communication or ADMM are proposed in [15, 16]. Furthermore, the distributed NE seeking problems are extended to stochastic and constrained cases in [17–20]. Interested readers can refer to [10] for more information on NE seeking algorithms. For distributed computing, communication in channels over the network among agents is of great im-portance for the effectiveness of algorithms. To address this issue, extensive research has been conducted on reducing the communication complexity. The research mainly focuses on two aspects, sparsification and quantization. Sparsifiers aim to reduce the dimension of vectors for transmission. Specific ones, including scalarization sparsifiers and greedy sparsifiers, have been proposed in [22, 23]. When sparsifiers are used, the transmitted messages still contain high-precision data types such as doubles. On the other hand, the study on uniform quantization always focuses on quantizing each component of the transmitted vector, respectively [21]. Several methods have been proposed to reduce the quantization error based on a time-varying boundary, weighted updating, stochastic communication, adaptive quantization, and error feedback in [24–28], respectively. In addition, the research on quantization has also gradually been incorporated into the distributed NE seeking problem in [30, 31]. The uniform quantizers convert the transmitted message from an analog vector to a digital form with the same dimension. Therefore, the required transmission bit rate increases linearly with the dimension of the transmitted vector. Even with the sign quantizer, which quantizes each dimension of the transmitted vector using only one bit and has been applied to distributed algorithms [24, 29], still requires D bits to transmit a D-dimensional vector. In summary of the previous analysis, for sparsifiers, though the dimension of the transmitted vector is reduced, the message still contains high-precision data types. In contrast, for uniform quantizers, the dimension of the transmitted vector remains unchanged, resulting in the bit rate being linearly related to the dimension of the transmission vector. When the channel bandwidth is seriously limited and the dimension of the transmitted message is large, both sparsifiers and uniform quantizers above result in prolonged communication times, which in turn reduces the efficiency of the algorithm. In order to cope with such bandwidth-limited situations, this paper aims to introduce new quantizers to further reduce the transmitted bit rate. In this paper, we propose new quantizers, and apply them to distributed NE seeking algorithms for an exponential reduction in the bit rate required over the digital channels. Specifically, we first propose a general class of ultimate-boundedness-based quantizers, that inspires scalarization and greedy quantizers. Next, we present the Passivity-Based NE seeking Algorithm with Time-varying scaling Error state Quan-tization (PBA-TEQ). By incorporating the ultimate-boundedness-based quantizers into the PBA-TEQ framework, we derive a sufficient condition that guarantees linear convergence. Furthermore, we establish a conservative lower bound of log 2(O(nd )) on the bit rate required per transmission when using either scalar-ization or greedy quantizers, with n being the number of agents and d being the dimension of the decision state of the network game. We also compare the sparsifiers [22, 23] and the sign quantizer [24, 29] from the literature with the proposed quantizers. Note that due to the presence of quantization, the convergence rate of our algorithm is slower compared with those without quantization in the literature [12]. However, as shown by numerical simulations, the proposed algorithm shows a significant reduction in the total bit rate required to achieve the same level of accuracy. This paper makes two main contributions as follows. 
+
+• A general class for ultimate-boundedness-based quantizers—that inspires two new specific quantizers, 2the scalarization quantizer and the greedy quantizer—is developed to reduce communication overhead over digital channels in the distributed NE seeking problem. 
+
+• Sufficient conditions are established to achieve linear convergence when incorporating the ultimate-boundedness-based quantizers into the distributed NE seeking algorithm. Furthermore, for specific quantizers, a lower bound is derived of log 2(O(nd )) on the bit rate required per transmission. In comparison to the sign quantizers [24, 29] requiring nd bits per transmission and the unquantized sparsifiers [22, 23] requiring high-precision data transmission, our results offer significant potential of reducing communication complexity in distributed algorithms. 
+
+Notation. In this paper, ∥ · ∥ denotes the Euclidean norm. The notation 1n(0n), 1n×d(0n×d), In and 
+
+{e1, . . . , ed} denote the one (zero) column, the one (zero) matrix, identity matrix and base vectors in Rd,respectively. The expression blkdiag( x1, . . . , xn) is a diagonal matrix with the i-th diagonal matrix being 
+
+xi. The symbol ⊗ denotes the Kronecker product. For a differential function, ∇(·) denotes its gradient. For column vectors a and b, [ a; b] means [ a⊤, b⊤]⊤. The notation O(·) means the magnitude notation. 
+
+# 2 Problem Formulation 
+
+2.1 Game Theory 
+
+In this paper, we consider a network game involving n agents indexed by V = {1, 2, . . . , n }. In this network game, each agent i ∈ V selects its action, which can be represented by a vector xi ∈ Rd. The vector x0 = [ x⊤ 
+
+> 1
+
+, . . . , x⊤ 
+
+> n
+
+]⊤ ∈ Rnd represents the actions of all agents. Each agent i also holds a C2 cost function fi : Rnd → R, whose value is determined by the actions x0 of all agents. The goal of each agent is to choose its best action to minimize its cost function as much as possible. Without loss of generality, we introduce the following assumption regarding the cost functions. We denote this game by G(V, {fi|i ∈ V}). The optimal solution in the context of this non-cooperative game is known as the NE [33], which is defined as follows. 
+
+Definition 1 An NE is an action profile for all agents, where no agent can reduce its cost function by unilaterally changing its action, that is, x∗ = [ x∗T 
+
+> 1
+
+, . . . , x∗Tn ]⊤ ∈ Rnd is an NE of the game G if 
+
+fi(x∗ 
+
+> i
+
+, x∗−i) ≤ fi(xi, x∗−i) ∀xi ∈ Rd, i ∈ V,
+
+where x∗−i := [ x∗
+
+> 1
+
+; . . . , x∗
+
+> i−1
+
+; x∗
+
+> i+1
+
+; . . . , x∗
+
+> n
+
+].
+
+Next, we define the gradient function H(x0) := [ ∂f 1 
+
+> ∂x1
+
+(x0); . . . , ; ∂f n 
+
+> ∂xn
+
+(x0)] ∈ Rnd and introduce the following assumption to ensure the existence and uniqueness of NE for game G.
+
+Assumption 1 H is strongly monotone, i.e., 
+
+(x − x′)⊤(H(x) − H(x′)) ≥ μ∥x − x′∥2, (1) 
+
+for any x, x′ ∈ Rnd and some μ > 0 and Lipschitz continuous, i.e., ∥H(x) − H(x′)∥ ≤ LH∥x − x′∥ for any 
+
+x, x′ ∈ Rnd and some LH > 0.
+
+According to [34], there exists a unique NE s∗ ∈ Rnd for the network game G if Assumption 1 holds. In addition, we define the extended gradient as H(y) := 
+
+h ∂f 1
+
+> ∂x11
+
+(x1); . . . ; ∂f n 
+
+> ∂xnn
+
+(xn)
+
+i
+
+∈ Rnd for y ∈ Rnnd .Similarly to [12, 13], we introduce the following assumption for subsequent analysis. 3Assumption 2 H is Lipschitz continuous, i.e., 
+
+∥H(y) − H(y′)∥ ≤ LH∥y − y′∥, (2) 
+
+for any y, y′ ∈ Rnnd and some LH > 0.
+
+2.2 Distributed Nash Equilibrium Seeking 
+
+In this paper, agents of this game will interact with each other through a communication network described by a graph G = ( V, E), where E denotes the set of edges. Let [ aij ] ∈ Rn×n denote the weight matrix complying with graph G, i.e., aij > 0 if {j, i } ∈ E and aij = 0 if {j, i } /∈ E. Moreover, we use L to represent the Laplacian matrix of graph G, which satisfy [ L]ij = −aij for all i̸ = j, and [ L]ii = Pnj=1 aij 
+
+for all i ∈ V. The set of neighboring agent for agent i is denoted by Ni, and j ∈ Ni if and only if [ L]ij ̸ = 0 for all i, j ∈ V. We introduce the following assumption for the graph G. 
+
+Assumption 3 The graph G is undirected, connected and time-invariant. 
+
+Note that if Assumption 3 holds, the Laplacian matrix L is symmetric and positive semi-definite, with eigenvalues λi, i ∈ V in an ascending order satisfying 0 = λ1 < λ 2 ≤ · · · ≤ λn and 1⊤ 
+
+> n
+
+L = 0 by [32]. In a distributed NE seeking algorithm, each agent i holds its cost function fi and an estimate of the actions of all agents, denoted by xi := [ˆ xi
+
+> 1
+
+; . . . ; ˆ xin] ∈ Rnd , where ˆ xii = xi represents its actual action. The agents share their estimates over the graph and update them based on received messages and the gradients of the cost functions. The objective of distributed NE seeking algorithms is to drive the agents’ action states toward the NE. 
+
+2.3 Problem of Interest 
+
+In the implementation of distributed NE-seeking algorithms, communication complexity is a critical factor in determining efficiency, particularly in scenarios where the bandwidth of digital channels is severely limited. To address this issue, sparsifiers have been introduced to reduce the dimension of transmitted messages. However, they still require the transmission of high-precision data types. Uniform quantizers, including sign quantizers, on the other hand, necessitate at least nd bits to communicate an nd -dimensional vector. Motivated by these limitations, this paper investigates a key question in distributed NE seeking over bandwidth-limited communication networks: How can one design quantizers that substantially reduce the required transmitted bit rate, thereby reducing communication complexity beyond what is achievable with sparsification or uniform quantization? 
+
+# 3 Communication Quantization 
+
+In this section, we introduce a general class of quantizers, and thus proposing two new quantizers. First, drawing inspiration from the ultimate boundedness theory [35, Theorem 4.18], we introduce the following general class for ultimate-boundedness-based quantizers. 
+
+Definition 2 The mapping Q : RD × N+ → RD is said to be an (u, δ )-ultimate-boundedness-based quantizer if for all t ∈ N+, any a > 0 and x, y ∈ RD satisfying ∥x∥ ≤ au , there exists a Lyapunov 
+
+4function Ve : RD × N+ → RD and some κ0 > 0 such that 
+
+c1∥x∥2 ≤ Ve(x, t ) ≤ c2∥x∥2,Ve
+
+
+
+x + κ0aQ
+
+ x
+
+a , t 
+
+
+
+, t + 1 
+
+
+
+− Ve(x, t )
+
+≤ − c3∥x∥2 − δ2∥a∥2,Ve(x + y, t ) − Ve(x, t ) ≤ c4(∥y∥2 + 2 ∥x∥∥ y∥),
+
+(3) 
+
+for some c1, c 2, c 3, c 4 > 0.
+
+According to Definition 2, we know the system x(t + 1) = x(t) − κ0aQ   x 
+
+> a
+
+, t  , t ) is ultimately bounded within the aδ √c3 -neighborhood of the zero equilibrium with attraction region ∥x∥ ≤ au . Together, parameters (u, δ ) characterize the quantization effect of Q on the algorithm. Specifically, if u is smaller and δ is larger, the error introduced by quantization tends to increase. Before proposing quantizers based on this framework, we introduce an intuitive quantization function. The function qm : R → { 0, 1}m, for some m ∈ N+, is an m-bit quantization function that represents an analog value as an m-bit binary number. Specifically, let l := 2 1−m be the quantization gap. Then, qm is defined as 
+
+qm(x) = 
+
+
+
+1 − l
+
+2 , x > 1,I, x ∈ (I − l
+
+2 , I + l
+
+2 ],I = ± 12 l, ± 32 l, . . . , ±(1 − 12 l),
+
+−1 + l
+
+2 , x ≤ − 1.
+
+Moreover, it can be noted that 
+
+|qm(x) − x| ≤ l
+
+2 , if |x| ≤ 1. (4) Using the function qm and inspired by Definition 2, we now propose the following two quantizers. 
+
+Definition 3 The m-bit scalarization quantizer Q sc : RD → { 0, 1}m with some m ∈ N+ satisfies 
+
+Qsc (xe) = ψ(t)qm(ψ(t)⊤xe) at time t, where the unit vector ψ : N+ → RD is uniformly bounded and persistently excited, i.e., α2Id ≥ Pt+kD s=t ψ(s)ψ⊤(s)ds ≥ α1Id, for all t ≥ 0 and some constants α1, α 2, k > 0.
+
+Definition 4 The m-bit greedy quantizer Q gr : RD → { 0, 1}m with some m ∈ N+ satisfies Qgr =
+
+qm([ xe]s)es, where s is the index of the highest coordinates in the absolute value of xe.
+
+Remark 1 We analyze the quantization process of Qsc and Qgr . For Qsc , the quantized and transmitted value is a scalar qm(ψ(t)⊤xe), and the receiver multiplies ψ(t) to recover Qsc . For Qgr , the component 
+
+[xe]s is quantized and transmitted, while the other components of xe are omitted (i.e., set to zero). The versions of Qsc and Qgr without quantization are discussed in [23] and [22], respectively. 
+
+In addition, we introduce the sign quantizer from literature [24, 29] as follows. 
+
+Definition 5 The sign quantizer Q si : RD → { 0, 1}D satisfies [Qsi (xe)] i = q1([ xe]i) for each dimension 
+
+i = 1 , 2, ..., D .
+
+Remark 2 The quantizer Qsi converts the transmitted vector into a vector with each dimension being − 12
+
+or 12 , and requires D bits to transmit a D-dimensional vector. When applied to quantize network commu-nication, it has been shown that a distributed algorithm with unbiased linear convergence maintains this 
+
+5Figure 1: The illustration of time-varying scaling quantization. 
+
+convergence property. Notably, though several quantizers have been established in the field of communication quantization [24–31], Qsi stands out as the quantizer that minimizes the bit rate for transmission, while still ensuring unbiased linear convergence of the algorithm. 
+
+We note that the proposed two quantizers, Qsc and Qgr , together with the sign quantizer Qsi , share common properties, as outlined in the following result. 
+
+Lemma 1 Q sc , Qgr and Qsi belong to the class of ultimate-boundedness-based quantizers. 
+
+The proof of Lemma 1 can be seen in Appendix A. 
+
+# 4 Main Results 
+
+In this section, we propose an algorithm to address the distributed NE seeking problem with quantized communication, based on the passivity-based NE seeking algorithm [12]. In this algorithm, the distributed Nash equilibrium seeking problem is reformulated as a consensus problem of the agents’ estimates, and each agent updates its decision based on these estimates, referring to as passivity. To reduce the quantization error, inspired by [24], we quantize the error state and introduce a decaying coefficient γt to scale the transmitted value before and after quantization, as illustrated in Fig.1. This results in the Passivity-Based NE seeking Algorithm with Time-varying scaling Error state Quantization (PBA-TEQ). In Algorithm 1, the vector y := [ x1; . . . ; xn] ∈ Rnnd represents the estimate vector of all agents, the parameters g0, γ, α, η > 0 are to be determined, the matrix Ti := [ 0d×(i−1) d; Id; 0d×(n−i)d] ∈ Rnd ×d is a selection matrix, and ∇ifi(xi) := ∂f i
+
+> ∂xii
+
+(xi) ∈ Rd. It should be noted that only the quantized values 
+
+Q
+
+ xi(t)−σi(t) 
+
+> gt
+
+, t 
+
+
+
+are transmitted over the network. Next, we integrate the quantizers into Algorithm 1 and perform a convergence analysis. Moreover, we establish the required bit rate per transmission for different quantizers. 
+
+4.1 Convergence Analysis for the Ultimate-Boundedness-Based Quantizers 
+
+First, for the general ultimate-boundedness-based quantizers, which encompass quantizers Qsc , Qgr , Qsi ,we have the following theorem. 
+
+Theorem 1 Consider the game G over the communication graph G and assume that Assumptions 1, 2 and 3 hold. In addition, suppose Q is (u, δ )-ultimate-boundedness-based and satisfies 
+
+uδ ≥
+
+r 1 + ϵβ . (6) 6Algorithm 1 The Passivity-Based NE seeking Algorithm with Time-varying scaling Error state Quanti-zation (PBA-TEQ) 
+
+Initialization : κ0, α, η, g 0, γ > 0, σi(0) = zi(0) = xi(0) = 0d, i ∈ V.
+
+for t ∈ N+, each agent i do 
+
+Calculate gt = g0γt
+
+Transmit qi(t) = Q
+
+ xi(t)−σi(t) 
+
+> gt
+
+, t 
+
+
+
+to neighbors Update: 
+
+σi(t + 1) = σi(t) + κ0gtqi(t),
+
+zi(t + 1) = zi(t)+ κ0gt
+
+qi(t) + X
+
+> j∈Ni
+
+aij 
+
+ qj (t) − qi(t) ,
+
+xi(t + 1) = xi(t)
+
+− α(σi(t) − zi(t)) + ηTi∇ifi(xi(t))  .
+
+(5) 
+
+end for 
+
+for any ϵ > 0 and β = min 
+
+n λ2α 
+
+> 6
+
+, ημ  
+
+> 4n
+
+, c3
+
+> 4c2
+
+o
+
+∈ (0 , 1) . Under these conditions, there exist constants α, η,
+
+g0 and γ =
+
+q 1−β 
+
+> 1−β/ (1+ ϵ)
+
+∈ (0 , 1) such that the global action of each agent xi(t) generated by Algorithm 1, converges linearly to the NE of the game G, i.e. , 
+
+∥xi(t) − x∗∥2 = O(γ2t).
+
+(see the parameters c3, c 2, α, η, g 0 in Appendix B.) 
+
+The proof of Theorem 1 can be seen in Appendix B. Theorem 1 demonstrates the convergence perfor-mance when the general ultimate-boundedness-based quantizers are incorporated into Algorithm 1. When  
+
+> uδ
+
+of the quantizer is sufficiently large, the algorithm can converge to the NE of the game at a linear convergence rate. 
+
+4.2 Provable Bit Rates for Sign Quantizer 
+
+For the sign quantizer Qsi in Definition 5, we have the following theorem. 
+
+Theorem 2 Consider the game G over the communication graph G and assume Assumptions 1, 2 and 3 hold. Then, if Q = Qsi , there exist some constants α, η, g0, γ > 0 such that the global action of each agent 
+
+xi(t) generated by Algorithm 1, converges linearly to the NE of the game G.
+
+The proof of Theorem 2 can be seen in Appendix C. With Definition 5, we know Theorem 2 indicates that the bit rate required in each transmission for Qsi is nd .
+
+4.3 Provable Bit Rates: Exponential Reduction 
+
+For the m-bit scalarization quantizer Qsc in Definition 3 and the m-bit greedy quantizer Qgr in Definition 4, we have the following theorem. 
+
+Theorem 3 Consider the game G over the communication graph G and assume Assumptions 1, 2 and 3 hold. Then, if Q is the m-bit quantizer Qsc or Qgr with m ≥ m = log 2(O(nd )) , there exists some constant 
+
+α, η, g0, γ > 0 such that the global action of each agent xi(t) generated by Algorithm 1, converges linearly to the NE of the game G.
+
+7Linear Growth Logarithmic Growth Figure 2: The bit rates for different quantizers with respect to dimension nd .The proof of Theorem 3 can be seen in Appendix D. According to Theorems 2 and 3, we can establish the conservative bit rate required for different quantiz-ers. Specifically, the linear bit rate for Qsi and the logarithmic bit rate for Qsc , Qgr , with respect to nd , the dimension of the transmitted vector, are obtained. To illustrate, the required bit rate for each quantizer is shown in Table 1 and Fig.2. Table 1: The bit rates for different quantizers. Quantizer Qsi Qsc , Qgr 
+
+Bit Rate nd log 2(O(nd )) Compared to the linear bit rate required for Qsi and similar results in the existing literature [24,29], the quantizers Qsc and Qgr reduce the bit rate in each transmission over the channels exponentially , i.e., from linear to logarithmic, with linear convergence guaranteed. Meanwhile, compared with their unquantized sparsifier version, Qsi and Qgr quantize high-precision data using m bits, whose lower bound is given in theory. Therefore, compared with uniform quantizers and sparsifiers, the significant reduction in bit rates established in Theorem 3 plays a crucial role in alleviating the communication complexity in distributed NE seeking algorithms. 
+
+# 5 Numerical Simulations 
+
+In this section, we evaluate the performance of Algorithm 1 on three types of synthetic networks gener-ated using the Erd˝ os–R´ enyi (ER), Watts–Strogatz (WS), and Barab´ asi-Albert (BA) models. The networks considered for evaluation consist of n = 30 nodes and the dimension of each decision state is d = 5. Each agent holds a local function fi(x) = 12 ∥Jix−bi∥2 with some randomly generated Ji ∈ Rnd ×nd and bi ∈ Rnd .We select an example of Ji such that H(x) = [ J11, . . . , Jnn]x satisfies Assumption 2 with Jii being the i-th 8row of matrix Ji. Hence, the game G has a unique NE s∗ ∈ Rnd .
+
+Network Setup . In the ER graph, each link is independently established with a probability of per = 0 .1. In the WS graph, the average degree is set to kws = 5, and the rewiring probability is pws = 0 .2. In the BA graph, a new node is added at each time step and connects to mba = 2 existing nodes via preferential attachment. The randomly generated network structures from the ER, WS, and BA models are shown in Fig. 3. 
+
+(a) Erd˝ os–R´ enyi 
+
+(b) Watts–Strogatz 
+
+(c) Barab´ asi-Albert Figure 3: Schematic illustration of network structures randomly generated using the ER, WS, and BA models. 
+
+Data Generation . The parameters and objective functions of the agents over networks are the same as ring graph, and it ensures that the network game G has a unique NE. 
+
+Comparative Analysis of Different Quantizers . In addition to the quantizers Qsc , Qgr and Qsi 
+
+mentioned before, we first introduce two more quantizers, the stochastic quantizer Qsto [36] and the integer 9quantizer Qint [29] from the existing literature for comparison. 
+
+Qsto (x) = ∥x∥∞
+
+23 sign( x) ∗ ⌊ 23|x|∥x∥∞
+
++ ω⌋,
+
+Qint (x) = ⌊x + 1
+
+2 ⌋,
+
+where ∗ denotes the Hadamard product, ω is a stochastic vector with each element following a uniform distribution on [0 , 1], and ⌊·⌋ represents the floor function. The convergence curves of the NE seeking by Algorithm 1 with different quantizers on the network are shown in Fig. 4, where ˆQsc is an example of Qsc 
+
+by letting ψ(t) = ei with i = 1 + ( t mod D). Furthermore, an analysis of the convergence rate reveals an inherent trade-off between per-iteration progress and overall communication efficiency. On one hand, the sign quantizer Qsi transmits the full-dimensional state with high fidelity, which accelerates convergence per iteration. On the other hand, the aggressive dimension reduction employed by quantizers Qsc and Qgr cuts down the bit rate transmitted at the expense of reducing the amount of information exchanged in each round. Notably, quantizer Qsc 
+
+employs a scalarization technique that projects the high-dimensional state onto a single scalar value before quantization. This aggressive dimensionality reduction significantly limits the information conveyed in each communication round, thereby leading to smaller, less informative updates and ultimately slower convergence. Table 2: The parameters of quantizers and the relevant data of Algorithm 1 without quantizers and with quantizers ˆQsc , ˆQgr , Qsi over different network structures. (a) Erd˝ os–R´ enyi Quantizers No Q ˆQsc ˆQgr Qsi Qint Qsto 
+
+Values / Iter. 150 1 4 150 150 150 Bits / Value 64 2 1 1 16 3Iterations/10 4 0.70 2.65 1.21 1.40 0.80 1.05 Total bits/10 5 672 5.30 4.84 21.0 192 47.2 (b) Watts–Strogatz Quantizers No Q ˆQsc ˆQgr Qsi Qint Qsto 
+
+Iterations/10 4 1.25 2.67 1.67 1.40 1.30 1.35 Total bits/10 5 1200 5.34 6.68 21.0 312 60.8 (c) Barab´ asi-Albert Quantizers No Q ˆQsc ˆQgr Qsi Qsto Qint 
+
+Iterations/10 4 0.81 2.66 1.22 1.40 1.00 1.05 Total bits/10 5 778 5.32 4.88 21.0 240 47.3 
+
+Comparative Analysis of Different Quantization Bits for Quantizer ˆQsc . We further investi-gate the impact of quantization precision on the convergence performance of Algorithm 1 by focusing on quantizer ˆQsc . In this experiment, while keeping all other parameters unchanged, we vary the number of quantization bits m and adjust its corresponding constant γ accordingly. In contrast, using fewer bits may cause the algorithm to fail to converge, while using more bits, although it can accelerate the convergence rate, will also increase the communication overhead. This empirical observation is in full agreement with the theoretical conclusion presented in Theorem 3. 10 0 0.5 1 1.5 2 2.5 3 3.5 10 4
+
+> 10 -4
+> 10 -2
+> 10 0
+> 10 2
+
+(a) Erd˝ os–R´ enyi 0 0.5 1 1.5 2 2.5 3 3.5 10 4
+
+> 10 -4
+> 10 -2
+> 10 0
+> 10 2
+
+(b) Watts–Strogatz 0 0.5 1 1.5 2 2.5 3 3.5 10 4
+
+> 10 -4
+> 10 -2
+> 10 0
+> 10 2
+
+(c) Barab´ asi-Albert Figure 4: The values Pni=1 ∥xi(t) − s∗∥2 along with iterations in Algorithm 1 without quantizers and with quantizers ˆQsc , ˆQgr , Qsi over different network structures. 11 Table 3: The relevant data of Algorithm 1 with ˆQsc for different number of bits for each value over different network structures. (a) Erd˝ os–R´ enyi Bits for each value 64 32 16 8Number of iterations /10 4 2.65 2.96 3.12 3.17 Total bits /10 5 169.6 94.7 49.9 25.4 (b) Watts–Strogatz Bits for each value 64 32 16 8Number of iterations /10 4 2.67 3.09 3.18 3.45 Total bits /10 4 170.9 98.9 50.9 27.6 (c) Barab´ asi-Albert Bits for each value 64 32 16 8Number of iterations /10 4 2.66 2.79 2.85 3.03 Total bits /10 4 170.2 89.3 45.6 24.2 
+
+# 6 Conclusion 
+
+In this paper, we have proposed quantizers in distributed NE seeking algorithms by a general class of ultimate-boundedness-based quantizers, and incorporated them to the PBA. A sufficient condition for maintaining linear convergence of the algorithm has also been established. Then we derived the lower bound of log 2(O(nd )) for the required bit rate in digital channels when the scalarization quantizer and the greedy quantizer are incorporated, and showed their advantage over the unquantized sparsifiers and sign quantizers. In the future, we will further explore other ways to combine sparsification and quantization, aiming to investigate the potential for further reducing the required communication bits. Meanwhile, for specific distributed algorithms, we may be able to propose targeted methods to reduce communication. The quantitative relationship between the reduction of communication bits and the convergence rate of the algorithm will also be a focus of our future research. 
+
+# Appendices A Proof for Lemma 1 
+
+Proof of Qsc : First, we prove Qsc is ultimate-boundedness-based. Letting Φ t+kD t be the state transition matrix of the system 
+
+xt+1 = xt − κ0ψ(t)ψ(t)⊤xt. (7) It is easy to verify that ∥Φt+jt x∥ ≤ ∥ x∥, for any j ∈ [0 , kD ] and x ∈ RD by noting that −ψ(t)ψ(t)⊤ is negative definite. By recalling [23], (7) is uniformly globally linearly stable at zero equilibrium for κ0 = 1 
+
+> α1
+
+,then the Lyapunov function Ve(x,t) := 1
+
+> kD
+
+PkD −1 
+
+> j=0
+
+∥Φt+jt x∥2 satisfies 
+
+c1∥x∥2 ≤ Vt ≤ c2∥x∥2,Ve(x − κ0ψ(t)ψ(t)⊤x, t + 1) − V (x, t ) ≤ − 2c3∥xt∥2, (8) for c1 = 1 
+
+> kD
+
+, c 2 = 1 and c3 = 12kD .12 In addition, we have 
+
+Ve(x + y, t ) − Ve(x, t )= 1
+
+kD 
+
+> kD −1
+
+X
+
+> j=0
+
+((Φ t+jt (2 x + y)) ⊤Φt+jt y)
+
+≤2∥x∥∥ y∥ + ∥y∥2
+
+≤c3∥x∥2 +
+
+ 1
+
+c3
+
++ 1 
+
+
+
+∥y∥2.
+
+(9) With (8) and (9) in mind, we assume 
+
+∥x∥ ≤ a, (10) then 
+
+Ve
+
+
+
+x − κ0aψ(t)qm
+
+ ψ(t)⊤x
+
+a
+
+
+
+, t + 1 
+
+
+
+− Ve(x, t )
+
+≤Ve
+
+
+
+x − κ0aψ(t)qm
+
+ ψ(t)⊤x
+
+a
+
+
+
+, t + 1 
+
+
+
+− Ve
+
+
+
+x − κ0aψ(t) ψ(t)⊤x
+
+a , t + 1 
+
+
+
++ Ve(x − κ0ψ(t)ψ(t)⊤x, t + 1) − Ve(x, t )
+
+≤ − 12kD ∥x∥2 + (2 kD + 1) 
+
+ a
+
+2mα1
+
+2
+
+,
+
+(11) where the last inequality uses the fact 
+
+κ0aψ(t)qm
+
+ ψ(t)⊤x
+
+a
+
+
+
+− κ0aψ(t)
+
+ ψ(t)⊤x
+
+a
+
+
+
+≤κ0a∥ψ(t)∥ l
+
+2 = κ0al 
+
+2 = κ0a
+
+2m = a
+
+2mα1
+
+derived from ∥ψ(t)∥ = 1 and (4) by noting that |ψ(t)⊤x| ≤ ∥ ψ(t)∥∥ x∥ ≤ 1 with (10). With (8), (9), (10) and (11), we directly obtain that Qsc is 
+
+
+
+1,
+
+> √2kD +1 2mα1
+
+
+
+-ultimate-boundedness-based with c1 = 1 
+
+> kD
+
+, c 2 = 1 , c 3 = 12kD , c 4 = 1. 
+
+Proof of Qgr : Next, we prove Qgr is ultimate-boundedness-based. We assume (10) holds and let Ve(x, t ) = 
+
+∥x∥2, then we have 
+
+Ve
+
+
+
+x − aQgr 
+
+ x
+
+a
+
+ 
+
+− Ve(x)=
+
+
+
+∥x − [xe]ses∥2 − ∥ x∥2
+
++ aQgr 
+
+ x
+
+a
+
+ 2
+
+− ∥ [xe]ses∥2
+
+≤ − 12D ∥x∥2 + (2 D + 1) 
+
+ a
+
+2m
+
+2
+
+,
+
+(12) where the last inequality is obtained by (4) by noting that (10) holds. In addition, we have 
+
+Ve(x + y, t ) − Ve(x, t )=(2 x + y)) ⊤y
+
+≤2∥x∥∥ y∥ + ∥y∥2.
+
+(13) With (12), it can be concluded that Qgr is (1 , 
+
+> √2D+1 2m
+
+) ultimate-boundedness-based with c1 = c2 =1, c 3 = 1 
+
+> D
+
+, c 4 = 1. 13 Proof of Qsi : Finally, for the sign quantizer Qsi , noting that 
+
+∥Qsi (x) − x∥∞ ≤ 12 (14) if ∥x∥∞ ≤ 1. We let u = √n. For ∥x∥ ≤ au satisfying ∥ xa ∥∞ ≤ 1, letting Ve(x, t ) = ∥x∥2, then we have 
+
+Ve
+
+
+
+x − aQsi 
+
+ x
+
+a
+
+ 
+
+− Ve(x)= − 2x⊤aQsi 
+
+ x
+
+a
+
+
+
++ a2 Qsi 
+
+ x
+
+a
+
+ 2
+
+≤ − 2∥x∥2 + ∥x∥√na 2 + a2 Qsi 
+
+ x
+
+a
+
+ 2
+
+≤ − ∥ x∥2 + 5n
+
+4 a2,
+
+(15) where the first inequality is obtained by (14). With (13), it can be concluded that Qsi is ( √n, 
+
+q 5n 
+
+> 4
+
+)ultimate-boundedness-based with c1 = c2 = c3 = c4 = 1. 
+
+# B Proof of Theorem 1 
+
+By recalling [29], there holds σi(t) − zi(t) = P 
+
+> j∈Ni
+
+Lij σj (t), then we know (5) is equal to the following compact form as 
+
+σt+1 = σt + κ0gtQ
+
+ yt − σt
+
+gt
+
+, t 
+
+
+
+,
+
+yt+1 = yt − αLσt − ηTH (yt),gt = g0γt,
+
+(16) where Q( yt−σt 
+
+> gt
+
+) := [ Q( x1(t)−σ1(t) 
+
+> gt
+
+, t ); . . . ; Q( xn(t)−σn(t) 
+
+> gt
+
+, t )] ∈ Rnnd , σt := σ(t) = [ σ1(t); σ2(t); . . . ; σn(t)] ∈
+
+Rnnd , yt := y(t) = [ y1(t); y2(t); . . . ; yn(t)] ∈ Rnnd , L := L ⊗ Ind , T := blkdiag( T1, . . . , Tn), and yt and H
+
+denote the estimate vector of all agents and a function related to object functions, respectively, defined in Section 2.2. By [34], as Assumption 1 holds, there exists a unique NE s∗ ∈ Rnd for the game satisfying H(1n ⊗ s∗) = 
+
+H(s∗) = 0nd . Then it can be noticed that σ∗ = y∗ = 1n ⊗ s∗ is the equilibrium point of system (16). We introduce the state error by defining σt := σt − 1n ⊗ s∗, yt := yt − 1n ⊗ s∗. Next, we take the state error for (16) and yield 
+
+σt+1 = σt + κ0Q(yt − σt, t ),
+
+yt+1 = yt −  αLσt + ηTH (yt),gt = g0γt,
+
+(17) where H(y) := H(y + 1n ⊗ s∗) − H(1n ⊗ s∗). To prove the convergence of the system, we will introduce a projection matrix and decompose yt. We let S ∈ Rn×(n−1) be a matrix whose rows are eigenvectors corresponding to nonzero eigenvalues of L. Then we decompose y by defining y⊥ 
+
+> t
+
+:= S⊤yt and y∥ 
+
+> t
+
+:= I⊤yt, where S := S ⊗ Ind and I := 1√n 1n ⊗ Ind . By the fact S⊤I = 0, Innd = SS ⊤ + II ⊤, we can derive 
+
+yt = Sy⊥ 
+
+> t
+
++ Iy∥ 
+
+> t
+
+. (18) Then it can be noticed that the convergence of yt can be shown if y∥ 
+
+> t
+
+and y⊥ 
+
+> t
+
+converge to the zero equilibrium, respectively. 14 With (17) and the fact LI = I⊤L = 0, we have 
+
+σt+1 = σt + κ0Q(yt − σt, t ),
+
+y⊥ 
+
+> t+1
+
+= y⊥ 
+
+> t
+
+− αS⊤Lσt − ηS⊤TH (yt),
+
+y∥ 
+
+> t+1
+
+= y∥ 
+
+> t
+
+− ηI⊤TH (yt),gt = g0γt.
+
+(19) Besides, we can also obtain that 
+
+∥Lσt∥2 ≤ 2λ2
+
+> n
+
+∥yt − σt∥2 + 2 λ2
+
+> n
+
+∥y⊥ 
+
+> t
+
+∥2. (20) Now we are ready to propose Lyapunov functions for system (19). Define V1,t := 12 ∥y⊥ 
+
+> t
+
+∥2, then 
+
+V1,t +1 − V1,t 
+
+≤   − 12 αλ 2∥y⊥ 
+
+> t
+
+∥2 + 12 αλ n∥σt − y∥2
+
++ 12 η(1 + L2
+
+> H
+
+)∥y⊥ 
+
+> t
+
+∥2 + 12 ηL 2
+
+> H
+
+∥y∥ 
+
+> t
+
+∥2
+
++  α2∥Lσt∥2 + η2L2
+
+> H
+
+(∥y⊥ 
+
+> t
+
+∥2 + ∥y∥ 
+
+> t
+
+∥2)] 
+
+≤   − 12 αλ 2∥y⊥ 
+
+> t
+
+∥2 + 12 αλ n∥yt − σt∥2
+
++ 12 η(1 + L2
+
+> H
+
+)∥y⊥ 
+
+> t
+
+∥2 + 12 ηL 2
+
+> H
+
+∥y∥ 
+
+> t
+
+∥2
+
++ [2 α2λ2
+
+> n
+
+∥yt − σt∥2 + 2 α2λ2
+
+> n
+
+∥y⊥ 
+
+> t
+
+∥2
+
++ η2L2
+
+> H
+
+(∥y⊥ 
+
+> t
+
+∥2 + ∥y∥ 
+
+> t
+
+∥2)] ,
+
+(21) where the first inequality is obtained by 
+
+Lyt = L(SS ⊤ + II ⊤)yt = LS y⊥ 
+
+> t
+
+,
+
+∥H(yt)∥2 ≤ L2
+
+> H
+
+∥yt∥2 = L2
+
+> H
+
+(∥y⊥ 
+
+> t
+
+∥2 + ∥y∥ 
+
+> t
+
+∥2), (22) derived from (2) in Assumption 2 and ∥T∥ ≤ 1, and the last inequality is obtained by (20). Define V2,t := 12 ∥y∥ 
+
+> t
+
+∥2, then 
+
+V2,t +1 − V2,t 
+
+≤   − η(Iy∥ 
+
+> t
+
+)⊤T[H(yt + 1n ⊗ s∗)
+
+− H(Iy∥ 
+
+> t
+
++ 1n ⊗ s∗) + H(Iy∥ 
+
+> t
+
++ 1n ⊗ s∗)
+
+− H(1n ⊗ s∗)]  + η2∥TH (yt)∥2
+
+≤   − η μ
+
+2n ∥y∥ 
+
+> t
+
+∥2 + η n
+
+2μ L2
+
+> H
+
+∥y⊥ 
+
+> t
+
+∥2
+
++ η2L2
+
+> H
+
+(∥y⊥ 
+
+> t
+
+∥2 + ∥y∥ 
+
+> t
+
+∥2),
+
+(23) where the second inequality is obtained by (18), (22), ∥T∥ ≤ 1, I⊤T = 1√n Ind , the fact H(1n ⊗ x) = H(x)for any x ∈ Rnd and (1) in Assumption 1. As Q is ultimate-boundedness-based for some u, let’s assume that 
+
+yt − σt
+
+gt
+
+≤ u (24) 15 holds for this system (it will be proven later). Then, by Definition 2, there exists a Lyapunov function Ve
+
+satisfying (3). Define V3(yt − σt, t ) = V3(yt − σt, t ) := Pni=1 Ve(xi(t) − σi(t), t ), with (5), then we have 
+
+V3,t +1 − V3,t 
+
+= X
+
+> i∈V
+
+(Ve(xi(t + 1) − σi(t + 1) , t + 1) 
+
+− Ve(xi(t) − σi(t), t )) 
+
+≤ − c3∥yt − σt∥2 + 2 c4∥yt − σt∥∥ αLσt + ηTH (yt)∥
+
++ c4∥αLσt + ηTH (yt)∥2 + δg 2
+
+> t
+
+≤ − [c3 −   − c24α/r − c24η/r 
+
+− 2αλ 2
+
+> n
+
+r]∥yt − σt∥2 +  (2 αλ 2
+
+> n
+
+r
+
++ ηrL 2
+
+> H
+
+)∥y⊥ 
+
+> t
+
+∥2 + ηrL 2
+
+> H
+
+∥y∥ 
+
+> t
+
+∥2
+
++ c4(4 α2λ2
+
+> n
+
+(∥yt − σt∥2 + ∥y⊥ 
+
+> t
+
+∥2)+ 2 η2L2
+
+> H
+
+(∥y⊥ 
+
+> t
+
+∥2 + ∥y∥ 
+
+> t
+
+∥2) + δ2g2 
+
+> t
+
+,
+
+(25) where the first inequality is obtained by (3), and the last inequality is obtained by (20), (22) and Young’s Inequality, with r > 0 being an undetermined parameter to be chosen later. Now we introduce some parameters ξ1, ξ 2, . . . , ζ 1, ζ 2, · · · > 0 independent of α and η, as follows 
+
+ξ1 = λ2
+
+2 , ξ2 = 3 + 3 L2
+
+> H
+
+2 + 6n2L4
+
+> H
+
+μ2 ,ξ3 = 2 λ2
+
+> n
+
+,ξ4 = 2 c24, ξ5 = 7λn
+
+12 ,ζ1 = 2 λ2 
+
+> n
+
++ (1 + 2 c4 + p)L2 
+
+> H
+
++ 4 c4λ2
+
+> n
+
+,ζ2 = (1 + 2 c4 + p)) L2
+
+> H
+
+, ζ3 = 2 λ2 
+
+> n
+
++ 4 c4λ2
+
+> n
+
+,
+
+where p = 12 L2 
+
+> Hnμ
+
+> 0. Then we define the total Lyapunov functions of system (17) as Vt := V1,t +pV 2,t +V3,t .By (8), there holds 
+
+Vt ≤ 12 ∥y⊥ 
+
+> t
+
+∥2 + p
+
+2 ∥y∥ 
+
+> t
+
+∥2 + c2∥yt − σt∥2. (26) We let r ≤ 1, η ≤ α to simplify the following process, then by (21), (23) and (25), we have 
+
+Vt+1 − Vt
+
+≤ − (ξ1α − ξ2η − ξ3αr )∥y⊥ 
+
+> t
+
+∥2
+
+− (pη μ
+
+4n )∥y∥ 
+
+> t
+
+∥2 − (c3 − ξ4α/r − ξ5α)∥yt − σt∥2
+
++ ( α2ζ1∥y⊥ 
+
+> t
+
+∥2 + η2ζ2∥y∥ 
+
+> t
+
+∥2 + α2ζ3∥yt − σt∥2) + δ2g2 
+
+> t
+
+.
+
+In succession, we choose r = min 
+
+n ξ1 
+
+> 3ξ3
+
+, 1
+
+o
+
+independent of α, η , α = c3min 
+
+n r 
+
+> 4ξ4
+
+, 14ξ5
+
+o
+
+independent of η,16 η = αmin 
+
+n ξ1 
+
+> 3ξ2
+
+, 1
+
+o
+
+, then we have 
+
+Vt+1 − Vt
+
+≤ − ( ξ1α
+
+3 − α2ζ1)∥y⊥ 
+
+> t
+
+∥2 − (pη μ
+
+4n − η2ζ2)∥y∥ 
+
+> t
+
+∥2
+
+− ( c3
+
+2 − α2ζ3)∥yt − σt∥2 + δ2g2 
+
+> t
+
+,
+
+Letting α ≤ min { ξ1 
+
+> 6ζ1
+
+, }≤ − min 
+
+ ξ1α
+
+3 , ημ 
+
+4n , c3
+
+4c2
+
+
+
+Vt + δ2g2
+
+> t
+
+= −βV t + δ2g2 
+
+> t
+
+,
+
+where β := min 
+
+n λ2α 
+
+> 6
+
+, ημ  
+
+> 4n
+
+, c3
+
+> 4c2
+
+o
+
+∈ (0 , 1) and the last inequality is obtained by (26). Then we have 
+
+Vt ≤ V0(1 − β)t + g20 δ2
+
+> t
+
+X 
+
+> τ=0
+
+(1 − β)t−τ
+
+γ2τ
+
+≤ V0(1 − β)t + g20 δ2
+
+1 − γ2/(1 − β) ((1 − β)t − γ2t).
+
+(27) The result (27) holds as we assume (24) in the process of the system’s dynamic. Next, we will prove this fact. By (8), we derive 
+
+yt − σt
+
+gt
+
+> 2
+
+≤ Vt
+
+g2
+
+> t
+
+≤ V0
+
+g20
+
+( 1 − βγ2 )t + δ2
+
+1 − γ2/(1 − β) (( 1 − βγ2 )t − 1) .
+
+We let γ2 = 1−β 
+
+> 1−β
+> 1+ ϵ
+
+and g20 = V0(γ2/(1 −β)−1)  
+
+> δ2
+
+, then we have 
+
+yt − σt
+
+gt
+
+> 2
+
+≤ δ2
+
+1/(1 − 11+ ϵ β) − 1 ≤ 1 + ϵβ δ2.
+
+It can be furthermore noticed that the (24) will hold if u and δ satisfy the following condition 
+
+uδ ≥
+
+r 1 + ϵβ . (28) To sum up, if Q satisfies (28), then (24) holds. Then (27) holds and Vt converges to zero linearly. With (26), we can derive ∥y⊥ 
+
+> t
+
+∥ and ∥y∥ 
+
+> t
+
+∥ linearly converge to the zero equilibrium and so does ∥yt∥ by (18). With the definition of yt and yt = yt − 1n ⊗ s∗ before, we know xi(t) in Algorithm 1 reaches the NE s∗
+
+linearly. Then Theorem 1 is proven. 
+
+# C Proof of Theorem 2 
+
+According to proof in Appendix A, (3) holds if the following holds. 
+
+yt − σt
+
+gt ∞
+
+≤ 1. (29) 17 Then, similar to the proof of Theorem 1 in Section 4.1, we can obtain (27). Therefore, the proof can be completed if we can prove (29) for all t ∈ N+ when Qsi is applied. By y0 = σ0 = 0, yt −σt = yt −σt, g0 > 0and u > 0, we have y0−σ0  
+
+> g0∞
+
+≤ 1. Next, we prove if (29) holds for t ≥ 0, there holds yt+1 −σt+1   
+
+> gt+1 ∞
+
+≤ 1. By (17), we have 
+
+yt+1 − σt+1 
+
+gt+1 ∞
+
+=
+
+yt − σt
+
+gt
+
+− Qsi 
+
+ yt−σt
+
+> gt
+
+
+
+gt+1 /g t
+
+> ∞
+
++ αLσt + ηTH (yt)
+
+gt+1 
+
+≤ 2αgt+1 
+
+(λ2 
+
+> n
+
+∥yt − σt∥2 + λ2 
+
+> n
+
+y⊥
+
+> t
+> 2
+
++ L2
+
+> H
+
+∥y⊥ 
+
+> t
+
+∥2 + L2
+
+> H
+
+∥y∥ 
+
+> t
+
+∥2) 12 + 12γ
+
+≤ 2αc 5
+
+g0γ V 12 
+
+> 0
+
++ 12γ ,
+
+with c5 =
+
+r
+
+2max 
+
+n
+
+(λ2 
+
+> n
+
++ L2
+
+> H
+
+), L2
+
+> H
+> p
+
+o
+
+, where the first inequality is obtained by (14), (20) and (22), and the last inequality is obtained by (26), (27) and letting g20 = 4 V0(γ2/(1 − β) − 1). Then we choose γ ∈
+
+(max { 12 , √1 − β}, 1) and α < (γ−0.5) g0 
+
+> 2c5
+> √V0
+
+. It can be obtained that yt+1 −σt+1   
+
+> gt+1 ∞
+
+≤ 1 holds if yt−σt  
+
+> gt∞
+
+≤ 1. With the fact y0−σ0  
+
+> g0∞
+
+≤ 1, we can conclude (29) holds for any t ≥ 0. Then (27) holds with γ < 1 and we complete the proof. 
+
+# D Proof of Theorem 3 
+
+With the values of the parameters ( u, δ ) for different quantizers in Appendix A in mind, we analyze the condition (6) for Qsc and Qgr , respectively. For Qsc , there holds uδ = 2mα1√2kD +1 , the condition (6) is 
+
+m ≥ log 2
+
+1
+
+α1
+
+s
+
+(1 + ϵ)(2 knd + 1) 
+
+β
+
+!
+
+.
+
+Further, by the expression of β in Appendix, it can be easily noticed that β ≤ c3 
+
+> 4c2
+
+. With c2 = 1 , c 3 = 12knd 
+
+for Qsc in Appendix A, the condition (6) is satisfied if 
+
+m ≥ m = log 2
+
+ 1
+
+α1
+
+p(1 + ϵ)((2 knd )2 + 2 knd )
+
+
+
+= log 2(O(nd )) .
+
+Similarly, for Qgr , there holds uδ = 2m 
+
+> √2nd +1
+
+, c2 = 1 and c3 = 12nd . Then the condition (6) is satisfied if 
+
+m ≥ m = log 2
+
+p (1 + ϵ)((2 nd )2 + 2 nd )
+
+
+
+= log 2(O(nd )) .
+
+Now that (6) is satisfied, according to Theorem 1, we complete the proof. 
+
+# References 
+
+[1] D. Fudenberg and J. Tirole, Game Theory . MIT Press, 1991. 18 [2] J. Marden and J. Shamma, “Game theory and control,” Annual Review of Control Robotics and Autonomous Systems , vol. 1, no. 1, pp. 105–134, 2018. [3] F. Faruqi, Differential Game Theory With Applications to Missiles and Autonomous Systems Guid-ance . Wiley, 2017. [4] M. Mavronicolas, V. Papadopoulou, and P. Spirakis, “Algorithmic game theory and applications,” in 
+
+Handbook of Applied Algorithms: Solving Scientific, Engineering, and Practical Problems . Wiley, 2008. [5] G. Scutari, D. Palomar and S. Barbarossa, “Optimal linear precoding strategies for wideband non-cooperative systems based on game theory—part I: Nash equilibrial,” IEEE Transactions on Signal Processing , vol. 56, no. 3, pp. 1230-1249, 2008. [6] A. Deligiannis, A. Panoui, S. Lambotharan and J. Chambers, “Game-theoretic power allocation and the Nash equilibrium analysis for a multistatic MIMO radar network,” IEEE Transactions on Signal Processing , vol. 65, no. 24, pp. 6397-6408, 2017. [7] W. Wang and A. Leshem, “Non-convex generalized Nash games for energy efficient power allocation and beamforming in mmWave networks,” IEEE Transactions on Signal Processing , vol. 70, pp. 3193-3205, 2022. [8] T. Alpcan and T. Basar, “Distributed algorithms for Nash equilibrial of flow control games,” in 
+
+Advances in Dynamic Games , vol. 7, pp. 473–498, 2005. [9] A. Kannan and U. Shanbhag, “Distributed iterative regularization algorithms for monotone Nash games,” in Proceedings of 2010 IEEE Conference Decision Control , pp. 1963–1968, 2010. [10] M. Ye, Q. Han, L. Ding, et al, “Distributed Nash equilibrium seeking in games with partial decision information: A survey,” Proceedings of the IEEE , vol. 111, no .2, pp. 140-157, 2023. [11] M. Ye and G. Hu, “Adaptive approaches for fully distributed Nash equilibrium seeking in networked games,” Automatica , vol. 129, no. 109661, 2021. [12] D. Gadjov and L. Pavel, “A passivity-based approach to Nash equilibrium seeking over networks,” 
+
+IEEE Transactions of Automatic Control , vol. 64, no. 3, pp. 1077–1092, 2019. [13] D. Gadjov and L. Pavel, “On the exact convergence to Nash equilibrium in monotone regimes under partial-information,” in Proceedings of 2020 IEEE Conference Decision Control , pp. 2297–2302, 2020. [14] M. Bianchi and S. Grammatico, “Fully distributed Nash equilibrium seeking over time-varying com-munication networks with exponential convergence rate,” IEEE Control Systems Letters , vol. 5, no. 2, pp. 499–504, 2021. [15] F. Salehisadaghiani and L. Pavel, “Distributed Nash equilibrium seeking: A gossip-based algorithm,” 
+
+Automatica , vol. 72, pp. 209–216, 2016. [16] F. Salehisadaghiani, W. Shi and L. Pavel, “Distributed Nash equilibrium seeking under partial-decision information via the alternating direction method of multipliers”, Automatica , vol. 103, pp. 27-35, 2019. [17] C. Yu, M. Schaar and A. Sayed, “Distributed learning for stochastic generalized Nash equilibrium problems,” IEEE Transactions on Signal Processing , vol. 65, no. 15, pp. 3893-3908, 2017. 19 [18] J. Chen, W. Dai, Y. Shen, V. Lau and M. Win, “Power management for cooperative localization: a game theoretical approach,” IEEE Transactions on Signal Processing , vol. 64, no. 24, pp. 6517-6532, 2016. [19] P. Yi, L. Pavel, “An operator splitting approach for distributed generalized Nash equilibria computa-tion,” Automatica , vol. 102, pp. 111-121, 2019. [20] J. Lei, U. Shanbhag, J. Pang, S. Sen, “On synchronous, asynchronous, and randomized best-response schemes for stochastic Nash games,” Mathematics of Operations Research , vol. 45, no. 1, pp. 157-190, 2020. [21] D. Thanou, E. Kokiopoulou, Y. Pu and P. Frossard, “Distributed average consensus with quantization refinement,” IEEE Transactions on Signal Processing , vol. 61, no. 1, pp. 194-205, 2013. [22] A. Beznosikov, S. Horvath, P. Richtarik and M. Safaryan, “On biased compression for distributed learning,” Journal of Machine Learning Research , vol. 24, no. 276, pp. 1-50, 2023. [23] L. Wang, Z. Ren, D. Yuan, G. Shi, “Distributed solvers for network linear equations with scalarized compression,” IEEE Transactions on Automatic Control , doi: 10.1109/TAC.2024.3488492. [24] Y. Kajiyama, N. Hayashi and S. Takai, “Linear convergence of consensus-based quantized optimization for smooth and strongly convex cost functions,” IEEE Transactions on Automatic Control , vol. 66, no. 3, pp. 1254-1261, 2021. [25] A. Reisizadeh, A. Mokhtari, H. Hassani and R. Pedarsani, “An exact quantized decentralized gradient descent algorithm” IEEE Transactions on Signal Processing , vol. 67, no. 19, pp. 4934-4947, 2019. [26] T. Doan, S. Maguluri and J. Romberg, “Convergence rates of distributed gradient methods under ran-dom quantization: a stochastic approximation approach,” IEEE Transactions on Automatic Control ,vol. 66, no. 10, pp. 4469-4484, 2021. [27] T. Doan, S. Maguluri and J. Romberg, “Fast convergence rates of distributed subgradient methods with adaptive quantization,” IEEE Transactions on Automatic Control , vol. 66, no. 5, pp. 2191-2205, 2021. [28] S. Khirirat, S. Magnusson, and M. Johansson, “Compressed gradient methods with Hessian-aided error compensation,” IEEE Transactions on Signal Processing , vol. 69, pp. 998–1011, 2020. [29] X. Yi, S. Zhang, T. Yang, T. Chai and K. Johansson, “Communication compression for distributed nonconvex optimization,” IEEE Transactions on Automatic Control , vol. 68, no. 9, pp. 5477-5492, 2023. [30] E. Nekouei, G. Nair, and T. Alpcan, “Performance analysis of gradient-based Nash seeking algorithms under quantization,” IEEE Transactions on Automatic Control vol. 61, no. 12, pp. 3771-3783, 2016. [31] Z. Chen, J. Ma, S. Liang, et al, “Distributed Nash equilibrium seeking under quantization communi-cation,” Automatica , vol. 11, no. 1, pp. 103-112, 2022. [32] M. Mesbahi and M. Egerstedt. Graph Theoretic Methods in Multiagent Networks . Princeton University Press, 2010. [33] J. Nash, “Non-cooperative games,” Annals Of Mathematics , vol. 54, no. 2, pp. 286–295, 1951. 20 [34] G. Scutari, F. Facchinei, J. Pang, and D. Palomar, “Real and complex monotone communication games,” IEEE Transactions on Information Theory , vol. 60, no. 7, pp. 4197–4231, 2014. [35] H. K. Khalil, Nonlinear Systems , Third Edition, Prentice Hall, 2002. [36] D. Alistarh, D. Grubic, J. Li, et al, “QSGD: Communication-efficient SGD via gradient quantization and encoding,” in Proceedings of Neural Information Processing Systems , vol. 30, 2017. 21

@@ -1,0 +1,57 @@
+{
+  "date": "20260813",
+  "date_label": "",
+  "generated_at": "2026-08-13 21:04:00 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.08652v1",
+      "route": "202608/13/2608.08652v1-legolm-structured-weight-sharing-for-large-language-models",
+      "title": "LegoLM: Structured Weight Sharing for Large Language Models",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向大语言模型压缩的结构化权重共享，使用向量/标量块与Lloyd-Max质心，直接对应超低比特VQ/SQ",
+      "first_seen_at": "2026-08-13 21:04:00 UTC",
+      "updated_at": "2026-08-13 21:04:00 UTC"
+    },
+    {
+      "paper_id": "2608.08081v1",
+      "route": "202608/13/2608.08081v1-rotaryquant-fitting-120b-moe-models-on-consumer-hardware-via-fused-compressed-space-attention",
+      "title": "RotaryQuant: Fitting 120B MoE Models on Consumer Hardware via Fused Compressed-Space Attention",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "对路由专家采用2比特量化,面向MoE模型的极低比特压缩",
+      "first_seen_at": "2026-08-13 21:04:00 UTC",
+      "updated_at": "2026-08-13 21:04:00 UTC"
+    },
+    {
+      "paper_id": "2608.12022v1",
+      "route": "202608/13/2608.12022v1-distributed-nash-equilibrium-seeking-with-logarithmic-bit-rates-over-digital-channels",
+      "title": "Distributed Nash Equilibrium Seeking with Logarithmic Bit Rates over Digital Channels",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "通过稀疏化与均匀量化实现对数比特率，契合极低比特VQ/SQ主题",
+      "first_seen_at": "2026-08-13 21:04:00 UTC",
+      "updated_at": "2026-08-13 21:04:00 UTC"
+    }
+  ]
+}

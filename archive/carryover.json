@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-08-13T04:46:33.667768+00:00",
-  "updated_date": "20260715-20260813",
+  "generated_at": "2026-08-13T21:01:12.416972+00:00",
+  "updated_date": "20260813",
   "carryover_days": 9,
   "tag_states": {
     "wbv": {
-      "updated_date": "20260715-20260813",
+      "updated_date": "20260813",
       "carryover_days": 9,
       "items": []
     }

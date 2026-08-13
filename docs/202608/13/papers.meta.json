@@ -1,0 +1,54 @@
+{
+  "label": "2026-08-13",
+  "date": "2026-08-13",
+  "generated_at": "2026-08-13T21:04:03",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202608/13/2608.08652v1-legolm-structured-weight-sharing-for-large-language-models",
+      "section": "deep",
+      "title_en": "LegoLM: Structured Weight Sharing for Large Language Models",
+      "authors": "Joseph Bingham",
+      "date": "2026-08-09",
+      "pdf": "https://arxiv.org/pdf/2608.08652v1",
+      "score": "9.0",
+      "evidence": "面向大语言模型压缩的结构化权重共享，使用向量/标量块与Lloyd-Max质心，直接对应超低比特VQ/SQ",
+      "tldr": "针对LLM压缩中全局权重共享失效问题，LegoLM识别出分布失配与异常值主导两种失效模式。方法采用标量块编码消除尺度失配、百分位选择性替换保留关键异常值、边界层保护首尾Transformer块，且全部数据无关。在Mistral-7B上实现4.41倍压缩，PPL退化仅+0.03%，压缩比与质量均超PTQ-8bit；下游任务在5.12倍压缩下准确率不降。此外发现异常值影响随模型规模急剧扩大，选择性替换为核心机制。",
+      "tags": "query:wbv",
+      "abstract_en": "We present \\LegoLM{}, a structured weight-sharing compression framework for large language models grounded in a systematic study of why global weight sharing fails and how to fix it. We identify two distinct failure modes. Distributional mismatch: for vector blocks of dimension d <= 2, transformer layers with heterogeneous weight scales impose a scale-mismatch penalty that grows linearly with d and cannot be resolved by increasing K, producing perplexity in the millions.Outlier dominance: for scalar blocks, a fraction ~1/K of weights lies beyond the outermost Lloyd-Max decision threshold and cannot be represented by any centroid; their misrepresentation accumulates across layers, causing catastrophic quality loss. \\LegoLM{} resolves both failure modes via three data-free adaptations: 1 scalar-block encoding to eliminate the $d$-linear mismatch component, 2 percentile-selective replacement that identifies and preserves outlier weights verbatim, and 3 boundary-layer protection for the first and last transformer blocks. Across GPT-2 small (124M) and Mistral-7B, \\LegoLM{} achieves +0.03% PPL degradation at 4.41X compression on Mistral-7B - outperforming PTQ-8bit in both quality and compression ratio - and -0.02% at 2.67X. Downstream evaluation on LAMBADA and HellaSwag confirms that \\LegoLM{} at K=64, p=99% preserves accuracy within noise at 5.12 X compression, exceeding PTQ-8bit's compression ratio while matching its accuracy. We further discover that outlier dominance grows with model scale: full replacement at K=128 degrades GPT-2 small by only +23% but catastrophically degrades Mistral-7B by +1,134,279%, while selective replacement at p=99% rescues both models to under +15%. A controlled ablation confirms that selective replacement is the dominant mechanism: adding it to per-layer K-means also yields near-lossless quality, matching \\LegoLM{} within 0.02%.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202608/13/2608.08081v1-rotaryquant-fitting-120b-moe-models-on-consumer-hardware-via-fused-compressed-space-attention",
+      "section": "deep",
+      "title_en": "RotaryQuant: Fitting 120B MoE Models on Consumer Hardware via Fused Compressed-Space Attention",
+      "authors": "Anthony. Lui, Mohamed. Elsaied, N. P. Savani",
+      "date": "2026-08-08",
+      "pdf": "https://arxiv.org/pdf/2608.08081v1",
+      "score": "8.0",
+      "evidence": "对路由专家采用2比特量化,面向MoE模型的极低比特压缩",
+      "tldr": "大型MoE模型因权重、KV缓存和专家分页三重内存压力难以部署在消费级硬件。RotaryQuant提出三轴压缩方案：按角色混合精度量化权重，LRU专家卸载，以及基于Walsh-Hadamard变换与SO(4)旋转的IsoQuant将KV缓存压缩至3位，配合融合GPU流水线直接在压缩空间计算注意力。在16GB/32GB内存上运行26B至120B模型，速度9-19 tok/s，困惑度几乎不变，32K上下文检索精度100%。",
+      "tags": "query:wbv",
+      "abstract_en": "Large mixture-of-experts (MoE) language models with 26--120 billion parameters exceed the memory capacity of consumer devices through three simultaneous pressures: resident weight matrices, key-value (KV) cache state that grows linearly with context, and dozens of expert sublayers that must be paged on demand. We present RotaryQuant, a three-axis compression system that addresses all three. Mixed-precision weight quantization assigns bit-widths by architectural role: 4-bit for dense layers, 2-bit for routed experts, and 8-bit for the shared expert whose high activation kurtosis resists aggressive compression. LRU expert offloading pages non-resident experts to disk under genuine memory pressure. The novel axis is IsoQuant, a KV cache compression method that applies a Walsh--Hadamard transform followed by block-diagonal SO(4) rotations to isotropize activation distributions before 3-bit scalar quantization, requiring $O(d \\log d)$ operations and 256 stored parameters per head versus $O(d^2)$ and 16{,}384 for dense rotation methods. A fused four-kernel Metal GPU pipeline performs attention directly on packed 3-bit tensors without materializing full-precision KV state---a different execution model, not just a quantization scheme. The combined system fits Gemma 4-26B-A4B and Qwen3-30B-A3B within a 16\\,GB budget and Nemotron-H 120B within 32\\,GB, running interactively at 9--19 tok/s with near-zero perplexity degradation ($Δ$PPL $\\leq +0.0012$) and 100\\% retrieval accuracy at 32K context.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202608/13/2608.12022v1-distributed-nash-equilibrium-seeking-with-logarithmic-bit-rates-over-digital-channels",
+      "section": "quick",
+      "title_en": "Distributed Nash Equilibrium Seeking with Logarithmic Bit Rates over Digital Channels",
+      "authors": "Zihao Ren, Chengyang Jiang, Lei Wang, Yang Liu, Kemi Ding",
+      "date": "2026-08-12",
+      "pdf": "https://arxiv.org/pdf/2608.12022v1",
+      "score": "7.0",
+      "evidence": "通过稀疏化与均匀量化实现对数比特率，契合极低比特VQ/SQ主题",
+      "tldr": "分布式纳什均衡寻求问题中，数字信道通信开销成为算法瓶颈。本文基于最终有界量化器引入稀疏化与均匀量化技术，提出PBA-TEQ算法。在充分条件下达到线性收敛，采用标量化或贪心量化器时每传输比特率下界为log2(O(nd))，实现无偏线性收敛。该工作将通信复杂度指数级降低，为数字信道下的分布式优化提供了高效通信方案。",
+      "tags": "query:wbv",
+      "abstract_en": "This paper introduces quantization techniques to reduce the communication complexity in the distributed Nash equilibrium (NE) seeking problem, achieving an exponential reduction in bit rates over digital channels. The goal of distributed NE seeking algorithms is to coordinate agents in a network game toward equilibrium through iterative message exchanges among them via a communication network. The computational complexity of this distributed algorithm critically depends on network communication overhead in the digital channel, motivating the development of communication reduction mechanism. Regarding this, we proposed some quantizers based on sparsification and uniform quantization through a general class of ultimate-boundedness-based quantizers. Based on this, we propose a Passivity-Based NE seeking Algorithm with Time-varying scaling Error state Quantization (PBA-TEQ), and show that the linear convergence can be achieved under a sufficient condition. Moreover, when employing either the scalarization quantizer or the greedy quantizer, both belonging to the ultimate-boundedness-based quantizers, within the PBA-TEQ framework, we establish a lower bound on communication complexity of $\\log_2(\\mathcal{O}(nd))$ bit rates per transmission to achieve unbiased linear convergence, with $n$ being the number of agents and $d$ being the dimension of the decision state of the network game. Numerical simulation examples are provided to validate our theoretical results.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

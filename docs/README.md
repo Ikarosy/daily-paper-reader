@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-07-15 ~ 2026-08-13</span>
+      <span class="dpr-home-dashboard-kicker">2026-08-13</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 11 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 3 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
-    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>2 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>11</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>1</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-08-13 04:52:49 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-08-13 21:04:00 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日速读11篇LLM量化研究，无精读，聚焦边缘端推理优化。</p>
-<p>最值得关注的方向是端到端量化框架（PolyQ）与渐进式多精度表示（Recurrent Residual Quantization），均获9.0高分。</p>
-<p>建议下一步优先精读这两篇，并结合KV缓存向量量化的注意力保持方法验证实际效果。</p>
+<p>今日精读2篇、速读1篇，聚焦大模型轻量化与分布式优化。</p>
+<p>最值得看的是LegoLM结构化权重共享和RotaryQuant显存压缩，分别从参数效率与推理开销切入。</p>
+<p>建议优先精读这两篇，速读篇可作为分布式计算的延伸了解。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -73,12 +73,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="LegoLM: Structured Weight Sharing for Large Language Models">LegoLM: Structured Weight Sharing for Large Language Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="RotaryQuant: Fitting 120B MoE Models on Consumer Hardware via Fused Compressed-Space Attention">RotaryQuant: Fitting 120B MoE Models on Consumer Hardware via Fused Compressed-Space Attention</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -86,12 +86,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">11 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="PolyQ: Codesigning End-to-End Quantization Framework for Scalable Edge CPU LLM Inference">PolyQ: Codesigning End-to-End Quantization Framework for Scalable Edge CPU LLM Inference</span></li><li><span class="dpr-home-dashboard-paper-title" title="Recurrent Residual Quantization: A Progressive Multi-Precision Representation for LLMs">Recurrent Residual Quantization: A Progressive Multi-Precision Representation for LLMs</span></li><li><span class="dpr-home-dashboard-paper-title" title="Spend Bits Where Queries Look: KV Cache Vector Quantization with Attention-Preserving Transforms">Spend Bits Where Queries Look: KV Cache Vector Quantization with Attention-Preserving Transforms</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Distributed Nash Equilibrium Seeking with Logarithmic Bit Rates over Digital Channels">Distributed Nash Equilibrium Seeking with Logarithmic Bit Rates over Digital Channels</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>11</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>1</strong></span></div>
 </section>
 </div>
 
