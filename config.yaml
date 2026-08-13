@@ -32,6 +32,12 @@ subscriptions:
       paper_sources:
         - arxiv
       keywords:
+        - keyword: low-bit quantization
+          keyword_cn: 低比特量化
+          query: l
+        - keyword: scalar quantization
+          keyword_cn: 标量量化
+          query: s
         - keyword: LLM
           keyword_cn: 大模型
           query: L
@@ -42,12 +48,22 @@ subscriptions:
           keyword_cn: 训练后量化
           query: P
       intent_queries:
+        - query: 2 bit VQ
+          query_cn: 2比特向量量化
+          enabled: true
+          source: generated
+          note: ''
+        - query: 3 bit SQ
+          query_cn: 3比特标量量化
+          enabled: true
+          source: generated
+          note: ''
         - query: papers provide SoTA/advanced results
           query_cn: 我关注先进实验结果
           enabled: true
           source: manual
           note: ''
-      updated_at: '2026-08-13T03:16:03.953Z'
+      updated_at: '2026-08-13T04:37:51.651Z'
 source_backends:
   arxiv:
     papers_table: arxiv_papers
