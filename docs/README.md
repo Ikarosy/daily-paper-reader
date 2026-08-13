@@ -44,14 +44,14 @@
       <span class="dpr-home-dashboard-kicker">2026-07-15 ~ 2026-08-13</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 6 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 11 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
-    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>2 次</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>6</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>11</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-08-13 03:11:46 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-08-13 04:52:49 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日速读6篇论文，全部聚焦模型量化技术，无精读。</p>
-<p>最值得关注两篇9分工作：1.58-bit量化破解推理模型后训练量化难题，以及递归残差量化实现LLM渐进多精度表示。</p>
-<p>建议普通读者优先了解量化如何在不明显损失性能的前提下大幅压缩模型，这对部署高效AI很有实用价值。</p>
+<p>今日速读11篇LLM量化研究，无精读，聚焦边缘端推理优化。</p>
+<p>最值得关注的方向是端到端量化框架（PolyQ）与渐进式多精度表示（Recurrent Residual Quantization），均获9.0高分。</p>
+<p>建议下一步优先精读这两篇，并结合KV缓存向量量化的注意力保持方法验证实际效果。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -86,12 +86,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">6 篇</strong>
+    <strong class="dpr-home-dashboard-count">11 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Attend to Your Own Thoughts: Breaking the Barrier for Post-Training Quantization of Reasoning LLMs through the Lens of 1.58-Bit Quantization">Attend to Your Own Thoughts: Breaking the Barrier for Post-Training Quantization of Reasoning LLMs through the Lens of 1.58-Bit Quantization</span></li><li><span class="dpr-home-dashboard-paper-title" title="Recurrent Residual Quantization: A Progressive Multi-Precision Representation for LLMs">Recurrent Residual Quantization: A Progressive Multi-Precision Representation for LLMs</span></li><li><span class="dpr-home-dashboard-paper-title" title="C-PTQ: Fisher-weighted Channel-wise Sensitivity for Post-training Quantization of MLLMs">C-PTQ: Fisher-weighted Channel-wise Sensitivity for Post-training Quantization of MLLMs</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="PolyQ: Codesigning End-to-End Quantization Framework for Scalable Edge CPU LLM Inference">PolyQ: Codesigning End-to-End Quantization Framework for Scalable Edge CPU LLM Inference</span></li><li><span class="dpr-home-dashboard-paper-title" title="Recurrent Residual Quantization: A Progressive Multi-Precision Representation for LLMs">Recurrent Residual Quantization: A Progressive Multi-Precision Representation for LLMs</span></li><li><span class="dpr-home-dashboard-paper-title" title="Spend Bits Where Queries Look: KV Cache Vector Quantization with Attention-Preserving Transforms">Spend Bits Where Queries Look: KV Cache Vector Quantization with Attention-Preserving Transforms</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>6</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>11</strong></span></div>
 </section>
 </div>
 
