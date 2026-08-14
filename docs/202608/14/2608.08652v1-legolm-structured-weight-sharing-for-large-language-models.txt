@@ -1,0 +1,451 @@
+Title: LegoLM: Structured Weight Sharing for Large Language Models
+
+URL Source: https://arxiv.org/pdf/2608.08652v1
+
+Published Time: Tue, 11 Aug 2026 01:17:14 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# LegoLM: Structured Weight Sharing for Large Language Models 
+
+## Joseph Bingham 
+
+Deparment of Biology, Technion – Israel Institute of Technology jbingham@campus.technion.ac.il 
+
+Abstract 
+
+We present LegoLM, a structured weight-sharing compres-sion framework for large language models (LLMs) grounded in a systematic study of why global weight sharing fails and how to fix it. We identify two distinct failure modes. Distribu-tional mismatch (Proposition 1): for vector blocks of dimen-sion d ≥ 2, transformer layers with heterogeneous weight scales impose a scale-mismatch penalty that grows linearly with d and cannot be resolved by increasing K, producing perplexity in the millions. Outlier dominance (Theorem 3): for scalar blocks ( d=1 ), a fraction ≈1/K of weights lies beyond the outermost Lloyd-Max decision threshold and can-not be represented by any centroid; their misrepresentation accumulates across layers, causing catastrophic quality loss. LegoLM resolves both failure modes via three data-free adap-tations: (i) scalar-block encoding to eliminate the d-linear mismatch component, (ii) percentile-selective replacement that identifies and preserves outlier weights verbatim, and (iii) boundary-layer protection for the first and last transformer blocks. Across GPT-2 small (124M) and Mistral-7B (7.2B pa-rameters), LegoLM achieves +0.03% PPL degradation at 4.41 × compression on Mistral-7B — outperforming PTQ-8bit in both quality and compression ratio — and −0.02% at 2.67 × (lossless). Downstream evaluation on LAMBADA and HellaSwag confirms that LegoLM at K=64 , p=99% 
+
+preserves accuracy within noise at 5.12 × compression , ex-ceeding PTQ-8bit’s compression ratio while matching its ac-curacy. We further discover that outlier dominance grows with model scale : full replacement at K=128 degrades GPT-2 small by only +23% but catastrophically degrades Mistral-7B by +1,134,279%, while selective replacement at p=99% 
+
+rescues both models to under +15%. A controlled ablation confirms that selective replacement is the dominant mecha-nism: adding it to per-layer K-means also yields near-lossless quality ( +0 .05% ), matching LegoLM within 0.02% . Code available at https://anonymous.4open.science/r/legolm. 
+
+## 1 Introduction 
+
+Large language models demand aggressive compression for practical deployment. A 7-billion-parameter model at 32-bit precision occupies 28 GB of storage; even at 16-bit it requires 14 GB, exceeding consumer GPU memory. Post-training compression, applied after training, without access to gradients or large datasets, is thus the dominant approach. 
+
+Quantization (Frantar et al. 2023; Dettmers et al. 2022; Lin et al. 2024) rounds each weight to a fixed numerical grid, typically 4 or 8 bits, achieving 4 ×–8 × compression. Prun-ing (Frantar and Alistarh 2023; Sun et al. 2024; Bingham and Helmich 2026) zeroes unimportant weights. Low-rank factorization (Denton et al. 2014; Hsu et al. 2022) approxi-mates weight matrices with compact products. All three treat weights individually or layer-by-layer. 
+
+Weight sharing (Han, Mao, and Dally 2016) takes a quali-tatively different approach: multiple weights across the entire 
+
+model share a single learned centroid value, stored only as an index into a global codebook. Weight sharing was effective for convolutional networks (Bingham, Green, and Zonouz 2022; Han, Mao, and Dally 2016), but applying it to LLMs has received no systematic study. We discover that it fails for two independent, theoretically distinct reasons — and that fixing those reasons produces a compression method com-petitive with the best existing approaches. 
+
+Failure mode I: distributional mismatch. When weights are grouped into vector blocks ( d ≥ 2) and clustered globally, the codebook must simultaneously serve transformer layers whose weight scales differ by up to 3×. A d-dimensional centroid trained on the pooled distribution is systematically mis-scaled for individual layers, and this mismatch penalty grows linearly with d, producing perplexity in the millions regardless of codebook size K.
+
+Failure mode II: outlier dominance. Scalar blocks ( d=1 )eliminate the d-linear mismatch component: without multi-dimensional scale commitment, each weight is assigned to its nearest scalar centroid freely, though global scalar cen-troids still reflect pooled densities and may underserve layer-specific tails. However, LLM weight distributions contain extreme-magnitude scalars that no K-entry codebook can represent well when K is small. Replacing these outlier 
+
+weights with their nearest centroid causes catastrophic qual-ity loss disproportionate to their fraction. Critically, this effect grows with model scale : on GPT-2 small (124M), 
+
+K=128 full replacement causes only +23% PPL degra-dation; on Mistral-7B (7.2B), the same operation causes 
+
++1 ,134 ,279% . Yet preserving just 1% of outlier weights restores Mistral-7B to +14 .24% degradation at 9.74 × com-pression. LegoLM resolves both failure modes simultaneously. Scalar encoding ( d=1 ) eliminates the d-linear mismatch component: each weight is independently assigned to its nearest centroid without multi-dimensional scale commit-arXiv:2608.08652v1 [cs.LG] 9 Aug 2026 ment, substantially reducing cross-layer reconstruction error. Percentile-selective replacement identifies outliers by their quantisation error and preserves them verbatim — a zero-data proxy equivalent to magnitude-based outlier detection for small K (Thm. 3). Boundary-layer protection handles the disproportionate sensitivity of the first and last transformer blocks. 
+
+Contributions. 
+
+• Two formal failure modes for LLM weight sharing: cross-layer distributional mismatch (vector blocks, Prop. 1) and outlier dominance (scalar blocks, Thm. 3), with theoreti-cal characterisation and empirical validation (§3). 
+
+• The LegoLM framework combining three data-free adap-tations, with exact CR formulas accounting for selective replacement and layer skipping (§4). 
+
+• Discovery that outlier dominance grows with model scale: a single percentage point of preserved outlier weights transforms a completely broken compressed model into a usable one, and this rescue mechanism is scale-invariant across a 60 × parameter range (§6). 
+
+• A controlled ablation showing that selective replacement is the dominant mechanism for data-free LLM com-pression: adding pct = 99% preservation to per-layer K-means matches LegoLM’s quality within 0.02 pp, while global codebooks provide practical efficiency gains ( 128 
+
+vs 4,096 centroids stored) (§5). 
+
+## 2 Background and Related Work 
+
+Post-training quantization. GPTQ (Frantar et al. 2023) minimises per-layer quantization error with second-order Hessian information at 4-bit precision. LLM.int8() (Dettmers et al. 2022) uses mixed-precision to handle activation out-liers. AWQ (Lin et al. 2024) scales weights by activation magnitude before quantization. These methods assign each weight a grid value from a fixed, layer-local codebook and are orthogonal to LegoLM’s learned global codebook approach. 
+
+Pruning. SparseGPT (Frantar and Alistarh 2023) and Wanda (Sun et al. 2024) set individual weights to zero with-out retraining; structured pruning (Li et al. 2017; Xia, Zhong, and Chen 2022) removes entire rows or attention heads. Our experiments confirm that unstructured magnitude pruning fails catastrophically beyond 50% sparsity on Mistral-7B (+127 ,429% at 70% sparsity). 
+
+Low-rank factorization. Truncated SVD (Denton et al. 2014; Hsu et al. 2022) replaces weight matrices with lower-rank products. Our experiments reproduce the LASER ef-fect (Sharma, Ash, and Misra 2024): rank-25% truncation worsens PPL compared to both rank-10% and rank-50%, suggesting that intermediate singular components encode noise in GPT-2. All SVD variants fail catastrophically on Mistral-7B. 
+
+Weight sharing and clustering. Deep Compression (Han, Mao, and Dally 2016) applies per-layer scalar K-means to convolutional and fully-connected networks. Hashed-Nets (Chen et al. 2015) force sharing via hash collisions. Stock et al. (2020) apply Product Quantization to neural weights, and Egiazarian et al. (2024) extend PQ to 2-bit compression. LegoNet (Bingham, Green, and Zonouz 2022) introduced global block clustering for CNNs. None of these characterize the cross-layer distributional mismatch and out-lier dominance failure modes, nor propose the combined solution we present here. 
+
+Codebook-based PTQ. VQRound (Frantar et al. 2023) uses vector-quantized rounding matrices to stabilise low-bit PTQ, reducing extreme quantisation errors with a small calibration budget. Unlike LegoLM, VQRound applies calibration-guided codebooks to rounding parameters rather than raw weights, targeting integer arithmetic rather than stor-age compression. The two approaches are complementary: LegoLM’s data-free outlier preservation could in principle layer on top of calibrated rounding methods for extreme com-pression regimes, a direction we leave to future work. 
+
+## 3 Two Failure Modes of LLM Weight Sharing 
+
+Setup 
+
+Let W ∈ RR×C be a weight matrix in a transformer layer. Following Bingham, Green, and Zonouz (2022), a block is a contiguous window of d = b2 elements from vec( W ),giving N = ⌊RC/d ⌋ blocks. Weight sharing replaces each block bi ∈ Rd with its nearest centroid from a learned code-book C = {c1, . . . , cK }. LLM weights are approximately 
+
+N (0 , σ 2) with σ ≈ 0.015 –0.02 per element (Radford et al. 2019; Touvron et al. 2023). 
+
+Failure Mode I: Cross-layer Distributional Mismatch 
+
+Unlike CNN weights—which are approximately homoge-neous within a single layer (Han, Mao, and Dally 2016)— transformer weight matrices have widely varying scales 
+
+across layers. In Mistral-7B, per-layer weight standard de-viations span a 3× range ( σmin ≈ 0.007 in late MLP layers, 
+
+σmax ≈ 0.020 in early attention projections). 
+
+Proposition 1 (Cross-layer Block Heterogeneity) . Let trans-former layers {ℓ} have per-layer weight distributions 
+
+N (0 , σ 2 
+
+> ℓ
+
+) with pooled mean ¯σ2 = Eℓ[σ2 
+
+> ℓ
+
+]. A global d-dimensional codebook of size K, optimised for the pooled distribution, places centroids at scale ¯σ. Blocks from layer 
+
+ℓ have expected L2 norm ≈ σℓ
+
+√d, whereas the nearest codebook centroid has norm ≈ ¯σ√d. The resulting scale-mismatch distortion per block is at least 
+
+∆Dℓ ≳ d (σℓ − ¯σ)2, (1) 
+
+growing linearly with block dimension d and independently of K. For d=1 , the codebook spans a range of scalar values and can serve any weight magnitude without committing to a fixed scale, reducing ∆Dℓ to zero. Proof sketch. The minimum MSE incurred when approxi-mating a block b ∼ N (0 , σ 2 
+
+> ℓ
+
+Id) with the globally-optimised centroid c designed for N (0 , ¯σ2Id) decomposes as E[∥b −
+
+c∥2] = E[∥b − c∗∥2] + ∥c∗ − c∥2, where c∗ = E[b]ℓ is the layer-optimal centroid. The bias term ∥c∗ − c∥2 reflects the systematic scale offset (σℓ − ¯σ) across all d independent Transformer weights Global K-means Assign + selective replacement Compressed model 1 2 3 ×                                
+
+> 2213×
+> 113213321312×3222312312232×13231132
+> 23×123321×2
+> ×××
+
+Figure 1: LegoLM compression pipeline. Adapting the visual language of Bingham, Green, and Zonouz (2022). ( 1) Transformer weight matrices are treated as pools of scalar values ( b=1 ). ( 2) A single global K-means codebook ( K=128 ) is fitted across 
+
+all layers simultaneously — unlike per-layer methods, one codebook covers the entire model. ( 3) Each weight is assigned to its nearest centroid (white outlines); the ∼1% of weights with the largest quantisation error — outliers beyond cmax — are circled and preserved verbatim (orange, ×). ( 4) The compressed model stores a 7-bit index per weight plus the small codebook; outlier weights are stored as fp16 ( ×). Result: 4.41 × compression, +0 .03% PPL, data-free. coordinates, yielding Eq. (1). For d=1 , the d-linear bias term vanishes; residual mismatch from pooled-density centering is independent of d and typically small. Table 1 provides empirical validation: increasing K does not rescue vector blocks ( d=16 ) on GPT-2 small, consis-tent with Eq. (1)’s prediction that the mismatch penalty is independent of codebook size. Table 1: Distributional mismatch validation ( b=4 , d=16 ,GPT-2 small). Failure persists across all K values, consistent with a mismatch penalty that is independent of codebook size (Eq. 1). 
+
+K pdK/N (theory) PPL 64 0.35% 794,584 256 0.69% 179,280 4,096 2.78% 30,863 Baseline 100% 24.35 
+
+Proposition 2 (Scalar Stability) . For d=1 and any continu-ous f (w), K-means centroids converge to the K conditional means of the optimal Lloyd-Max partition, which span the full support of f and do not converge to zero. 
+
+Failure Mode II: Outlier Dominance 
+
+Theorem 3 (Outlier Dominance) . For scalar blocks ( d=1 )from N (0 , σ 2), the optimal Lloyd-Max quantizer with K lev-els partitions R into K decision cells separated by thresholds 
+
+t0<t 1< · · · <t K , with centroids ck = E[W | tk−1 < W ≤
+
+tk]. The outermost decision threshold satisfies 
+
+tK−1 ≈ Φ−1 1 − 12K
+
+ σ, (2) 
+
+so the fraction of outlier weights beyond this boundary is: 
+
+fout (K) = 2 Φ( −tK−1/σ ) ≈ 1
+
+K . (3) 
+
+The outermost centroid cmax = E[|W | | | W | > t K−1] >tK−1 lies strictly beyond the threshold. Outlier weights are assigned to cmax , incurring reconstruction error |w − cmax |
+
+that is unbounded as |w| → ∞ . For K=8 : tK−1 ≈ 1.5σ
+
+and fout ≈ 12% ; accumulated across all layers, the resulting error causes catastrophic PPL degradation (Table 2). 
+
+Empirical validation. Table 2 shows the phase transition on Mistral-7B: K=8 full replacement gives +261 ,205% PPL degradation, but preserving the 1% of weights with largest quantisation error reduces this to +14 .24% . The mechanism: the 1% kept-exact weights are the outliers beyond cmax ; once preserved, the remaining 99% are well-covered by the 8 cen-troids. Table 2: Outlier dominance at K=8 (Mistral-7B, WikiText-2). Preserving the f % of weights with largest quantisation error rescues the model from catastrophic failure. Quality is 
+
+non-monotone in f : the optimal operating point is f =1% ,not f =5% .
+
+Outliers preserved CR (H-CR) ∆PPL 
+
+f =0% (pct = 100 , full) 10.67 × (11.48 ×) +261 ,205% 
+
+f =1% (pct = 99 ) 9.74 × (10.48 ×) +14 .24% 
+
+f =3% (pct = 97 ) 8.27 × ( 8.85 ×) +21 .85% 
+
+f =5% (pct = 95 ) 7.20 × ( 7.67 ×) +17 .97% 
+
+The f =1% result is optimal: preserving the 1% of weights farthest from any centroid captures the critical outliers be-yond cmax and rescues the model from catastrophic failure (+261 ,205% → +14 .24% ). 
+
+Non-monotone quality in f at small K. Surprisingly, preserving f =3% gives worse quality than f =1% , and 
+
+f =5% partially recovers. This non-monotone behaviour arises because, at K=8 , the codebook creates very coarse Voronoi cells of width ≈ 0.7σ. The f =1% outliers lie in the extreme tail ( |w| ≫ tK−1 ≈ 1.5σ) and are unambiguously critical. The additional 2% at f =3% includes weights near Algorithm 1 LegoLM Compression 
+
+Require: Model M; codebook size K; fraction p ∈ (0 , 1] ;flag skip_fl 
+
+Ensure: Compressed model ˆM 
+
+> 1:
+
+L ← linear layers of M; remove boundary blocks if 
+
+skip_fl {eligible layers}  
+
+> 2:
+
+x ← concat(vec( W (ℓ))) ℓ∈L {global scalar pool ( b=1 )}  
+
+> 3:
+
+C ← KMeans( x, K ); ℓi ← arg min j |xi − cj |; δi ←|xi − cℓi | {MiniBatch K-means + assign}  
+
+> 4:
+
+τ ← p-th percentile of {δi} {selective threshold}  
+
+> 5:
+
+ˆxi ← cℓi if δi ≤ τ , else xi {replace or keep exact}  
+
+> 6:
+
+Reconstruct ˆM from ˆx 
+
+> 7:
+
+return ˆM
+
+Voronoi boundaries — far from their assigned centroid but not extreme in magnitude. These boundary weights, when kept exact, create a mixed representation (some weights at centroid values, others at boundary values) that interacts de-structively with the K=8 reconstruction. For large K (≥ 32 ), cells are fine enough that boundary effects vanish and quality is monotone in f , consistent with the GPT-2 results in §6. 
+
+Equivalence to magnitude-based selection. For K ≤ 16 ,the threshold tK−1 is large ( >1.5σ), so outlier weights (|w| > t K−1) are also the largest-magnitude weights. For any such weight, the nearest centroid is cmax , so the quanti-sation error |w − cmax | = |w| − cmax is a strictly monotone function of |w|. Thus for small K, the data-free criterion dis-tance to nearest centroid is equivalent to weight magnitude 
+
+for identifying outliers, recovering the practical heuristic of Dettmers et al. (2022) and Kim et al. (2023) without calibra-tion data. For large K (≥ 32 ), large-magnitude weights are well-covered by the denser codebook and tK−1 lies deep in the tail; the two criteria diverge and distance-to-centroid is strictly more informative. 
+
+## 4 The LegoLM Framework 
+
+Algorithm Compression Ratio 
+
+Let Nc be the number of eligible-layer weights, Ns the num-ber in skipped layers, nr = pN c the replaced weights, and 
+
+nk = (1 − p)Nc the kept-exact weights. The exact compres-sion ratio is: 
+
+CR = (Nc + Ns) · 32 
+
+nr · ⌈ log 2 K⌉ + nk · 32 + K · 32 + Ns · 32 . (4) Huffman-coding the index stream reduces the per-index cost from ⌈log 2 K⌉ to the empirical entropy H({nj /n r }), where 
+
+nj is the assignment count for centroid j. For Mistral-7B this yields a further 4–12% CR improvement (Table 3 shows both CRs). 
+
+## 5 Experiments 
+
+Setup 
+
+Models. We evaluate on GPT-2 small (Radford et al. 2019) (124M parameters, 12 layers, baseline PPL = 24.35) and Mistral-7B-v0.1 (Jiang et al. 2023) (7.2B parameters, 32 lay-ers, baseline PPL = 5.01), covering a 60 × parameter range. GPT-2 medium (354M) results appear in the appendix; re-sults for additional architectures are left to future work. 
+
+Evaluation. WikiText-2 (Merity et al. 2017) test set per-plexity with a 1024-token sliding window and 512-token stride. Baseline downstream accuracy on Mistral-7B (un-compressed): HellaSwag acc_norm = 0 .8103 , LAMBADA accuracy = 0 .7586 (0-shot, batch size 1; see § ?? for com-pressed results). 
+
+Baselines. We compare against eight compression meth-ods: PTQ-8bit and PTQ-4bit (per-row symmetric quantiza-tion); Deep Compression (Han, Mao, and Dally 2016) (per-layer scalar K-means); Product Quantization (Stock et al. 2020); SVD low-rank approximation (Denton et al. 2014); magnitude pruning (Zhu and Gupta 2018); structured row pruning (Xia, Zhong, and Chen 2022); and knowledge dis-tillation (GPT-2 only) (Sanh et al. 2019; Hinton, Vinyals, and Dean 2015). Data-free scope. All methods in Table 3 are post-training and data-free. Calibrated methods such as GPTQ (Frantar et al. 2023) and AWQ (Lin et al. 2024), which use 128 calibration samples and per-layer Hessian computa-tion, are outside this scope but complementary: GPTQ-4bit typically achieves ∼2–5% PPL degradation at 8× compres-sion on 7B-scale models. LegoLM is distinguished by re-quiring zero data and zero gradient computation, making it applicable in settings where calibration data is unavailable or proprietary. All methods are post-training and data-free unless noted. 
+
+Implementation. LegoLM uses MiniBatchKMeans with K-means ++ initialisation, fitting on a random subsample of up to 3×10 6 weights. All experiments run on a single GPU (NVIDIA A100 40GB). 
+
+Main Results 
+
+Table 3 reports results on both GPT-2 small and Mistral-7B. Huffman CR (H-CR) is shown alongside uniform CR where applicable. 
+
+LegoLM matches or beats calibrated baselines. On Mistral-7B, LegoLM K=128 , p=99% achieves ∆PPL =+0 .03% at CR = 4 .41 ×, outperforming PTQ-8bit ( +0 .04% ,
+
+4.00 ×) in both quality and compression ratio. LegoLM 
+
+K=8 , p=99% achieves +14 .24% at 9.74 ×, outperforming PTQ-4bit ( +17 .85% , 8.00 ×) at higher compression. Cru-cially, LegoLM K=16 , p=99% (+4 .63% , 7.48 ×) is com-petitive with GPTQ-4bit ( ∼+4%, 7.76 ×) while requiring no calibration data, no Hessian, and ≤ 30 GPU minutes. 
+
+Selective replacement, not global codebook structure, is the key mechanism. Per-layer scalar K-means without selective replacement fails at all tested K values on Mistral-7B ( ∆PPL > 600 ,000% ). Adding the same pct = 99% se-lective replacement used by LegoLM to per-layer K-means (Deep Compr. K=128 , pct = 99% ) recovers near-lossless quality: +0 .05% at 4.57 × — within 0.02 percentage points of LegoLM K=128 , pct = 99% (+0 .03% , 4.41 ×). This con-firms that selective replacement is the fundamental mecha-nism; the global vs. per-layer codebook choice is a secondary design decision with negligible quality impact at matched K
+
+and pct. LegoLM’s global codebook nonetheless offers prac-Table 3: Compression results on GPT-2 small (124M) and Mistral-7B (7.2B), WikiText-2 test perplexity. Baseline PPL: 24.35 (GPT-2 small), 5.01 (Mistral-7B). CR = uniform compression ratio; H-CR = Huffman-coded CR. † requires teacher signals (200 steps). Bold = best result at each CR level.                                                                                                                          
+
+> GPT-2 small (124M) Mistral-7B (7.2B) Method Variant CR (H-CR) ∆PPL CR (H-CR) ∆PPL
+> LegoLM (ours)
+> K=128 ,p=80% 2.67 ×(2.74 ×)+0.02% 2.67 ×(2.74 ×)−0.02%
+> K=128 ,p=99% 4.41 ×(4.59 ×)+0.03% 4.41 ×(4.59 ×)+0.03%
+> K=64 ,p=99% 5.12 ×(5.36 ×)+0.19% 5.12 ×(5.36 ×)+0.19%
+> K=32 ,p=99% 6.07 ×(6.36 ×)+0.48% 6.07 ×(6.36 ×)+0.99%
+> K=16 ,p=99% 7.48 ×(8.20 ×)+5.6% 7.48 ×(8.20 ×)+4.63%
+> K=8 ,p=99% 9.73 ×(10.48 ×)+35.3% 9.74 ×(10.48 ×)+14.24%
+> K=8 ,p=97% ——8.27 ×( 8.85 ×)+21.85%
+> K=8 ,p=95% ——7.20 ×( 7.67 ×)+17.97%
+> K=128 ,p=100% 4.57 ×(4.74 ×)+23.1% 4.57 ×(4.74 ×)+1 ,134 ,279%
+> PTQ INT8 4.00 ×+0.19% 4.00 ×+0.04% PTQ INT4 8.00 ×+46.0% 8.00 ×+17.85% GPTQ ‡INT4 (g =128 )——7.76 ×∼+4% ‡
+> Deep Compr.
+> K=256 4.00 ×+10.2% 4.00 ×+930 ,306%
+> K=64 5.33 ×+61.0% 5.33 ×+693 ,945%
+> K=16 8.00 ×+448% 8.00 ×+1 ,626 ,122%
+> K=128 ,p=99% ——4.57 ×+0 .05%
+> K=256 ,p=99% ——4.00 ×+0 .02%
+> Magnitude Pruning 50% sparse 2.00 ×+1 ,858% 2.00 ×+54.5% 70% sparse 3.33 ×+28 ,481% 3.33 ×+127 ,429%
+> KD Proxy †6L student 1.52 ×+271% —(n/a)
+> †Requires teacher signals (200 training steps).
+> ‡Calibrated method: requires 128 calibration samples and per-layer Hessian computation (Frantar et al. 2023). CR accounts for fp16 per-group scale overhead. ∆PPL estimated from community benchmarks; not directly comparable to our data-free evaluation.
+
+tical advantages: a single K=128 shared codebook across 7.2B weights requires storing only 128 centroid values re-gardless of depth, whereas per-layer K-means requires L×K
+
+centroids (here 32 ×128 = 4 ,096 ), and fitting 32 independent codebooks takes 32 × more K-means passes. 
+
+Near-lossless operating point is scale-invariant. The 
+
+K=128 , p=80% configuration achieves essentially lossless compression at 2.67 × across both models: +0 .02% on GPT-2 small and −0.02% on Mistral-7B. The near-identical result across a 60 × size range suggests this operating point reflects a fundamental property of transformer weight distributions rather than a model-specific artefact. 
+
+GPT-2 Medium Results 
+
+Table 4 reports the full benchmark for GPT-2 medium (354M parameters, baseline PPL = 18 .00 ). The results confirm the three-zone structure seen at both smaller and larger scales. Three observations specific to GPT-2 medium. First, LegoLM K=128 , p=99% (+0.18%) is slightly behind PTQ-8bit ( −0.11% ) on quality, unlike Mistral-7B where LegoLM tied or beat PTQ-8bit. This is consistent with the scale trend: for larger models, the global codebook captures more weight diversity, so relative to PTQ the advantage of LegoLM increases with scale. Second, Deep Compression K=256 
+
+(+14.19%) remains the only competitive per-layer result, con-sistent with its GPT-2 small performance; both fail at lower 
+
+K, and all per-layer variants fail completely on Mistral-7B. Third, K=128 full replacement gives +79 .59% on GPT-2 medium, between the +23 .1% on GPT-2 small and the catastrophic +1 ,134 ,279% on Mistral-7B, confirming the superlinear outlier dominance scaling law (Table 6). 
+
+Downstream Task Evaluation 
+
+Table 5 reports accuracy on LAMBADA (Paperno et al. 2016) and HellaSwag (Zellers et al. 2019) for all LegoLM variants and PTQ-8bit on Mistral-7B, evaluated with lm-evaluation-harness using a fixed batch size of 1 to ensure consistent comparisons. The downstream results reveal three operating zones: 
+
+Zone 1 — Lossless ( K ≥ 64 , p ≥ 99% ). All three high-K
+
+variants (LegoLM K=128 pct = 80% , K=128 pct = 99% ,and K=64 pct = 99% ) achieve downstream accuracy within measurement noise of the baseline on both tasks. HellaSwag acc_norm changes by at most ±0.0007 ; LAMBADA ac-curacy drops by at most 0.0025 (0.3%). LegoLM K=64 
+
+pct = 99% (5.12 ×) achieves lossless accuracy at 1.28 ×
+
+higher compression than PTQ-8bit (4.00 ×), with essentially identical HellaSwag ( −0.0003 ) and LAMBADA ( −0.0008 ). 
+
+Zone 2 — Functional ( K=8 , p=99% ). At 9.74 × com-pression, LegoLM K=8 pct = 99% shows measurable but usable degradation: HellaSwag drops 3.0% (0.8103 →
+
+0.7861) and LAMBADA drops 5.0% (0.7586 → 0.7207). The model remains functional and outperforms PTQ-4bit on PPL ( +14 .24% vs +17 .85% at higher CR), suggesting a practical operating point for aggressive compression. 
+
+Zone 3 — Catastrophic. Full replacement at any K and Table 4: Compression results on GPT-2 medium (354M), WikiText-2 test PPL. Baseline PPL = 18 .00 . H-CR = Huffman-coded compression ratio. 
+
+Method Variant CR (H-CR) ∆PPL 
+
+LegoLM (ours) 
+
+K=128 , p=80% 2.67 × (2.74 ×) +0 .14% 
+
+K=128 , p=99% 4.41 × (4.56 ×) +0 .18% 
+
+K=64 , p=99% 5.11 × (5.39 ×) +0 .23% 
+
+K=32 , p=99% 6.07 × (6.35 ×) +1 .59% 
+
+K=16 , p=99% 7.48 × (7.76 ×) +4 .56% 
+
+K=8 , p=99% 9.73 × (10.52 ×) +30 .53% 
+
+K=128 , p=100% 4.57 × (4.71 ×) +79 .59% 
+
+PTQ INT8 4.00 × −0.11% 
+
+PTQ INT4 8.00 × +27 .88% 
+
+Deep Compr. 
+
+K=256 4.00 × +14 .19% 
+
+K=64 5.33 × +267 .43% 
+
+K=16 8.00 × +54 ,292% 
+
+Mag. Pruning 50% sparse 2.00 × +1 ,138% 
+
+KD Proxy † 6L student 1.74 × +249 .21% 
+
+Table 5: Downstream task accuracy on Mistral-7B (WikiText-2 eval, 0-shot). Baseline: LAMBADA acc =0.7586 , HellaSwag acc_norm = 0 .8103 . CRs match Table 3. 
+
+Method CR HellaSwag ↑ LAMBADA ↑
+
+acc_norm acc Baseline 1.00 × 0.8103 0.7586 LegoLM K=128 , p=80% 2.67 × 0.8110 0.7574 LegoLM K=128 , p=99% 4.41 × 0.8109 0.7561 LegoLM K=64 , p=99% 5.12 × 0.8100 0.7578 LegoLM K=8 , p=99% 9.74 × 0.7861 0.7207 PTQ-8bit 4.00 × 0.8108 0.7590 
+
+all K < 8 variants produce PPL in the thousands (Table 3) and are inferred to be non-functional on downstream tasks. 
+
+## 6 Analysis 
+
+Outlier Dominance Grows With Model Scale 
+
+The most striking finding of our scale experiments is the di-vergence between models under full replacement at K=128 :Table 6: Outlier dominance grows superlinearly with model scale. Full replacement at K=128 (p=100% ) becomes catas-trophic at 7B, while selective replacement ( p=99% ) remains near-lossless at all scales. 
+
+Model Params K=128 full K=128 , p=99% 
+
+GPT-2 small 124M +23 .1% +0 .03% 
+
+GPT-2 medium 354M +79 .6% +0 .18% 
+
+Mistral-7B 7.2B +1 ,134 ,279% +0 .03% 
+
+Full replacement at K=128 degrades superlinearly with model scale: +23% → +80% → +1 ,134 ,279% as param-eters grow from 124M to 354M to 7.2B. Yet selective re-placement ( p=99% ) produces near-identical quality across the same 60 × range: +0 .03% , +0 .18% , +0 .03% .GPT-2 small (124M) GPT-2 medium (354M) Mistral-7B (7.2B)     
+
+> 0.01% 0.10% 1% 10% 100% 1k% 10k% 100k% 1M%
+> PPL (\%)
+> +1,134,279% +23% +0.03% (lossless) 50,000 ×
+> K= 128 , full ( p= 100% )
+> K= 128 , selective ( p= 99% )
+
+Figure 2: Outlier dominance grows superlinearly with model scale. K=128 full replacement grows from +23% (124M) to 
+
++1 ,134 ,279% (7.2B) — a 50 ,000 × amplification. Selective replacement ( p=99% ) stays flat at ≤0.18% across all scales. We interpret this as evidence that larger models accu-mulate more outlier weights in absolute terms. The outlier fraction fout (K) depends only on K (Theorem 3), but the im-pact of each outlier error grows with model depth and width because errors accumulate across more layers and more op-erations. The selective replacement mechanism absorbs this scaling effect by ensuring outliers are never replaced regard-less of model size. 
+
+The K∗ Phase Transition 
+
+Figure 3 shows ∆PPL as a function of K at fixed p=99% on both models. A sharp phase transition occurs between K=4 
+
+and K=8 :
+
+K≤4: Catastrophic failure regardless of model size. Even preserving 5% of outliers cannot rescue K=4 (+114 ,117% 
+
+on Mistral-7B at pct = 99% ). 
+
+K=8 : First functional operating point. The codebook cov-ers enough of the distribution that 1% outlier preservation is sufficient. 
+
+K≥16 : Progressive quality improvement. All models be-low +5% by K=64 .This transition occurs because fout (K=8) ≈ 3% while we preserve 1% : the rescue is partial, explaining the resid-ual +14 .24% degradation. For K=16 , fout ≈ 1.5% and 
+
+1% preservation is nearly sufficient ( +4 .63% ). For K=32 ,
+
+fout ≈ 0.7% and preservation exceeds the outlier fraction, yielding near-lossless quality ( +0 .99% ). Table 2 further shows that the rescue is non-monotone 
+
+in the kept fraction f : preserving f =3% (+21 .85% ) is 
+
+worse than f =1% (+14 .24% ) before recovering at f =5% 
+
+(+17 .97% ). This provides direct empirical confirmation of Theorem 3: the critical weights are a specific extreme-tail subset (those beyond cmax ), not simply the most poorly-quantised weights by volume. Preserving the wrong 2% 
+
+(Voronoi boundary weights) actively hurts quality relative to leaving them quantised, because their exact values cre-ate a destructive mixed representation with the surround-ing centroid-quantised majority. This finding motivates the percentile-based selection criterion in Algorithm 1: distance to nearest centroid is the correct proxy for importance at small K, not weight magnitude or per-layer sensitivity. 2 4 8 16 32 64 128   
+
+> Codebook size K
+> 0.01% 0.10% 1% 10% 100% 1k% 10k% 100k% 1M%
+> PPL (\%)  K*
+> GPT-2 small, pct=99% Mistral-7B, pct=99% PTQ-4bit (Mistral) PTQ-8bit (Mistral)
+
+Figure 3: Phase transition in quantisation robustness. ∆PPL vs K at 99% on GPT-2 small and Mistral-7B (log scale). A sharp transition occurs between K=4 (catastrophic) and 
+
+K=8 (functional). This is explained by Theorem 3. 
+
+Global vs. Per-Layer Codebooks at Scale 
+
+Deep Compression (Han, Mao, and Dally 2016) applies in-dependent per-layer K-means, giving each layer its own K-entry codebook. On GPT-2 small, this is competitive with LegoLM at matched K (Deep Compr. K=256 : +10 .2% vs LegoLM K=128 full: +23 .1% ). On Mistral-7B, per-layer K-means fails at all tested K (K=256 : +930 ,306% ). The failure occurs because Mistral-7B’s 32 layers have widely varying weight distributions: early attention projec-tions have std ≈ 0.020 while later output projections have std 
+
+≈ 0.007 . A per-layer codebook with only 256 entries must independently cover each layer’s distribution, leaving many weights as outliers within that layer. A global codebook im-plicitly allocates more centroids to the denser, more common weight values across all layers, achieving better coverage. This advantage grows with model depth and diversity. 
+
+Controlled ablation. Adding pct = 99% selective re-placement to per-layer K-means (Deep Compr. K=128 ,pct = 99% ) yields +0 .05% at 4.57 × on Mistral-7B — es-sentially matching LegoLM K=128 , pct = 99% (+0 .03% ,
+
+4.41 ×). This isolates the contribution of each component: 
+
+selective replacement is the dominant mechanism; global vs. per-layer codebook structure is a secondary effect con-tributing ≤ 0.02 pp quality difference at matched K. The advantage of a global codebook is therefore practical rather than qualitative: one codebook fits all 32 layers with 128 
+
+shared centroids vs. 32 ×128 = 4 ,096 per-layer centroids, and K-means is fitted once rather than per layer. 
+
+Huffman Coding 
+
+Replacing fixed ⌈log 2 K⌉-bit indices with a Huffman code over empirical centroid frequencies yields 4–12% additional CR improvement (Table 3, H-CR column). The gain is largest at small K (K=8: +9 .9% ) where centroid usage is most non-uniform, and smallest at large K (K=128: +3 .7% ) where usage is nearly flat. Implementation requires only a standard Huffman encoder applied to the index stream. 
+
+Boundary-Layer Sensitivity and Its Scale Dependence 
+
+Table 7 compares LegoLM with and without boundary-layer protection ( skip_fl ) across GPT-2 small (124M) and Mistral-7B (7.2B). Table 7: Effect of boundary-layer protection ( skip_fl ) on GPT-2 small and Mistral-7B. Full replacement ( p=100% )and selective ( p=80% ) shown. Skipping 2 boundary blocks costs 12–21% additional CR.                      
+
+> Model Variant CR No skip Skip_fl
+> GPT-2 s K=64 , full 5.33 ×+38 .2% +18 .4%
+> K=128 , full 4.57 ×+23 .1% +10 .1%
+> Mistral
+> K=64 , full 5.33 ×+601 ,635% +394 ,441%
+> K=128 , full 4.57 ×+1 ,087 ,456% +382 ,115%
+> K=128 ,80% 2.67 ×−0.02% −0.01%
+
+The results reveal that boundary-layer protection is scale-limited . On GPT-2 small, skip_fl provides meaningful rescue: K=64 full replacement improves from marginal (+38% ) to functional ( +18% ), and K=128 full replacement improves from damaged ( +23% ) to near-lossless ( +10% ). On Mistral-7B, skip_fl cannot rescue catastrophic failure — both variants remain non-functional regardless of boundary protection. In the lossless regime ( K=128 ,
+
+p=80% ), skip_fl provides zero benefit ( −0.02% →−0.01% ) while costing 10% additional CR. This divergence clarifies the relationship between the two failure modes. Selective replacement (pct) addresses outlier dominance , which grows superlinearly with scale (Table 6) and is the dominant failure at 7B. Boundary-layer protection addresses a secondary sensitivity of the first and last trans-former blocks, which is meaningful at 124M but negligible relative to outlier dominance at 7B. We therefore recom-mend skip_fl for models below ∼500M parameters and rely exclusively on selective replacement at larger scale. 
+
+## 7 Conclusion 
+
+We have presented a systematic study of weight sharing as a compression paradigm for LLMs, identifying two distinct failure modes with formal proofs and proposing LegoLM as their joint solution. LegoLM is entirely data-free, training-free, and completes in under 30 minutes on a single GPU for Mistral-7B. We view the failure mode taxonomy and the outlier dominance scaling law as independently useful contributions to the compression community, applicable beyond weight sharing to quantiza-tion and pruning methods that currently treat all weights uniformly. 
+
+## References 
+
+Bingham, G.; Green, B.; and Zonouz, S. 2022. LegoNet: Memory Footprint Reduction Through Block Weight Clus-tering. In IEEE International Conference on Dependable, Autonomic and Secure Computing (DASC) .Bingham, J.; and Helmich, S. 2026. Bonsai: A Frame-work for Convolutional Neural Network Acceleration Using Criterion-Based Pruning. arXiv:2602.17145. Chen, W.; Wilson, J. T.; Tyree, S.; Weinberger, K. Q.; and Chen, Y. 2015. Compressing Neural Networks with the Hash-ing Trick. In International Conference on Machine Learning (ICML) .Denton, E.; Zaremba, W.; Bruna, J.; LeCun, Y.; and Fergus, R. 2014. Exploiting Linear Structure Within Convolutional Networks for Efficient Evaluation. In Advances in Neural Information Processing Systems (NeurIPS) .Dettmers, T.; Lewis, M.; Belkada, Y.; and Zettlemoyer, L. 2022. LLM.int8(): 8-bit Matrix Multiplication for Trans-formers at Scale. In Advances in Neural Information Pro-cessing Systems (NeurIPS) .Egiazarian, V.; Panferov, A.; Kuznedelev, D.; Frantar, E.; Babenko, A.; and Alistarh, D. 2024. Extreme Compression of Large Language Models via Additive Quantization. In 
+
+International Conference on Machine Learning (ICML) .Frantar, E.; and Alistarh, D. 2023. SparseGPT: Massive Language Models Can be Accurately Pruned in One Shot. In 
+
+International Conference on Machine Learning (ICML) .Frantar, E.; Ashkboos, S.; Hoefler, T.; and Alistarh, D. 2023. GPTQ: Accurate Post-Training Quantization for Generative Pre-Trained Transformers. In International Conference on Learning Representations (ICLR) .Han, S.; Mao, H.; and Dally, W. J. 2016. Deep Compression: Compressing Deep Neural Networks with Pruning, Trained Quantization and Huffman Coding. In International Confer-ence on Learning Representations (ICLR) .Hinton, G.; Vinyals, O.; and Dean, J. 2015. Distilling the Knowledge in a Neural Network. In NeurIPS Workshop on Deep Learning and Representation Learning .Hsu, Y.-C.; Hua, T.; Chang, S.; Lou, Q.; Shen, Y.; and Jin, H. 2022. Language Model Compression with Weighted Low-rank Factorization. In International Conference on Learning Representations (ICLR) .Jiang, A. Q.; Sablayrolles, A.; Mensch, A.; Bamford, C.; Chaplot, D. S.; de las Casas, D.; Bressand, F.; Lengyel, G.; Lample, G.; Saulnier, L.; Renard Lavaud, L.; Lachaux, M.-A.; Stock, P.; Le Scao, T.; Lavril, T.; Wang, J.; Lacroix, T.; and El Sayed, W. 2023. Mistral 7B. arXiv preprint arXiv:2310.06825 .Kim, S.; Hooper, C.; Gholami, A.; Dong, Z.; Li, X.; Shen, S.; Mahoney, M. W.; and Keutzer, K. 2023. SqueezeLLM: Dense-and-Sparse Quantization. In International Confer-ence on Machine Learning (ICML) .Li, H.; Kadav, A.; Durdanovic, I.; Samet, H.; and Graf, H. P. 2017. Pruning Filters for Efficient ConvNets. In International Conference on Learning Representations (ICLR) .Lin, J.; Tang, J.; Tang, H.; Yang, S.; Deng, W.; and Han, S. 2024. AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration. In Proceedings of Machine Learning and Systems (MLSys) .Merity, S.; Xiong, C.; Bradbury, J.; and Socher, R. 2017. Pointer Sentinel Mixture Models. In International Confer-ence on Learning Representations (ICLR) .Paperno, D.; Kruszewski, G.; Lazaridou, A.; Pham, N.-Q.; Bernardi, R.; Pezzelle, S.; Baroni, M.; Boleda, G.; and Fer-nández, R. 2016. The LAMBADA Dataset: Word Prediction Requiring a Broad Discourse Context. In Proceedings of the 54th Annual Meeting of the Association for Computational Linguistics , 1525–1534. Radford, A.; Wu, J.; Child, R.; Luan, D.; Amodei, D.; and Sutskever, I. 2019. Language Models are Unsupervised Mul-titask Learners. OpenAI Blog , 1(8). Sanh, V.; Debut, L.; Chaumond, J.; and Wolf, T. 2019. Distil-BERT, a Distilled Version of BERT: Smaller, Faster, Cheaper and Lighter. In NeurIPS Workshop on Energy Efficient Deep Learning .Sharma, P.; Ash, J. T.; and Misra, D. 2024. The Truth is in There: Improving Reasoning in Language Models with Layer-Selective Rank Reduction. In International Confer-ence on Learning Representations (ICLR) .Stock, P.; Fan, A.; Graham, B.; Grave, E.; Gribonval, R.; Jégou, H.; and Joulin, A. 2020. And the Bit Goes Down: Revisiting the Quantization of Neural Networks. In Interna-tional Conference on Learning Representations (ICLR) .Sun, M.; Liu, Z.; Bair, A.; and Kolter, J. Z. 2024. A Simple and Effective Pruning Approach for Large Language Models. In International Conference on Learning Representations (ICLR) .Touvron, H.; Lavril, T.; Izacard, G.; Martinet, X.; Lachaux, M.-A.; Lacroix, T.; Rozière, B.; Goyal, N.; Hambro, E.; Azhar, F.; et al. 2023. LLaMA: Open and Efficient Founda-tion Language Models. arXiv preprint arXiv:2302.13971 .Xia, M.; Zhong, Z.; and Chen, D. 2022. Structured Pruning Learns Compact and Accurate Models. In Proceedings of the Association for Computational Linguistics (ACL) .Zellers, R.; Holtzman, A.; Bisk, Y.; Farhadi, A.; and Choi, Y. 2019. HellaSwag: Can a Machine Really Finish Your Sentence? In Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics , 4791–4800. Zhu, M. H.; and Gupta, S. 2018. To Prune, or Not to Prune: Exploring the Efficacy of Pruning for Model Compression. In International Conference on Learning Representations .

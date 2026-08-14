@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-08-13</span>
+      <span class="dpr-home-dashboard-kicker">2026-08-14</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 3 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 2 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>1</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>0</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-08-13 21:04:00 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-08-14 20:45:23 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读2篇、速读1篇，聚焦大模型轻量化与分布式优化。</p>
-<p>最值得看的是LegoLM结构化权重共享和RotaryQuant显存压缩，分别从参数效率与推理开销切入。</p>
-<p>建议优先精读这两篇，速读篇可作为分布式计算的延伸了解。</p>
+<p>今日精读两篇9分论文，聚焦大模型权重共享与数值格式优化。最值得关注的是结构化权重共享及新型对数数据类型，均面向推理效率。建议普通读者优先了解权重共享思路，后续可关注实际部署效果。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -76,7 +74,7 @@
     <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="LegoLM: Structured Weight Sharing for Large Language Models">LegoLM: Structured Weight Sharing for Large Language Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="RotaryQuant: Fitting 120B MoE Models on Consumer Hardware via Fused Compressed-Space Attention">RotaryQuant: Fitting 120B MoE Models on Consumer Hardware via Fused Compressed-Space Attention</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="LegoLM: Structured Weight Sharing for Large Language Models">LegoLM: Structured Weight Sharing for Large Language Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="CurveFP: Rational-Radix Logarithmic Datatypes with Closed Products for Language Models">CurveFP: Rational-Radix Logarithmic Datatypes with Closed Products for Language Models</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span></div>
 </section>
@@ -86,12 +84,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">1 篇</strong>
+    <strong class="dpr-home-dashboard-count">0 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Distributed Nash Equilibrium Seeking with Logarithmic Bit Rates over Digital Channels">Distributed Nash Equilibrium Seeking with Logarithmic Bit Rates over Digital Channels</span></li></ul>
+<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>1</strong></span></div>
+
 </section>
 </div>
 
