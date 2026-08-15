@@ -1,0 +1,825 @@
+CURVEFP: Rational-Radix Logarithmic Datatypes
+with Closed Products for Language Models
+Ye Qiao
+Department of Electrical Engineering and Computer Science
+University of California, Irvine
+Irvine, CA, USA
+Abstract
+Low-precision datatypes reduce language-model cost, but most formats optimize scalar fidelity while
+leaving the arithmetic induced by their products unchanged. We introduce CURVEFP, a closed-product
+codebook family that distributes quantized magnitudes across interleaved logarithmic curves under
+compact block scales. A rational radix tunes dynamic range against local resolution, while uniform curve
+indices make every nonzero product algebraically closed. Product formation becomes an exact sign
+XOR and integer-index update, and a derived finite phase count determines the accumulation schedule.
+We instantiate this algebra as CURVEFP8 E4C3/E5C2 for training and CURVEFP7 E3C3 for compact
+deployment. In evaluation, CURVEFP7 beats tensorwise FP8 perplexity on four 7B–9B models with
+one fewer element bit and stays within 1.32% of native quality. CURVEFP8 lowers operand NMSE
+in all 36 paired forward and backward GEMM comparisons. Across three matched 128.3M-parameter
+triplets, every mode completes 3B-token pretraining per seed; CURVEFP8 reaches mean BF16-inference
+perplexity 22.5366 versus 22.5407 for FP8 and incurs a lower format-induced penalty in all three seeds. A
+36-cell downstream matrix finds lower WikiText-103 perplexity for the CURVEFP8-trained checkpoints
+in all 12 seed-format comparisons, with mixed PG-19 and task deltas. Together, these results establish
+CURVEFP as an arithmetic co-design that combines FP8-class numerical behavior, seven-bit inference,
+and a substantially simpler product path.
+1
+Introduction
+Low-precision arithmetic has become a primary lever for scaling language-model training and inference, yet
+prevailing datatypes optimize how individual values are approximated while largely accepting the cost of
+their induced products. FP8 established that role-specific exponent and mantissa layouts can match 16-bit
+training quality (Micikevicius et al., 2022); microscaling formats then amortized range through per-block
+scales (Rouhani et al., 2023). Post-training methods attack the same numerical bottleneck from the data side,
+moving activation outliers into weights (Xiao et al., 2023) or rotating them away (Ashkboos et al., 2024; Liu
+et al., 2025). These advances make quantization substantially more accurate, but their element products still
+require a conventional integer or floating-point multiplier.
+Product structure is an underused source of efficiency in low-precision design. Learned product/subspace
+codebooks offer flexible compression points (Wang et al., 2026; Qiao et al., 2026b), but do not by themselves
+impose a scalar closed-product algebra. Uniform integers simplify accumulation but depend increasingly on
+fine-grained scales as activation range widens. Logarithmic representations make multiplication additive, but
+coarse powers of two sacrifice local resolution and still require an accumulation strategy (Miyashita et al.,
+2016). Additive powers-of-two codes recover more levels through several shift-add terms (Li et al., 2020).
+These trade-offs motivate a stronger objective than scalar error alone: jointly design the level geometry and
+product algebra so that lower precision improves both representation density and arithmetic regularity.
+1
+arXiv:2608.10010v1  [cs.LG]  8 Aug 2026
+
+
+1  Structured encoding
+per-block scales 2ax, 2aw
+x
+sx
+ex
+kx
+w
+sw
+ew
+kw
+|̂z| = 2azrez + kz/K
+z ∈{x, w}
+2  Closed product
+sign
+sp = sx ⊕sw
+curve
+kp = (kx + kw) mod K
+carry
+c = ⌊(kx + kw)/K⌋
+exponent
+ep = ex + ew + c
+scale
+ap = ax + aw
+3  Phase accumulation
+0
+1
+2
+⋯
+H −1
+H = qK/gcd(p, qK) phases
+integer bins
+fixed phase recombination
+CurveFP8 E4C3/E5C2 training  →  CurveFP7 E3C3 deployment
+Figure 1: CURVEFP co-designs representation and multiplication. Power-of-two scales supply operand-
+block range, while sign, exponent, and curve fields encode each element. Uniform curve indices make
+products exactly closed under XOR and integer addition. Rational radix produces H fixed phase classes;
+products route to signed integer bins that are combined using fixed phase weights. This mapping defines the
+inference and training formats evaluated below.
+We realize this objective with CURVEFP, a block-scaled closed-product codebook family. As illustrated
+in Figure 1, CURVEFP spreads quantized magnitudes across K interleaved logarithmic curves. Each nonzero
+element stores a sign, a two’s-complement exponent, and a curve index under a shared power-of-two scale.
+Uniform curve spacing makes multiplication exact in the code domain: sign XOR, curve-index addition, and
+exponent addition with a carry. A reduced rational radix r = 2p/q tunes dynamic range against local precision,
+while the derived phase count qK/ gcd(p, qK) exposes the number of fractional exponent classes that
+accumulation must combine. Thus every range–resolution choice has an explicit accumulation contract, and
+every representable product lands on a known phase without lookup, projection, or a general product-forming
+multiplier.
+One algebra supports two practical operating points. CURVEFP8 uses E4C3 for forward weights and
+activations and E5C2 for backward gradients, directly mirroring the range allocation of FP8 E4M3/E5M2
+while replacing mantissa products with closed curve products. CURVEFP7 uses E3C3 to reduce the element
+width by 12.5% for deployment while retaining eight product phases. Block scaling supplies the local range
+that seven-bit activations need; compact binary scale exponents preserve the shift-and-count accumulation
+structure. A single numeric family therefore spans training and inference with the same closure rule.
+The empirical evidence shows that this arithmetic co-design delivers FP8-class model quality. Across
+Llama-3-8B, Qwen3-8B, Qwen3.5-9B, and Falcon-H1-7B, block-scaled CURVEFP7 beats tensorwise FP8
+perplexity on all four models with one fewer element bit and remains within 1.32% of the native reference.
+For training, CURVEFP8 yields lower operand NMSE than FP8 in all 36 paired forward-, activation-gradient-,
+and weight-gradient windows. Most importantly, three matched 128.3M-parameter experiments train BF16,
+FP8, and CURVEFP8 for 3.00B tokens per mode and seed. All nine lanes complete without divergence. Under
+BF16 inference, CURVEFP8 attains mean perplexity 22.5366 versus 22.5407 for FP8, wins two of three
+paired seeds, and has the lower format-induced penalty in all three. The seed variation supports FP8-class
+training parity rather than statistical superiority.
+Our contributions are:
+• We introduce a block-scaled codebook family distributed across rational-radix logarithmic curves,
+make its curve indices exactly closed under multiplication, and derive the finite phase count connecting
+2
+
+
+representation choice to accumulation.
+• We instantiate one algebra as CURVEFP8 for FP8-class training and CURVEFP7 for seven-bit deploy-
+ment, with compact power-of-two scale metadata and no general multiplier in product formation.
+• We provide end-to-end evidence spanning four-model inference, rational-radix and scale ablations,
+all three training GEMMs, three matched 3B-token pretraining runs, and a 36-cell OOD/downstream
+format-transfer study.
+2
+Related Work
+Low-precision datatypes.
+FP8 combines E4M3 forward operands with E5M2 gradients to retain train-
+ing range and has become the principal eight-bit floating-point baseline (Micikevicius et al., 2022). Mi-
+croscaling extends this approach by sharing scale factors across blocks of narrow floating-point or integer
+elements (Rouhani et al., 2023); hybrid block floating point likewise shares exponents during DNN training
+but retains linear significands (Drumond et al., 2018). At the accelerator level, TeLLMe couples ternary
+weights with table-lookup matrix multiplication for end-to-end LLM prefill and decode on edge FPGAs (Qiao
+et al., 2026a).
+Logarithmic neural-network arithmetic.
+Classical LNS encodes scalar magnitudes in the log domain,
+making multiplication additive; neural-network work has applied it to quantized CNNs/LSTMs, accelerator
+arithmetic, and low-precision training with multiplicative updates (Miyashita et al., 2016; Kouretas &
+Paliouras, 2018; Christ et al., 2022; Zhao et al., 2022). Flattening CurveFP’s exponent and curve fields into
+n = Ke + k gives a finite block-scaled LNS lattice, which explains the shared additive product algebra.
+CurveFP uses that algebra through a different datatype interface: an explicit multi-curve codebook, compact
+scale contracts, the H = qK/ gcd(p, qK) phase law, and role-specific LLM formats trained with conventional
+AdamW. APoT instead improves resolution through multiple shift-add terms (Li et al., 2020).
+LLM quantization and structured codebooks.
+Modern LLM post-training quantization often reshapes
+tensors before applying a conventional datatype. SmoothQuant migrates activation outliers into weights (Xiao
+et al., 2023); QuaRot and SpinQuant use fixed or learned rotations to suppress outliers (Ashkboos et al.,
+2024; Liu et al., 2025). Learned representations offer a complementary route: LO-BCQ clusters blocks
+and assigns each cluster an optimized scalar codebook (Elangovan et al., 2025), while NestQuant uses self-
+similar nested lattices for low-error matrix products (Savkin et al., 2025). These methods target aggressive
+W4A4 inference and can exceed simple scalar formats in accuracy. Product/subspace quantization follows
+another path: APEX-Q permits arbitrary subvector dimensions, while FASQ offers calibration-free flexible
+compression points and custom GPU kernels (Wang et al., 2026; Qiao et al., 2026b). Our objective is
+different: CURVEFP parameterizes its levels with a rational radix and uniform curve indices, obtaining a
+compact closed-product algebra shared by inference and training. This structure reaches the FP8 quality
+regime without calibration-time transformations.
+3
+CurveFP
+Overview.
+CURVEFP starts from a closed-product codebook view: distribute values across structured
+curves so representation quality and product composition improve together. We first define the rational-radix
+element code, then derive closed product formation and phase-structured accumulation, and finally instantiate
+role-specific formats for training and compact inference.
+3
+
+
+3.1
+A rational-radix datatype family
+CURVEFP represents a tensor block with one power-of-two scale and represents each element by a sign, an
+exponent, and a curve index. Let E and C denote the exponent and curve-index widths, let K = 2C, and
+choose a reduced rational radix r = 2p/q. A nonzero quantized value in block b is
+bx = (−1)s2abre+k/K,
+e ∈{−2E−1, . . . , 2E−1 −1},
+k ∈{0, . . . , K −1},
+(1)
+where ab is a signed shared-scale exponent. The element therefore occupies 1 + E + C bits. We reserve
+magnitude index zero as a sentinel and omit the smallest nonzero exponent/curve combination, leaving
+2E+C −1 positive magnitudes; values outside the scaled range map to an endpoint. Unlike a learned
+codebook, the levels require no table of arbitrary constants: adjacent curve indices differ by the fixed ratio
+r1/K, and adjacent exponents differ by r.
+Given ab, quantization preserves the source sign and selects the magnitude whose reconstructed value
+is nearest in absolute error, with saturation at the endpoints. Static operands choose a representable power-
+of-two scale by reconstruction-MSE search; dynamic training operands use ceil-absmax scaling. We write
+element-wise tensor quantization as Q(X), so Q(X)ij = bxij.
+The rational radix parameterizes the spacing of this uniform logarithmic lattice. Setting p = q = 1 gives
+levels 2e+k/K. Choosing p/q < 1 contracts the range and increases local resolution without changing the
+element width, whereas p/q > 1 expands the range. CURVEFP associates every spacing with the phase count
+derived below, exposing a direct quality–complexity control.
+3.2
+Closed products and phase-structured accumulation
+Uniform curve indices make the product codebook exactly closed. For two nonzero operands with curve
+indices i and j, define
+ℓ= (i + j) mod K,
+c =
+i + j
+K
+
+.
+(2)
+Their product has sign sx⊕sw, shared-scale exponent ax+aw, element exponent ex+ew +c, and curve index
+ℓ. Product formation thus uses an XOR and small integer additions, with no general variable-by-variable
+multiplier and no nearest-code projection. A zero sentinel short-circuits the product to zero without applying
+the index update. This closed product path feeds a fixed phase reduction with binary scale transport; Section 5
+summarizes its deployment implications.
+Closure holds on widened product coordinates. Requantizing to a finite E-bit destination may saturate;
+no codebook projection is needed before that explicit output requantization.
+Rational radices preserve this closure while changing the number of binary phases needed by a dot
+product. From Equation 1, every unscaled magnitude is
+re+k/K = 2p(eK+k)/(qK).
+(3)
+Let N = qK. As the integer n = eK + k advances, the fractional exponent is the residue pn mod N divided
+by N. The additive subgroup generated by p in ZN has order
+H =
+qK
+gcd(p, qK)
+(4)
+and therefore defines H phase classes on the underlying lattice. A finite format may leave some classes
+empty, but every dot product can be scheduled over these H phases and written as
+bxT b
+w =
+H−1
+X
+h=0
+2h/H X
+t
+nh,t2t,
+(5)
+4
+
+
+Table 1: Principal CURVEFP operating points. Positive levels exclude the reserved zero code. All use binary
+radix p/q = 1; H is the phase count from Equation 4.
+Format
+Bits
+E
+C
+Positive
+H
+Role
+CURVEFP7 E3C3
+7
+3
+3
+63
+8
+Compact inference
+CURVEFP8 E4C3
+8
+4
+3
+127
+8
+Forward training
+CURVEFP8 E5C2
+8
+5
+2
+127
+4
+Backward gradients
+where each nh,t is a signed integer count. Products are routed exactly to integer counts indexed by binary
+shift; only the H fixed phase weights remain after reduction.
+Constructive arithmetic realization.
+Let g = gcd(p, qK), nx = exK + kx, nw = ewK + kw, and
+u = p(nx + nw). Each nonzero lane increments Ah,t by δ = (−1)sx⊕sw at h = (u mod qK)/g and
+t = ax + aw + ⌊u/(qK)⌋; zero suppresses the update. For p = q = 1, h = (kx + kw) mod K and
+t = ax + aw + ex + ew + ⌊(kx + kw)/K⌋, requiring only zero/XOR, one (C +1)-bit curve adder, and signed
+adders. A length-D dot needs wc = 1 + ⌈log2(D + 1)⌉-bit signed counters, or HBwc bits per output for B
+reachable bins. Equal addresses may be signed-popcount-compressed; a shift-add scan and H hard-wired
+coefficients combine phases with at most H −1 additions before requantization. The codebook algebra
+therefore specifies the required operations and accumulator state without committing to one bank layout or
+processor architecture.
+3.3
+Shared scales, operating points, and training protocol
+Shared scales let the element code focus on within-block variation while amortizing range metadata. For a
+block of G values and an S-bit scale exponent, the effective storage rate is
+R = 1 + E + C + S
+G
+bits per value.
+(6)
+Because 2ab is itself binary, it shifts the exponent-bin index without introducing another product phase. We
+evaluate tensorwise, rowwise, and fixed-size block scaling, but use block scaling as the compact deployment
+contract because activations require local range adaptation.
+Table 1 gives the principal operating points. The eight-bit training pair follows the familiar split between
+a precision-oriented forward format and a range-oriented gradient format. CURVEFP8 E4C3 quantizes
+weights and activations in the forward linear layers, while E5C2 quantizes the output gradients used by both
+activation- and weight-gradient matrix products. Moving one bit from C to E preserves 127 positive levels,
+expands gradient range, and reduces the phase count from eight to four; this mirrors the precision-oriented
+E4M3/range-oriented E5M2 FP8 split. Parameters and optimizer states remain full precision, and nonlinear
+operations execute in bfloat16. CURVEFP7 E3C3 keeps eight curve phases in a seven-bit element for compact
+post-training deployment.
+The training operator quantizes the operands of every non-head linear layer. In the forward pass it
+computes QA(X)QW (W )T. In the backward pass it reuses the quantized forward operands and quantizes
+the output gradient QG(∇Y ), yielding QG(∇Y )QW (W ) for the activation gradient and QG(∇Y )TQA(X)
+for the weight gradient. This placement matches the three matrix multiplications whose operand formats a
+native low-precision training kernel must support.
+5
+
+
+4
+Experiments
+4.1
+Experimental design
+Our experiments evaluate CURVEFP as a complete datatype family across inference and training. We organize
+the evidence along three axes. First, post-training quantization on four open language-model architectures
+tests the inference quality frontier and scale-amortization behavior. Second, backward-GEMM diagnostics
+and controlled training runs test all three matrix products used by low-precision training. Third, matched
+from-scratch pretraining followed by out-of-distribution and downstream evaluation tests whether any local
+numerical advantage survives optimization and format transfer. We compare against BF16/FP16, the standard
+FP8 E4M3-forward/E5M2-backward pair (Micikevicius et al., 2022), microscaling formats, and signed
+integers with practical real-valued scales.
+All formats share identical GEMM kernels and evaluation code, isolating datatype and optimization
+effects. Unless stated otherwise, we quantize every linear layer except the tied output vocabulary head
+and retain BF16/FP16 for normalization and nonlinear operations. Every comparison uses the same data,
+tokenizer, model weights or initialization, and evaluation code; all reported numbers are derived from saved
+JSON artifacts.
+4.2
+CurveFP7 provides an INT8-class inference alternative at seven bits
+We first evaluate post-training W/A quantization on four architectures spanning dense attention, grouped-
+query attention, a recurrent hybrid, and a DeltaNet-attention hybrid: Llama-3-8B, Qwen3-8B, Falcon-H1-7B,
+and Qwen3.5-9B (Grattafiori et al., 2024; Yang et al., 2025; Zuo et al., 2025; Qwen Team, 2026). Each run
+scores the complete WikiText-2 test split with the same 2,048-token rolling-loglikelihood protocol (Merity
+et al., 2016). Within each model, all methods share the same weights, output-head exclusion, and K/V
+precision. Llama and Qwen3 hold dense K/V at common tensorwise FP8 to isolate W/A arithmetic. The
+principal comparison uses tensorwise and rowwise FP8 E4M3 against CURVEFP7 E3C3 with one compact
+binary scale per 64 or 512 values. The G64 format costs 7.062 weight and 7.078 activation bits per value
+including scales; G512 reduces these rates to 7.008 and 7.010.
+CURVEFP7 establishes a compelling seven-bit alternative to INT8 inference. At G64 it improves over
+tensorwise FP8 on every model and stays within 1.32% perplexity of native. Against rowwise FP8, it wins on
+Llama and Qwen3.5 and trails by only 0.0064 PPL on Qwen3 and 0.0158 on Falcon-H1. More importantly,
+Figure 2b shows the practical granularity frontier on Falcon-H1. INT8 leads by only 0.0095 and 0.0103 PPL
+at G128 and G256; CURVEFP7 crosses at G512 (5.6702 versus 5.6739), then leads rowwise (5.7051 versus
+5.7881) and tensorwise (6.7139 versus 10.1033). Thus the seven-bit format remains competitive at block
+granularity and becomes more robust as scale sharing increases, while retaining lower data/metadata rate and
+closed-product arithmetic.
+4.3
+Rational radix validates the quality–phase control
+All principal training and deployment formats use binary radix. To test the rational generalization itself,
+Table 2 varies only the radix while holding the E4C3 element width, G512 block size, and scale count
+fixed. The near-binary r = 28/9 adds one predicted phase and improves all four models, reducing perplexity
+by 0.0003 to 0.0111. The denser r = 23/4 reaches the best perplexity on every model but requires the
+predicted 32 phases. This controlled ablation validates the design law: denser radices improve representation,
+Equation 4 exposes their accumulation cost, and the eight-phase binary point remains the main operating
+point. Relative to binary radix, 32 phases improve PPL by only 0.0055–0.0259 across the four models while
+quadrupling the number of phase classes.
+6
+
+
+Llama-3
+8B
+Qwen3
+8B
+Qwen3.5
+9B
+Falcon-H1
+7B
+0.2
+0.4
+0.6
+0.8
+1.0
+1.2
+1.4
+1.6
+Perplexity increase over native (%) ↓
+(a) FP8-class quality at seven bits
+FP8 tensor
+FP8 row
+CurveFP7 G64
+CurveFP7 G512
+G128
+G256
+G512
+Rowwise
+Tensorwise
+Scale granularity
+5
+6
+7
+8
+9
+10
+11
+WikiText-2 perplexity ↓
+5.66
+5.67
+5.67
+5.71
+6.71
+5.65
+5.66
+5.67
+5.79
+10.10
+(b) Falcon-H1: practical INT8 replacement
+CurveFP7 (7-bit)
+INT8 (8-bit)
+Figure 2: CURVEFP7 enters the FP8 quality regime and remains stable as scale groups widen. (a)
+Perplexity increase over each native model. G64 CURVEFP7 beats tensorwise FP8 on all four architectures
+and wins against rowwise FP8 on Llama and Qwen3.5 while trailing it on Qwen3 and Falcon-H1. (b) A
+representative complete granularity sweep on Falcon-H1, reporting actual WikiText-2 perplexity from G128
+through rowwise and tensorwise scaling. INT8 leads narrowly at G128/G256; CURVEFP7 crosses at G512
+and remains better as scales are shared more broadly, including 6.71 versus 10.10 PPL at tensorwise scaling.
+Table 2: E4C3 perplexity at G512 as rational radix trades phases for local resolution. Lower is better.
+r = 2
+r = 28/9
+r = 23/4
+Model
+8 phases
+9 phases
+32 phases
+Llama-3-8B
+6.2160
+6.2052
+6.1901
+Qwen3-8B
+7.0536
+7.0426
+7.0420
+Qwen3.5-9B
+7.0159
+7.0070
+7.0034
+Falcon-H1-7B
+5.6654
+5.6652
+5.6599
+4.4
+CurveFP8 reduces error in all three training GEMMs
+Before full pretraining, we measure operand reconstruction error at real forward and backward matrix
+products from Pythia-410M (Biderman et al., 2023) and Llama-3.2-3B (Grattafiori et al., 2024). The
+diagnostic captures forward XW T, activation-gradient ∇Y W, and weight-gradient ∇Y TX windows, then
+compares CURVEFP8 E4C3/E5C2 with FP8 E4M3/E5M2 under the same tensors. Each window is one
+disjoint 64-token WikiText-2 training segment and one real backward pass. For each linear role, we select
+three layers spaced through model depth, giving 12 sampled Pythia linears and 21 sampled Llama linears per
+window. As Table 3 shows, CURVEFP8 lowers normalized MSE in every one of the 36 paired comparisons.
+Its aggregate NMSE is 8.2–11.1% lower depending on model and GEMM, so the closed code’s benefit is not
+confined to forward inference.
+4.5
+CurveFP8 completes three matched 3B-token runs
+The decisive training test repeats a matched triplet at three independent random seeds, yielding nine 128.3M-
+parameter Llama-style decoders. Within each triplet, BF16, FP8, and CURVEFP8 start from identical random
+7
+
+
+Table 3: CURVEFP8 NMSE divided by FP8 NMSE on paired training-GEMM windows. Values below one
+favor CURVEFP8; all 36 pairs are wins.
+Model
+Windows
+Forward
+∇X
+∇W
+Pythia-410M
+8
+0.8927
+0.8887
+0.9012
+Llama-3.2-3B
+4
+0.9044
+0.8952
+0.9180
+0.5
+1.0
+1.5
+2.0
+2.5
+3.0
+Training tokens (billions)
+3.2
+3.4
+3.6
+3.8
+4.0
+4.2
+4.4
+4.6
+BF16-inference NLL ↓
+(a) Mean convergence under BF16 inference
+BF16
+FP8
+CurveFP8
+0.5
+1.0
+1.5
+2.0
+2.5
+3.0
+Training tokens (billions)
+−10
+−5
+0
+5
+10
+NLL gap (×10−3) ↓
+(b) Gap to BF16-trained model
+FP8
+CurveFP8
+Figure 3: CURVEFP8 and FP8 track BF16 across three seeds. Both panels run all checkpoints in BF16,
+removing inference quantization to compare learned weights. Lines show three-seed means at 30 matched
+checkpoints; bands span the seed-wise minimum and maximum. Right: each quantized mode after subtracting
+its seed-matched BF16 checkpoint, in milli-NLL. Markers are staggered only to reveal nearly coincident
+means.
+parameters and train on exactly 2,999,943,168 FineWeb-Edu tokens (Penedo et al., 2024). The model has
+12 layers, width 768, intermediate width 2560, 12 attention heads, and four key/value heads. We train for
+30,517 updates at sequence length 1024 and global batch size 96 using AdamW, a 1,000-step warmup, and
+cosine decay from 6 × 10−4 to 6 × 10−5. Within each triplet, all modes share the seed, token order, optimizer,
+and schedule. FP8 uses E4M3 forward operands and E5M2 output gradients with dynamic FP32 scales;
+CURVEFP8 uses E4C3 forward operands and E5C2 gradients with compact power-of-two scales. Parameters
+and Adam states remain FP32 in both quantized lanes. Training disables K/V caching; the K/V projection
+linears use the lane’s forward operand format. Final evaluation covers all 4,193,280 held-out target tokens
+per lane.
+We evaluate every checkpoint in two ways. First, each model runs in the arithmetic used during training:
+BF16, FP8, or CURVEFP8. This is the deployment result. Second, we run the same learned weights in BF16
+for all three models. This common-arithmetic comparison reveals which training mode learned the better
+checkpoint. Within each row of Table 4, the gap between these two evaluations is the inference quantization
+loss.
+The low-precision endpoints are statistically unresolved at this scale. CURVEFP8-minus-FP8 perplexity
+is −0.0110 ± 0.0217 in training arithmetic and −0.0040 ± 0.0206 under BF16 inference; CURVEFP8 wins
+two of three seeds in both views. The format-induced penalty is more consistent: FP8 loses 0.0758 ± 0.0029
+PPL and CURVEFP8 loses 0.0688 ± 0.0011, so CURVEFP8 reduces the penalty in all three seeds by
+0.0070 ± 0.0029 PPL. Figure 3 likewise shows overlapping trajectories; the mean paired step-loss difference
+8
+
+
+Table 4: Full held-out evaluation after matched 3B-token pretraining. Values are mean ± sample standard
+deviation across three seeds.
+Training mode
+Training-format PPL ↓
+BF16 PPL ↓
+BF16
+22.4899 ± 0.0198
+22.4899 ± 0.0199
+FP8
+22.6164 ± 0.0130
+22.5407 ± 0.0182
+CURVEFP8
+22.6054 ± 0.0199
+22.5366 ± 0.0207
+is −0.00030 ± 0.00153 across seeds. All nine lanes complete without divergence or a non-finite update.
+These results establish full-run FP8-class training parity, not statistical superiority. This is the intended
+criterion: preserve FP8 learned quality while replacing its product algebra with exact phase/bin routing; the
+consistently lower format-induced penalty is an additional gain.
+4.6
+CurveFP8 transfers across seeds and runtime formats
+We next test whether the pretraining outcome transfers beyond the held-out FineWeb-Edu distribution. OOD
+language modeling uses the complete WikiText-103 and PG-19 test sets (Merity et al., 2016; Rae et al.,
+2019). The zero-shot suite covers HellaSwag, PIQA, ARC-Easy/Challenge, WinoGrande, LAMBADA, and
+BLiMP (Zellers et al., 2019; Bisk et al., 2020; Clark et al., 2018; Sakaguchi et al., 2019; Paperno et al., 2016;
+Warstadt et al., 2020); the five-shot suite repeats all but ARC-Challenge and BLiMP. We report normalized
+accuracy for HellaSwag, PIQA, and ARC, standard accuracy for WinoGrande and LAMBADA, and the
+aggregate BLiMP minimal-pair accuracy. Every cell uses lm-evaluation-harness 0.4.11, the same tokenizer
+and 1,024-token context, and 10,000 bootstrap iterations. Together the suite probes commonsense and
+physical reasoning, science knowledge, discourse prediction, and grammatical competence.
+Table 5: Final checkpoints under BF16 inference. Values are absolute mean ± sample standard deviation
+across three seeds. Zero-shot is the six-task core mean; five-shot is the five-task mean. Task values are
+percentages. Bold is best.
+Trained
+WikiText PPL
+PG-19 PPL
+Zero-shot
+Five-shot
+BLiMP
+BF16
+40.384 ± .071
+43.728 ± .609
+40.128 ± .164
+43.096 ± .531
+79.786 ± .343
+FP8
+40.487 ± .034
+43.886 ± .669
+39.713 ± .299
+42.446 ± .563
+79.597 ± .298
+CURVEFP8
+40.083 ± .010
+43.132 ± .528
+39.906 ± .214
+42.629 ± .118
+79.938 ± .201
+Table 5 reports the absolute checkpoint quality: CURVEFP8 has the best mean perplexity on both OOD
+corpora, BF16 leads the aggregate zero- and five-shot means, and CURVEFP8 leads BLiMP. The paired
+result is strongest on WikiText-103: CURVEFP8 lowers its perplexity in all 12 seed-format comparisons.
+PG-19 favors CURVEFP8 in 8/12 comparisons, but its seed variance is larger than the mean gain. Zero- and
+five-shot means favor CURVEFP8 in 7/12 and 6/12 comparisons, respectively, and their per-format means
+remain within 0.24 points of zero. The largest single-seed conservative combined-error score is |z| = 1.43.
+We therefore conclude consistent WikiText improvement and robust transfer parity, not broad downstream
+superiority. The full matrix separates checkpoint quality from evaluation-format sensitivity. Switching
+a BF16-trained checkpoint to FP8, CURVEFP8, or CURVEFP7 costs 6.94–7.40 milli-NLL on OOD text.
+Matching training and runtime arithmetic cuts the FP8 and CURVEFP8 penalties by about 50% and 43%,
+respectively. Compact deployment remains stable: CURVEFP7-G256 changes the CURVEFP8-trained zero-
+and five-shot means by −0.16 and +0.01 points. Across trained-checkpoint comparisons, the persistent
+WikiText-103 gain coexists with seed-dependent PG-19 and task outcomes. This is the expected signature of
+transfer parity with one consistent OOD advantage, rather than an unsupported universal gain.
+9
+
+
+BF16
+FP8
+CurveFP8
+CurveFP7
+Runtime format
+BF16
+FP8
+CurveFP8
+Training arithmetic
+0
++6.94
++7.02
++7.40
+0
++3.48
++4.66
++4.94
+0
++5.56
++4.01
++4.27
+(a) OOD ΔNLL (milli) ↓
+BF16
+FP8
+CurveFP8
+CurveFP7
+Runtime format
+0
+-0.03
+-0.14
+-0.17
+0
+-0.06
++0.10
++0.19
+0
+-0.15
+-0.02
+-0.16
+(b) Zero-shot Δacc. (pt) ↑
+BF16
+FP8
+CurveFP8
+CurveFP7
+Runtime format
+0
+-0.25
+-0.24
+-0.45
+0
+-0.08
+-0.07
+-0.02
+0
+-0.03
+-0.13
++0.01
+(c) Five-shot Δacc. (pt) ↑
+Figure 4: Matching training and runtime arithmetic reduces mean format-transfer penalty. Cells are
+three-seed means relative to BF16 inference on the same checkpoint. OOD values average WikiText-103 and
+PG-19 log-PPL changes in milli-NLL; task values are accuracy-point changes. Matched FP8 and CURVEFP8
+incur 3.48 and 4.01 milli-NLL, versus 6.94 and 7.02 when applied after BF16 training. The CURVEFP8-
+trained checkpoint transfers to CURVEFP7-G256 at +4.27 milli-NLL and +0.01 five-shot points.
+5
+Algorithmic Contribution and Arithmetic Realization
+The contribution is complete at the algorithmic level: a closed-product datatype/arithmetic family and
+end-to-end ML validation. Its phase/bin equations constructively specify per-lane index adders, grouping,
+signed counters, and eight-bank (E3C3/E4C3) or four-bank (E5C2) reduction; histogram and Kulisch layouts
+realize the same algorithm. This establishes data-dependent multiplier elimination and an architecture-neutral
+interface; the algorithmic result is independent of process-specific area, latency, and energy.
+Three properties close the algorithmic loop. First, the element fields compose exactly: sign XOR,
+curve-index addition, carry, exponent addition, and binary scale transport determine every nonzero product
+without a lookup or projection. Second, Equation 4 converts radix choice into an explicit accumulation
+contract. A product is routed to one of H phases and one binary bin, exact counter width follows from
+dot length, and only the fixed phase combination and final requantization round. Third, the role-specific
+formats cover the complete linear-layer lifecycle: E4C3 for forward weights and activations, E5C2 for output
+gradients, and E3C3 for compact inference. The same mapping therefore serves forward, activation-gradient,
+and weight-gradient GEMMs rather than a single inference operator.
+This contract admits multiple implementations without changing numerical semantics. A banked his-
+togram merges equal (h, t) addresses through signed popcounts; a per-phase Kulisch design instead shifts
+each unit update into a wide accumulator. Both produce the same phase sums before fixed-coefficient
+reduction. Bank organization, lane count, and pipeline depth are architecture choices, but the operations, state
+bounds, and output semantics are fixed by the datatype. The contribution is thus not a proposal contingent on
+a particular accelerator: it is an executable arithmetic specification whose model-level behavior is validated
+across inference, training, and format transfer.
+10
+
+
+6
+Conclusion
+CURVEFP demonstrates that low-precision values and their product algebra can be designed together. Its
+interleaved logarithmic curves give exact index-domain products, the law H = qK/ gcd(p, qK) exposes
+accumulation complexity, and binary block scales extend range without adding phases. The resulting
+E3C3/E4C3 and E5C2 formats use eight and four phases, respectively, and map constructively to index
+adders, signed accumulation, and fixed phase reduction. This structure delivers competitive quality across
+the model lifecycle. CURVEFP7 reaches 7.008/7.010 W/A bits per value at G512, beats tensorwise FP8 on
+four 7B–9B models, and crosses INT8 on Falcon-H1 at G512 before widening its advantage under rowwise
+and tensorwise sharing. CURVEFP8 wins all 36 paired forward/backward GEMM-error comparisons and
+completes nine 128.3M-parameter, 3B-token training lanes. Its three-seed training-format PPL is 22.6054
+versus 22.6164 for FP8, and its format penalty is lower in all three seeds (0.0688 versus 0.0758 PPL). The
+learned checkpoints improve WikiText-103 in all 12 seed-format comparisons; mixed PG-19 and task means
+appropriately support transfer parity rather than universal superiority. Together, the exact product law, finite
+phase schedule, architecture-neutral realization, and end-to-end evidence complete the algorithmic case for
+CURVEFP. The family provides one coherent FP8-class training path and a seven-bit INT8 alternative while
+making product structure, scale metadata, and accumulation cost explicit design parameters.
+Reproducibility Statement
+Section 3 defines the formats, quantization rule, product mapping, and phase count. Section 4 reports the
+model, data, optimizer, task, and precision contracts used in each principal experiment. The supplementary
+code fixes the seed and data contracts, implements resumable checkpointing and atomic artifact generation,
+validates every matrix cell, and regenerates result summaries and figures from produced artifacts. The
+constructive arithmetic realization is summarized in Section 5.
+AI Use Statement
+We used generative AI tools to assist with experiment scripts, derivation checking, figure preparation, literature
+review, and language editing.
+References
+Saleh Ashkboos, Amirkeivan Mohtashami, Maximilian L. Croci, Bo Li, Pashmina Cameron, Martin Jaggi,
+Dan Alistarh, and Torsten Hoefler. QuaRot: Outlier-free 4-bit inference in rotated LLMs. arXiv preprint
+arXiv:2404.00456, 2024. doi: 10.48550/arXiv.2404.00456. URL https://arxiv.org/abs/2404.
+00456.
+Stella Biderman, Hailey Schoelkopf, Quentin Anthony, Herbie Bradley, Kyle O’Brien, Eric Hallahan,
+Mohammad Aflah Khan, Shivanshu Purohit, USVSN Sai Prashanth, Edward Raff, Aviya Skowron,
+Lintang Sutawika, and Oskar van der Wal. Pythia: A suite for analyzing large language models across
+training and scaling. arXiv preprint arXiv:2304.01373, 2023. doi: 10.48550/arXiv.2304.01373. URL
+https://arxiv.org/abs/2304.01373.
+Yonatan Bisk, Rowan Zellers, Ronan Le Bras, Jianfeng Gao, and Yejin Choi. PIQA: Reasoning about physical
+commonsense in natural language. In Proceedings of the AAAI Conference on Artificial Intelligence, 2020.
+URL https://arxiv.org/abs/1911.11641.
+11
+
+
+Maxime Christ, Florent de Dinechin, and Fr´ed´eric P´etrot. Low-precision logarithmic arithmetic for neural
+network accelerators. In 2022 IEEE 33rd International Conference on Application-Specific Systems,
+Architectures and Processors, pp. 72–79, 2022. doi: 10.1109/ASAP54787.2022.00021. URL https:
+//doi.org/10.1109/ASAP54787.2022.00021.
+Peter Clark, Isaac Cowhey, Oren Etzioni, Tushar Khot, Ashish Sabharwal, Carissa Schoenick, and Oyvind
+Tafjord. Think you have solved question answering? try ARC, the AI2 reasoning challenge. arXiv preprint
+arXiv:1803.05457, 2018. doi: 10.48550/arXiv.1803.05457. URL https://arxiv.org/abs/1803.
+05457.
+Mario Drumond, Tao Lin, Martin Jaggi, and Babak Falsafi. Training DNNs with hybrid block floating point.
+In Advances in Neural Information Processing Systems, volume 31, 2018. URL https://arxiv.org/
+abs/1804.01526.
+Reena Elangovan, Charbel Sakr, Anand Raghunathan, and Brucek Khailany. LO-BCQ: Block clustered
+quantization for 4-bit (W4A4) LLM inference. Transactions on Machine Learning Research, 2025. doi:
+10.48550/arXiv.2502.05376. URL https://arxiv.org/abs/2502.05376.
+Aaron Grattafiori et al.
+The Llama 3 herd of models.
+arXiv preprint arXiv:2407.21783, 2024.
+doi:
+10.48550/arXiv.2407.21783. URL https://arxiv.org/abs/2407.21783.
+Ioannis Kouretas and Vassilis Paliouras. Logarithmic number system for deep learning. In 2018 7th
+International Conference on Modern Circuits and Systems Technologies, pp. 1–4, 2018. doi: 10.1109/
+MOCAST.2018.8376572. URL https://doi.org/10.1109/MOCAST.2018.8376572.
+Yuhang Li, Xin Dong, and Wei Wang. Additive powers-of-two quantization: An efficient non-uniform
+discretization for neural networks. In International Conference on Learning Representations, 2020. URL
+https://arxiv.org/abs/1909.13144.
+Zechun Liu, Changsheng Zhao, Igor Fedorov, Bilge Soran, Dhruv Choudhary, Raghuraman Krishnamoorthi,
+Vikas Chandra, Yuandong Tian, and Tijmen Blankevoort. SpinQuant: LLM quantization with learned
+rotations. In International Conference on Learning Representations, 2025. URL https://arxiv.
+org/abs/2405.16406.
+Stephen Merity, Caiming Xiong, James Bradbury, and Richard Socher. Pointer sentinel mixture models.
+arXiv preprint arXiv:1609.07843, 2016. doi: 10.48550/arXiv.1609.07843. URL https://arxiv.
+org/abs/1609.07843.
+Paulius Micikevicius, Dusan Stosic, Neil Burgess, Marius Cornea, Pradeep Dubey, Richard Grisenth-
+waite, Sangwon Ha, Alexander Heinecke, Patrick Judd, John Kamalu, Naveen Mellempudi, Stuart Ober-
+man, Mohammad Shoeybi, Michael Siu, and Hao Wu. FP8 formats for deep learning. arXiv preprint
+arXiv:2209.05433, 2022. doi: 10.48550/arXiv.2209.05433. URL https://arxiv.org/abs/2209.
+05433.
+Daisuke Miyashita, Edward H. Lee, and Boris Murmann. Convolutional neural networks using logarithmic
+data representation. arXiv preprint arXiv:1603.01025, 2016. doi: 10.48550/arXiv.1603.01025. URL
+https://arxiv.org/abs/1603.01025.
+Denis Paperno, Germ´an Kruszewski, Angeliki Lazaridou, Ngoc-Quan Pham, Raffaella Bernardi, Sandro
+Pezzelle, Marco Baroni, Gemma Boleda, and Raquel Fern´andez. The LAMBADA dataset: Word prediction
+requiring a broad discourse context. In Proceedings of the 54th Annual Meeting of the Association for
+Computational Linguistics (Volume 1: Long Papers), pp. 1525–1534. Association for Computational
+Linguistics, 2016. doi: 10.18653/v1/P16-1144. URL https://aclanthology.org/P16-1144/.
+12
+
+
+Guilherme Penedo, Hynek Kydl´ıˇcek, Loubna Ben Allal, Anton Lozhkov, Margaret Mitchell, Colin Raffel,
+Leandro von Werra, and Thomas Wolf. The FineWeb datasets: Decanting the web for the finest text
+data at scale. arXiv preprint arXiv:2406.17557, 2024. doi: 10.48550/arXiv.2406.17557. URL https:
+//arxiv.org/abs/2406.17557.
+Ye Qiao, Zhiheng Chen, Yifan Zhang, Yian Wang, and Sitao Huang. TeLLMe: An efficient end-to-end
+ternary LLM prefill and decode accelerator with table-lookup matmul on edge FPGAs. In Proceedings of
+the 2026 ACM/SIGDA International Symposium on Field-Programmable Gate Arrays, pp. 247–257. ACM,
+2026a. doi: 10.1145/3748173.3779191. URL https://doi.org/10.1145/3748173.3779191.
+Ye Qiao, Yian Wang, Zhiheng Chen, Hyoukjun Kwon, and Sitao Huang. FASQ: Flexible accelerated
+subspace quantization for calibration-free LLM compression. arXiv preprint arXiv:2605.04084, 2026b.
+doi: 10.48550/arXiv.2605.04084. URL https://arxiv.org/abs/2605.04084.
+Qwen Team. Qwen3.5: Towards native multimodal agents, February 2026. URL https://qwen.ai/
+blog?id=qwen3.5.
+Jack W. Rae, Anna Potapenko, Siddhant M. Jayakumar, and Timothy P. Lillicrap. Compressive transformers
+for long-range sequence modelling. arXiv preprint arXiv:1911.05507, 2019. doi: 10.48550/arXiv.1911.
+05507. URL https://arxiv.org/abs/1911.05507.
+Bita Darvish Rouhani, Ritchie Zhao, Ankit More, et al. Microscaling data formats for deep learning. arXiv
+preprint arXiv:2310.10537, 2023. doi: 10.48550/arXiv.2310.10537. URL https://arxiv.org/
+abs/2310.10537.
+Keisuke Sakaguchi, Ronan Le Bras, Chandra Bhagavatula, and Yejin Choi. WinoGrande: An adversarial
+winograd schema challenge at scale. arXiv preprint arXiv:1907.10641, 2019. doi: 10.48550/arXiv.1907.
+10641. URL https://arxiv.org/abs/1907.10641.
+Semyon Savkin, Eitan Porat, Or Ordentlich, and Yury Polyanskiy. NestQuant: Nested lattice quantization for
+matrix products and LLMs. In Proceedings of the 42nd International Conference on Machine Learning,
+volume 267 of Proceedings of Machine Learning Research, pp. 53042–53062. PMLR, 2025. URL
+https://proceedings.mlr.press/v267/savkin25a.html.
+Yian Wang, Ye Qiao, Sitao Huang, and Hyoukjun Kwon. APEX-Q: Arbitrary-dimension product-extension
+quantization for accelerated LLM deployment (student abstract). Proceedings of the AAAI Conference
+on Artificial Intelligence, 40(48):41424–41426, 2026. doi: 10.1609/aaai.v40i48.42293. URL https:
+//doi.org/10.1609/aaai.v40i48.42293.
+Alex Warstadt, Alicia Parrish, Haokun Liu, Anhad Mohananey, Wei Peng, Sheng-Fu Wang, and Samuel R.
+Bowman. BLiMP: The benchmark of linguistic minimal pairs for english. Transactions of the Association
+for Computational Linguistics, 8:377–392, 2020. doi: 10.1162/tacl a 00321. URL https://doi.org/
+10.1162/tacl_a_00321.
+Guangxuan Xiao, Ji Lin, Mickael Seznec, Hao Wu, Julien Demouth, and Song Han. SmoothQuant: Accurate
+and efficient post-training quantization for large language models. In Proceedings of the 40th International
+Conference on Machine Learning, volume 202 of Proceedings of Machine Learning Research, pp. 38087–
+38099. PMLR, 2023. URL https://proceedings.mlr.press/v202/xiao23c.html.
+An Yang et al. Qwen3 technical report. arXiv preprint arXiv:2505.09388, 2025. doi: 10.48550/arXiv.2505.
+09388. URL https://arxiv.org/abs/2505.09388.
+13
+
+
+Rowan Zellers, Ari Holtzman, Yonatan Bisk, Ali Farhadi, and Yejin Choi. HellaSwag: Can a machine really
+finish your sentence? In Proceedings of the 57th Annual Meeting of the Association for Computational
+Linguistics, pp. 4791–4800. Association for Computational Linguistics, 2019. doi: 10.18653/v1/P19-1472.
+URL https://aclanthology.org/P19-1472/.
+Jiawei Zhao, Steve Dai, Rangharajan Venkatesan, Brian Zimmer, Mustafa Ali, Ming-Yu Liu, Brucek Khailany,
+William J. Dally, and Anima Anandkumar. LNS-Madam: Low-precision training in logarithmic number
+system using multiplicative weight update. IEEE Transactions on Computers, 71(12):3179–3190, 2022.
+doi: 10.1109/TC.2022.3202747. URL https://doi.org/10.1109/TC.2022.3202747.
+Jingwei Zuo et al. Falcon-H1: A family of hybrid-head language models redefining efficiency and perfor-
+mance. arXiv preprint arXiv:2507.22448, 2025. URL https://arxiv.org/abs/2507.22448.
+14
