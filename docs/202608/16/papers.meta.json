@@ -1,0 +1,39 @@
+{
+  "label": "2026-08-16",
+  "date": "2026-08-16",
+  "generated_at": "2026-08-16T20:23:58",
+  "count": 2,
+  "papers": [
+    {
+      "paper_id": "202608/16/2608.08652v1-legolm-structured-weight-sharing-for-large-language-models",
+      "section": "deep",
+      "title_en": "LegoLM: Structured Weight Sharing for Large Language Models",
+      "authors": "Joseph Bingham",
+      "date": "2026-08-09",
+      "pdf": "https://arxiv.org/pdf/2608.08652v1",
+      "score": "9.0",
+      "evidence": "基于Lloyd-Max质心分析与结构化权重共享的大模型压缩",
+      "tldr": "全局权重共享在大型语言模型压缩中常失败，根因是分布失配与离群点主导两种模式。LegoLM通过标量块编码、百分位选择性替换和边界层保护等数据无关手段修复二者，在Mistral-7B上实现4.41倍压缩仅增加0.03%困惑度，并超越PTQ-8bit；5.12倍压缩下仍保持下游精度。该方法按模型规模自适应，为极端压缩提供了可靠方案。",
+      "tags": "query:wbv",
+      "abstract_en": "We present \\LegoLM{}, a structured weight-sharing compression framework for large language models grounded in a systematic study of why global weight sharing fails and how to fix it. We identify two distinct failure modes. Distributional mismatch: for vector blocks of dimension d <= 2, transformer layers with heterogeneous weight scales impose a scale-mismatch penalty that grows linearly with d and cannot be resolved by increasing K, producing perplexity in the millions.Outlier dominance: for scalar blocks, a fraction ~1/K of weights lies beyond the outermost Lloyd-Max decision threshold and cannot be represented by any centroid; their misrepresentation accumulates across layers, causing catastrophic quality loss. \\LegoLM{} resolves both failure modes via three data-free adaptations: 1 scalar-block encoding to eliminate the $d$-linear mismatch component, 2 percentile-selective replacement that identifies and preserves outlier weights verbatim, and 3 boundary-layer protection for the first and last transformer blocks. Across GPT-2 small (124M) and Mistral-7B, \\LegoLM{} achieves +0.03% PPL degradation at 4.41X compression on Mistral-7B - outperforming PTQ-8bit in both quality and compression ratio - and -0.02% at 2.67X. Downstream evaluation on LAMBADA and HellaSwag confirms that \\LegoLM{} at K=64, p=99% preserves accuracy within noise at 5.12 X compression, exceeding PTQ-8bit's compression ratio while matching its accuracy. We further discover that outlier dominance grows with model scale: full replacement at K=128 degrades GPT-2 small by only +23% but catastrophically degrades Mistral-7B by +1,134,279%, while selective replacement at p=99% rescues both models to under +15%. A controlled ablation confirms that selective replacement is the dominant mechanism: adding it to per-layer K-means also yields near-lossless quality, matching \\LegoLM{} within 0.02%.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202608/16/2608.10010v1-curvefp-rational-radix-logarithmic-datatypes-with-closed-products-for-language-models",
+      "section": "deep",
+      "title_en": "CurveFP: Rational-Radix Logarithmic Datatypes with Closed Products for Language Models",
+      "authors": "Ye Qiao",
+      "date": "2026-08-08",
+      "pdf": "https://arxiv.org/pdf/2608.10010v1",
+      "score": "9.0",
+      "evidence": "面向语言模型的封闭乘积码本低精度数据类型",
+      "tldr": "低精度数据类型可降低语言模型成本，但多数格式只优化标量保真度，未考虑乘积运算的闭环性，导致算术路径复杂。CurveFP提出闭积码本族，以有理基数对数曲线在紧凑块尺度下分布量化幅度，并用统一索引使非零积代数闭合，从而将乘积化为符号异或与整数索引更新。该设计在七位部署下以少一个元素比特在四个7B-9B模型上超越张量级FP8困惑度，八位变体在预训练中达到接近原生质量和更优的格式惩罚。结果表明，CurveFP实现了FP8类数值行为、七位推理和更简乘积路径，为低精度语言模型提供了算术协同设计。",
+      "tags": "query:wbv",
+      "abstract_en": "Low-precision datatypes reduce language-model cost, but most formats optimize scalar fidelity while leaving the arithmetic induced by their products unchanged. We introduce CurveFP, a closed-product codebook family that distributes quantized magnitudes across interleaved logarithmic curves under compact block scales. A rational radix tunes dynamic range against local resolution, while uniform curve indices make every nonzero product algebraically closed. Product formation becomes an exact sign XOR and integer-index update, and a derived finite phase count determines the accumulation schedule. We instantiate this algebra as CurveFP eight E4C3/E5C2 for training and CurveFP seven E3C3 for compact deployment. In evaluation, CurveFP seven beats tensor-wise FP8 perplexity on four 7B--9B models with one fewer element bit and stays within 1.32\\% of native quality. CurveFP eight lowers operand NMSE in all 36 paired forward and backward GEMM comparisons. Across three matched 128.3M-parameter triplets, every mode completes 3B-token pretraining per seed; CurveFP eight reaches mean BF16-inference perplexity 22.5366 versus 22.5407 for FP8 and incurs a lower format-induced penalty in all three seeds. A 36-cell downstream matrix finds lower WikiText-103 perplexity for the CurveFP eight-trained checkpoints in all 12 seed-format comparisons, with mixed PG-19 and task deltas. Together, these results establish CurveFP as an arithmetic co-design that combines FP8-class numerical behavior, seven-bit inference, and a substantially simpler product path.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

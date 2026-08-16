@@ -1,0 +1,41 @@
+{
+  "date": "20260816",
+  "date_label": "",
+  "generated_at": "2026-08-16 20:23:56 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.08652v1",
+      "route": "202608/16/2608.08652v1-legolm-structured-weight-sharing-for-large-language-models",
+      "title": "LegoLM: Structured Weight Sharing for Large Language Models",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于Lloyd-Max质心分析与结构化权重共享的大模型压缩",
+      "first_seen_at": "2026-08-16 20:23:56 UTC",
+      "updated_at": "2026-08-16 20:23:56 UTC"
+    },
+    {
+      "paper_id": "2608.10010v1",
+      "route": "202608/16/2608.10010v1-curvefp-rational-radix-logarithmic-datatypes-with-closed-products-for-language-models",
+      "title": "CurveFP: Rational-Radix Logarithmic Datatypes with Closed Products for Language Models",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向语言模型的封闭乘积码本低精度数据类型",
+      "first_seen_at": "2026-08-16 20:23:56 UTC",
+      "updated_at": "2026-08-16 20:23:56 UTC"
+    }
+  ]
+}

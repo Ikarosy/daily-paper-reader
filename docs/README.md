@@ -41,7 +41,7 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-08-15</span>
+      <span class="dpr-home-dashboard-kicker">2026-08-16</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 2 篇</strong>
@@ -51,7 +51,7 @@
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>0</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-08-15 20:19:39 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-08-16 20:23:56 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读2篇高分论文，聚焦大模型结构化权重共享与新型对数数据类型。</p>
-<p>最值得关注的是《LegoLM》通过结构化共享压缩模型，以及《CurveFP》用有理数对数格式提升数值效率。</p>
-<p>建议普通读者优先了解权重共享思路，后续可关注其在实际部署中的效果。</p>
+<p>今日精读2篇高分论文（均9.0/10），聚焦大模型效率与数值表示优化。最值得关注：LegoLM通过结构化权重共享提升参数利用率，CurveFP引入有理基数对数数据类型改善数值精度。建议普通读者优先看权重共享思路，理解“减少冗余参数”这一核心趋势。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">

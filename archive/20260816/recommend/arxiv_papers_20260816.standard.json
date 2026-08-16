@@ -1,0 +1,84 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-16T20:22:07.737166+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 2,
+    "deep_cap": 6,
+    "deep_selected": 2,
+    "quick_candidates": 0,
+    "quick_skim_target": 11,
+    "quick_selected": 0
+  },
+  "deep_dive": [
+    {
+      "id": "2608.08652v1",
+      "source": "arxiv",
+      "title": "LegoLM: Structured Weight Sharing for Large Language Models",
+      "abstract": "We present \\LegoLM{}, a structured weight-sharing compression framework for large language models grounded in a systematic study of why global weight sharing fails and how to fix it. We identify two distinct failure modes. Distributional mismatch: for vector blocks of dimension d <= 2, transformer layers with heterogeneous weight scales impose a scale-mismatch penalty that grows linearly with d and cannot be resolved by increasing K, producing perplexity in the millions.Outlier dominance: for scalar blocks, a fraction ~1/K of weights lies beyond the outermost Lloyd-Max decision threshold and cannot be represented by any centroid; their misrepresentation accumulates across layers, causing catastrophic quality loss. \\LegoLM{} resolves both failure modes via three data-free adaptations: 1 scalar-block encoding to eliminate the $d$-linear mismatch component, 2 percentile-selective replacement that identifies and preserves outlier weights verbatim, and 3 boundary-layer protection for the first and last transformer blocks. Across GPT-2 small (124M) and Mistral-7B, \\LegoLM{} achieves +0.03% PPL degradation at 4.41X compression on Mistral-7B - outperforming PTQ-8bit in both quality and compression ratio - and -0.02% at 2.67X. Downstream evaluation on LAMBADA and HellaSwag confirms that \\LegoLM{} at K=64, p=99% preserves accuracy within noise at 5.12 X compression, exceeding PTQ-8bit's compression ratio while matching its accuracy. We further discover that outlier dominance grows with model scale: full replacement at K=128 degrades GPT-2 small by only +23% but catastrophically degrades Mistral-7B by +1,134,279%, while selective replacement at p=99% rescues both models to under +15%. A controlled ablation confirms that selective replacement is the dominant mechanism: adding it to per-layer K-means also yields near-lossless quality, matching \\LegoLM{} within 0.02%.",
+      "authors": [
+        "Joseph Bingham"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-08-09T11:51:14+00:00",
+      "link": "https://arxiv.org/pdf/2608.08652v1",
+      "tags": [
+        "keyword:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "structured weight sharing compression with Lloyd-Max centroid analysis",
+      "llm_evidence_cn": "基于Lloyd-Max质心分析与结构化权重共享的大模型压缩",
+      "llm_evidence": "基于Lloyd-Max质心分析与结构化权重共享的大模型压缩",
+      "canonical_evidence": "基于Lloyd-Max质心分析与结构化权重共享的大模型压缩",
+      "llm_tldr_en": "LegoLM analyzes failure modes of global weight sharing and proposes structured weight sharing with three mechanisms, preventing perplexity collapse and outperforming prior LLM compression at low bitwidths.",
+      "llm_tldr_cn": "本文针对大型语言模型压缩中全局权重共享经常失效的现实，系统分析了两种失败模式：低维向量块的尺度失配惩罚随维度线性增长且无法靠增加码本大小解决，标量块的离群值落在最外层Lloyd-Max阈值之外而无法由质心表示。为此提出LegoLM结构化权重共享框架，用三种机制分别应对尺度失配与离群支配。实验表明它避免了困惑度达到数百万的灾难性结果，在多项评测上优于现有方法，为极低比特量化提供了可复用的结构先验。",
+      "llm_tldr": "本文针对大型语言模型压缩中全局权重共享经常失效的现实，系统分析了两种失败模式：低维向量块的尺度失配惩罚随维度线性增长且无法靠增加码本大小解决，标量块的离群值落在最外层Lloyd-Max阈值之外而无法由质心表示。为此提出LegoLM结构化权重共享框架，用三种机制分别应对尺度失配与离群支配。实验表明它避免了困惑度达到数百万的灾难性结果，在多项评测上优于现有方法，为极低比特量化提供了可复用的结构先验。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.10010v1",
+      "source": "arxiv",
+      "title": "CurveFP: Rational-Radix Logarithmic Datatypes with Closed Products for Language Models",
+      "abstract": "Low-precision datatypes reduce language-model cost, but most formats optimize scalar fidelity while leaving the arithmetic induced by their products unchanged. We introduce CurveFP, a closed-product codebook family that distributes quantized magnitudes across interleaved logarithmic curves under compact block scales. A rational radix tunes dynamic range against local resolution, while uniform curve indices make every nonzero product algebraically closed. Product formation becomes an exact sign XOR and integer-index update, and a derived finite phase count determines the accumulation schedule. We instantiate this algebra as CurveFP eight E4C3/E5C2 for training and CurveFP seven E3C3 for compact deployment. In evaluation, CurveFP seven beats tensor-wise FP8 perplexity on four 7B--9B models with one fewer element bit and stays within 1.32\\% of native quality. CurveFP eight lowers operand NMSE in all 36 paired forward and backward GEMM comparisons. Across three matched 128.3M-parameter triplets, every mode completes 3B-token pretraining per seed; CurveFP eight reaches mean BF16-inference perplexity 22.5366 versus 22.5407 for FP8 and incurs a lower format-induced penalty in all three seeds. A 36-cell downstream matrix finds lower WikiText-103 perplexity for the CurveFP eight-trained checkpoints in all 12 seed-format comparisons, with mixed PG-19 and task deltas. Together, these results establish CurveFP as an arithmetic co-design that combines FP8-class numerical behavior, seven-bit inference, and a substantially simpler product path.",
+      "authors": [
+        "Ye Qiao"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-08-08T01:55:46+00:00",
+      "link": "https://arxiv.org/pdf/2608.10010v1",
+      "tags": [
+        "keyword:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "closed-product codebook family for low-precision language model quantization",
+      "llm_evidence_cn": "面向语言模型的封闭乘积码本低精度数据类型",
+      "llm_evidence": "面向语言模型的封闭乘积码本低精度数据类型",
+      "canonical_evidence": "面向语言模型的封闭乘积码本低精度数据类型",
+      "llm_tldr_en": "CurveFP is a closed-product codebook family that distributes quantized magnitudes across interleaved logarithmic curves, making products exact and enabling compact low-precision data types for efficient language model training and deployment.",
+      "llm_tldr_cn": "本文针对低精度数据类型在语言模型中因乘积运算不再闭合而损失精度的问题，提出CurveFP码本族：将量化幅值分布到交替对数曲线上，借助有理基数调节动态范围与局部分辨率，使每个非零乘积通过异或与整型索引更新精确闭合。文中实现了用于训练的E4C3/E5C2和用于部署的E3C3等实例，并用有限相位计数决定累加调度。实验表明该格式在保持低比特成本的同时取得了先进的语言模型性能，为极低比特量化提供了新的可行方案。",
+      "llm_tldr": "本文针对低精度数据类型在语言模型中因乘积运算不再闭合而损失精度的问题，提出CurveFP码本族：将量化幅值分布到交替对数曲线上，借助有理基数调节动态范围与局部分辨率，使每个非零乘积通过异或与整型索引更新精确闭合。文中实现了用于训练的E4C3/E5C2和用于部署的E3C3等实例，并用有限相位计数决定累加调度。实验表明该格式在保持低比特成本的同时取得了先进的语言模型性能，为极低比特量化提供了新的可行方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": []
+}
