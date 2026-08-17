@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-08-16</span>
+      <span class="dpr-home-dashboard-kicker">2026-08-17</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 2 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 3 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>2</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-08-16 20:23:56 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-08-17 19:25:41 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,7 +62,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读2篇高分论文（均9.0/10），聚焦大模型效率与数值表示优化。最值得关注：LegoLM通过结构化权重共享提升参数利用率，CurveFP引入有理基数对数数据类型改善数值精度。建议普通读者优先看权重共享思路，理解“减少冗余参数”这一核心趋势。</p>
+<p>今日主攻量化压缩，精读QuaSAR激活感知秩截断方案（9.0分），另速读两篇量化文章。</p>
+<p>最值得关注：高分解的QuaSAR在补偿量化误差上表现突出，可作为激活敏感场景的优先参考。</p>
+<p>建议进一步对比QUASAR的损失感知重建与混合生成模型量化，选择适配自身任务的方法尝试验证。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -71,12 +73,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">2 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="LegoLM: Structured Weight Sharing for Large Language Models">LegoLM: Structured Weight Sharing for Large Language Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="CurveFP: Rational-Radix Logarithmic Datatypes with Closed Products for Language Models">CurveFP: Rational-Radix Logarithmic Datatypes with Closed Products for Language Models</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="QuaSAR: Quantization Compensation via Stable Activation-Aware Rank Truncation">QuaSAR: Quantization Compensation via Stable Activation-Aware Rank Truncation</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -84,12 +86,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Post-training Quantization for Hybrid Iterative Generative Models">Post-training Quantization for Hybrid Iterative Generative Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="QUASAR: Lowering the Loss Floor of Quantization-Aware Training with Loss-Aware Reconstruction">QUASAR: Lowering the Loss Floor of Quantization-Aware Training with Loss-Aware Reconstruction</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span></div>
 </section>
 </div>
 

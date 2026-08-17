@@ -1,0 +1,134 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-17T19:22:22.607744+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2608.14149v1",
+      "source": "arxiv",
+      "title": "QuaSAR: Quantization Compensation via Stable Activation-Aware Rank Truncation",
+      "abstract": "Recent training-free post-training quantization methods restore model accuracy through closed-form residual compensation. To constrain additional model storage overhead, several existing methods gate layer selection by goodness-of-fit, retaining only those layers whose compensation yields a positive residual fit score and discarding the rest. In this paper, we show that, under the low-bit W4A4 setting, this gating mechanism fails to distinguish poorly predictable quantization error from numerical solver failure. Rank-deficient input activations yield severely ill-conditioned or numerically singular Gram matrices, causing the closed-form solver to become unstable and produce spuriously negative fit scores. Consequently, existing goodness-of-fit gates misclassify affected layers as uncompensable and discard them. Many of these discarded layers can nevertheless provide substantial error recovery when their compensation is computed using a numerically stable solver. To address this problem, we propose a parameter-free truncated pseudoinverse solver which removes collapsed directions prior to inversion. On ViT-B with the W4A4 setting, our training-free method achieves 81.42\\% top-1 accuracy, outperforming prior post-training methods and fine-tuning-based baselines. Combined with joint low-rank and quantization compression, the proposed method reaches a deployable operating point of 80.26\\% accuracy at 54.7 MB, providing a well-balanced trade-off between model size and accuracy.",
+      "authors": [
+        "Lin-Fa Lee",
+        "Yi-Yu Chang",
+        "Kuo-Hei Yeh"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CR"
+      ],
+      "published": "2026-08-14T10:00:36+00:00",
+      "link": "https://arxiv.org/pdf/2608.14149v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "low-bit W4A4 quantization compensation with stable rank truncation",
+      "llm_evidence_cn": "低比特W4A4量化补偿和稳定秩截断方法",
+      "llm_evidence": "低比特W4A4量化补偿和稳定秩截断方法",
+      "canonical_evidence": "低比特W4A4量化补偿和稳定秩截断方法",
+      "llm_tldr_en": "Existing goodness-of-fit gating fails under W4A4 due to ill-conditioned Gram matrices. QuaSAR improves stability with activation-aware rank truncation, restoring accuracy in training-free post-training quantization.",
+      "llm_tldr_cn": "训练后量化方法通过闭式残差补偿恢复模型精度，但在W4A4低比特设定下，按拟合优度选择层的门控机制会因Gram矩阵病态而失效。QuaSAR提出稳定激活感知的秩截断策略，避免数值求解器不稳定导致的伪负拟合分数。实验表明该方法能在不增加存储开销的前提下有效恢复低比特模型的精度。该工作为低比特量化补偿提供了更可靠的方案。",
+      "llm_tldr": "训练后量化方法通过闭式残差补偿恢复模型精度，但在W4A4低比特设定下，按拟合优度选择层的门控机制会因Gram矩阵病态而失效。QuaSAR提出稳定激活感知的秩截断策略，避免数值求解器不稳定导致的伪负拟合分数。实验表明该方法能在不增加存储开销的前提下有效恢复低比特模型的精度。该工作为低比特量化补偿提供了更可靠的方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2608.13932v1",
+      "source": "arxiv",
+      "title": "Post-training Quantization for Hybrid Iterative Generative Models",
+      "abstract": "Iterative Generative Models (IGMs) span autoregressive and diffusion paradigms, and hybrid variants that couple them can achieve remarkable image-generation fidelity. However, their iterative inference incurs substantial computational overhead, making Post-training Quantization (PTQ) appealing for acceleration, while directly applying vanilla PTQ to hybrid IGMs can trigger model collapse. By analyzing these failures, we identify two critical challenges: Excessive Outliers (EOs) in the activations create an irreconcilable trade-off between preserving normal precision and covering EOs, resulting in severe degradation in generation quality; Amplified Anomalies (AAs) arising unpredictably from minor quantization errors, create a mismatch between calibration and inference, thus iteratively triggering model collapse. To address these challenges, we introduce HyGenQ, a PTQ framework for hybrid IGMs. HyGenQ comprises Hierarchical Cluster Decoupling (HCD) and Scaling Recalibration (SR). HCD identifies and decouples outlier channels via a multi-stage clustering process, effectively isolating EOs while maintaining normal value precision, thereby alleviating performance degradation. SR scales AAs beyond Gaussian Bound, thereby avoiding model collapse caused by aggressive truncation. Extensive experiments demonstrate that HyGenQ successfully quantizes representative hybrid IGMs to 8-bit precision (W8A8), significantly outperforming existing baselines and validating its robustness across different model families.",
+      "authors": [
+        "Jing Gao",
+        "Junyi Wu",
+        "Wei Wang",
+        "Yan Yan",
+        "Yao Zhao"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-08-14T04:07:14+00:00",
+      "link": "https://arxiv.org/pdf/2608.13932v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Post-training quantization for generative models; low-bit compression theme",
+      "llm_evidence_cn": "生成模型的训练后量化，与极低比特量化主题相关",
+      "llm_evidence": "生成模型的训练后量化，与极低比特量化主题相关",
+      "canonical_evidence": "生成模型的训练后量化，与极低比特量化主题相关",
+      "llm_tldr_en": "This paper studies post-training quantization for hybrid iterative generative models, revealing excessive outlier and amplified anomaly challenges, and proposes a tailored PTQ method to enable low-bit acceleration for autoregressive-diffusion hybrids.",
+      "llm_tldr_cn": "混合迭代生成模型在训练后量化时容易因激活值异常与量化误差放大而崩溃。本文分析了两大挑战：激活中的异常离群值难以兼顾精度覆盖，微小量化误差会引发不可控的异常放大。针对这些问题，作者提出了专门适配混合自回归-扩散模型的训练后量化方法，缓解了模型塌缩并保持生成质量。该工作为生成式模型的低比特加速与边缘部署提供了可行的量化方案。",
+      "llm_tldr": "混合迭代生成模型在训练后量化时容易因激活值异常与量化误差放大而崩溃。本文分析了两大挑战：激活中的异常离群值难以兼顾精度覆盖，微小量化误差会引发不可控的异常放大。针对这些问题，作者提出了专门适配混合自回归-扩散模型的训练后量化方法，缓解了模型塌缩并保持生成质量。该工作为生成式模型的低比特加速与边缘部署提供了可行的量化方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2608.13966v1",
+      "source": "arxiv",
+      "title": "QUASAR: Lowering the Loss Floor of Quantization-Aware Training with Loss-Aware Reconstruction",
+      "abstract": "As large language model inference shifts toward lower precision, post-training quantization (PTQ) becomes increasingly brittle, making quantization-aware training (QAT) essential for preserving model quality. However, QAT computes the loss and surrogate gradients using a lossy reconstruction of latent full-precision weights, while applying updates to the latent weights themselves. This mismatch can lead to suboptimal training trajectories and a higher loss floor. Second-order PTQ methods mitigate a similar gap by minimizing loss-aware reconstruction error, but doing it once for a frozen model can take hours; repeating this process throughout QAT as the weights evolve is impractical. We introduce QUASAR, a QAT method that continuously performs lightweight, loss-aware reconstruction in the training loop to lower the loss floor and improve the resulting low-bit model. At each training step, QUASAR uses the exponential moving average of squared gradients as online saliency estimates, searches over a small set of clipping ranges, and fits affine dequantizers via saliency-weighted least squares. Our analysis shows that the loss-aware reconstruction error is the only reconstruction-dependent term in the QAT convergence bound and controls the loss of the final quantized model, establishing QUASAR's objective as a principled optimization target. QUASAR modifies only the training procedure and supports standard deployment formats, including integer quantization and NVFP4, with no inference-time changes or overhead. Across Qwen3 and Llama-3.1, QUASAR achieves the lowest held-out KL divergence among competitive QAT methods at 2, 3, and 4 bits, reducing KL by at least 10% at 3 and 4 bits and by 29% at 2 bits. At 2 bits, it improves average accuracy across eight tasks by 3.5-4.3 percentage points over strong QAT and PTQ baselines.",
+      "authors": [
+        "Vincent Counathe",
+        "Ben Athiwaratkun",
+        "Christopher De Sa",
+        "Tianyi Zhang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL",
+        "stat.ML"
+      ],
+      "published": "2026-08-14T05:29:58+00:00",
+      "link": "https://arxiv.org/pdf/2608.13966v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "QAT method for lower precision LLM quantization, relevant to ultra-low-bit quantization theme",
+      "llm_evidence_cn": "面向低精度LLM量化的QAT方法，与极低比特量化主题相关",
+      "llm_evidence": "面向低精度LLM量化的QAT方法，与极低比特量化主题相关",
+      "canonical_evidence": "面向低精度LLM量化的QAT方法，与极低比特量化主题相关",
+      "llm_tldr_en": "Proposes QUASAR, a quantization-aware training method with continuous loss-aware reconstruction to reduce the loss floor caused by lossy weight reconstruction, improving low-precision LLM quality.",
+      "llm_tldr_cn": "量化感知训练在低精度LLM推理中至关重要，但现有方法使用有损的权重重建来计算损失和梯度，导致损失下限较高。QUASAR提出在训练过程中持续进行损失感知重建，以缩小全精度权重与量化重建之间的差距。实验表明该方法能有效降低量化模型的损失下限并提升低比特量化精度。该工作为极低比特向量量化场景提供了可迁移的训练优化手段。",
+      "llm_tldr": "量化感知训练在低精度LLM推理中至关重要，但现有方法使用有损的权重重建来计算损失和梯度，导致损失下限较高。QUASAR提出在训练过程中持续进行损失感知重建，以缩小全精度权重与量化重建之间的差距。实验表明该方法能有效降低量化模型的损失下限并提升低比特量化精度。该工作为极低比特向量量化场景提供了可迁移的训练优化手段。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
