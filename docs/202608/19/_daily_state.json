@@ -1,0 +1,41 @@
+{
+  "date": "20260819",
+  "date_label": "",
+  "generated_at": "2026-08-19 20:07:36 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.15531v1",
+      "route": "202608/19/2608.15531v1-flashquant-sparse-dense-fusion-for-memory-efficient-outlier-aware-llm-inference",
+      "title": "FlashQuant: Sparse-Dense Fusion for Memory-Efficient Outlier-Aware LLM Inference",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向LLM推理的低比特标量量化，支持异常值感知，与3比特SQ及先进结果高度相关",
+      "first_seen_at": "2026-08-19 20:07:36 UTC",
+      "updated_at": "2026-08-19 20:07:36 UTC"
+    },
+    {
+      "paper_id": "2608.15141v1",
+      "route": "202608/19/2608.15141v1-hoimask-towards-generative-masked-modeling-for-human-object-interaction-generation",
+      "title": "HOIMask: Towards Generative Masked Modeling for Human Object Interaction Generation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "将动作与接触信号编码为离散二维token图的VQ方法",
+      "first_seen_at": "2026-08-19 20:07:36 UTC",
+      "updated_at": "2026-08-19 20:07:36 UTC"
+    }
+  ]
+}

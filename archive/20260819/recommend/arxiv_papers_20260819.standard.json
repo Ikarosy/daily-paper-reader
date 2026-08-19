@@ -1,0 +1,92 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-19T20:04:31.410544+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 1,
+    "quick_skim_target": 11,
+    "quick_selected": 1
+  },
+  "deep_dive": [
+    {
+      "id": "2608.15531v1",
+      "source": "arxiv",
+      "title": "FlashQuant: Sparse-Dense Fusion for Memory-Efficient Outlier-Aware LLM Inference",
+      "abstract": "Low-bit quantization reduces the memory footprint and computational cost of large language model (LLM) inference. However, high-magnitude outlier weights can induce substantial quantization errors and degrade model accuracy. Outlier-aware quantization addresses this issue by retaining outliers in high precision while quantizing the remaining weights, resulting in a low-bit dense GEMM path and a high-precision sparse SpMM path. Existing implementations execute these paths in separate GPU kernels, despite their shared activations and outputs, thereby missing opportunities for intra-operator reuse and incurring redundant global-memory accesses. This inefficiency is particularly pronounced in memory-bound decoding workloads. We propose FlashQuant, a content-sharing execution framework for outlier-aware W4A16 decoding. FlashQuant fuses the dense GEMM and sparse outlier SpMM paths into a single GPU kernel, enabling on-chip reuse of activation and output tiles across heterogeneous computations. It introduces three key techniques: sparse-dense tiling, which aligns outlier processing with dense GEMM tiles; Tile-COO outlier encoding, which enables efficient sparse access and reduces shared-memory bank conflicts; and pipelined scheduling, which overlaps computation with data movement. Experiments show that FlashQuant reduces outlier-processing overhead, achieving $2.74\\times - 4.18\\times$ speedup over cuBLAS BF16 and up to $1.53\\times$ speedup over the strongest unfused outlier-aware baseline.",
+      "authors": [
+        "Junqing Lin",
+        "Jingwei Sun",
+        "Zhengding Hu",
+        "Guangzhong Sun"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC"
+      ],
+      "published": "2026-08-16T04:57:39+00:00",
+      "link": "https://arxiv.org/pdf/2608.15531v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "low-bit scalar quantization for LLM inference with outlier awareness; relevant to 3-bit SQ and SoTA/advanced results",
+      "llm_evidence_cn": "面向LLM推理的低比特标量量化，支持异常值感知，与3比特SQ及先进结果高度相关",
+      "llm_evidence": "面向LLM推理的低比特标量量化，支持异常值感知，与3比特SQ及先进结果高度相关",
+      "canonical_evidence": "面向LLM推理的低比特标量量化，支持异常值感知，与3比特SQ及先进结果高度相关",
+      "llm_tldr_en": "Low-bit quantization cuts LLM inference memory/compute, but outlier weights cause errors; outlier-aware schemes run dense and sparse paths in separate kernels wasting memory bandwidth. FlashQuant fuses sparse-dense paths into one kernel, reusing activations/outputs, reducing redundant global-memory access and improving memory-bound decoding throughput while preserving accuracy.",
+      "llm_tldr_cn": "低比特量化可降低大语言模型推理的内存与计算开销，但高幅值离群权重会带来严重量化误差；现有的离群值感知量化需将低比特稠密路径与高精度稀疏路径分核执行，造成冗余内存访问。FlashQuant提出稀疏-稠密融合策略，将两条路径合并在统一内核中，重用中间激活与输出，显著减少解码阶段的访存开销。实验表明该方法在保持模型精度的同时提升了内存受限场景的推理效率，为低比特LLM推理提供了先进实现。",
+      "llm_tldr": "低比特量化可降低大语言模型推理的内存与计算开销，但高幅值离群权重会带来严重量化误差；现有的离群值感知量化需将低比特稠密路径与高精度稀疏路径分核执行，造成冗余内存访问。FlashQuant提出稀疏-稠密融合策略，将两条路径合并在统一内核中，重用中间激活与输出，显著减少解码阶段的访存开销。实验表明该方法在保持模型精度的同时提升了内存受限场景的推理效率，为低比特LLM推理提供了先进实现。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "3 bit SQ",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2608.15141v1",
+      "source": "arxiv",
+      "title": "HOIMask: Towards Generative Masked Modeling for Human Object Interaction Generation",
+      "abstract": "Diffusion-based methods have dominated the HOI generation, as they enable critical contact fusions or signals to guide the diffusion process. However, they often result in high artifacts and unstable interaction quality due to error accumulation during iterative denoising. In this work, we propose HOIMask, the first generative masked framework for modeling HOI motion in discrete space. HOIMask first encodes both motion sequences and contact-aware signals into discrete 2D human and object token maps via HOI Vector Quantization (VQ), preserving fine-grained spatial-temporal structure beyond conventional 1D representations. On this basis, a generative masked modeling framework is employed to jointly capture human-object interaction dynamics, leveraging a transformer architecture designed to model complex spatial-temporal and interaction dependencies. To generate more coherent and physically plausible motions, we further introduce a novel contact-aware reconstruction guidance in discrete space during inference, which fuses contact signals to optimize HOI tokens that forces the generated motion with higher spatio-temporal consistency. With craftily designed motion interaction tokens, dedicated architecture and guidance strategy, HOIMask outperforms state-of-the-art diffusion-based methods, generating more realistic and semantically aligned HOI motions. Please refer to https://jyhflash.github.io/HOIMask/ for more results.",
+      "authors": [
+        "Yihong Ji",
+        "Jinsong Zhang",
+        "He Hu",
+        "Hongbo Xu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-15T09:32:17+00:00",
+      "link": "https://arxiv.org/pdf/2608.15141v1",
+      "tags": [
+        "keyword:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "HOI Vector Quantization in discrete 2D token maps for motion generation",
+      "llm_evidence_cn": "将动作与接触信号编码为离散二维token图的VQ方法",
+      "llm_evidence": "将动作与接触信号编码为离散二维token图的VQ方法",
+      "canonical_evidence": "将动作与接触信号编码为离散二维token图的VQ方法",
+      "llm_tldr_en": "HOIMask is the first generative masked framework for HOI motion in discrete space, encoding motion and contact signals into 2D token maps via HOI Vector Quantization, avoiding diffusion error accumulation and improving interaction quality.",
+      "llm_tldr_cn": "扩散方法生成人-物交互动作时因迭代去噪误差累积而产生伪影和不稳定。本文提出HOIMask,首个在离散空间进行生成式掩码建模的HOI框架,通过HOI向量量化将动作与接触信号编码为二维token图,保留细粒度时空结构,并用掩码模型联合捕捉交互动态。该方法避免了扩散式误差累积,提升了交互生成质量。",
+      "llm_tldr": "扩散方法生成人-物交互动作时因迭代去噪误差累积而产生伪影和不稳定。本文提出HOIMask,首个在离散空间进行生成式掩码建模的HOI框架,通过HOI向量量化将动作与接触信号编码为二维token图,保留细粒度时空结构,并用掩码模型联合捕捉交互动态。该方法避免了扩散式误差累积,提升了交互生成质量。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

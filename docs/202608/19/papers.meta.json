@@ -1,0 +1,39 @@
+{
+  "label": "2026-08-19",
+  "date": "2026-08-19",
+  "generated_at": "2026-08-19T20:07:38",
+  "count": 2,
+  "papers": [
+    {
+      "paper_id": "202608/19/2608.15531v1-flashquant-sparse-dense-fusion-for-memory-efficient-outlier-aware-llm-inference",
+      "section": "deep",
+      "title_en": "FlashQuant: Sparse-Dense Fusion for Memory-Efficient Outlier-Aware LLM Inference",
+      "authors": "Junqing Lin, Jingwei Sun, Zhengding Hu, Guangzhong Sun",
+      "date": "2026-08-16",
+      "pdf": "https://arxiv.org/pdf/2608.15531v1",
+      "score": "8.0",
+      "evidence": "面向LLM推理的低比特标量量化，支持异常值感知，与3比特SQ及先进结果高度相关",
+      "tldr": "低比特量化能降低大模型推理的内存与计算开销，但高幅值离群权重会引入严重量化误差。现有离群感知量化将离群值保留为高精度稀疏路径，与低比特稠密路径分离执行，导致共享激活与输出重复访存。FlashQuant提出稀疏-稠密融合内核，在片上复用激活与输出块，结合稀疏-稠密分块、Tile-COO编码和流水调度，实现内存高效解码。相比cuBLAS BF16提速2.74-4.18倍，超过最强非融合基线达1.53倍。",
+      "tags": "query:wbv",
+      "abstract_en": "Low-bit quantization reduces the memory footprint and computational cost of large language model (LLM) inference. However, high-magnitude outlier weights can induce substantial quantization errors and degrade model accuracy. Outlier-aware quantization addresses this issue by retaining outliers in high precision while quantizing the remaining weights, resulting in a low-bit dense GEMM path and a high-precision sparse SpMM path. Existing implementations execute these paths in separate GPU kernels, despite their shared activations and outputs, thereby missing opportunities for intra-operator reuse and incurring redundant global-memory accesses. This inefficiency is particularly pronounced in memory-bound decoding workloads. We propose FlashQuant, a content-sharing execution framework for outlier-aware W4A16 decoding. FlashQuant fuses the dense GEMM and sparse outlier SpMM paths into a single GPU kernel, enabling on-chip reuse of activation and output tiles across heterogeneous computations. It introduces three key techniques: sparse-dense tiling, which aligns outlier processing with dense GEMM tiles; Tile-COO outlier encoding, which enables efficient sparse access and reduces shared-memory bank conflicts; and pipelined scheduling, which overlaps computation with data movement. Experiments show that FlashQuant reduces outlier-processing overhead, achieving $2.74\\times - 4.18\\times$ speedup over cuBLAS BF16 and up to $1.53\\times$ speedup over the strongest unfused outlier-aware baseline.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202608/19/2608.15141v1-hoimask-towards-generative-masked-modeling-for-human-object-interaction-generation",
+      "section": "quick",
+      "title_en": "HOIMask: Towards Generative Masked Modeling for Human Object Interaction Generation",
+      "authors": "Yihong Ji, Jinsong Zhang, He Hu, Hongbo Xu",
+      "date": "2026-08-15",
+      "pdf": "https://arxiv.org/pdf/2608.15141v1",
+      "score": "6.0",
+      "evidence": "将动作与接触信号编码为离散二维token图的VQ方法",
+      "tldr": "扩散式HOI生成方法依赖迭代去噪，误差累积常导致明显伪影，交互质量不稳定。为克服该问题，本文提出HOIMask——首个面向HOI运动的生成式掩码框架：利用HOI向量量化将运动序列与接触感知信号编码为离散2D人体与物体token图，相比1D表示保留更细粒度时空结构；采用Transformer为主的掩码建模联合学习人-物交互动态，并在推理阶段引入接触感知重建指导以优化token，增强时空一致性。实验表明，HOIMask在基准上全面超越扩散式SOTA，生成的动作更真实且语义对齐，为高质量HOI生成提供了新范式。",
+      "tags": "query:wbv",
+      "abstract_en": "Diffusion-based methods have dominated the HOI generation, as they enable critical contact fusions or signals to guide the diffusion process. However, they often result in high artifacts and unstable interaction quality due to error accumulation during iterative denoising. In this work, we propose HOIMask, the first generative masked framework for modeling HOI motion in discrete space. HOIMask first encodes both motion sequences and contact-aware signals into discrete 2D human and object token maps via HOI Vector Quantization (VQ), preserving fine-grained spatial-temporal structure beyond conventional 1D representations. On this basis, a generative masked modeling framework is employed to jointly capture human-object interaction dynamics, leveraging a transformer architecture designed to model complex spatial-temporal and interaction dependencies. To generate more coherent and physically plausible motions, we further introduce a novel contact-aware reconstruction guidance in discrete space during inference, which fuses contact signals to optimize HOI tokens that forces the generated motion with higher spatio-temporal consistency. With craftily designed motion interaction tokens, dedicated architecture and guidance strategy, HOIMask outperforms state-of-the-art diffusion-based methods, generating more realistic and semantically aligned HOI motions. Please refer to https://jyhflash.github.io/HOIMask/ for more results.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

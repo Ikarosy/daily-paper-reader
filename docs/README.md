@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-08-18</span>
+      <span class="dpr-home-dashboard-kicker">2026-08-19</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 5 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 2 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>3</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>1</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-08-18 19:40:24 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-08-19 20:07:36 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,7 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读5篇论文，聚焦大模型量化与推理优化，其中《SchurQuant》以9.0分领跑。 最值得关注的是分组离散优化实现逐层量化，以及稀疏-稠密融合的异常值感知推理加速。 建议优先精读这两篇高分工作，速读可略过音频编码等边缘方向。</p>
+<p>今日精读1篇、速读1篇，重点聚焦大模型推理优化与交互生成。最值得关注的是《FlashQuant》，提出稀疏-稠密融合方案，在内存高效与异常值感知上取得8.0高分。建议优先精读该文，可深入理解其融合机制对长文本推理的实用价值。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -71,12 +71,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">2 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="SchurQuant: Groupwise Discrete Optimization for Layer-Wise LLM Quantization">SchurQuant: Groupwise Discrete Optimization for Layer-Wise LLM Quantization</span></li><li><span class="dpr-home-dashboard-paper-title" title="FlashQuant: Sparse-Dense Fusion for Memory-Efficient Outlier-Aware LLM Inference">FlashQuant: Sparse-Dense Fusion for Memory-Efficient Outlier-Aware LLM Inference</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="FlashQuant: Sparse-Dense Fusion for Memory-Efficient Outlier-Aware LLM Inference">FlashQuant: Sparse-Dense Fusion for Memory-Efficient Outlier-Aware LLM Inference</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -84,12 +84,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">3 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Post-training Quantization for Hybrid Iterative Generative Models">Post-training Quantization for Hybrid Iterative Generative Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="QUASAR: Lowering the Loss Floor of Quantization-Aware Training with Loss-Aware Reconstruction">QUASAR: Lowering the Loss Floor of Quantization-Aware Training with Loss-Aware Reconstruction</span></li><li><span class="dpr-home-dashboard-paper-title" title="AudioTQ: A Data-Oblivious 6-Bit CPU Audio Codec via Randomized Hadamard Rotation and Lloyd-Max Quantization">AudioTQ: A Data-Oblivious 6-Bit CPU Audio Codec via Randomized Hadamard Rotation and Lloyd-Max Quantization</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="HOIMask: Towards Generative Masked Modeling for Human Object Interaction Generation">HOIMask: Towards Generative Masked Modeling for Human Object Interaction Generation</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>3</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>1</strong></span></div>
 </section>
 </div>
 
