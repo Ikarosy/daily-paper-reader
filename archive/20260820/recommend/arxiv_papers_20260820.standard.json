@@ -1,0 +1,94 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-20T19:57:35.956329+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 0,
+    "deep_cap": 6,
+    "deep_selected": 0,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2608.13966v1",
+      "source": "arxiv",
+      "title": "QUASAR: Lowering the Loss Floor of Quantization-Aware Training with Loss-Aware Reconstruction",
+      "abstract": "As large language model inference shifts toward lower precision, post-training quantization (PTQ) becomes increasingly brittle, making quantization-aware training (QAT) essential for preserving model quality. However, QAT computes the loss and surrogate gradients using a lossy reconstruction of latent full-precision weights, while applying updates to the latent weights themselves. This mismatch can lead to suboptimal training trajectories and a higher loss floor. Second-order PTQ methods mitigate a similar gap by minimizing loss-aware reconstruction error, but doing it once for a frozen model can take hours; repeating this process throughout QAT as the weights evolve is impractical. We introduce QUASAR, a QAT method that continuously performs lightweight, loss-aware reconstruction in the training loop to lower the loss floor and improve the resulting low-bit model. At each training step, QUASAR uses the exponential moving average of squared gradients as online saliency estimates, searches over a small set of clipping ranges, and fits affine dequantizers via saliency-weighted least squares. Our analysis shows that the loss-aware reconstruction error is the only reconstruction-dependent term in the QAT convergence bound and controls the loss of the final quantized model, establishing QUASAR's objective as a principled optimization target. QUASAR modifies only the training procedure and supports standard deployment formats, including integer quantization and NVFP4, with no inference-time changes or overhead. Across Qwen3 and Llama-3.1, QUASAR achieves the lowest held-out KL divergence among competitive QAT methods at 2, 3, and 4 bits, reducing KL by at least 10% at 3 and 4 bits and by 29% at 2 bits. At 2 bits, it improves average accuracy across eight tasks by 3.5-4.3 percentage points over strong QAT and PTQ baselines.",
+      "authors": [
+        "Vincent Counathe",
+        "Ben Athiwaratkun",
+        "Christopher De Sa",
+        "Tianyi Zhang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL",
+        "stat.ML"
+      ],
+      "published": "2026-08-14T05:29:58+00:00",
+      "link": "https://arxiv.org/pdf/2608.13966v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "quantization-aware training; low-bit weight quantization; loss-aware reconstruction",
+      "llm_evidence_cn": "量化感知训练；低比特权重量化；损失感知重构",
+      "llm_evidence": "量化感知训练；低比特权重量化；损失感知重构",
+      "canonical_evidence": "量化感知训练；低比特权重量化；损失感知重构",
+      "llm_tldr_en": "QAT suffers from loss floor mismatch because updates target full-precision weights while loss uses lossy reconstruction. QUASAR adds loss-aware reconstruction during QAT, lowering the loss floor and improving low-bit LLM quantization accuracy over prior QAT methods.",
+      "llm_tldr_cn": "针对量化感知训练中损失与梯度使用有损重构、而更新仍作用于潜在全精度权重所导致的损失下限偏高问题，论文提出QUASAR，通过持续进行损失感知重构来弥合训练与部署之间的失配。实验表明，QUASAR在低比特大模型量化上取得更低损失与更高精度，优于已有QAT方法，为极低比特量化提供了先进且通用的训练手段。",
+      "llm_tldr": "针对量化感知训练中损失与梯度使用有损重构、而更新仍作用于潜在全精度权重所导致的损失下限偏高问题，论文提出QUASAR，通过持续进行损失感知重构来弥合训练与部署之间的失配。实验表明，QUASAR在低比特大模型量化上取得更低损失与更高精度，优于已有QAT方法，为极低比特量化提供了先进且通用的训练手段。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2608.15141v1",
+      "source": "arxiv",
+      "title": "HOIMask: Towards Generative Masked Modeling for Human Object Interaction Generation",
+      "abstract": "Diffusion-based methods have dominated the HOI generation, as they enable critical contact fusions or signals to guide the diffusion process. However, they often result in high artifacts and unstable interaction quality due to error accumulation during iterative denoising. In this work, we propose HOIMask, the first generative masked framework for modeling HOI motion in discrete space. HOIMask first encodes both motion sequences and contact-aware signals into discrete 2D human and object token maps via HOI Vector Quantization (VQ), preserving fine-grained spatial-temporal structure beyond conventional 1D representations. On this basis, a generative masked modeling framework is employed to jointly capture human-object interaction dynamics, leveraging a transformer architecture designed to model complex spatial-temporal and interaction dependencies. To generate more coherent and physically plausible motions, we further introduce a novel contact-aware reconstruction guidance in discrete space during inference, which fuses contact signals to optimize HOI tokens that forces the generated motion with higher spatio-temporal consistency. With craftily designed motion interaction tokens, dedicated architecture and guidance strategy, HOIMask outperforms state-of-the-art diffusion-based methods, generating more realistic and semantically aligned HOI motions. Please refer to https://jyhflash.github.io/HOIMask/ for more results.",
+      "authors": [
+        "Yihong Ji",
+        "Jinsong Zhang",
+        "He Hu",
+        "Hongbo Xu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-15T09:32:17+00:00",
+      "link": "https://arxiv.org/pdf/2608.15141v1",
+      "tags": [
+        "keyword:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Uses HOI Vector Quantization (VQ) to discrete token maps; advances generative VQ-based modeling with state-of-the-art results in HOI generation.",
+      "llm_evidence_cn": "提出HOI向量量化(VQ)离散建模，符合极低比特VQ主题中的VQ方法，并提供先进结果。",
+      "llm_evidence": "提出HOI向量量化(VQ)离散建模，符合极低比特VQ主题中的VQ方法，并提供先进结果。",
+      "canonical_evidence": "提出HOI向量量化(VQ)离散建模，符合极低比特VQ主题中的VQ方法，并提供先进结果。",
+      "llm_tldr_en": "HOIMask proposes a generative masked framework for HOI motion by encoding motion and contact into discrete 2D token maps via HOI Vector Quantization, avoiding diffusion error accumulation and improving interaction quality.",
+      "llm_tldr_cn": "针对扩散模型在人体-物体交互(HOI)生成中因迭代去噪导致伪影多、交互质量不稳定的问题，HOIMask提出首个基于离散空间的生成式掩码建模框架。该方法将运动序列与接触信号通过HOI向量量化(VQ)编码为二维人体与物体令牌图，保留细粒度时空结构，并利用生成式掩码建模联合捕捉交互动态。实验表明HOIMask能避免误差累积，生成质量优于扩散式方法，为极低比特VQ及离散生成建模提供了先进结果。",
+      "llm_tldr": "针对扩散模型在人体-物体交互(HOI)生成中因迭代去噪导致伪影多、交互质量不稳定的问题，HOIMask提出首个基于离散空间的生成式掩码建模框架。该方法将运动序列与接触信号通过HOI向量量化(VQ)编码为二维人体与物体令牌图，保留细粒度时空结构，并利用生成式掩码建模联合捕捉交互动态。实验表明HOIMask能避免误差累积，生成质量优于扩散式方法，为极低比特VQ及离散生成建模提供了先进结果。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

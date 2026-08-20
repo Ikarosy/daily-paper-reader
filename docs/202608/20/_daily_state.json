@@ -1,0 +1,41 @@
+{
+  "date": "20260820",
+  "date_label": "",
+  "generated_at": "2026-08-20 19:57:50 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.13966v1",
+      "route": "202608/20/2608.13966v1-quasar-lowering-the-loss-floor-of-quantization-aware-training-with-loss-aware-reconstruction",
+      "title": "QUASAR: Lowering the Loss Floor of Quantization-Aware Training with Loss-Aware Reconstruction",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "量化感知训练；低比特权重量化；损失感知重构",
+      "first_seen_at": "2026-08-20 19:57:50 UTC",
+      "updated_at": "2026-08-20 19:57:50 UTC"
+    },
+    {
+      "paper_id": "2608.15141v1",
+      "route": "202608/20/2608.15141v1-hoimask-towards-generative-masked-modeling-for-human-object-interaction-generation",
+      "title": "HOIMask: Towards Generative Masked Modeling for Human Object Interaction Generation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "提出HOI向量量化(VQ)离散建模，符合极低比特VQ主题中的VQ方法，并提供先进结果。",
+      "first_seen_at": "2026-08-20 19:57:50 UTC",
+      "updated_at": "2026-08-20 19:57:50 UTC"
+    }
+  ]
+}
