@@ -1,6 +1,9 @@
 * <a class="dpr-sidebar-root-link" href="#/">首页</a>
 * <a class="dpr-sidebar-root-link dpr-sidebar-noactive-link" href="javascript:void(0)" data-dpr-hash="#/tutorial/README">使用教程</a>
 * Daily Papers
+  * 2026-08-22 <!--dpr-date:20260822-->
+    * 速读区
+      * <a class="dpr-sidebar-item-link dpr-sidebar-item-structured" href="#/202608/22/2608.15141v1-hoimask-towards-generative-masked-modeling-for-human-object-interaction-generation" data-sidebar-item="{&quot;title&quot;: &quot;HOIMask: Towards Generative Masked Modeling for Human Object Interaction Generation&quot;, &quot;link&quot;: &quot;https://arxiv.org/abs/2608.15141v1-hoimask-towards-generative-masked-modeling-for-human-object-interaction-generation&quot;, &quot;score&quot;: &quot;7.0&quot;, &quot;tags&quot;: [{&quot;kind&quot;: &quot;query&quot;, &quot;label&quot;: &quot;wbv&quot;}], &quot;evidence&quot;: &quot;提出HOI向量量化(VQ)进行离散运动编码，与VQ主题高度相关&quot;}">HOIMask: Towards Generative Masked Modeling for Human Object Interaction Generation</a>
   * 2026-08-20 <!--dpr-date:20260820-->
     * 速读区
       * <a class="dpr-sidebar-item-link dpr-sidebar-item-structured" href="#/202608/20/2608.13966v1-quasar-lowering-the-loss-floor-of-quantization-aware-training-with-loss-aware-reconstruction" data-sidebar-item="{&quot;title&quot;: &quot;QUASAR: Lowering the Loss Floor of Quantization-Aware Training with Loss-Aware Reconstruction&quot;, &quot;link&quot;: &quot;https://arxiv.org/abs/2608.13966v1-quasar-lowering-the-loss-floor-of-quantization-aware-training-with-loss-aware-reconstruction&quot;, &quot;score&quot;: &quot;7.0&quot;, &quot;tags&quot;: [{&quot;kind&quot;: &quot;query&quot;, &quot;label&quot;: &quot;wbv&quot;}], &quot;evidence&quot;: &quot;量化感知训练；低比特权重量化；损失感知重构&quot;}">QUASAR: Lowering the Loss Floor of Quantization-Aware Training with Loss-Aware Reconstruction</a>
