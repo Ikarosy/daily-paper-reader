@@ -1,0 +1,54 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-23T20:11:19.105975+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 0,
+    "deep_cap": 6,
+    "deep_selected": 0,
+    "quick_candidates": 1,
+    "quick_skim_target": 11,
+    "quick_selected": 1
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2608.15141v1",
+      "source": "arxiv",
+      "title": "HOIMask: Towards Generative Masked Modeling for Human Object Interaction Generation",
+      "abstract": "Diffusion-based methods have dominated the HOI generation, as they enable critical contact fusions or signals to guide the diffusion process. However, they often result in high artifacts and unstable interaction quality due to error accumulation during iterative denoising. In this work, we propose HOIMask, the first generative masked framework for modeling HOI motion in discrete space. HOIMask first encodes both motion sequences and contact-aware signals into discrete 2D human and object token maps via HOI Vector Quantization (VQ), preserving fine-grained spatial-temporal structure beyond conventional 1D representations. On this basis, a generative masked modeling framework is employed to jointly capture human-object interaction dynamics, leveraging a transformer architecture designed to model complex spatial-temporal and interaction dependencies. To generate more coherent and physically plausible motions, we further introduce a novel contact-aware reconstruction guidance in discrete space during inference, which fuses contact signals to optimize HOI tokens that forces the generated motion with higher spatio-temporal consistency. With craftily designed motion interaction tokens, dedicated architecture and guidance strategy, HOIMask outperforms state-of-the-art diffusion-based methods, generating more realistic and semantically aligned HOI motions. Please refer to https://jyhflash.github.io/HOIMask/ for more results.",
+      "authors": [
+        "Yihong Ji",
+        "Jinsong Zhang",
+        "He Hu",
+        "Hongbo Xu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-15T09:32:17+00:00",
+      "link": "https://arxiv.org/pdf/2608.15141v1",
+      "tags": [
+        "keyword:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Uses Vector Quantization to encode HOI motion into discrete token maps",
+      "llm_evidence_cn": "使用向量量化将HOI动作编码为离散token映射",
+      "llm_evidence": "使用向量量化将HOI动作编码为离散token映射",
+      "canonical_evidence": "使用向量量化将HOI动作编码为离散token映射",
+      "llm_tldr_en": "HOIMask uses vector quantization to discretize motion and contact signals into 2D token maps and applies generative masked modeling for human-object interaction generation, avoiding diffusion error accumulation.",
+      "llm_tldr_cn": "扩散模型在人类-物体交互生成中虽常用，但存在伪影和不稳定。本文提出HOIMask，一种在离散空间建模HOI运动的生成式掩码框架。它先用HOI向量量化将动作序列和接触信号编码为二维token映射，保留细粒度时空结构；再通过生成式掩码建模联合捕捉交互动态。该方法为VQ在低位宽运动表示中的应用提供了参考。",
+      "llm_tldr": "扩散模型在人类-物体交互生成中虽常用，但存在伪影和不稳定。本文提出HOIMask，一种在离散空间建模HOI运动的生成式掩码框架。它先用HOI向量量化将动作序列和接触信号编码为二维token映射，保留细粒度时空结构；再通过生成式掩码建模联合捕捉交互动态。该方法为VQ在低位宽运动表示中的应用提供了参考。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

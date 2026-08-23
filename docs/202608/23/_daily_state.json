@@ -1,0 +1,25 @@
+{
+  "date": "20260823",
+  "date_label": "",
+  "generated_at": "2026-08-23 20:11:29 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.15141v1",
+      "route": "202608/23/2608.15141v1-hoimask-towards-generative-masked-modeling-for-human-object-interaction-generation",
+      "title": "HOIMask: Towards Generative Masked Modeling for Human Object Interaction Generation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "使用向量量化将HOI动作编码为离散token映射",
+      "first_seen_at": "2026-08-23 20:11:29 UTC",
+      "updated_at": "2026-08-23 20:11:29 UTC"
+    }
+  ]
+}

@@ -1,6 +1,9 @@
 * <a class="dpr-sidebar-root-link" href="#/">首页</a>
 * <a class="dpr-sidebar-root-link dpr-sidebar-noactive-link" href="javascript:void(0)" data-dpr-hash="#/tutorial/README">使用教程</a>
 * Daily Papers
+  * 2026-08-23 <!--dpr-date:20260823-->
+    * 速读区
+      * <a class="dpr-sidebar-item-link dpr-sidebar-item-structured" href="#/202608/23/2608.15141v1-hoimask-towards-generative-masked-modeling-for-human-object-interaction-generation" data-sidebar-item="{&quot;title&quot;: &quot;HOIMask: Towards Generative Masked Modeling for Human Object Interaction Generation&quot;, &quot;link&quot;: &quot;https://arxiv.org/abs/2608.15141v1-hoimask-towards-generative-masked-modeling-for-human-object-interaction-generation&quot;, &quot;score&quot;: &quot;7.0&quot;, &quot;tags&quot;: [{&quot;kind&quot;: &quot;query&quot;, &quot;label&quot;: &quot;wbv&quot;}], &quot;evidence&quot;: &quot;使用向量量化将HOI动作编码为离散token映射&quot;}">HOIMask: Towards Generative Masked Modeling for Human Object Interaction Generation</a>
   * 2026-08-22 <!--dpr-date:20260822-->
     * 速读区
       * <a class="dpr-sidebar-item-link dpr-sidebar-item-structured" href="#/202608/22/2608.15141v1-hoimask-towards-generative-masked-modeling-for-human-object-interaction-generation" data-sidebar-item="{&quot;title&quot;: &quot;HOIMask: Towards Generative Masked Modeling for Human Object Interaction Generation&quot;, &quot;link&quot;: &quot;https://arxiv.org/abs/2608.15141v1-hoimask-towards-generative-masked-modeling-for-human-object-interaction-generation&quot;, &quot;score&quot;: &quot;7.0&quot;, &quot;tags&quot;: [{&quot;kind&quot;: &quot;query&quot;, &quot;label&quot;: &quot;wbv&quot;}], &quot;evidence&quot;: &quot;提出HOI向量量化(VQ)进行离散运动编码，与VQ主题高度相关&quot;}">HOIMask: Towards Generative Masked Modeling for Human Object Interaction Generation</a>

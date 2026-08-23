@@ -1,0 +1,24 @@
+{
+  "label": "2026-08-23",
+  "date": "2026-08-23",
+  "generated_at": "2026-08-23T20:11:31",
+  "count": 1,
+  "papers": [
+    {
+      "paper_id": "202608/23/2608.15141v1-hoimask-towards-generative-masked-modeling-for-human-object-interaction-generation",
+      "section": "quick",
+      "title_en": "HOIMask: Towards Generative Masked Modeling for Human Object Interaction Generation",
+      "authors": "Yihong Ji, Jinsong Zhang, He Hu, Hongbo Xu",
+      "date": "2026-08-15",
+      "pdf": "https://arxiv.org/pdf/2608.15141v1",
+      "score": "7.0",
+      "evidence": "使用向量量化将HOI动作编码为离散token映射",
+      "tldr": "扩散模型虽在人体-物体交互生成中占据主导，但迭代去噪易累积误差，导致伪影多、交互不稳定。本文提出HOIMask，首个在离散空间进行生成式掩码建模的HOI生成框架。它通过HOI向量量化将运动序列与接触感知信号编码为细粒度的二维人和物体Token图，保留时空结构；随后利用Transformer建模时空与交互依赖，并在推理时引入接触感知重建引导优化Token，提升生成运动的一致性与物理合理性。实验表明，HOIMask优于现有扩散方法，生成的运动更真实且语义对齐。",
+      "tags": "query:wbv",
+      "abstract_en": "Diffusion-based methods have dominated the HOI generation, as they enable critical contact fusions or signals to guide the diffusion process. However, they often result in high artifacts and unstable interaction quality due to error accumulation during iterative denoising. In this work, we propose HOIMask, the first generative masked framework for modeling HOI motion in discrete space. HOIMask first encodes both motion sequences and contact-aware signals into discrete 2D human and object token maps via HOI Vector Quantization (VQ), preserving fine-grained spatial-temporal structure beyond conventional 1D representations. On this basis, a generative masked modeling framework is employed to jointly capture human-object interaction dynamics, leveraging a transformer architecture designed to model complex spatial-temporal and interaction dependencies. To generate more coherent and physically plausible motions, we further introduce a novel contact-aware reconstruction guidance in discrete space during inference, which fuses contact signals to optimize HOI tokens that forces the generated motion with higher spatio-temporal consistency. With craftily designed motion interaction tokens, dedicated architecture and guidance strategy, HOIMask outperforms state-of-the-art diffusion-based methods, generating more realistic and semantically aligned HOI motions. Please refer to https://jyhflash.github.io/HOIMask/ for more results.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
