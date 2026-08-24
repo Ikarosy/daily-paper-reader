@@ -1,0 +1,436 @@
+Title: 2026.findings-acl.373.pdf
+
+URL Source: https://aclanthology.org/2026.findings-acl.373.pdf
+
+Published Time: Thu, 11 Jun 2026 02:31:16 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+> Findings of the Association for Computational Linguistics: ACL 2026 , pages 7566–7578 July 2-7, 2026 ©2026 Association for Computational Linguistics
+
+## CoopQ: Cooperative Game Inspired Layerwise Mixed Precision Quantization for LLMs 
+
+Junchen Zhao *
+
+UC Irvine 
+
+junchez3@uci.edu 
+
+Ali Derakhshan *
+
+UC Irvine 
+
+aderakh1@uci.edu 
+
+Jayden Hyman 
+
+UC Irvine 
+
+jkhyman@uci.edu 
+
+Junhao Dong 
+
+UC Irvine 
+
+junhaod2@uci.edu 
+
+Sangeetha Abdu Jyothi 
+
+UC Irvine 
+
+sabdujyo@uci.edu 
+
+Ian Harris 
+
+UC Irvine 
+
+iharris@uci.edu 
+
+Abstract 
+
+Large Language Models (LLMs) promise im-pressive capabilities, yet their multi-billion-parameter scale makes on-device or low-resource deployment prohibitive. Mixed-precision quantization offers a compelling so-lution, but existing methods struggle when the average precision drops below four bits, as they rely on isolated, layer-specific metrics that over-look critical inter-layer interactions affecting overall performance. To address these lim-itations, we first frame the mixed-precision quantization problem as a cooperative game among layers and introduce Shapley-based 
+
+Progressive Quantization Estimation ( SPQE )to efficiently obtain accurate Shapley estimates of layer sensitivities and inter-layer interactions. Leveraging the SPQE estimates, we propose 
+
+Coop erative Game Inspired Mixed-Precision 
+
+Quantization ( CoopQ ) which translates these Shapley estimates into a binary quadratic op-timization formulation, assigning either 2 or 4-bit precision to layers under strict memory constraints. Comprehensive experiments con-ducted on Llama-3, Gemma-2, and Qwen-3 models across three independent PTQ backends (Quanto, HQQ, GPTQ) demonstrate CoopQ’s scalability and consistently superior perfor-mance compared to methods relying solely on isolated metrics. Across average precisions spanning 4 bit down to 2 bit, CoopQ cuts Per-plexity by 20 – 80 % relative to the best base-line, with the margin growing as the bit-width tightens. 
+
+1 Introduction 
+
+LLMs have shown impressive performance across various NLP tasks, including text generation, rea-soning, and question answering (OpenAI et al., 2024; Touvron et al., 2023). However, their effec-tiveness is closely tied to increasing model scales, now often reaching hundreds of billions or trillions 
+
+> *Equal contribution.
+
+of parameters (Brown et al., 2020). This mas-sive size creates significant memory and computa-tional demands, limiting deployment on resource-constrained devices such as mobiles, edge sensors, or standard GPUs (Zhao et al., 2023). Quantization effectively compresses LLMs to reduce these deployment challenges. Among quan-tization techniques, Post-Training Quantization (PTQ) is particularly useful, compressing models and accelerating inference without costly retraining (Yao et al., 2024). Early PTQ approaches uniformly applied bit-widths to model weights and activations (Jacob et al., 2018). Techniques like SmoothQuant improved uniform quantization by smoothing ac-tivation outliers (Xiao et al., 2023), yet uniform quantization does not fully exploit layer-specific precision requirements in LLMs. Mixed-precision PTQ addresses layer hetero-geneity by assigning different bit-widths across model layers. For example, critical layer weights might remain at 4 bits, while less sensitive lay-ers use 2 bits, substantially reducing model size without retraining (Dettmers et al., 2023; Frantar et al., 2023; Lin et al., 2024). Existing mixed-precision schemes typically determine bit alloca-tion using isolated metrics such as weight distribu-tions, cosine similarity, activation sensitivity, or layer-specific scores (Dumitru et al., 2024a; Li et al., 2023; Hu et al., 2025). Some approaches consider second-order information like Hessians (Dong et al., 2019b,a), but calculating Hessians for large LLMs remains computationally challenging. While beneficial, these methods often overlook how quantization errors propagate through the network, potentially misallocating high-precision resources and impairing overall effectiveness. To overcome limitations associated with con-ventional layerwise heuristics in mixed-precision quantization, we frame this problem as a coopera-tive game among LLM layers and leverage Shapley value analysis (Shapley, 1953; Ghorbani and Zou, 
+
+7566 2020) to evaluate each layer’s expected marginal contribution under quantization-induced interac-tions. We define the game’s payoff as the change in per-token negative log-likelihood resulting from quantization because minimizing it is monotoni-cally equivalent to minimizing Perplexity. This ensures direct alignment with preserving model capability. Direct computation of Shapley values is computationally prohibitive for LLMs, thus we employ Monte-Carlo permutation sampling for ef-ficient approximation. Unlike prior interpretability approaches that measure layer contributions by complete prun-ing—an approach known to severely degrade per-formance and result in unreliable, high-variance Shapley estimates (Zhang et al., 2024)—we pro-pose Shapley-based Progressive Quantization Es-timation (SPQE). SPQE uniformly quantizes the model to a moderate baseline precision and then progressively reduces the precision of each layer to a lower precision within each Monte-Carlo sam-pled permutation. This progressive strategy main-tains model stability, allowing incremental rather than catastrophic performance degradation. Con-sequently, our approach yields accurate and low-variance Shapley estimates. Building upon these Shapley estimates from SPQE, we introduce Coop erative Game Inspired Mixed-Precision Quantization ( CoopQ ), a novel framework for optimal precision assignment. COOP Q converts inferred layer sensitivities and inter-layer interactions into a quadratic surrogate model that measures the loss increase resulting from assigning either 2-bit or 4-bit precision to individual layers. Minimizing this surrogate un-der predefined memory constraints yields a binary quadratic optimization problem, where each binary variable determines the bit-width assigned to a spe-cific layer. To efficiently solve this problem, we lin-earize the quadratic objective into a Mixed-Integer Linear Program (MILP), enabling standard opti-mization solvers to obtain globally optimal bit as-signments. Our contributions are: • We propose SPQE, an efficient method lever-aging cooperative game theory and progres-sive quantization to accurately estimate layer sensitivities and inter-layer interactions in mixed-precision quantization. • We introduce CoopQ, a novel optimization framework that translates these layer sensi-tivity estimates into optimal bit-width assign-ments via MILP. • We conduct comprehensive ablation analyses examining how the number of permutations sampled in SPQE and the inclusion of inter-layer interaction terms impact quantization performance, providing critical insights for practical implementation. Extensive evaluations on widely adopted mod-els—including Llama-3, Gemma-2, and Qwen-3—across three independent PTQ frameworks (Quanto, HQQ, GPTQ) demonstrate that C OOP Qconsistently achieves superior performance com-pared to conventional methods relying on isolated, layer-specific metrics for mixed-precision quanti-zation at equivalent memory budgets. 
+
+2 Related Works 
+
+Mixed-Precision Quantization and Layer Sen-sitivity Quantization methods for LLMs aim to reduce computational and memory overhead by representing parameters at lower precision, typi-cally ranging from 2 to 8 bits (Choi et al., 2018; Hubara et al., 2021; Yao et al., 2022; Gholami et al., 2022; Xi et al., 2023). Post-Training Quantization (PTQ) is particularly appealing due to its efficiency, as it quantizes pre-trained models without requiring retraining. PTQ techniques include static quantiza-tion, which uses calibration datasets, and dynamic quantization, where scales are computed on-the-fly during inference (Banner et al., 2019; Zhu et al., 2024). Recent research explores mixed-precision quan-tization strategies, assigning varying bit-widths across layers based on their sensitivity. For instance, LLM-MQ (Li et al., 2023) employs gradient-based sensitivity analysis, while TinyA-gent (Kong et al., 2024) integrates TrimLLM (Hu et al., 2025) and AWQ (Lin et al., 2024) with se-lective layer freezing to maintain accuracy. Meth-ods like ResQ (Saxena et al., 2025) and CMPQ (Chen et al., 2025) enhance mixed-precision quan-tization using low-rank residuals and channel-wise statistics, improving overall performance and hard-ware efficiency. Additionally, HAWQ (Dong et al., 2019b) leverages Hessian-based sensitivity anal-ysis, surpassing simpler sensitivity metrics. (Du-mitru et al., 2024a) propose meta-layerwise quanti-zation strategies, employing explicit metrics such as Layer Input Modification and Z-score Distri-7567 bution to allocate bit-width flexibly under mem-ory constraints, effectively complementing tech-niques like GPTQ (Frantar et al., 2023) and Quanto (Quanto, 2024). 
+
+Shapley-Based Layer Importance Existing quantization methods typically assess layers sen-sitivities independently using heuristics like norm-based metrics or Hessian approximations, neglect-ing inter-layer dependencies. Recent research in-tegrates cooperative game theory, Shapley values (Shapley, 1953), to quantify layer importance based on marginal contributions across various subsets. For example, Neuron Shapley (Ghorbani and Zou, 2020) uses Monte Carlo sampling to estimate how individual neurons contribute to a network’s perfor-mance, and finds that removing neurons with the highest Shapley values severely degrades accuracy. For LLMs, previous research has effectively ap-plied Shapley value analysis to identify critical layers influencing model Perplexity (Zhang et al., 2024). These studies primarily utilized Shapley values for structured pruning, demonstrating im-proved pruning efficacy and model interpretability compared to simpler heuristic methods (Sun et al., 2025). However, these approaches rely heavily on layer pruning strategies, significantly limiting their application to post-training quantization. Pruning leads to rapid performance degradation, causing high variance in Shapley value estimates and re-stricting the number of layers that can be effectively analyzed for interactions. In contrast, our approach, SPQE, addresses this limitation by introducing the first practical appli-cation of Shapley value analysis tailored for post-training mixed-precision quantization. By replac-ing abrupt layer pruning with progressive quanti-zation, we ensure gradual performance changes, resulting in lower variance Shapley estimates and allowing for more extensive consideration of inter-layer interactions. 
+
+3 Methods 
+
+3.1 The Shapley-based Progressive Quantization Estimation (SPQE) 
+
+In this work, we propose the Shapley-based Pro-gressive Quantization Estimation (SPQE), a pro-gressive quantization scheme designed within a Shapley value framework to evaluate Transformer layer importance for LLMs. Traditional pruning methods and direct quantization from full precision typically degrade model performance significantly and introduce high variance in Shapley estimates. In contrast, SPQE maintains model stability, en-abling accurate and low-variance Shapley value assessments. Each Transformer layer acts as a “player” in a cooperative game, where quantization from high to low precision represents the explicit "removal" of a player. Shapley values, grounded in cooperative game theory, provide a principled way to quantify each player’s contribution to a team effort by averag-ing their marginal contributions across all possible coalitions (Shapley, 1953). Formally, for a set of n
+
+players with value function v(·), the Shapley value 
+
+ϕi for player i is defined as the average payoff dif-ference when i joins a coalition S that does not include i:      
+
+> ϕi=∑
+> S⊆N\{ i}|S|!( n−| S|− 1)!
+> n!
+> (
+> v(S∪ { i})−v(S)
+> )
+
+(1) we represent an LLM as an ordered set T =
+
+{1, 2, . . . , L } of layers. For a subset S ⊆ T of layers, we define S as a set of layers with high pre-cision while others are quantized to low precision. For a layer t ∈ T , its precision bt is determined by:             
+
+> bt=
+> {
+> bhigh if t∈Sblow if t∈T\S
+
+(2) where bhigh and blow represent the high and low bit precisions (4- and 2-bit respectively). This for-mulation allows us to systematically evaluate how different layer combinations affect model perfor-mance under quantization. We use the average per-token negative log-likelihood (NLL) as pay-offs when estimating Shapley values.        
+
+> vNLL (S) = E(x,t )∼D
+> [−log p(xt+1 |x≤t;S)]
+
+(3) where D is the validation corpus. To efficiently estimate Shapley values, we adopt Monte-Carlo permutation sampling. We sample M
+
+random permutations of the layers. For each per-mutation π = ( π1, π 2, . . . , π L), which represents a random ordering of the layer indices {1, 2, . . . , L },we start with uniformly quantizing all layers in bhigh 
+
+and progressively quantize a layer to blow according to the permutation order. At each quantization step of quantizing layer πℓ, we denote the set of layers that remain at bhigh by:    
+
+> Sℓ+1 ={πℓ+1 , . . . , π L}
+
+(4) When quantizing layer ℓ from bhigh to blow , its marginal contribution to the model’s value function 7568 is explicitly computed as the immediate change in the value function due to reducing this specific layer’s precision:          
+
+> ∆vℓ=v(Sℓ)−v(Sℓ\ { πℓ}) = v(Sℓ)−v(Sℓ+1 )
+
+(5) After performing this calculation for all permu-tations and positions, we approximate the Shap-ley value for layer i, denoted ˆϕi, by averaging its marginal contributions across the M permutations:     
+
+> ˆϕi=1
+> M
+> ∑Mm=1 ∆v(m)
+> i
+
+(6) This method effectively captures both individual layer sensitivity and inter-layer interactions under progressive quantization. 
+
+3.2 Cooperative Game Inspired Mixed Precision Quantization (CoopQ) 
+
+Building upon SPQE, we now propose an extended approach explicitly designed for interaction-aware mixed-precis ion quantization. Our goal is to op-timally assign each Transformer layer either 2-bit or 4-bit precision by explicitly accounting for both individual layer sensitivities and cross-layer inter-actions. 
+
+Second-Order Taylor Analysis Consider aTransformer with layers indexed by the ordered set 
+
+T = {1, 2, . . . , L }. Quantizing layer i introduces a perturbation ϵi to its weights, yielding perturbed weights ˜Wi = Wi + ϵi. The resulting change in loss ∆L admits the second-order Taylor approxi-mation           
+
+> ∆L≈∑Li=1 g⊤
+> iϵi+∑Li=1
+> ∑Lj=1 ϵ⊤
+> iHij ϵj
+
+(7) where gi = ∇Wi L captures linear sensitivity and 
+
+Hij = ∇2 
+
+> Wi,Wj
+
+L captures pairwise interactions. Empirically, both terms affect quantization-induced loss, underscoring the need to estimate them explic-itly. 
+
+From Taylor Expansion to Shapley-Based Ap-proximation Direct evaluation of all gi and Hij 
+
+is computationally infeasible for LLMs layers. In-stead, we leverage SPQE, which empirically esti-mates the marginal loss incurred when each layer is quantized across M random permutations, pro-ducing empirical Shapley values ˆϕi.We construct the covariance matrix C ∈ RM ×L
+
+from empirical Shapley value deviations, serving as a practical proxy for the Hessian interactions:           
+
+> C=1
+> M
+> (∆vℓ−ˆϕ)⊤(∆vℓ−ˆϕ),ˆϕ= [ ˆϕ1, . . . , ˆϕL]
+
+(8) Because finite sampling causes high variance in the off-diagonal terms of C, we therefore apply diagonal shrinkage controlled by a hyper-parameter 
+
+α ∈ [0 , 1] :        
+
+> K= (1 −α)C+αdiag( C)
+
+(9) where larger α suppresses noisy cross-layer inter-actions while smaller α preserves them. Subsequently, we isolate individual first-order sensitivities ai by subtracting interaction contribu-tions from empirical Shapley values:        
+
+> ai=ˆϕi−∑
+> j̸=iKij
+
+(10) 
+
+Mixed-Integer Linear Programming for Bit Al-location Given the stabilized layer sensitivities 
+
+a and interaction matrix K, we formulate the bit allocation as a constrained quadratic optimization problem. For each layer i, we introduce a binary deci-sion variable qi ∈ { 0, 1}, where qi = 1 indicates the layer remains at low precision and qi = 0 
+
+means it is promoted to high precision. Our objec-tive is to minimize the approximated total loss in-crease induced by quantization, expressed through a quadratic function involving both linear sensitivi-ties and pairwise interactions:     
+
+> ∆L(q) = a⊤q+q⊤Kq
+
+(11) where q = ( q1, · · · , q L).To respect the memory constraints B given the byte cost ci for each layer to be promoted from lower-bit to higher-bit, we impose a linear con-straint limiting the number of layers maintained at high precision. The details of the memory con-straints formulation is specified in Appendix 6. Putting it together, the resulting optimization is a binary quadratic programming problem:       
+
+> min
+> q∈{ 0,1}L∆L(q)s.t.
+> L∑
+> i=1
+> ci(1 −qi)≤B
+
+(12) We solve this quadratic optimization by refor-mulating it into an equivalent Mixed-Integer Lin-ear Program. To linearize the quadratic term qiqj ,we introduce auxiliary binary variables yij repre-senting pairwise interactions, enforcing linear con-straints:                  
+
+> yij ≥qi+qj−1,yij ≤qi,yij ≤qj,yij ∈ { 0,1}
+
+(13) ensuring yij = 1 if and only if qi = qj = 1 . This standard linearization transforms the quadratic ob-jective into a linear one in terms of q and auxiliary variables y, enabling efficient solution via standard MILP solvers. 7569 4 Experiments 
+
+We evaluate CoopQ on three model families: Gemma-2 (2B, 9B) (Team et al., 2024), Llama-3 (3.2B, 8B) (Grattafiori et al., 2024), and Qwen3 (4B, 8B) (Yang et al., 2025). Our evaluation fo-cuses on layerwise mixed-precision quantization, where we constrain the target model’s average bit-width to a range between 2 and 4 bits. The diagonal shrinkage hyperparameter α is set to 0.5 across all experiments. To benchmark performance, we compare our method against three PTQ baselines: Quanto (Quanto, 2024), HQQ (Badri and Shaji, 2023), and GPTQ (Frantar et al., 2023). For Quanto and HQQ, we apply a uniform scaling factor. This simple, calibration-free scaling allows for rapid quantiza-tion, though it may result in worse quantization per-formance compared to the more time-consuming and resource-intensive GPTQ method. We choose Quanto for our SPQE across all the models in our experiments because its efficient in-place weight quantization and rapid layer processing are criti-cal for the efficiency of our estimation approach. For each quantization backend, we use the fixed default group size and all implementation details identically for CoopQ and all baselines. Finally, we use SCIP (Bolusani et al., 2024) with its default configuration as our MILP solver. All experiments were conducted on a server with two NVIDIA A40 GPUs using a fixed seed for repro-ducibility. 
+
+4.1 Datasets 
+
+To evaluate our layerwise quantization perfor-mance, we use Perplexity as our major evaluation metric. Our evaluation framework uses different datasets for distinct purposes: Shapley value esti-mation, and final performance assessment. For Shapley value estimation purposes, we use the C4 dataset (Raffel et al., 2020). We use the training split of C4 for SPQE calibration and final bit allocation optimization, while the the WikiText-2 validation split (Merity et al., 2016) is used for the final quantization evaluation, providing unbiased comparisons of language modeling performance across different quantization strategies. 
+
+4.2 Baselines 
+
+We compare CoopQ against the following layer-wise mixed precision quantization methods. De-tailed information on the baselines are included in the Appendix 6. 
+
+LLM-MQ Sensitivity (Li et al., 2023) uses first-order Taylor approximations to measure how sensi-tive each layer is to quantization. Based on these sensitivity scores, bit-widths are assigned to layers to minimize performance loss. 
+
+LIM (Layer Input Modification) LIM scores (Dumitru et al., 2024b) layer importance based on the negative cosine similarity between its input and output embeddings. This method requires a cali-bration dataset, with a larger change between input and output indicating higher layer importance. 
+
+ZD (Z-score Distribution) Z-score distribution (Dumitru et al., 2024b) assesses layer importance based on the proportion of outlier weights in the target layer to be quantized. Unlike LIM, ZD does not require calibration data, and a higher fraction of outliers suggests greater importance. 
+
+Activation-based Scoring Activation-based Scoring (Kong et al., 2024) assesses layer im-portance by calculating the Frobenius norm of layer activations. A larger norm suggests the layer processes more significant information and is therefore considered more critical. 
+
+4.3 Result Analysis 
+
+Figure 1 and Table 1 illustrate comprehensive Per-plexity comparisons across quantization methods including Activation, Sensitivity, LIM, Z-Score, and CoopQ for multiple LLMs. To construct Ta-ble 1, we discretize the results from Figures 1, 3, and 4 into bit-width ranges. The reported values represent the average Perplexity of all models with effective bit-widths within each respective interval. The consistently superior performance of CoopQ can be attributed to its effective integration of layer interaction effects into the quantization process. Unlike baseline methods, which primarily assess layers in isolation, CoopQ explicitly accounts for how quantization errors propagate through the net-work, thus significantly reducing the overall Per-plexity. 
+
+Performance across Quantization bit-widths 
+
+Across the models tested under GPTQ quantiza-tion, CoopQ consistently delivers the lowest Per-plexity values, with its advantages becoming more pronounced as bit budegt decreases. In the lowest range of 2.01–2.5 bits, CoopQ achieves a Perplexity of 233.98 in Gemma-2B, representing a reduction 7570 Gemma-2-2B Gemma-2-9B Llama-3.2-3B   
+
+> Llama-3.1-8B Qwen3-4B Qwen3-8B
+> Figure 1: Wikitext-2 Perplexity comparison of quantization methods across Gemma, Llama, Qwen models on GPTQ.
+
+of more than 79% and 81% relative to Sensitivity at 
+
+1.12 ×10 3 and LIM at 1.25 ×10 3, respectively. Sim-ilar improvements are seen in Gemma-2-9B, where CoopQ achieves 48.52 compared to Sensitivity’s 189.55 and LIM’s 214.03—reductions of approx-imately 74% and 77%. As illustrated in Figure 1, this trend holds consistently across the entire curve for Gemma-2-9B, where CoopQ maintains the low-est Perplexity across nearly all bit-width, especially under more severe quantization constraints. Simi-larly, in Qwen3-4B, CoopQ maintains a Perplexity of 697.28, substantially outperforming Sensitivity at 1.56 × 10 3 and LIM at 2.38 × 10 3 by margins of 55% and 71%. This further highlights CoopQ’s robustness under aggressive quantization and its ability to scale effectively across architectures of varying scale and complexity. As the bit budget increases, CoopQ continues to retain favorable Perplexity values with GPTQ quantization. For example, at 2.5–3.0 bits, Llama-3.2-3B achieves Perplexity of 73.11 with CoopQ, a 79% reduction relative to Sensitivity’s 343.64. Similarly, Qwen3-8B achieves Perplexity 82.74 with CoopQ compared to Activation’s 101.55, re-flecting a 19% improvement. Even in the high-est precision range, 3.5–3.99 bits, CoopQ remains competitive. Llama-3.2-3B sees a Perplexity of 17.08, outperforming Z-Score’s 24.84 by 31%, and Qwen3-8B’s 19.03, slightly better than Activation’s 21.06. These results show that CoopQ scales across diverse architectures and maintains low Perplexity under tighter bit constraints, as shown in Figure 1, by modeling inter-layer interactions effectively. 
+
+Performance across PTQ backends In addition to GPTQ, CoopQ consistently outperforms alterna-tive baselines under both HQQ and Quanto PTQ backends. For instance, when applying HQQ quan-tization to the Qwen3-8B model, CoopQ achieves Perplexity of 70.21, outperforming the best per-forming Activation baseline at 174.20 by 59% in the bit range 3.0-3.5. Similarly, for the Gemma-2-9B model quantized using Quanto, CoopQ achieves Perplexity of 19.63, outperforming the strongest Sensitivity baseline at 28.62 by 31% in the bit range 3.0-3.5. Notably, these gains become even more pro-nounced at lower bit-width, consistent with the trend observed under GPTQ. For the Qwen3-8B model under HQQ quantization at similarly low bit range 2.5–3.0, CoopQ attains Perplexity of 
+
+1.31 × 10 3, significantly outperforming the best performing LIM baseline at 16 .04 × 10 3 by 91%. Likewise, when employing Quanto quantization on Gemma-2-9B at the bit range 2.5–3.0, CoopQ achieves Perplexity of 33.68 and outperforms the strongest Sensitivity baseline at 93.51 by 64%. 7571 Model Bit Range GPTQ Quanto HQQ Act. Sens. LIM ZD CoopQ Act. Sens. LIM ZD CoopQ Act. Sens. LIM ZD CoopQ                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
+> Gemma-2-2B 2.01–2.5 1.19 ×10 31.12 ×10 31.25 ×10 31.30 ×10 3233 .98 73 .04 ×10 398 .70 ×10 390 .71 ×10 367 .63 ×10 318 .35 ×10 316 .52 ×10 321 .54 ×10 318 .50 ×10 316 .17 ×10 35.85 ×10 3
+> 2.5–3.0 181 .40 203 .67 198 .16 295 .38 48 .35 3.74 ×10 31.53 ×10 34.65 ×10 31.78 ×10 3397 .26 1.62 ×10 31.25 ×10 31.61 ×10 31.29 ×10 3421 .95
+> 3.0–3.5 72 .35 79 .81 50 .35 83 .01 24 .99 218 .85 247 .83 110 .99 253 .30 54 .18 161 .15 231 .70 108 .30 236 .02 49 .69
+> 3.5–3.99 29 .19 27 .63 28 .00 28 .20 17 .70 31 .53 46 .55 30 .87 46 .54 22 .09 31 .57 41 .09 30 .77 37 .45 21 .96
+> Gemma-2-9B 2.01–2.5 195 .81 189 .55 214 .03 223 .94 48 .52 1.07 ×10 31.07 ×10 31.44 ×10 31.05 ×10 3229 .67 742 .81 820 .53 1.05 ×10 3797 .39 250 .40
+> 2.5–3.0 84 .15 47 .82 82 .68 70 .12 26 .26 266 .84 93 .51 314 .96 155 .49 33 .68 174 .87 73 .31 204 .10 120 .87 35 .47
+> 3.0–3.5 55 .84 24 .96 41 .20 31 .39 22 .05 110 .73 28 .62 49 .31 39 .47 19 .63 86 .98 23 .57 47 .84 35 .79 20 .30
+> 3.5–3.99 28 .49 16 .79 28 .11 24 .18 21 .96 32 .56 16 .68 26 .33 25 .48 19 .44 30 .72 15 .92 26 .88 25 .60 20 .96
+> Llama-3.2-3B 2.01–2.5 1.41 ×10 31.81 ×10 31.34 ×10 31.48 ×10 3362 .59 24 .05 ×10 313 .15 ×10 330 .98 ×10 320 .00 ×10 310 .20 ×10 310 .89 ×10 35.92 ×10 311 .44 ×10 38.76 ×10 35.02 ×10 3
+> 2.5–3.0 185 .60 343 .64 164 .43 334 .56 73 .11 643 .87 791 .20 729 .46 1.12 ×10 3378 .42 360 .72 493 .52 370 .54 643 .17 133 .79
+> 3.0–3.5 61 .44 70 .75 58 .08 55 .64 33 .90 67 .24 79 .57 63 .59 72 .84 38 .86 51 .11 59 .38 45 .34 50 .02 31 .31
+> 3.5–3.99 23 .63 25 .56 24 .61 24 .84 17 .08 23 .99 25 .99 23 .67 24 .04 17 .43 22 .12 23 .25 21 .48 21 .74 16 .05
+> Llama-3.1-8B 2.01–2.5 1.29 ×10 31.36 ×10 31.21 ×10 31.48 ×10 3306 .96 97 .15 ×10 391 .01 ×10 3100 .61 ×10 3164 .96 ×10 374 .32 ×10 3115 .95 ×10 347 .18 ×10 394 .81 ×10 3189 .80 ×10 349 .70 ×10 3
+> 2.5–3.0 156 .09 305 .34 133 .11 294 .18 53 .02 749 .91 1.64 ×10 3522 .83 74 .30 ×10 3125 .90 194 .34 275 .24 158 .12 52 .97 ×10 3108 .28
+> 3.0–3.5 50 .13 77 .76 49 .66 44 .97 28 .80 41 .49 65 .89 35 .65 43 .20 24 .38 34 .96 44 .24 32 .65 47 .60 22 .85
+> 3.5–3.99 19 .05 28 .93 20 .21 20 .27 14 .57 17 .81 28 .76 17 .39 17 .57 14 .03 17 .57 21 .26 17 .17 17 .09 13 .41
+> Qwen3-4B 2.01–2.5 1.75 ×10 31.56 ×10 32.38 ×10 32.22 ×10 3697 .28 412 .37 ×10 3548 .73 ×10 3257 .78 ×10 3928 .68 ×10 3127 .86 ×10 3105 .06 ×10 3116 .57 ×10 3103 .93 ×10 3182 .17 ×10 353 .58 ×10 3
+> 2.5–3.0 180 .44 408 .11 322 .61 687 .04 157 .65 116 .54 ×10 342 .63 ×10 320 .72 ×10 31.21 ×10 64.96 ×10 318 .40 ×10 330 .55 ×10 324 .17 ×10 344 .38 ×10 310 .82 ×10 3
+> 3.0–3.5 90 .69 94 .18 86 .38 152 .59 54 .01 2.07 ×10 32.14 ×10 31.05 ×10 314 .42 ×10 3417 .44 313 .47 9.28 ×10 3401 .89 3.56 ×10 3134 .40
+> 3.5–3.99 32 .52 38 .26 46 .05 43 .82 26 .42 122 .50 240 .26 97 .68 577 .45 49 .10 51 .39 1.74 ×10 357 .13 254 .76 32 .07
+> Qwen3-8B 2.01–2.5 689 .03 794 .99 1.04 ×10 31.36 ×10 3258 .60 808 .51 ×10 3912 .62 ×10 3185 .09 ×10 3149 .74 ×10 373 .64 ×10 3285 .77 ×10 3519 .82 ×10 3330 .15 ×10 3240 .00 ×10 3324 .80 ×10 3
+> 2.5–3.0 101 .55 103 .07 195 .68 533 .85 82 .74 102 .53 ×10 3422 .60 ×10 37.57 ×10 343 .39 ×10 31.05 ×10 353 .86 ×10 3247 .68 ×10 316 .04 ×10 325 .98 ×10 31.31 ×10 3
+> 3.0–3.5 60 .77 42 .92 57 .82 77 .25 28 .53 623 .05 25 .50 ×10 3518 .57 2.14 ×10 3107 .02 174 .20 19 .54 ×10 3259 .85 1.54 ×10 370 .21
+> 3.5–3.99 21 .06 23 .37 29 .88 24 .27 19 .03 51 .51 246 .10 38 .07 145 .58 26 .82 30 .41 450 .06 29 .59 89 .52 22 .32
+
+Table 1: Wikitext-2 Perplexity comparison across GPTQ, Quanto, and HQQ quantization baselines. 
+
+These results emphasize CoopQ’s robustness and effectiveness in preserving model performance, par-ticularly under aggressive quantization conditions. Overall, these results clearly indicate CoopQ’s superior quantization performance. By explicitly capturing these interactions, CoopQ effectively mit-igates accumulated quantization errors, yielding significantly lower perplexities across various mod-els and PTQ backends. 
+
+5 Ablation Study 
+
+We conduct a comprehensive ablation study to an-alyze the impact of key hyperparameters in our SPQE framework, examining how the number of Monte Carlo sampling affects quantization perfor-mance and layer importance estimation accuracy. 
+
+Sampling Avg PPL Rel. ∆ Avg (%) Rel. ∆ Geo. Mean (%) 
+
+10 19.78 ×10 3 NaN NaN 20 19.77 ×10 3 -0.04% -4.10% 30 19.49 ×10 3 -1.46% -12.66% 40 19.27 ×10 3 -2.58% -16.17% 50 19.22 ×10 3 -2.84% -19.93% 60 19.26 ×10 3 -2.60% -18.61% 70 19.37 ×10 3 -2.04% -15.06% 80 19.28 ×10 3 -2.55% -17.88% 90 19.27 ×10 3 -2.59% -18.83% 100 19.26 ×10 3 -2.65% -19.88% 
+
+Table 2: WikiText-2 Perplexity Analysis vs SPQE Sam-pling on Quanto 
+
+Effect of SPQE Sampling A critical hyperpa-rameter in SPQE is the number of Monte Carlo permutation samples used to estimate Shapley values. Unlike prior Shapley-based layer impor-tance approaches that rely on ablating entire lay-ers, which often induces catastrophic performance degradation and noisy estimates, our SPQE method quantizes layers progressively, resulting in much smoother performance changes. This gradual degradation enables lower-variance Shapley esti-mates, allowing meaningful signals even with rela-tively few samples. We evaluate the impact of SPQE sample count on quantization quality using LLaMA 3.1-8B across a range of 10 to 100 SPQE samples. Ta-ble 2 illustrates how increasing the number of Monte Carlo samples affects the quantized model’s Perplexity on the WikiText-2 validation set using Quanto quantization. As the sample count grows, the model’s post-quantization Perplexity improves steadily, reflecting more precise Shapley value es-timates that better capture layer sensitivities and inter-layer interactions. The relative delta measures the percentage change in a metric relative to the baseline (10 sam-ples). The geometric mean relative delta sum-marizes a distribution of Perplexity values using the geometric mean, which is effective for data spanning several orders of magnitude. This metric quantifies the overall change in model performance against the baseline, indicating both the magnitude and consistency of improvement. Notably, even with as few as 10 random SPQE samples, clear layer importance patterns emerge. For instance, the first and final transformer layers consistently appear as highly sensitive to quanti-zation across different models. This demonstrates that SPQE can capture fundamental layer impor-tance signals with minimal computational overhead. However, the returns diminish at higher sample counts: beyond roughly 50 samples, additional samples yield diminishing improvements. The rela-tive delta for average Perplexity shows a maximum improvement of -2.84% at 50 samples, with only 7572 marginal further gains to -2.65% at 100 samples. Similarly, the geometric mean relative delta reaches its maximum improvement of -19.93% at 50 sam-ples, with only marginal further gains to -19.88% at 100 samples. After 90 samples, the changes be-come negligible: the relative delta changes by only 0.06% (from -2.59% to -2.65%) and the geometric mean changes by only 0.05% (from -18.83% to -19.88%). This convergence behavior provides a clear stopping criterion, indicating that both met-rics have effectively converged. Consequently, we adopt 100 samples in all main experiments as a practical sweet spot, achieving near-maximal Per-plexity improvement while keeping the computa-tional overhead manageable. 
+
+> Figure 2: Comparison of perplexity for SPQE and layer pruning-based Shapley estimation on Llama 3.1-8B us-ing Quanto. Layer pruning causes perplexity to diverge after 5 layers, while progressive quantization remains stable.
+
+SPQE vs. Layer Pruning To further show the advantages of SPQE over conventional layer pruning for Shapley value estimation, we conduct a comparative analysis using the Llama 3.1-8B model. As illustrated in Figure 2, the pruning-based approach results in a rapid and uncontrolled escalation of Perplexity, reaching near-infinite val-ues after the removal of only a few layers. This phenomenon renders the marginal contribution es-timates highly unstable and uninformative, thereby impeding the reliable computation of both individ-ual layer importance and inter-layer interactions within the Shapley framework. The resulting high variance in Shapley estimates ultimately degrades the quality of mixed-precision bit allocation, lead-ing to suboptimal quantization performance. In contrast, SPQE maintains model stability throughout the quantization process, exhibiting a smooth and gradual increase in Perplexity as lay-ers are progressively quantized from 4-bit to 2-bit precision. This controlled degradation enables the accurate estimation of Shapley values with substan-tially reduced variance, facilitating robust modeling of both individual and interaction effects across all layers. Empirically, the variance of Shapley esti-mates under SPQE is significantly lower than that observed with pruning-based methods, supporting more effective and reliable bit allocation in mixed-precision quantization.                
+
+> Model α= 0 .0α= 0 .5α= 1 .0
+> Llama 3.2-3B 2.83 ×10 32.79 ×10 32.81 ×10 3
+> Table 3: Average Perplexity in the range of 2-bit and 4-bit across different alpha values for Llama 3.2-3B on Quanto.
+
+Effect of Diagonal Shrinkage on CoopQ We ablate the diagonal shrinkage hyperparameter α
+
+shown in Eq. 9, which balances preserving cross-layer interactions. On Llama 3.2-3B, an interme-diate value of α = 0 .5 achieves the optimal per-plexity of 2.79 × 10 3 as shown in Table 3. This confirms our hypothesis that off-diagonal terms contain valuable signal. However, the relatively flat performance curve around this optimum indi-cates that SPQE effectively captures the dominant interaction effects within the Shapley values them-selves. Therefore, while the quadratic interaction term ( α = 0 .5) yields the best performance, the method remains robust and stable even with sub-optimal hyperparameter settings. 
+
+6 Conclusion 
+
+In this work, we demonstrate that modeling inter-layer dependencies is critical for effective low-bit LLM quantization. To the best of our knowledge, we are the first to formalize mixed-precision quan-tization as a cooperative game among layers. Our proposed framework CoopQ introduces Shapley-based progressive estimation (SPQE) to capture in-teraction effects and formulates the bit allocation as a solvable MILP. Comprehensive experiments show CoopQ consistently outperforming prior methods across diverse models (Llama-3, Gemma-2, Qwen-3) and PTQ backends. The framework achieves a significant perplexity reduction of 20% to 80% 
+
+over the strongest baselines, particularly as the bit-width tightens. 
+
+Limitations 
+
+Our findings present compelling evidence that the prevailing approach of using isolated, layer-specific 7573 metrics is insufficient for effective low-bit quantiza-tion. The superior performance of CoopQ, particu-larly in the sub-4-bit regime where inter-layer error propagation becomes most severe, confirms our central hypothesis: modeling quantization as a co-operative game that accounts for layer interactions is critical. This marks a conceptual shift from view-ing layers as independent entities to understanding them as interconnected components whose collec-tive behavior dictates the final performance of the quantized model. The primary limitation of our approach is the computational overhead associated with the SPQE-based Shapley value estimation. For a model like Llama-3.1-8B, this process requires approximately 18 hours on a single A40 GPU to finish 100 SPQE sampling. However, we argue that this is a practical trade-off. The cost is a one-time analysis, which is then amortized across many deployments of the resulting highly optimized model. Furthermore, as our ablation study indicates, meaningful impor-tance signals emerge with relatively fewer SPQE samples, suggesting the initial cost can be further significantly reduced without catastrophic loss in quality. This research opens several promising directions for future work. First, the efficiency of the Shap-ley estimation could be improved by exploring more advanced sampling techniques beyond stan-dard Monte Carlo, such as stratified Monte Carlo sampling, which may converge faster. Second, the interaction-aware framework of CoopQ is not limited to quantization; its principles could be ex-tended to other structured compression techniques, such as layer or head pruning, where component interdependencies are equally critical. Finally, ex-ploring a more granular set of precision assign-ments beyond the binary 2/4-bit choice could yield further performance gains, although this would in-crease the complexity of the optimization problem. 
+
+References 
+
+Hicham Badri and Appu Shaji. 2023. Half-quadratic quantization of large machine learning models. Ron Banner, Yury Nahshan, and Daniel Soudry. 2019. Post training 4-bit quantization of convolutional net-works for rapid-deployment. In Advances in Neural Information Processing Systems , volume 32. Curran Associates, Inc. Suresh Bolusani, Mathieu Besançon, Ksenia Bestuzheva, Antonia Chmiela, João Dionísio, Tim Donkiewicz, Jasper van Doornmalen, Leon Eifler, Mohammed Ghannam, Ambros Gleixner, Christoph Graczyk, Katrin Halbig, Ivo Hedtke, Alexander Hoen, Christopher Hojny, Rolf van der Hulst, Dominik Kamp, Thorsten Koch, Kevin Kofler, and 12 others. 2024. The scip optimization suite 9.0. 
+
+Preprint , arXiv:2402.17702. Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared D Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, Sandhini Agarwal, Ariel Herbert-Voss, Gretchen Krueger, Tom Henighan, Rewon Child, Aditya Ramesh, Daniel Ziegler, Jeffrey Wu, Clemens Winter, and 12 others. 2020. Language models are few-shot learners. In Advances in Neural Information Processing Systems , volume 33, pages 1877–1901. Curran Associates, Inc. Zihan Chen, Bike Xie, Jundong Li, and Cong Shen. 2025. Channel-wise mixed-precision quan-tization for large language models. Preprint ,arXiv:2410.13056. Jungwook Choi, Zhuo Wang, Swagath Venkataramani, Pierce I-Jen Chuang, Vijayalakshmi Srinivasan, and Kailash Gopalakrishnan. 2018. Pact: Parameterized clipping activation for quantized neural networks. 
+
+arXiv preprint arXiv:1805.06085 .Tim Dettmers, Ruslan Svirschevski, Vage Egiazarian, Denis Kuznedelev, Elias Frantar, Saleh Ashkboos, Alexander Borzunov, Torsten Hoefler, and Dan Alis-tarh. 2023. Spqr: A sparse-quantized representation for near-lossless llm weight compression. Preprint ,arXiv:2306.03078. Zhen Dong, Zhewei Yao, Yaohui Cai, Daiyaan Ar-feen, Amir Gholami, Michael W. Mahoney, and Kurt Keutzer. 2019a. Hawq-v2: Hessian aware trace-weighted quantization of neural networks. Preprint ,arXiv:1911.03852. Zhen Dong, Zhewei Yao, Amir Gholami, Michael W Mahoney, and Kurt Keutzer. 2019b. Hawq: Hessian aware quantization of neural networks with mixed-precision. In Proceedings of the IEEE/CVF inter-national conference on computer vision , pages 293– 302. Razvan-Gabriel Dumitru, Vikas Yadav, Rishabh Ma-heshwary, Paul-Ioan Clotan, Sathwik Tejaswi Mad-husudhan, and Mihai Surdeanu. 2024a. Layer-wise quantization: A pragmatic and effective method for quantizing llms beyond integer bit-levels. Preprint ,arXiv:2406.17415. Razvan-Gabriel Dumitru, Vikas Yadav, Rishabh Ma-heshwary, Paul-Ioan Clotan, Sathwik Tejaswi Mad-husudhan, and Mihai Surdeanu. 2024b. Layer-wise quantization: A pragmatic and effective method for quantizing llms beyond integer bit-levels. arXiv preprint arXiv:2406.17415 .Elias Frantar, Saleh Ashkboos, Torsten Hoefler, and Dan Alistarh. 2023. Gptq: Accurate post-training 7574 quantization for generative pre-trained transformers. 
+
+Preprint , arXiv:2210.17323. Amir Gholami, Sehoon Kim, Zhen Dong, Zhewei Yao, Michael W Mahoney, and Kurt Keutzer. 2022. Asurvey of quantization methods for efficient neural network inference. In Low-Power Computer Vision ,pages 291–326. Chapman and Hall/CRC. Amirata Ghorbani and James Zou. 2020. Neuron shapley: Discovering the responsible neurons. In 
+
+NeurIPS .Aaron Grattafiori, Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten, Alex Vaughan, and 1 others. 2024. The llama 3 herd of models. arXiv preprint arXiv:2407.21783 .Lanxiang Hu, Tajana Rosing, and Hao Zhang. 2025. TrimLLM: Progressive layer dropping for domain-specific LLMs. In Proceedings of the 63rd Annual Meeting of the Association for Computational Lin-guistics (Volume 1: Long Papers) , pages 667–681, Vienna, Austria. Association for Computational Lin-guistics. Itay Hubara, Yury Nahshan, Yair Hanani, Ron Banner, and Daniel Soudry. 2021. Accurate post training quantization with small calibration sets. In Inter-national Conference on Machine Learning , pages 4466–4475. Benoit Jacob, Skirmantas Kligys, Bo Chen, Meng-long Zhu, Matthew Tang, Andrew Howard, Hartwig Adam, and Dmitry Kalenichenko. 2018. Quanti-zation and training of neural networks for efficient integer-arithmetic-only inference. In Proceedings of the IEEE Conference on Computer Vision and Pat-tern Recognition (CVPR) .Jason Kong, Lanxiang Hu, Flavio Ponzina, and Tajana Rosing. 2024. Tinyagent: Quantization-aware model compression and adaptation for on-device LLM agent deployment. In Workshop on Efficient Systems for Foundation Models II @ ICML2024 .Shiyao Li, Xuefei Ning, Ke Hong, Tengxuan Liu, Lun-ing Wang, Xiuhong Li, Kai Zhong, Guohao Dai, Huazhong Yang, and Yu Wang. 2023. Llm-mq: Mixed-precision quantization for efficient llm deploy-ment. In The Efficient Natural Language and Speech Processing Workshop with NeurIPS .Ji Lin, Jiaming Tang, Haotian Tang, Shang Yang, Wei-Ming Chen, Wei-Chen Wang, Guangxuan Xiao, Xingyu Dang, Chuang Gan, and Song Han. 2024. Awq: Activation-aware weight quantization for on-device llm compression and acceleration. In Proceed-ings of Machine Learning and Systems , volume 6, pages 87–100. Stephen Merity, Caiming Xiong, James Bradbury, and Richard Socher. 2016. Pointer sentinel mixture mod-els. Preprint , arXiv:1609.07843. OpenAI, Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya, Florencia Leoni Ale-man, Diogo Almeida, Janko Altenschmidt, Sam Alt-man, Shyamal Anadkat, Red Avila, Igor Babuschkin, Suchir Balaji, Valerie Balcom, Paul Baltescu, Haim-ing Bao, Mohammad Bavarian, Jeff Belgum, and 262 others. 2024. Gpt-4 technical report. Preprint ,arXiv:2303.08774. Optimum Quanto. 2024. Optimum quanto. [Online; accessed 2025-06-07]. Jack W. Rae, Anna Potapenko, Siddhant M. Jayakumar, and Timothy P. Lillicrap. 2019. Compressive trans-formers for long-range sequence modelling. Preprint ,arXiv:1911.05507. Colin Raffel, Noam Shazeer, Adam Roberts, Kather-ine Lee, Sharan Narang, Michael Matena, Yanqi Zhou, Wei Li, and Peter J. Liu. 2020. Exploring the limits of transfer learning with a unified text-to-text transformer. Journal of Machine Learning Research ,21(140):1–67. Utkarsh Saxena, Sayeh Sharify, Kaushik Roy, and Xin Wang. 2025. Resq: Mixed-precision quantization of large language models with low-rank residuals. 
+
+Preprint , arXiv:2412.14363. Lloyd S Shapley. 1953. A value for n-person games. In Harold W. Kuhn and Albert W. Tucker, editors, 
+
+Contributions to the Theory of Games II , pages 307– 317. Princeton University Press, Princeton. Chuan Sun, Han Yu, Lizhen Cui, and Xiaoxiao Li. 2025. Efficient shapley value-based non-uniform pruning of large language models. Preprint , arXiv:2505.01731. Gemma Team, Morgane Riviere, Shreya Pathak, Pier Giuseppe Sessa, Cassidy Hardin, Surya Bhupati-raju, Léonard Hussenot, Thomas Mesnard, Bobak Shahriari, Alexandre Ramé, Johan Ferret, Peter Liu, Pouya Tafti, Abe Friesen, Michelle Casbon, Sabela Ramos, Ravin Kumar, Charline Le Lan, Sammy Jerome, and 179 others. 2024. Gemma 2: Improving open language models at a practical size. Preprint ,arXiv:2408.00118. Hugo Touvron, Louis Martin, Kevin Stone, Peter Al-bert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, Dan Bikel, Lukas Blecher, Cristian Canton Ferrer, Moya Chen, Guillem Cucurull, David Esiobu, Jude Fernandes, Jeremy Fu, Wenyin Fu, and 49 oth-ers. 2023. Llama 2: Open foundation and fine-tuned chat models. Preprint , arXiv:2307.09288. Haocheng Xi, Changhao Li, Jianfei Chen, and Jun Zhu. 2023. Training transformers with 4-bit integers. Ad-vances in Neural Information Processing Systems ,36:49146–49168. Guangxuan Xiao, Ji Lin, Mickael Seznec, Hao Wu, Julien Demouth, and Song Han. 2023. Smoothquant: Accurate and efficient post-training quantization for large language models. In International conference on machine learning , pages 38087–38099. PMLR. 7575 An Yang, Anfeng Li, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang Gao, Chengen Huang, Chenxu Lv, Chujie Zheng, Day-iheng Liu, Fan Zhou, Fei Huang, Feng Hu, Hao Ge, Haoran Wei, Huan Lin, Jialong Tang, and 41 others. 2025. Qwen3 technical report. Preprint ,arXiv:2505.09388. Zhewei Yao, Reza Yazdani Aminabadi, Minjia Zhang, Xiaoxia Wu, Conglong Li, and Yuxiong He. 2022. Zeroquant: Efficient and affordable post-training quantization for large-scale transformers. Advances in Neural Information Processing Systems , 35:27168– 27183. Zhewei Yao, Xiaoxia Wu, Cheng Li, Stephen Youn, and Yuxiong He. 2024. Exploring post-training quan-tization in llms from comprehensive study to low rank compensation. In Proceedings of the AAAI Con-ference on Artificial Intelligence , volume 38, pages 19377–19385. Yang Zhang, Yanfei Dong, and Kenji Kawaguchi. 2024. Investigating layer importance in large language mod-els. Preprint , arXiv:2409.14381. Junchen Zhao, Yurun Song, Simeng Liu, Ian G. Harris, and Sangeetha Abdu Jyothi. 2023. Lingualinked: A distributed large language model inference system for mobile devices. Preprint , arXiv:2312.00388. Xunyu Zhu, Jian Li, Yong Liu, Can Ma, and Weiping Wang. 2024. A survey on model compression for large language models. Transactions of the Associa-tion for Computational Linguistics , 12:1556–1577. 
+
+Memory Constraint Formulation Details 
+
+In our setup, each transformer layer is quantized to either 2 bits or 4 bits. We define the memory budget to ensure fair comparisons across all methods. We first compute the total memory footprint if all quantizable layers are set to 2 bits (denoted as 
+
+Blow ) and if all are set to 4 bits (denoted as Bhigh ). For any target average bit-width bavg between 2 and 4, we define the corresponding memory budget by linear interpolation:          
+
+> B(bavg ) = Blow +bavg −24−2×(Bhigh −Blow )
+
+(14) Intuitively, this budget lies strictly between the footprints of the all-2-bit and all-4-bit configura-tions, corresponding to a specific mixture of 2 bit and 4 bit layers. CoopQ and all baseline meth-ods (Activation, Sensitivity, LIM, Z-Score) must choose which layers are 2 bit vs. 4 bit subject to the exact same budget B(bavg ).
+
+Baselines 
+
+Z-Score Baseline Description 
+
+The Z-score baseline, introduced by Dumitru et al. (2024a), provides a data-free approach for measur-ing layer importance in transformer models. For a given layer Li, the Z-score distribution (ZD) exam-ines the proportion of weights that exhibit values significantly different from the mean. It calculates the ratio of weights whose z-scores exceed 1, where the z-score for a weight w is defined as: 
+
+z = w − μσ
+
+Here, μ represents the mean of all weights in the layer and σ their standard deviation. The final ZD score for layer Li is computed as: ZD (Li) = |{ w ∈ Li : z(w) > 1}| |Li|
+
+where |Li| denotes the total number of weights in layer i. This metric assumes that layers with more outlier weights (those deviating significantly from the mean) are more important for the model’s functionality. A key advantage of this approach is that it requires no calibration data, making it particularly efficient for rapid layer importance as-sessment in large language models. 
+
+Layer Input Modification (LIM) Baseline Description 
+
+The Layer Input Modification (LIM) baseline, also introduced by Dumitru et al. (2024a), measures how significantly a transformer layer modifies its input representations. Unlike the Z-score approach, LIM requires a calibration dataset. While the origi-nal work used PG19 (Rae et al., 2019), in our exper-iments, we use 1000 samples from the C4 (Colossal Clean Crawled Corpus) training set (Raffel et al., 2020) for fair comparison across all methods and models. For a given layer Li, LIM computes the neg-ative cosine similarity between the layer’s input embeddings LIi and output embeddings LOi :LIM (Li) = − LIi · LOi
+
+∥LIi ∥∥ LOi ∥
+
+The intuition behind this metric is that layers that substantially transform their inputs (resulting in low cosine similarity and thus a high negative score) are more important for the model’s function 7576 than layers that make minimal modifications to their inputs. The negative sign ensures that more important layers receive higher positive scores. 
+
+LLM-MQ Sensitivity Scoring Description 
+
+LLM-MQ (Li et al., 2023) introduces a sensitivity-based precision allocation method that uses first-order Taylor approximation to determine how sen-sitive each layer is to quantization. For a given layer i with weights Wi, the method estimates how quantizing the weights to b bits (denoted by quantization function Qb) affects the model’s loss function L:
+
+L(Qb(Wi)) ≈ L (W) + gTi (Wi − Qb(Wi)) 
+
+where gi is the gradient of the loss function with respect to the weights of layer i. The sensitivity score si,b for layer i at bit-width b is then computed as: 
+
+si,b = |gTi (Wi − Qb(Wi)) |
+
+This score captures how much the quantiza-tion of a layer’s weights is expected to impact the model’s performance. A higher score indicates that the layer is more sensitive to quantization and thus should be allocated more bits to preserve model performance. The bit allocation is formulated as an integer programming problem that minimizes the sum of sensitivity scores across all layers while respecting memory budget constraints: 
+
+arg min 
+
+> ci,b
+> N
+
+∑
+
+> i
+
+∑
+
+> b
+
+ci,b · si,b 
+
+s.t. ∑
+
+> b
+
+ci,b = 1 ,
+
+> N
+
+∑
+
+> i
+
+∑
+
+> b
+
+ci,b · M (Qb(Wi)) ≤ B 
+
+ci,b ∈ { 0, 1}, b ∈ { 2, 4}
+
+where ci,b is a binary indicator for whether layer 
+
+i should use b bits, M calculates memory usage, and B is the target memory budget. This formula-tion allows LLM-MQ to find a bit allocation that minimizes performance degradation while meeting memory constraints. 
+
+Activation-Based Scoring Description 
+
+Activation-based scoring (Kong et al., 2024) as-sesses layer importance by calculating the Frobe-nius norm of layer activations. For a given layer l
+
+with hidden states H(l) of shape (B, T, D ) where 
+
+B is batch size, T is sequence length, and D is hid-den dimension, the Frobenius norm is computed as: 
+
+∥H(l)∥F =
+
+√√√√ B∑
+
+> b=1
+> T
+
+∑
+
+> t=1
+
+Mb,t D∑
+
+> k=1
+
+(
+
+H(l)
+
+> b,t,k
+
+)2
+
+where Mb,t is the attention mask (1 for real to-kens, 0 for padding). The importance score for layer i is computed relative to the minimum norm across all layers: 
+
+si = 100 × min j ∥H(j)∥F
+
+∥H(i)∥F
+
+Result Visualizations on Quanto and HQQ 7577 Gemma-2-2B Gemma-2-9B Llama-3.2-3B   
+
+> Llama-3.1-8B Qwen3-4B Qwen3-8B
+
+Figure 3: Wikitext-2 Perplexity comparison of quantization methods across Gemma, Llama, Qwen models on HQQ.     
+
+> Gemma-2-2B Gemma-2-9B Llama-3.2-3B
+> Llama-3.1-8B Qwen3-4B Qwen3-8B
+
+Figure 4: Wikitext-2 Perplexity comparison of quantization methods across Gemma, Llama, Qwen models on Quanto. 7578

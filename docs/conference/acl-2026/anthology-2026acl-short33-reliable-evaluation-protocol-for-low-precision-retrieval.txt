@@ -1,0 +1,585 @@
+Title: 2026.acl-short.33.pdf
+
+URL Source: https://aclanthology.org/2026.acl-short.33.pdf
+
+Published Time: Thu, 11 Jun 2026 02:29:11 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+> Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 2: Short Papers) , pages 396–409 July 2-7, 2026 ©2026 Association for Computational Linguistics
+
+# Reliable Evaluation Protocol for Low-Precision Retrieval 
+
+Kisu Yang 1,3 , Yoonna Jang 2, Hwanseok Jang 1, Kenneth Choi 1,4 ,Isabelle Augenstein 2†, Heuiseok Lim 3†
+
+> 1
+
+VAIV Company 
+
+> 2
+
+University of Copenhagen 
+
+> 3
+
+Korea University 
+
+> 4
+
+University of California, Berkeley 
+
+Abstract 
+
+Lowering the numerical precision of model pa-rameters and computations is widely adopted to improve the efficiency of retrieval systems. However, when computing relevance scores between the query and documents in low-precision, we observe spurious ties due to the reduced granularity. This introduces high vari-ability in the results based on tie resolution, making the evaluation less reliable. To address this, we propose a more robust retrieval eval-uation protocol designed to reduce score vari-ation. It consists of: (1) High-Precision Scor-ing (HPS), which upcasts only the final scoring step to higher precision to resolve tied candi-dates with minimal computational cost; and (2) Tie-aware Retrieval Metric (TRM), which re-ports expected scores, range, and bias to quan-tify order uncertainty of tied candidates. Our experiments test multiple models with three scoring functions on twelve retrieval datasets to demonstrate that HPS dramatically reduces tie-induced instability, and TRM accurately recov-ers expected metric values. This combination enables a more consistent and reliable evalua-tion system for lower-precision retrieval. 1
+
+1 Introduction 
+
+Recent studies on low-precision techniques have been widely explored (e.g., quantization and com-pression) to enhance the efficiency and scalability of neural networks while reducing computational cost (Nagel et al.; Kurtic et al., 2024; Zhu et al., 2024; Hao et al., 2025). Without sacrificing perfor-mance, these methods aim to lower the numerical precision of model weights, gradients, and activa-tions in training and inference, along with the re-trieval stage (Choi et al., 2024; Lee et al., 2025) of retrieval-augmented generation (RAG) (Wang  
+
+> †Corresponding authors.
+> 1The source code is available at https://github.com/ kisuyang/tie-aware-retrieval-metrics .
+
+Figure 1: Example of tie-induced instability in evalua-tion metric. Three documents share the same score ( 𝐺 2); two of them are relevant to the query. A tie-oblivious evaluation arbitrarily breaks the tie, so the reported R@3 depends on a random internal ordering. Instead, the tie-aware formulation deterministically reports the ex-pectation over all permutations within the tie. 
+
+et al., 2024; Zhang et al., 2024, 2025). To gener-ate informative responses, retrieving accurate can-didates is crucial; otherwise, the following stages may be negatively affected and result in incoher-ent outputs (Chen et al., 2024b; Yadav et al., 2024; Sharma, 2025). In neural retrieval systems, however, lowering numerical precision (e.g., FP32 to FP16 ) inevitably reduces the granularity of representable floating point numbers (Shen et al., 2024; Hu et al., 2025) (see Appendix A); this coarser grid produces spu-rious ties among candidates by forcing many dis-tinct relevance scores to quantize to the same value. Though resolving this issue can significantly affect evaluation scores (Figure 1), current mainstream retrieval evaluation systems such as MTEB 2 (Muen-nighoff et al., 2023) do not provide any principled mechanism for handling ties. Instead, they truncate the ranked list based on an arbitrary order (e.g., doc-ument IDs), which increases variances in results. Thus, we propose a reliable evaluation protocol for low-precision retrieval. It is composed of (1) 
+
+> 2https://github.com/embeddings-benchmark/mteb
+
+396 High-Precision Scoring (HPS) and (2) Tie-aware Retrieval Metric (TRM). HPS upcasts the last scor-ing function into higher precision, to collapse spuri-ous ties (Section 2.2). TRM is an expectation-based evaluation augmented with extrema (i.e., maximum and minimum achievable scores) to quantify the or-der uncertainty of tied candidates (Section 2.3). Our experiments in Section 3 demonstrate that evaluating low-precision models using conven-tional tie-oblivious metrics leads to misleading out-comes as shown in Figure 1. Adopting HPS sig-nificantly reduces score range variability, reducing MRR@10 range by 36.82%p. Meanwhile, TRM exposes biases inherent in tie-oblivious metrics, highlighting systematic overestimation by up to +9.08%p in BF16 evaluations. By contrast, our com-bined approach recovers near-FP32 stability and ordering, offering a consistent and discriminative framework for evaluating retrieval models in low-precision settings. 
+
+2 Reliable Evaluation Protocol 
+
+We first formalize the vulnerability of the current tie-oblivious evaluation, and then present High-Precision Scoring and Tie-aware Retrieval Metric .(See Appendix A for preliminaries.) 
+
+2.1 Spurious Ties in Low-Precision Evaluation 
+
+Let 𝑧 denote the output of the linear layer after the last hidden state ℎ. If the scoring function 𝜙 is softmax or sigmoid, then the cross-encoder takes the concatenated query and 𝑖 -document pair (𝑞 ; 𝑑 𝑖 )
+
+as input and produces the logits 𝑧 𝑖 : two scalar val-ues for softmax, or a single scalar value for sig-moid. If 𝜙 is a pairwise product, 𝑧 𝑖 denotes the pair of embeddings (ℎ𝑞 , ℎ 𝑑 𝑖 ) obtained by encoding the query 𝑞 and the document 𝑑 𝑖 independently with a bi-encoder. We denote the query-document rele-vance score ̃𝑠 𝑖 as: ̃𝑠 𝑖 = 𝜙 (𝐵 )(𝑧 𝑖 ) (1) where 𝜙 (𝐵 ) indicates that 𝜙 is operated entirely in a 
+
+𝐵 -bit mantissa format. Applied with low-precision inference (e.g., 
+
+BF16 (Burgess et al., 2019), FP16 , etc), this maps theoretically continuous values onto a discrete set of representable scores; distinct true scores may collide: ̃𝑠 𝑖 =̃ 𝑠 𝑗 even with 𝑧 𝑖 ≠ 𝑧 𝑗 , creating a tie .After sorting by ̃𝑠 , we obtain ordered tie groups 𝐺 𝑛 
+
+consisting of scores 𝑠 𝑖 equivalent to 𝜈 𝑛 :
+
+𝐺 𝑛 = { 𝑖 ∣̃𝑠 𝑖 = 𝜈 𝑛 }. (2)             
+
+> #Forward pass outputs =model (** inputs ) logits =outputs . logits
+> +logits = logits.to(dtype=torch.float32) #Calculate probabilities probs =F. sigmoid ( logits , dim = -1)
+> Figure 2: Implementation of HPS. We enforce FP32 precision to ensure reproducibility.
+
+If the relevant document at cutoff rank 𝑘 falls inside a tie group 𝐺 𝑛 where |𝐺 𝑛 | ≥ 2, Any evalua-tion that disregards ties ( tie-oblivious ) may become stochastic and yield unpredictable results, as shown in Figure 1. 
+
+2.2 High-Precision Scoring (HPS) 
+
+Scoring functions such as softmax, sigmoid, and pairwise product compress logits into a narrow range. This effect is exacerbated under lower-precision formats due to fewer representable values resulting in coarser bucketization in (0 , 1) range (see examples in Appendix B). For lower-precision models, HPS upcasts only the final scoring operation to FP32 , leaving other layers unchanged. Concretely we replace the low-precision scoring function (Equation 1) with a higher-precision scoring function: ̂𝑠 𝑖 = 𝜙 (upcast( 𝑧 𝑖 )) , (3) and retain a more fine-grained score ̂ 𝑠 𝑖 for docu-ment candidate sorting. This significantly reduces the probability of tie collisions while preserving latency, since only a small logits tensor is upcast, requiring no re-training. 
+
+Upcast Operation. Upcast( · ) is a function that converts the inputs to a higher-precision floating-point datatype while preserving their real-valued magnitude. For example, a single-scalar logit of 
+
+−1 .25 that is internally represented in FP16 as the bit pattern 1 01111 0100000000 is upcast to FP32 
+
+as 1 01111111 01000000000000000000000 . Al-though the underlying bit representation changes, the value remains exactly −1 .25 , because every 
+
+FP16 and BF16 values is exactly representable in 
+
+FP32 .
+
+Ease of Implementation. Our proposed HPS method is designed for seamless integration into existing evaluation pipelines. As demonstrated in Figure 2, adopting HPS requires minimal modifica-tion to the codebase, often replacing a single line 397 of code within the standard evaluation script. This drop-in compatibility ensures that researchers can reproduce our high-precision results without archi-tectural overhaul. 
+
+Advantages. HPS (i) leaves the forward pass in-tact and upcasts logits right before scoring, (ii) adds negligible memory and time overhead as described in Appendix E, (iii) collapses large tie groups, and (iv) restores alignment with deterministic and high-precision production sorting as in Appendix C. 
+
+2.3 Tie-aware Retrieval Metric (TRM) 
+
+Existing tie-oblivious evaluation methods truncate the sorted list after a predefined cutoff 𝑘 . If multiple candidates receive the same score, they are ordered arbitrarily before truncation, affecting which items are included in the top-𝑘 set. As a result, the evalu-ation results may vary depending on how ties are resolved as illustrated in Figure 1. To mitigate this problem, TRM supplies exact expectations , range ,and a bias .
+
+Expected Score. Let 𝐺 1, … , 𝐺 𝑁 be tie groups sorted in descending order, where |𝐺 𝑛 | is the group size and 𝑟 𝑛 is the number of relevant items. Fol-lowing prior work (McSherry and Najork, 2008), we compute the expectation 𝔼 [𝑀 ] of an evaluation metric 𝑀 in closed form. We then use it as a diag-nostic reference to quantify ordering sensitivity via the score range and implementation-specific devia-tion due to tie breaking via the score bias . Explicit formulas are presented in Appendix D; the linear time complexity is analyzed in Appendix E. 
+
+Score Range. 𝑀 max places the query-relevant items in each partially included tie group as early as possible; 𝑀 min as late as possible. For each example 
+
+𝑖 , we report the average range over 𝐼 examples: 
+
+Range( 𝑀 ) = 1
+
+𝐼 
+
+> 𝐼
+
+∑
+
+> 𝑖 =1
+
+(𝑀 max ,𝑖 − 𝑀 min ,𝑖 ). (4) This metric quantifies uncertainty due solely to un-resolved internal orderings. A smaller range indi-cates that results are more stable and reliable. 
+
+Score Bias. Let 𝑀 𝑜𝑏𝑙,𝑖 denote the tie-oblivious score for example 𝑖 obtained using the original im-plementation’s fixed (typically index-preserving) ordering. We define the score bias as Bias (𝑀 ) = 1
+
+𝐼 
+
+> 𝐼
+
+∑
+
+> 𝑖 =1
+
+(𝑀 𝑜𝑏𝑙,𝑖 − 𝔼 [𝑀 ]𝑖 ). (5) A large positive bias implies that 𝑀 𝑜𝑏𝑙 tends to overestimate the expected scores, while negative values indicate underestimation. 
+
+Reporting Protocol. For each cutoff 𝑘 , we em-ploy the 𝔼 [𝑀 ], Range (𝑀 ) and Bias (𝑀 ) as diag-nostic measures to ensure evaluation reliability in this work. However, practitioners may report only the 𝔼 [𝑀 ] (or conventional 𝑀 𝑜𝑏𝑙 ) for interpretive simplicity, provided that HPS is applied or evalua-tion stability is internally verified via TRM. 
+
+3 Experiments 
+
+We evaluate to what degree our proposed evaluation protocol exposes and corrects reliability failures of existing tie-oblivious evaluation. 
+
+3.1 Experimental Settings Models. We cover five models widely used in reranking and embedding with three prevalent scor-ing functions: Softmax ♣, sigmoid ♢, and pairwise product ♠ as in Table 2. 
+
+Datasets. We evaluate on two primary datasets that supply a fixed candidate set per query, enabling second-stage reranker assessment independent of first-stage retrieval effects, and further extend to the MTEB-R benchmark described in Appendix F. • MIRACLReranking (Zhang et al., 2023) is a multilingual reranking dataset derived from open-domain Wikipedia; its English test split contains 717 of 799 queries (excluding those without any relevant passages), each with 100 candidates ( ≈2.9 relevant passages on aver-age). • AskUbuntuDupQuestions (Lei et al., 2016) consists of concise questions, each with at least one annotated duplicate. The test split contains 375 queries, each with 20 candidate questions (≈6 true duplicates on average). • MTEB Retrieval (MTEB-R) (Muennighoff et al., 2023) covers ten diverse English datasets: ArguAna, ClimateFEVERHard-Negatives, CQADupstackGamingRetrieval, CQADupstackUnixRetrieval, FEVERHard-Negatives, FiQA2018, HotpotQAHardNeg-atives, SCIDOCS, Touche2020Retrieval.v3, and TRECCOVID. 
+
+Evaluation Metrics. We evaluate the standard ranking metrics nDCG (Järvelin and Kekäläinen, 2002), MRR (Voorhees, 2000), MAP, and Recall. 398 Models FP32 BF16 BF16 → FP32 (+HPS )
+
+𝑀 𝑀 𝑀 𝑀 𝑜𝑏𝑙 𝑀 𝑜𝑏𝑙 𝑀 𝑜𝑏𝑙 𝔼 [𝑀 ]𝔼 [𝑀 ]𝔼 [𝑀 ] Range (▾) Bias (▾) 𝑀 𝑜𝑏𝑙 𝑀 𝑜𝑏𝑙 𝑀 𝑜𝑏𝑙 𝔼 [𝑀 ]𝔼 [𝑀 ]𝔼 [𝑀 ] Range (▾) Bias (▾)
+
+MIRACLReranking , 𝑀 = 𝑛𝐷𝐶𝐺 @10 𝑀 = 𝑛𝐷𝐶𝐺 @10 𝑀 = 𝑛𝐷𝐶𝐺 @10 
+
+Qwen3-Reranker-0.6B ♣ 73.53 75.04 68.38 25.59 6.66 73.59 73.35 1.13 0.24 
+
+bge-reranker-v2-m3 ♢ 74.61 75.59 74.54 3.90 1.05 74.63 74.57 0.16 0.06 
+
+gte-multilingual-reranker-base ♢ 74.14 74.48 74.22 0.97 0.26 74.39 74.34 0.14 0.05 
+
+Qwen3-Embedding-0.6B ♠ 63.94 64.52 63.98 1.90 0.54 64.01 64.01 0.00 0.00 
+
+multilingual-e5-large ♠ 64.78 65.70 64.81 4.62 0.89 64.80 64.80 0.00 0.00 MIRACLReranking , 𝑀 = 𝑀𝑅𝑅 @10 𝑀 = 𝑀𝑅𝑅 @10 𝑀 = 𝑀𝑅𝑅 @10 
+
+Qwen3-Reranker-0.6B ♣ 77.48 78.45 69.37 38.03 9.08 77.43 77.22 1.21 0.21 
+
+bge-reranker-v2-m3 ♢ 79.58 80.68 79.17 6.72 1.51 79.66 79.56 0.19 0.10 
+
+gte-multilingual-reranker-base ♢ 79.39 79.75 79.47 0.85 0.28 79.59 79.52 0.18 0.07 
+
+Qwen3-Embedding-0.6B ♠ 68.97 69.54 68.91 2.23 0.63 69.02 69.02 0.00 0.00 
+
+multilingual-e5-large ♠ 71.37 71.84 71.28 4.61 0.56 71.18 71.18 0.00 0.00 AskUbuntuDupQuestions , 𝑀 = 𝑀𝐴𝑃 @3 𝑀 = 𝑀𝐴𝑃 @3 𝑀 = 𝑀𝐴𝑃 @3 
+
+Qwen3-Reranker-0.6B ♣ 31.20 33.28 31.13 4.03 2.15 31.58 31.29 0.57 0.29 
+
+bge-reranker-v2-m3 ♢ 31.91 32.26 31.83 0.83 0.43 31.89 31.84 0.09 0.05 
+
+gte-multilingual-reranker-base ♢ 30.83 31.23 30.75 0.93 0.48 30.69 30.67 0.03 0.02 
+
+Qwen3-Embedding-0.6B ♠ 29.54 30.10 29.65 0.87 0.45 29.69 29.69 0.00 0.00 
+
+multilingual-e5-large ♠ 29.13 31.31 29.47 3.54 1.84 29.70 29.70 0.00 0.00 
+
+Table 1: Results using metric 𝑀 with its tie-oblivious version ( 𝑀 𝑜𝑏𝑙 ), expectation ( 𝔼 [𝑀 ]), range ( 𝑀 max −𝑀 min ), and bias (𝑀 − 𝔼 [𝑀 ]) on MIRACLEReranking (nDCG@10 and MRR@10) and AskUbuntuDupQuestions (MAP@3) under three precision regimes, full FP32 , BF16 , and BF16 →FP32 (with High-Precision Scoring). In full FP32 we empirically observe 𝑀 𝑜𝑏𝑙 = 𝔼 [𝑀 ] with zero range and bias, so only 𝑀 is shown. ♣, ♢, and ♠ indicate softmax, sigmoid, and pairwise product, respectively. Lower range and |bias | scores represent better stability.                 
+
+> Models 𝜙 𝜙 𝜙 Size
+> Qwen3-Reranker-0.6B (Zhang et al., 2025) Softmax ♣596M
+> bge-reranker-v2-m3 (Chen et al., 2024a) Sigmoid ♢568M
+> gte-multilingual-reranker-base (Zhang et al., 2024) Sigmoid ♢306M
+> Qwen3-Embedding-0.6B (Zhang et al., 2025) Product ♠596M
+> multilingual-e5-large (Wang et al., 2024) Product ♠560M
+
+Table 2: Models used in our experiments and their cor-responding scoring function and size. 
+
+Implementation Details. We use a maximum in-put length of 4,096 tokens 3 and a batch size of 16 4.All models are run under three data types: BF16 ,
+
+FP16 , and FP32 . HPS is implemented by upcast-ing the final scoring operation to FP32 . Baseline tie-oblivious scores rely on the framework’s prede-fined index order inside ties. In contrast, tie-aware expectations and extrema are computed with TRM. 
+
+3.2 Results Spurious Ties in Low-Precision Evaluation. 
+
+When using full BF16 , the results display signif-icant uncertainty as shown in Table 1. Especially, 
+
+Qwen3-Reranker model with softmax ♣ shows the highest variation — 25.59%p in nDCG@10 and 38.03%p in MRR@10. These ranges exceed the 
+
+> 3
+
+Only multilingual-e5-large is truncated to 512 tokens due to its length constraints. 
+
+> 4
+
+Batch size affects the representations produced by low-precision inference, even with identical inputs. 
+
+margins typically used to distinguish model superi-ority. Crucially, a striking decision error appears. Under the BF16 and nDCG@10 𝑜𝑏𝑙 evaluation, 
+
+Qwen3-Reranker seems to beat gte (75 .04 >
+
+74 .48 ). However, tie-aware metric 𝔼 [nDCG@10] 
+
+flips the ranking ( 68 .38 < 74 .22 ), and our pro-posed protocol (HPS + TRM) confirms the reversal (73 .35 < 74 .34 ) within a narrow range, rendering the naive evaluation rankings unreliable. Albeit bias can be positive or negative, all BF16 
+
+biases are positive, implying that tie-oblivious 𝑀 𝑜𝑏𝑙 
+
+is overestimated (up to +9.08%p). This positive trend is likely a result of oversights in dataset con-struction, coupled with heuristic tie-breaking, as the positive items are more consistently placed earlier in the dataset, causing the tie-breaking to systemat-ically favor them. We present the full experimental results on the both datasets in Figure 5 and 6. 
+
+High-Precision with Low-Cost. High precision scoring (HPS) collapses the large tie groups while keeping the bulk of computation in BF16 . Softmax ♣
+
+ranges shrink from 25.59 to 1.13%p in nDCG@10 and from 38.03 to 1.21%p at MRR@10; sigmoid ♢
+
+model ranges drop roughly an order of magni-tude (e.g., 3.90 to 0.16%p in nDCG@10); pairwise product ♠ models become perfectly deterministic (range = bias = 0). The remaining softmax resid-399 Figure 3: Tie-oblivious and expectation scores of nDCG and MRR at 𝑘 of Qwen3-Reranker-0.6B ♣ model when scored with each dtype on MIRACLReranking. 5
+
+ual range ( ∼ 1 %p) lies within ordinary inter-model differences, making rank reversals highly unlikely. Compared to full FP32 inference (stable but computationally costlier), HPS recovers near-FP32 
+
+stability and ordering with negligible time and space overhead, as described in Appendix E. Con-sequently, while pure low-precision scoring erodes evaluation reliability, adopting our protocol, HPS with reporting (𝔼 [𝑀 ], Range) , restores precise and discriminative comparisons. We further demon-strate the superiority of this protocol over alterna-tive baselines in Appendix G. 
+
+Impact of Precision across Cutoffs. Figure 3 shows nDCG and MRR metrics across various 𝑘 -rank cutoffs, illustrating increased variance ranges and biases under lower-precision computations. Consistent with our observations in Appendix A, the BF16 inference displays significant fluctuations and uncertainty (wide shaded areas), whereas FP16 
+
+demonstrates intermediate stability, and FP32 offers empirically stable results with negligible ties. This reflects the coarser bucketization induced by fewer mantissa bits in lower-precision formats ( BF16 ≪
+
+FP16 ≪ FP32 ). Notably, under 𝑀 𝑜𝑏𝑙 , the BF16 curves surpass the 
+
+FP32 baseline at every cutoff. Such results would in-correctly indicate better performance, highlighting the unreliability of tie-oblivious evaluation due to reduced precision. Conversely, the tie-aware expec-tation 𝔼 [𝑀 ] consistently places BF16 below FP32 ,accurately reflecting the true model performance. 
+
+4 Conclusion 
+
+We are the first to identify and formally analyze that current retrieval evaluations under low-precision 
+
+> 5nDCG and MRR are not interval scales and thus require nuanced interpretation.
+
+settings overlook tied candidates, resulting in un-stable outcomes. To address this, we propose two simple yet effective remedies: High-Precision Scor-ing (HPS) and Tie-Aware Retrieval Metric (TRM). HPS upcasts the final scoring operation to col-lapse spurious ties with negligible computational cost, and TRM reports the expected value of eval-uation scores across all possible orderings of tied candidates with score range and bias. Both methods are lightweight and straightforward to implement, and are broadly applicable across precision formats and retrieval benchmarks. Our proposed protocol mitigates spurious ties and provides a more reliable alternative to conventional evaluation practices. As retrieval quality is a well-established prereq-uisite for downstream generation performance in RAG pipelines, we believe our protocol lays a more reliable foundation for evaluating and developing retrieval systems that ultimately benefit retrieval-augmented applications. 
+
+Limitations 
+
+Our remedy targets the inference stage and does not explore how low-precision training influences rank-ing stability, nor whether mixed-precision training combined with HPS inference yields further gains. Furthermore, we do not empirically measure the downstream impact on tasks such as retrieval-augmented generation, given that the positive cor-relation between retrieval performance and RAG quality is both a theoretically established premise and empirically supported by prior literature. 
+
+Acknowledgments 
+
+This work was partly supported by the In-stitute of Information & Communications Technol-ogy Planning & Evaluation (IITP) grant funded by the Korean government (MSIT) (No. IITP-2026-RS-2024-00397085, Leading Generative AI Hu-man Resources Development, 50%) 
+
+This research was co-funded by the Eu-ropean Union (ERC, ExplainYourself, 101077481), by the Pioneer Centre for AI, DNRF grant number P1, as well as by The Villum Synergy Programme. Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Re-search Council. Neither the European Union nor the granting authority can be held responsible for them. 400 References 
+
+Robert B Ash and Catherine A Doléans-Dade. 2000. 
+
+Probability and Measure Theory . Academic Press. Neil Burgess, Jelena Milanovic, Nigel Stephens, Kon-stantinos Monachopoulos, and David Mansell. 2019. Bfloat16 Processing for Neural Networks. In 2019 IEEE 26th Symposium on Computer Arithmetic (ARITH) , pages 88–91. IEEE. Jianlv Chen, Shitao Xiao, Peitian Zhang, Kun Luo, Defu Lian, and Zheng Liu. 2024a. BGE M3-Embedding: Multi-Lingual, Multi-Functionality, Multi-Granularity Text Embeddings Through Self-Knowledge Distillation. Weijie Chen, Ting Bai, Jinbo Su, Jian Luan, Wei Liu, and Chuan Shi. 2024b. KG-Retriever: Efficient Knowl-edge Indexing for Retrieval-Augmented Large Lan-guage Models. CoRR .Chanyeol Choi, Junseong Kim, Seolhwa Lee, Jihoon Kwon, Sangmo Gu, Yejin Kim, Minkyung Cho, and Jy-yong Sohn. 2024. Linq-Embed-Mistral: Elevating Text Retrieval with Improved GPT Data Through Task-Specific Control and Quality Refinement. Linq AI Research Blog. David Goldberg. 1991. What Every Computer Scientist Should Know about Floating-Point Arithmetic. ACM Computing Surveys (CSUR) , 23(1):5–48. Chuan Guo, Geoff Pleiss, Yu Sun, and Kilian Q Wein-berger. 2017. On Calibration of Modern Neural Networks. In International Conference on Machine Learning , pages 1321–1330. PMLR. Zhiwei Hao, Jianyuan Guo, Li Shen, Yong Luo, Han Hu, Guoxia Wang, Dianhai Yu, Yonggang Wen, and Dacheng Tao. 2025. Low-Precision Training of Large Language Models: Methods, Challenges, and Oppor-tunities. arXiv preprint arXiv:2505.01043 .Weiming Hu, Haoyan Zhang, Cong Guo, Yu Feng, Renyang Guan, Zhendong Hua, Zihan Liu, Yue Guan, Minyi Guo, and Jingwen Leng. 2025. M-ANT: Ef-ficient Low-bit Group Quantization for LLMs via Mathematically Adaptive Numerical Type. In 2025 IEEE International Symposium on High Performance Computer Architecture (HPCA) , pages 1112–1126. IEEE. Kalervo Järvelin and Jaana Kekäläinen. 2002. Cu-mulated Gain-based Evaluation of IR Techniques. 
+
+ACM Transactions on Information Systems (TOIS) ,20(4):422–446. Eldar Kurtic, Alexandre Marques, Shubhra Pandit, Mark Kurtz, and Dan Alistarh. 2024. "Give Me BF16 or Give Me Death"? Accuracy-Performance Trade-Offs in LLM Quantization. arXiv preprint arXiv:2411.02355 .Jinhyuk Lee, Feiyang Chen, Sahil Dua, Daniel Cer, Mad-huri Shanbhogue, Iftekhar Naim, Gustavo Hernández Ábrego, Zhe Li, Kaifeng Chen, Henrique Schechter Vera, and 1 others. 2025. Gemini Embedding: Gen-eralizable Embeddings from Gemini. arXiv preprint arXiv:2503.07891 .Tao Lei, Hrishikesh Joshi, Regina Barzilay, Tommi Jaakkola, Kateryna Tymoshenko, Alessandro Mos-chitti, and Lluís Màrquez. 2016. Semi-supervised Question Retrieval with Gated Convolutions. In Pro-ceedings of the 2016 Conference of the North Amer-ican Chapter of the Association for Computational Linguistics: Human Language Technologies , pages 1279–1289. Frank McSherry and Marc Najork. 2008. Computing Information Retrieval Performance Measures Effi-ciently in the Presence of Tied Scores. In European conference on information retrieval , pages 414–421. Springer. Paulius Micikevicius, Sharan Narang, Jonah Alben, Gre-gory Diamos, Erich Elsen, David Garcia, Boris Gins-burg, Michael Houston, Oleksii Kuchaiev, Ganesh Venkatesh, and 1 others. 2017. Mixed Precision Training. arXiv preprint arXiv:1710.03740 .Niklas Muennighoff, Nouamane Tazi, Loic Magne, and Nils Reimers. 2023. MTEB: Massive Text Embed-ding Benchmark. In Proceedings of the 17th Confer-ence of the European Chapter of the Association for Computational Linguistics , pages 2014–2037. Markus Nagel, Marios Fournarakis, Rana Ali Amjad, Yelysei Bondarenko, Mart van Baalen, and Tijmen Blankevoort. A White Paper on Neural Network Quantization. arXiv preprint arXiv:2106.08295 , 4. Chaitanya Sharma. 2025. Retrieval-Augmented Gen-eration: A Comprehensive Survey of Architectures, Enhancements, and Robustness Frontiers. arXiv preprint arXiv:2506.00054 .Haihao Shen, Naveen Mellempudi, Xin He, Qun Gao, Chang Wang, and Mengni Wang. 2024. Efficient Post-training Quantization with FP8 Formats. Proceedings of Machine Learning and Systems , 6:483–498. EM Voorhees. 2000. The TREC-8 Question Answering Track Report. In Proc. Eighth Text REtrieval Confer-ence (TREC-8), NIST Special Publication 500-246 ,pages 77–82. Liang Wang, Nan Yang, Xiaolong Huang, Linjun Yang, Rangan Majumder, and Furu Wei. 2024. Multilingual E5 Text Embeddings: A Technical Report. arXiv preprint arXiv:2402.05672 .Wikipedia contributors. 2025. Bfloat16 Floating-point Format. Neemesh Yadav, Sarah Masud, Vikram Goyal, Md Shad Akhtar, and Tanmoy Chakraborty. 2024. Tox-BART: Leveraging Toxicity Attributes for Explanation Gen-eration of Implicit Hate Speech. In ACL (Findings) .401 Xin Zhang, Yanzhao Zhang, Dingkun Long, Wen Xie, Ziqi Dai, Jialong Tang, Huan Lin, Baosong Yang, Pengjun Xie, Fei Huang, Meishan Zhang, Li Wenjie, and Min Zhang. 2024. mGTE: Generalized Long-Context Text Representation and Reranking Models for Multilingual Text Retrieval. In Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing: Industry Track , pages 1393– 1412. Xinyu Zhang, Nandan Thakur, Odunayo Ogundepo, Ehsan Kamalloo, David Alfonso-Hermelo, Xi-aoguang Li, Qun Liu, Mehdi Rezagholizadeh, and Jimmy Lin. 2023. MIRACL: A Multilingual Re-trieval Dataset Covering 18 Diverse Languages. 
+
+Transactions of the Association for Computational Linguistics , 11:1114–1131. Yanzhao Zhang, Mingxin Li, Dingkun Long, Xin Zhang, Huan Lin, Baosong Yang, Pengjun Xie, An Yang, Dayiheng Liu, Junyang Lin, Fei Huang, and Jingren Zhou. 2025. Qwen3 Embedding: Advancing Text Embedding and Reranking Through Foundation Mod-els. arXiv preprint arXiv:2506.05176 .Xunyu Zhu, Jian Li, Yong Liu, Can Ma, and Weiping Wang. 2024. A Survey on Model Compression for Large Language Models. Transactions of the Associ-ation for Computational Linguistics , 12:1556–1577. 402 A Preliminaries 
+
+Figure 4: Bit layouts of FP16 , BF16 , and FP32 formats (Wikipedia contributors, 2025) 
+
+Floating-Point Value. A floating-point value is a way to represent numbers in computer systems, and typically encoded as three fields— sign , expo-nent , and mantissa (also called the fraction)—as illustrated in Figure 4. The exponent determines the dynamic range, the largest and smallest magni-tudes that can be represented, whereas the mantissa governs the precision attainable within that range. Since a shorter mantissa implies coarser quantiza-tion, multiple real numbers inevitably collapse into the same representable bin, producing tied values. After the common 1-bit sign, FP16 allocates 5
+
+exponent bits and 10 mantissa bits, BF16 uses 8
+
+and 7 bits respectively, and FP32 retains 8 exponent bits alongside a much longer 23 -bit mantissa. By preserving the full 8-bit exponent of FP32 , BF16 
+
+inherits the same dynamic range as single precision, which is widely credited with stabilizing training and thereby aiding generalization. However, when outputs are confined to the range 
+
+(0 , 1) —as with the probabilities emitted by soft-max or sigmoid scoring functions—the short 7-bit mantissa of BF16 , and to a lesser extent the 10 -bit mantissa of FP16 , sharply reduces resolution. This loss of granularity, particularly severe in BF16 , ex-acerbates the tied-score phenomenon and makes it difficult to distinguish among retrieval candidates that quantize to identical values. 
+
+B Examples of Relevance Scores 
+
+The example lists below show raw relevance scores for the first query of the MIRACLReranking test split produced by the Qwen3-Reranker-0.6B 
+
+model where relevant values for the given are in 
+
+bold . The first list ( scores_bf16 ) is obtained with both the model and scoring function executed en-tirely in BF16 , while the second ( scores_hps ) ap-plies High Precision Scoring (HPS). Tie group sizes shrink considerably under HPS. 
+
+scores_bf16 = [ 1.00000000, 1.00000000, 1.00000000, 1.00000000, 1.00000000, 1.00000000, 1.00000000, 1.00000000, 1.00000000, 1.00000000, 0.99609375, 0.99609375, 0.99609375 , 0.99609375, 0.99609375, 0.99609375, 0.99609375, 0.99609375, 0.99609375, 0.99609375, 0.99609375, 0.99609375, 0.99609375, 0.99609375, 0.99609375, 0.99609375, 0.99609375, 0.99609375, 0.99609375, 0.99218750, 0.99218750, 0.99218750, 0.99218750, 0.99218750, 0.99218750, 0.99218750, 0.99218750, 0.99218750, 0.99218750, 0.99218750, 0.99218750, 0.99218750, 0.98828125, 0.98828125, 0.98828125 ,0.98828125, 0.98828125, 0.98828125, 0.98828125, 0.98437500, 0.98437500, 0.98046875, 0.97656250, 0.97656250, 0.97265625, 0.96875000, 0.96875000, 0.96875000, 0.96875000, 0.96875000, 0.96875000, 0.96093750, 0.96093750, 0.96093750, 0.96093750, 0.95703125, 0.95703125, 0.95703125, 0.95703125, 0.95703125, 0.95312500, 0.95312500, 0.94921875, 0.94921875, 0.94531250, 0.94531250, 0.94531250, 0.94140625, 0.94140625, 0.93359375, 0.92578125, 0.92578125, 0.91796875, 0.91406250, 0.88671875, 0.88671875, 0.87890625, 0.87890625, 0.87500000, 0.86718750, 0.77734375, 0.60937500, 0.51562500, 0.46875000, 0.34960938, 0.30664062, 0.28125000, 0.17285156, 0.08496094, 0.02441406, ]scores_hps = [ 0.99948066, 0.99933332, 0.99929035, 0.99919587, 0.99914408, 0.99883050, 0.99883050, 0.99875510, 0.99858958, 0.99829930, 0.99767691, 0.99767691 , 0.99752742, 0.99752742, 0.99736834, 0.99719906, 0.99719906, 0.99701905, 0.99682730, 0.99662340, 0.99662340, 0.99592990, 0.99566853, 0.99566853, 0.99509466, 0.99509466, 0.99477994, 0.99444515, 0.99444515, 0.99408901, 0.99408901, 0.99408901, 0.99330717, 0.99330717, 0.99330717, 0.99242276, 0.99142247, 0.99142247, 0.99142247, 0.99087441, 0.99087441, 0.99029154, 0.98967183, 0.98901308 , 0.98901308, 0.98901308, 0.98831278, 0.98831278, 0.98756832, 0.98593640, 0.98409361, 0.98201376, 0.97838473, 0.97702265, 0.97404259, 0.97068775, 0.96885622, 0.96885622, 0.96885622, 0.96691406, 0.96691406, 0.96267307, 0.96036118, 0.96036118, 0.96036118, 0.95791227, 0.95791227, 0.95791227, 0.95791227, 0.95531917, 0.95257413, 0.95257413, 0.94966936, 0.94966936, 0.94659668, 0.94659668, 0.94659668, 0.93991333, 0.93991333, 0.93245327, 0.92414182, 0.92414182, 0.91964257, 0.91490096, 0.88720459, 0.88720459, 0.88079703, 0.88079703, 0.87407720, 0.86703575, 0.77729988, 0.60766321, 0.51561993, 0.46879065, 0.34864515, 0.30735803, 0.28140560, 0.17328820, 0.08509904, 0.02442309, ]
+
+C Quantitative Analysis on Spurious Ties 
+
+We further investigate the frequency and impact of spurious ties on the MTEB-R benchmark us-ing the Qwen3-0.6B-Reranker . By comparing var-ious precision formats, we demonstrate how HPS restores ranking granularity and fidelity. 403 C.1 Score Sparsity 
+
+Table 3 presents the average number of unique rel-evance scores within the top-𝑘 retrieved passages. While low-precision formats theoretically support a wide range of values, we observe a high density of scores in the (0 , 1) range, leading to frequent collisions. For instance, at 𝑘 = 100 , BF16 only yields 81.34 unique scores on average, indicating that nearly 20% of the documents share identical scores. The application of HPS noticeably restores score diversity even when using the same data type of model weights, bringing the counts closer to the 
+
+FP32 baseline.                                                    
+
+> Average Number of Unique Scores at 𝑘
+> Data Type 13510 20 50 100 1K
+> BF16 1.00 2.83 4.67 9.22 18.18 43.37 81.34 443.81
+> BF16 (+HPS) 1.00 2.98 4.93 9.75 19.08 45.14 84.09 483.78
+> FP16 1.00 2.95 4.89 9.78 19.48 48.31 95.11 712.73
+> FP16 (+HPS) 1.00 2.99 4.98 9.95 19.84 49.24 97.42 864.62
+> FP32 1.00 3.00 4.99 9.99 19.97 49.92 99.85 998.69
+
+Table 3: Average number of unique probabilities per query ( ↑). Results are averaged over the full MTEB-R datasets. 
+
+C.2 Tie Group Size 
+
+Table 4 illustrates the average tie group size, defined as the ratio of 𝑘 to the number of unique scores. In 
+
+BF16 , we observe an average of 1.12 passages per tie group at 𝑘 = 10 . This phenomenon forces eval-uators to rely on arbitrary tie-breaking heuristics (e.g., document IDs or metadata), which introduces noise into the ranking metrics. By reducing the tie group size and approaching the ideal of 1.00, HPS effectively mitigates this undesirable instability.                                                    
+
+> Average Tie Group Size at 𝑘
+> Data Type 13510 20 50 100 1K
+> BF16 1.0000 1.1073 1.1173 1.1241 1.1354 1.1795 1.2545 2.3840
+> BF16 (+HPS) 1.0000 1.0111 1.0172 1.0288 1.0515 1.1133 1.2008 2.2422
+> FP16 1.0000 1.0284 1.0312 1.0305 1.0327 1.0405 1.0562 1.4973
+> FP16 (+HPS) 1.0000 1.0028 1.0048 1.0059 1.0089 1.0160 1.0270 1.1640
+> FP32 1.0000 1.0018 1.0015 1.0016 1.0016 1.0016 1.0015 1.0013
+
+Table 4: Average tie group size per query ( ↓). Lower values indicate fewer collisions. 
+
+C.3 Rank Correlation against FP32 
+
+We verify whether the scores recovered by HPS closely align with the target order of the high-precision model. Table 5 shows the average Spear-man’s rank correlation ( 𝜌 ) against the FP32 rank-ing, which we treat as the ground truth. The results confirm that HPS consistently improves the rank correlation. This demonstrates that HPS does not merely introduce random noise to break ties but successfully recovers meaningful semantic distinc-tions that are otherwise lost during low-precision computation. Data Type Avg. 𝜌 
+
+BF16 0.998960 
+
+BF16 (+HPS) 0.998961 
+
+FP16 0.999972 
+
+FP16 (+HPS) 0.999975 
+
+FP32 1.000000 
+
+Table 5: Average Spearman’s rank correlation ( 𝜌 ) against FP32 ground truth ( ↑). 
+
+D Closed-form Expectations 
+
+Let the tie groups be 𝐺 1, … , 𝐺 𝑁 in descending score order. Each group 𝐺 𝑛 has size |𝐺 𝑛 | and 𝑟 𝑛 rel-evant items ( 0 ≤ 𝑟 𝑛 ≤ |𝐺 𝑛 |). Define the per-group relevance probability 
+
+𝑝 𝑛 = 𝑟 𝑛 
+
+|𝐺 𝑛 | , (6) and the cumulative size 
+
+𝑐 𝑛 = ∑
+
+𝑚 ≤𝑛 
+
+|𝐺 𝑚 |, 𝑐 0 = 0 . (7) For a cutoff rank 𝑘 , the number of items from group 
+
+𝐺 𝑛 that appear within the top-𝑘 list is 
+
+𝑡 𝑛 = max {0, min( |𝐺 𝑛 |, 𝑘 − 𝑐 𝑛 −1 )}. (8) 
+
+Count-based Metrics. 
+
+With 𝑁 + = ∑𝑚 𝑟 𝑚 ,
+
+𝔼 [Hits@ 𝑘 ] = ∑
+
+𝑛 ∶𝑡 𝑛 >0
+
+𝑝 𝑛 𝑡 𝑛 , (9) 
+
+𝔼 [Recall@ 𝑘 ] = 
+
+∑𝑛 𝑝 𝑛 𝑡 𝑛 
+
+𝑁 +
+
+, (10) 
+
+𝔼 [Precision@ 𝑘 ] = 
+
+∑𝑛 𝑝 𝑛 𝑡 𝑛 
+
+𝑘 , (11) 
+
+𝔼 [F1@ 𝑘 ] = 2 ∑𝑛 𝑝 𝑛 𝑡 𝑛 
+
+𝑘 + 𝑁 +
+
+. (12) 
+
+nDCG. 
+
+With binary gains and weights 𝑤 𝑟 = 1log 2(𝑟 +1) , de-fine 
+
+𝑊 (𝑎, 𝑏 ) = 
+
+𝑏 
+
+∑
+
+𝑟 =𝑎 
+
+𝑤 𝑟 . (13) 404 Then 
+
+𝔼 [DCG@ 𝑘 ] = ∑
+
+> 𝑛 ∶𝑡 𝑛 >0
+
+𝑝 𝑛 𝑊 (𝑐 𝑛 −1 + 1 , 𝑐 𝑛 −1 + 𝑡 𝑛 ),
+
+(14) 
+
+IDCG@ 𝑘 =
+
+> min( 𝑁 +,𝑘 )
+
+∑
+
+> 𝑟 =1
+
+𝑤 𝑟 , (15) 
+
+𝔼 [nDCG@ 𝑘 ] = 𝔼 [DCG@ 𝑘 ]IDCG@ 𝑘 . (16) 
+
+Reciprocal Rank. 
+
+Let 𝑛 ∗ = min{ 𝑛 ∣ 𝑟 𝑛 > 0} be the first group con-taining a relevant item and (𝑥 𝑎 
+
+> 𝑥 𝑏
+
+) be the binomial coefficient. If 𝑘 ≤ 𝑐 𝑛 ∗−1 then 𝔼 [RR@ 𝑘 ] = 0 ; other-wise 
+
+𝑢 = min( |𝐺 𝑛 ∗ | − 1 , 𝑘 − 𝑐 𝑛 ∗−1 − 1) (17) 
+
+𝑟 𝑡 = 𝑐 𝑛 ∗−1 + 𝑡 + 1 (18) 
+
+𝜋 𝑡 =
+
+(|𝐺 𝑛 ∗ |−𝑟 𝑛 ∗
+
+> 𝑡
+
+)(|𝐺 𝑛 ∗ |
+
+> 𝑡
+
+) (19) 
+
+𝜆 𝑡 = 𝑟 𝑛 ∗
+
+|𝐺 𝑛 ∗ | − 𝑡 (20) 
+
+𝔼 [RR@ 𝑘 ] = 
+
+> 𝑢
+
+∑
+
+> 𝑡 =0
+
+1
+
+𝑟 𝑡 
+
+𝜋 𝑡 𝜆 𝑡 . (21) 
+
+Average Precision. 
+
+For rank 𝑟 = 𝑐 𝑛 −1 + 𝑡 + 1 with 0 ≤ 𝑡 < 𝑡 𝑛 in group 
+
+𝐺 𝑛 ,
+
+𝐴 𝑛,𝑡 = 𝑅 𝑛 −1 + 1 + 𝑡 𝑟 𝑛 − 1 
+
+|𝐺 𝑛 | − 1 , (22) 
+
+𝐷 𝑛,𝑡 = 𝑐 𝑛 −1 + 𝑡 + 1 , (23) where 𝑅 𝑛 −1 = ∑𝑚<𝑛 𝑟 𝑚 . The expected AP@ 𝑘 is 
+
+𝔼 [AP@ 𝑘 ] = 1
+
+𝑁 +
+
+∑
+
+> 𝑛 ∶𝑟 𝑛 >0
+> 𝑡 𝑛 −1
+
+∑
+
+> 𝑡 =0
+
+𝑝 𝑛 
+
+𝐴 𝑛,𝑡 
+
+𝐷 𝑛,𝑡 
+
+. (24) 
+
+E Time and Space Complexity 
+
+Let the ranked list for one query contain 𝐿 candi-date documents and let the evaluation cutoff be 𝑘 .The list is partitioned into 𝑁 tie groups 𝐺 1, … , 𝐺 𝑁 
+
+of sizes |𝐺 1|, … , |𝐺 𝑁 | with ∑𝑁 𝑛 =1 |𝐺 𝑛 | = 𝐿 . All complexities below are per query. 
+
+High-Precision Scoring (HPS). Only the final logits are upcast to FP32 and passed once through a scoring function 𝜙 , so the time cost is 𝑂 (𝐿 ) with negligible extra memory. In our implementation, converting 1,000,000 (batch size) × 1,024 (hidden size) FP16 elements to FP32 takes about 5 ms end-to-end on a single NVIDIA H200. From a memory standpoint, the impact is transient and bounded. If a temporary FP32 buffer is materialized for the top-k block, the peak extra footprint is k × d × (4–2) bytes (e.g., 2 MB at k=1,024, d=1,024), and no FP32 
+
+state is persisted after scoring. 
+
+Tie-aware Retrieval Metric (TRM). All com-putations occur after sorting, so no additional log 𝐿 
+
+factor is introduced. (i) A single left-to-right scan gathers the pairs (|𝐺 𝑛 |, 𝑟 𝑛 ) for every tie group in 
+
+𝑂 (𝐿 ) where 𝑟 𝑛 refers to the number of relevant items in the 𝑛 -th tie group 𝐺 𝑛 . (ii) Closed-form expressions let nDCG, MAP, Recall, Precision, and F1 be evaluated in 𝑂 (min{ 𝑘, 𝑁 }) time. (iii) MRR examines only the first tie group containing a rele-vant document, costing 𝑂 (|𝐺 𝑗 ∗ |) ≤ 𝑂 (𝑘 ) where 𝑗 ∗
+
+is the index of the tie group that includes the first relevant item. (iv) Max, min, and range scores need only the tie group that straddles rank 𝑘 , again 𝑂 (𝑘 ).In total TRM adds at most 𝑂 (𝑘 + 𝑁 ) ⊆ 𝑂 (𝐿 )
+
+lightweight arithmetic per query, far below the cost of the forward pass or initial sort, while providing tie-robust evaluation. 
+
+F Extending to MTEB Retrieval 
+
+To verify that our findings generalize beyond the two primary datasets, we extend our evaluation to the MTEB-R benchmark. Our experiments on MTEB-R use 1K candidates retrieved by BM25. Table 6 presents the quantitative stability re-sults. We observe that standard BF16 inference introduces high score range compared to the full precision ( FP32 ) baseline. This significant metric instability is particularly pronounced in 
+
+Qwen3-Reranker-0.6B , which exhibits the high-est volatility with a range of 10.09 in nDCG@10 
+
+and 17.14 in MRR@10 . In contrast, proposed HPS (BF16 →FP32 ) effectively mitigates the instability, drastically reducing the range and absolute bias. Figure 7 further visualizes this phenomenon for 
+
+Qwen3-Reranker-0.6B . While the standard BF16 
+
+regime (yellow) suffers from a wide variance in scores, our method (green) aligns closely with the ground truth FP32 trajectory, ensuring reliable and consistent ranking evaluations. 405 G Comparison with Alternative Baselines 
+
+In this section, we discuss why alternative tie-breaking strategies or numerical formulations are less ideal compared to the proposed protocol. We categorize these alternatives into stochastic, de-terministic, numerical, and precision-based ap-proaches. 
+
+G.1 Stochastic Tie-breaking 
+
+A straightforward baseline to handle ties is to ran-domly permute the tied documents. However, this introduces non-determinism and sampling variance. Mathematically, if we denote the score of a ran-dom permutation baseline as 𝑀 rand , our expected score in TRM is equivalent to 𝔼 [𝑀 rand ]. While the empirical average of repeated random trials would converge to the expectation by the Law of Large Numbers (Ash and Doléans-Dade, 2000), it requires significant computational overhead to reduce vari-ance. In contrast, TRM provides a closed-form, de-terministic, and variance-free evaluation metric at negligible additional cost. 
+
+G.2 Deterministic Heuristics 
+
+Deterministic tie-breaking policies often rely on the inherent storage order or external metadata (e.g., document IDs, timestamps). The tie-oblivious base-line ( 𝑀 𝑜𝑏𝑙 ) discussed in Section 3 effectively corre-sponds to the former index-preserving policy. A critical flaw in these heuristics is their suscepti-bility to spurious correlations. As shown in Figure 6, in datasets like AskUbuntuDupQuestions (Lei et al., 2016), positive passages are systematically indexed earlier than negative ones due to the data collec-tion pipeline. Consequently, an index-preserving policy in this case acts identically to an optimistic 
+
+𝑀 max policy, leading to artificially inflated metrics. Relying on external metadata (e.g., chronological ordering) suffers from similar biases. In contrast, HPS relies solely on model outputs, making it far less sensitive to metadata artifacts and thereby ensuring fairer and more reproducible scoring across varying storage implementations and data curation histories. 
+
+G.3 Alternative Numerical Formulations Raw Logits vs. HPS (Sigmoid). One might sug-gest using raw logits 𝑧 𝑖 directly for ranking in-stead of upcasting followed by a sigmoid function, 
+
+𝜙 (upcast (𝑧 𝑖 )) , arguing that logits offer a wider nu-merical range. However, we prove that distinct FP16 
+
+logits map to distinct FP32 sigmoid outputs, making the ranking identical. Let 𝜎 (𝑥 ) be the sigmoid function. Its derivative is bounded by 0 < 𝜎 ′(𝑥 ) ≤ 1∕4 . By the Mean Value Theorem , for any two logits 𝑧 𝑖 , 𝑧 𝑗 , there exists 𝑐 
+
+such that: 
+
+|𝜎 (𝑧 𝑖 )− 𝜎 (𝑧 𝑗 )| = 𝜎 ′(𝑐 )|𝑧 𝑖 −𝑧 𝑗 | ≤ 14 |𝑧 𝑖 −𝑧 𝑗 |. (25) For two FP32 sigmoid outputs to collapse to the same value, their difference must be smaller than one FP32 Unit in the Last Place (ULP) (Goldberg, 1991), which is approximately 10 −7 in the (0 , 1) 
+
+interval. Combining this with the inequality: 
+
+|𝑧 𝑖 − 𝑧 𝑗 | ≥ 4|𝜎 (𝑧 𝑖 ) − 𝜎 (𝑧 𝑗 )| ≈ 4 × 10 −7 . (26) This implies that for ranking collisions to occur in HPS where they do not occur in raw logits, the input logits must differ by less than ≈ 4 × 10 −7 .Since the precision grid of BF16 /FP16 is orders of magnitude coarser than this threshold (except in a negligible neighborhood around zero), distinct 16-bit logits map to distinct FP32 sigmoid scores .Therefore, using raw logits provides no ranking ben-efit over HPS. Moreover, HPS preserves the (0 , 1) 
+
+probability scale, maintaining interpretability and consistency across different models and datasets. 
+
+Temperature Scaling. Applying temperature scaling (Guo et al., 2017) to logits can mitigate saturation but does not solve the fundamental is-sue of the limited bucket count in 16-bit arithmetic. Furthermore, temperature is a hyperparameter that requires dataset-specific tuning. In contrast, HPS is a zero-parameter solution that universally mitigates spurious ties. 
+
+G.4 Full Precision Computation 
+
+Performing all computations in FP32 from the start is the ideal solution for numerical accuracy. How-ever, this negates the efficiency benefits of mod-ern low-precision accelerators (Micikevicius et al., 2017). As illustrated in Figure 7, proposed HPS yields performance trajectories that closely match the full FP32 baseline, but with significantly lower memory bandwidth and computational costs as dis-cussed in Appendix E. Thus, HPS offers the practi-cally optimal trade-off between precision and effi-ciency. 406 (a) nDCG (b) MRR  
+
+> (c) MAP (d) Recall
+
+Figure 5: Metric scores for cutoff 𝑘 of Qwen3-Reranker-0.6B , known as the state-of-the-are in text retrieval tasks, on MIRACLReranking dataset. Panels (a)-(d) report nDCG, MRR, MAP, and Recall. Each marker shows the tie-oblivious score 𝑀 𝑜𝑏𝑙 (×) and the tie-aware expectation 𝔼 [𝑀 ] (●). The legend entry indicates the data types of the model and scoring function, respectively. For example, BF16 _FP32 denotes that the model operates in BF16 
+
+precision, while the scoring function is upcast to FP32 .407 (a) nDCG (b) MRR  
+
+> (c) MAP (d) Recall
+
+Figure 6: Metric scores for cutoff 𝑘 of Qwen3-Reranker-0.6B on AskUbuntuDupQuestions dataset. In this dataset, all tie-oblivious metrics attain their maximum possible value (being overestimated) because, during candidate construction, every relevant item is concatenated ahead of all non-relevant ones. 6
+
+> 6https://github.com/embeddings-benchmark/mteb/blob/1.38.38/mteb/evaluation/evaluators/ RerankingEvaluator.py#L175
+
+408 Models FP32 BF16 BF16 → FP32 (+HPS )                                                                                                              
+
+> 𝑀 𝑀 𝑀 𝑀 𝑜𝑏𝑙 𝑀 𝑜𝑏𝑙 𝑀 𝑜𝑏𝑙 𝔼 [𝑀 ]𝔼 [𝑀 ]𝔼 [𝑀 ]Range (▾)|Bias| (▾)𝑀 𝑜𝑏𝑙 𝑀 𝑜𝑏𝑙 𝑀 𝑜𝑏𝑙 𝔼 [𝑀 ]𝔼 [𝑀 ]𝔼 [𝑀 ]Range (▾)|Bias| (▾)
+> 𝑀 =𝑛𝐷𝐶𝐺 @10 𝑀 =𝑛𝐷𝐶𝐺 @10 𝑀 =𝑛𝐷𝐶𝐺 @10
+> Qwen3-Reranker-0.6B ♣47.51 46.92 46.24 10.09 0.68 47.56 47.55 0.65 0.01
+> bge-reranker-v2-m3 ♢43.94 43.70 43.81 2.13 0.11 43.96 43.92 0.18 0.03
+> gte-multilingual-reranker-base ♢46.72 46.71 46.62 0.93 0.09 46.70 46.69 0.12 0.01
+> Qwen3-Embedding-0.6B ♠45.59 45.55 45.50 1.19 0.06 45.50 45.50 0.00 0.00
+> multilingual-e5-large ♠43.20 43.66 43.13 4.46 0.53 43.35 43.35 0.00 0.00
+> 𝑀 =𝑀𝑅𝑅 @10 𝑀 =𝑀𝑅𝑅 @10 𝑀 =𝑀𝑅𝑅 @10
+> Qwen3-Reranker-0.6B ♣49.47 48.14 47.44 17.14 0.70 49.48 49.42 0.79 0.05
+> bge-reranker-v2-m3 ♢45.38 44.92 45.34 4.27 0.42 45.36 45.35 0.17 0.00
+> gte-multilingual-reranker-base ♢49.42 49.11 49.14 1.41 0.03 49.37 49.36 0.14 0.01
+> Qwen3-Embedding-0.6B ♠47.23 47.36 47.22 1.47 0.14 47.31 47.31 0.00 0.00
+> multilingual-e5-large ♠44.57 45.65 44.83 5.60 0.82 44.95 44.95 0.00 0.00
+
+Table 6: Evaluation stability results on the MTEB-R benchmark. All reported scores are averaged across ten diverse datasets, reranking top-1000 passages retrieved by BM25. We compare the tie-oblivious metric ( 𝑀 𝑜𝑏𝑙 ), expectation (𝔼 [𝑀 ]), range ( ▾), and absolute bias ( ▾) under standard BF16 and our BF16 →FP32 (+HPS). Bold values indicate the lowest range and absolute bias, and underlined values represent the highest performance in each metric. The application of HPS leads to a significant reduction in both range and absolute bias, effectively suppressing the numerical noise inherent in low-precision evaluation. Notably, while standard BF16 can lead to ranking inversions where the best-performing model in FP32 is no longer identified as the top choice, our HPS method restores the model rankings to be highly consistent with the full FP32 baseline. 
+
+Figure 7: Visualization of nDCG@ k (left) and MRR@ k (right) fluctuations for Qwen3-Reranker-0.6B under the 
+
+BF16 precision regime on MTEB-R. The high variance in scores (yellow shaded area) demonstrates the inherent risk of reaching inconsistent ranking conclusions when using low-precision inference without a reliable protocol. In contrast, our proposed HPS yields performance trajectories that closely match the full FP32 baseline. 409
