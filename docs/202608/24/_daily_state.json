@@ -1,0 +1,57 @@
+{
+  "date": "20260824",
+  "date_label": "",
+  "generated_at": "2026-08-24 19:21:20 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.19388v1",
+      "route": "202608/24/2608.19388v1-quantization-beyond-uniform-bit-allocation",
+      "title": "Quantization Beyond Uniform Bit Allocation",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "量化，可变比特分配，PQ与SQ",
+      "first_seen_at": "2026-08-24 19:21:20 UTC",
+      "updated_at": "2026-08-24 19:21:20 UTC"
+    },
+    {
+      "paper_id": "2608.21134v1",
+      "route": "202608/24/2608.21134v1-llama-mobile-efficient-27-bit-quantization-of-vlms",
+      "title": "Llama-Mobile: Efficient 2.7-Bit Quantization of VLMs",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向VLM的2.7位超低比特量化，直接对应极低比特VQ/SQ主题。",
+      "first_seen_at": "2026-08-24 19:21:20 UTC",
+      "updated_at": "2026-08-24 19:21:20 UTC"
+    },
+    {
+      "paper_id": "2608.16104v1",
+      "route": "202608/24/2608.16104v1-nexus-structured-synergy-for-efficient-text-to-image-generation-using-rectified-flow-model",
+      "title": "Nexus: Structured Synergy for Efficient Text-to-Image Generation using Rectified Flow Model",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向高效文生图的低比特量化方法",
+      "first_seen_at": "2026-08-24 19:21:20 UTC",
+      "updated_at": "2026-08-24 19:21:20 UTC"
+    }
+  ]
+}
