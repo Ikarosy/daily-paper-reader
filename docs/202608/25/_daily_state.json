@@ -1,0 +1,73 @@
+{
+  "date": "20260825",
+  "date_label": "",
+  "generated_at": "2026-08-25 19:26:11 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.19388v1",
+      "route": "202608/25/2608.19388v1-quantization-beyond-uniform-bit-allocation",
+      "title": "Quantization Beyond Uniform Bit Allocation",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "直接研究标量量化与乘积量化的非均匀比特分配，支持极低比特SQ",
+      "first_seen_at": "2026-08-25 19:26:11 UTC",
+      "updated_at": "2026-08-25 19:26:11 UTC"
+    },
+    {
+      "paper_id": "2608.23144v1",
+      "route": "202608/25/2608.23144v1-activation-weighted-seeded-residual-coding-for-low-bit-llm-weight-repair",
+      "title": "Activation-Weighted Seeded Residual Coding for Low-Bit LLM Weight Repair",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "低位权重复原残差编码，激活加权，Qwen先进结果",
+      "first_seen_at": "2026-08-25 19:26:11 UTC",
+      "updated_at": "2026-08-25 19:26:11 UTC"
+    },
+    {
+      "paper_id": "2608.20988v1",
+      "route": "202608/25/2608.20988v1-jacobian-guided-noise-injection-for-quantization-robustness-in-large-language-models",
+      "title": "Jacobian-guided Noise Injection for Quantization Robustness in Large Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "LLM量化鲁棒性，softmax瓶颈，先进训练策略",
+      "first_seen_at": "2026-08-25 19:26:11 UTC",
+      "updated_at": "2026-08-25 19:26:11 UTC"
+    },
+    {
+      "paper_id": "2608.16662v2",
+      "route": "202608/25/2608.16662v2-two-level-decorrelated-coded-modulation-on-the-d4-lattice",
+      "title": "Two-Level Decorrelated Coded Modulation on the $D_4$ Lattice",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "基于 D4 格的编码调制，与格向量量化相关",
+      "first_seen_at": "2026-08-25 19:26:11 UTC",
+      "updated_at": "2026-08-25 19:26:11 UTC"
+    }
+  ]
+}
