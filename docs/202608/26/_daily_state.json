@@ -1,0 +1,41 @@
+{
+  "date": "20260826",
+  "date_label": "",
+  "generated_at": "2026-08-26 22:06:41 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.21134v1",
+      "route": "202608/26/2608.21134v1-llama-mobile-efficient-27-bit-quantization-of-vlms",
+      "title": "Llama-Mobile: Efficient 2.7-Bit Quantization of VLMs",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "2.7位量化视觉语言模型，贴合极低比特VQ主题",
+      "first_seen_at": "2026-08-26 22:06:41 UTC",
+      "updated_at": "2026-08-26 22:06:41 UTC"
+    },
+    {
+      "paper_id": "2608.21693v1",
+      "route": "202608/26/2608.21693v1-benchmarking-composable-compression-techniques-in-mixture-of-experts-llms",
+      "title": "Benchmarking Composable Compression Techniques in Mixture-of-Experts LLMs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "可组合MoE压缩基准明确覆盖权重量化，与低比特SQ/VQ应用相关",
+      "first_seen_at": "2026-08-26 22:06:41 UTC",
+      "updated_at": "2026-08-26 22:06:41 UTC"
+    }
+  ]
+}

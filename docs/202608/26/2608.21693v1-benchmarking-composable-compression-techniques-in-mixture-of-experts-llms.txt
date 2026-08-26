@@ -1,0 +1,515 @@
+Title: Benchmarking Composable Compression Techniques in Mixture-of-Experts LLMs
+
+URL Source: https://arxiv.org/pdf/2608.21693v1
+
+Published Time: Tue, 25 Aug 2026 00:17:57 GMT
+
+Number of Pages: 15
+
+Markdown Content:
+# Benchmarking Composable Compression Techniques in Mixture-of-Experts LLMs 
+
+Afsara Benazir ∗
+
+University of Virginia 
+
+hys4qm@virginia.edu 
+
+Chen Chen 
+
+Sony AI 
+
+chena.chen@sony.com 
+
+Rongxiao Qu 
+
+Sony AI 
+
+Rongxiao.Qu@sony.com 
+
+Jiabo Huang 
+
+Sony AI 
+
+raymond.huang@sony.com 
+
+Jingtao Li 
+
+Sony AI 
+
+jingtao.li@sony.com 
+
+Lingjuan Lyu 
+
+Sony AI 
+
+lingjuan.lv@sony.com 
+
+## Abstract 
+
+Mixture-of-Experts (MoE) LLMs scale model capacity efficiently through sparse activation, but their large expert parameter footprint, routing imbalance, and long-context KV-cache growth make deployment difficult on commodity hardware. Practical deployment often requires stacking multiple compression techniques: expert pruning removes redundant experts, weight quantization lowers model mem-ory footprint, and KV-cache compression reduces long-context memory pressure. However, these techniques are typically evaluated in isolation, leaving open how they interact when applied together in realistic deployment pipelines. In this work, we present MoE-XBench, a systematic benchmark for evaluating composable MoE compression as an end-to-end deployment workflow. MoE-XBench studies 10 MoE models ranging from 30B to 235B parameters across standard-attention, hybrid linear-attention, and sliding-window attention architectures. Across seven work-loads, it evaluates 20%-50% expert pruning rates, 1 to 16 bit weight-quantization schemes, and multiple KV-cache precision settings, applied both individually and in combination. MoE-XBench introduces an eight-module evaluation suite that jointly measures composable compression quality, workload and architecture ro-bustness, pruning/quantization/KV cache sensitivity, and deployment efficiency on commodity hardware. Our results reveal non-trivial interactions among com-pression methods: composable compression cannot be predicted from standalone techniques, compression rate alone does not reliably predict quality loss or runtime gain, expert pruning is the dominant degradation source, and average quality can hide workload and architecture-specific failures. By releasing normalized mod-ule scores, compressed artifacts, and reproducible scripts, MoE-XBench enables practical accuracy-memory-latency comparison across MoE model families and hardware backends. 
+
+## 1 Introduction 
+
+Large language models (LLMs) achieve strong performance across reasoning, coding, instruction-following, and long-context tasks, but their large parameter counts make deployment expensive in memory, latency, and energy. Mixture-of-Experts (MoE) LLMs improve this tradeoff by routing each token to only a small subset of experts, thereby scaling total model capacity while keeping active computation relatively small. However, MoE models remain difficult to deploy on commodity hardware because they require storing many experts, managing expert-prefetching bottlenecks, handling expert imbalance, and maintaining a large KV cache during long-context inference that can  
+
+> ∗Work conducted during an internship at Sony AI Preprint. arXiv:2608.21693v1 [cs.LG] 22 Aug 2026 Workflow Evaluation Modules
+> Diverse sources
+> Workload Robustness
+> Stacked
+> performance
+> Calibration
+> Quantization
+> KV cache
+> compression
+> Expert Pruning
+> Model artifact
+> Baseline MoE checkpoint
+> Quantization
+> sensitivity
+> Architecture
+> reliability
+> Pruning
+> sensitivity
+> KV cache
+> sensitivity
+> Inference Efficiency
+> Hardware Acceleration
+
+Figure 1: Overview of MoE-XBench. Each radar reports normalized module scores, where higher is better. Performance, robustness, and reliability measure fixed-configuration quality, while pruning, quantization, and KV tolerance summarize controlled sensitivity sweeps around that configuration. introduce non-trivial accuracy-efficiency tradeoffs. Existing LLM compression methods remain far from practical deployment because of these key challenges: 
+
+(1) Lack of systematic evaluation of MoE compression schemes. Prior work has extensively studied compression for dense LLMs [34, 30, 8, 23], but the same has not been done for MoE LLMs, where sparse routing, expert imbalance, and expert redundancy create different accuracy-efficiency tradeoffs [13]. These effects further vary across MoE architectures - standard-attention [15], hybrid linear-attention [22, 18], and sliding-window attention [28] MoEs. 
+
+(2) Lack of prior work on composable compression in MoE LLMs. Existing compression studies largely evaluate pruning, quantization, and KV-cache compression as isolated techniques [20, 7, 13, 23, 4]. Yet stacking them introduces non-obvious interactions: pruning changes expert utilization, quantization changes numerical error, and KV-cache compression changes attention behavior. It remains unclear whether composable effects are additive, redundant, or harmful, leaving practitioners to rely on heuristic choices of pruning ratio, quantization format and KV-cache precision. 
+
+(3) Existing efficiency metrics do not reflect real deployment cost. A major challenge in evaluating LLM compression is that efficiency is often measured using proxy metrics such as parameter count, FLOPs etc. which do not fully capture runtime behavior. A smaller MoE model may not yield proportional speedups: inference also depends on context length, batch size, backend kernels, memory layout, dequantization overhead, and hardware scheduling. Evaluation should therefore verify whether compression improves runtime metrics such as peak memory, prefill/decode throughput, and hardware acceleration on target device. To address aforementioned challenges, we present MoE-XBench, a comprehensive benchmark for systematic evaluation of compression methods in Mixture-of-Experts (MoE) LLMs. We design an end-to-end workflow that converts the original MoE checkpoints into deployable artifacts through calibration, expert pruning, weight quantization, and KV-cache compression (ref. Figure 1). MoE-XBench analyzes MoE deployment tradeoffs across architectures and commodity hardware, evaluating 10 MoE LLMs on seven workloads under varying pruning rate, quantization, and KV-cache precision. Our main contributions are as follows: • We build MoE-XBench, an end-to-end benchmarking framework for MoE compression that frames expert pruning, weight quantization, and KV-cache compression as components of a composable deployment pipeline, establishing the first systematic study of composable compression in MoE models. • We design an evaluation suite consisting of eight modules to address the research questions in Table 1 separating model quality from deployment efficiency while characterizing non-trivial interactions among individual and composable compression techniques across model accuracy, workload type, architecture robustness, efficiency, and hardware backend. 2Research Questions  Benchmark Modules         
+
+> RQ1: How much accuracy is retained under stacked model compression, and is this retention consistent across diverse workloads and model families?
+> Stacked compression performance; Workload robustness; Reliability
+> RQ2: How sensitive is stacked compression to expert pruning, quantization scheme, KV-cache compression?
+> Quantization sensitivity;
+> Pruning sensitivity; KV sensitivity
+> RQ3: Do theoretical compression gains translate into real deployment efficiency in terms of peak memory and throughput on commodity hardware?
+> Inference efficiency;
+> Hardware acceleration
+
+Table 1: Research questions and their corresponding MoE-XBench evaluation modules. • We release a reproducible benchmark implementation and empirical study across MoE families on commodity hardware, identifying practical deployment tradeoffs that show when compression preserves quality, where losses compound, and whether model-size reductions translate into real gains in memory, throughput, latency, and hardware efficiency. 
+
+Our takeaway. By extensively benchmarking MoE models across diverse architectures, compression rates, and hardware backends, we find that MoE compression must be evaluated as a deployment pipeline rather than as isolated accuracy-preserving steps. We observe that model quality is de-pendent on compression axis, architecture, and is non-additive, with expert pruning dominating degradation. Hardware efficiency is often decoupled from memory reduction due to KV-cache and low-bit dequantization overheads. These observations underscore the practical value of MoE-XBench in identifying the compression point that preserves quality while delivering real throughput and memory gains. 
+
+## 2 Background 
+
+2.1 Mixture-of-Experts LLMs 
+
+Mixture-of-Experts (MoE) LLMs [26] route each token to a small subset of experts, increasing total parameter capacity without proportionally increasing active computation [6]. This sparsity improves capacity-efficiency tradeoffs but introduces deployment challenges such as routing overhead, expert imbalance, and large memory footprints. Modern MoE LLMs vary in routing design: Qwen3-MoE [29] and GLM-4.5 [10] use standard sparse top-k routing, while DeepSeekMoE [3] adds shared experts to reduce redundancy. Because these choices change routing patterns, active parameters, and memory/throughput behavior, compression results should be validated across families rather than assumed to transfer directly. 
+
+2.2 Model Compression 
+
+Compression for MoE LLM deployment spans a wide design space; we study three post training compression axes that act directly on the deployed model and its inference-time state: offline expert pruning and weight quantization, and runtime KV-cache compression. Other techniques are complementary but either require retraining (distillation [17], merging [14]) or live at the serving layer (offloading [5], speculative decoding [21]); we treat them as orthogonal. 
+
+Expert pruning removes low-utility experts while preserving sparse routing, with REAP [20] showing its effectiveness as one-shot MoE compression. Quantization lowers weight precision to reduce memory footprint; QMoE demonstrates sub-1-bit effective MoE storage [7], while MoEQuant uses expert-aware calibration for sparse-routing imbalance [13]. KV-cache compression reduces long-context memory growth, complementing weight compression through methods such as KIVI’s asymmetric 2-bit quantization [23], layer-dependent pruning [4], and TurboQuant [31]. 
+
+2.3 Gap in Prior Work 
+
+Dense LLM compression has been studied extensively, with a broad literature on pruning, low-bit quantization, and inference-time memory reduction [34]. MoE compression is much less systemati-cally characterized: existing studies typically focus on a limited number of models, one compression axis at a time, and narrow evaluation settings, making it difficult to separate architecture-specific observations from general deployment trends [20, 7, 13, 23, 4]. More importantly, no prior work treats composable compression as a first-class evaluation setting for MoEs. In practice, deployable 3Table 2: Compression configurations in MoE-XBench; the last three are composable.                         
+
+> Configuration Baseline FP16 Prune only Quant only Quant + KV Prune + Quant Prune + Quant + KV Expert Pruning ✗✓✗✗✓✓
+> Weight Quantization ✗✗✓✓✓✓
+> KV Cache Compression ✗✗✗✓✗✓
+
+models combine expert pruning, weight quantization, and KV-cache compression in a pipeline, yet the interactions among these stages remain poorly understood: because each acts on a different part of the inference stack, it is unclear whether composable compression is complementary, redundant, or harmful for MoE models, and whether theoretical savings translate into real gains in memory and throughput on target hardware. LLMCBench [30] evaluates weight pruning and quantization schemes separately for dense model architectures, but does not consider composable compression pipelines, KV-cache compression, or MoE architectures. MoE-CAP [16], the closest MoE benchmark, targets serving utilization rather than model compression and does not study these techniques as composable. Method-specific studies - REAP [20], QMoE [7], KIVI [23] etc. evaluate compression along a single axis with one or two metric on one architecture family. None jointly evaluate all three MoE-relevant compression axes, study them as a composable pipeline, or span multiple MoE architecture families. MoE-XBench fills this gap by evaluating all combinations of pruning, quantization, and KV-cache compression across three MoE architecture families (standard, hybrid linear-attention, sliding-window-attention) through an eight-module suite that covers quality retention, robustness, sensitivity, and runtime efficiency. 
+
+## 3 MoE-XBench 
+
+3.1 Overview 
+
+MoE-XBench is an evaluation suite for benchmarking compression choices in MoE LLMs. It supports both standalone techniques and combined compression pipelines, including expert pruning, weight quantization, and KV-cache compression. MoE-XBench is necessary to evaluate MoE-specific compression axes and their interactions under a unified methodology and is distinct from other compression benchmarks such as [30, 16]. 
+
+Workflow. As shown in Figure 1, MoE-XBench uses a one-shot compression pipeline to transform baseline MoE checkpoints into deployable compressed artifacts. Each resulting artifact is evaluated using a unified harness organized around these modules (§3.3) that report both accuracy and efficiency, enabling controlled comparison between individual compression stages and combined compression pipelines. We evaluate the compression configurations in Table 2. 
+
+3.2 Design Goals 
+
+MoE-XBench is built around three design goals. 
+
+G1: Compression methods as composable building blocks. Expert pruning, weight quantization, and KV-cache compression are treated as deployment primitives that can be applied individually or combined. This design reflects how large MoE models are prepared for practical deployment under memory and latency constraints, while enabling controlled comparison between standalone and combined compression settings. 
+
+G2: Separation of model quality from deployment efficiency. A compressed MoE model is useful only if it preserves task quality while reducing practical deployment cost. MoE-XBench reports both model accuracy and efficiency metrics, so that compression gains in one dimension are not obscured by losses in another. 
+
+G3: Expose interactions between compression methods. Composable compression may not behave additively: expert pruning can change quantization tolerance, quantization can interact with calibration quality, and KV-cache compression can affect pruned and dense models differently. MoE-XBench includes dedicated modules to quantify individual and combined effects, isolating each compression choice while exposing how composable pipelines affect evaluation metrics. 43.3 Benchmark Modules 
+
+MoE-XBench contains eight evaluation modules. Each reports raw measurements and a normalized score Score x, where 100 denotes parity with a reference setting and higher is better. Accuracy scores average over models and datasets; efficiency scores average over models, hardware platforms, and runtime settings. We use raw measurements for detailed analysis and normalized scores for compact comparison and Pareto analysis. For retention-stability scores, we use 
+
+Γ( {xi}) = GM i(xi) · min i xi
+
+max i xi
+
+,
+
+which rewards high average retention and penalizes uneven degradation. For perplexity-based modules (Modules 3-6 on WikiText), we define eS = 1 /PPL so that higher eS corresponds to better quality, and retention ratios R remain in (0 , 1] when compression hurts. In all sensitivity modules, the reference-format set is excluded from the sweep set: B− = B \ { b0}, K− = K \ { K0}, and 
+
+P− = P \ { p0}.
+
+Module 1: Stacked compression performance. This module measures task quality retained after composable compression. Let B be the full-precision base model and c a compressed configuration. If Sc and SB are mean task scores, then 
+
+Score perf (c) = 100 · Sc
+
+SB
+
+.
+
+Module 2: Workload robustness. This module measures whether quality is retained consistently across workloads. For workload w ∈ W , let Rc,w = Sc,w /S B,w . We define 
+
+Score robust (c) = 100 · Γ( {Rc,w : w ∈ W} ).
+
+Module 3: Architecture reliability. This module measures whether a compression setup remains reliable across MoE architecture families. For model m, let Rc,m = Sc,m /S B,m , and for family a,let Ac,a = GM m∈a(Rc,m ). We define 
+
+Score arch (c) = 100 · Γ( {Ac,a }a).
+
+Module 4: Quantization sensitivity. This module measures quality retained as weight precision is reduced. Let b0 denote the 16-bit reference and B− the evaluated low-bit formats. For configuration 
+
+c,
+
+Rquant  
+
+> c,b
+
+= eSc,b 
+
+eSc,b 0
+
+, Score quant (c) = 100 × GM b∈B −
+
+
+
+Rquant 
+
+> c,b
+
+
+
+· min b∈B − Rquant 
+
+> c,b
+
+max b∈B − Rquant 
+
+> c,b
+
+.
+
+Module 5: KV-cache sensitivity. This module measures quality retained as KV-cache precision is reduced. Let K0 denote the fp16/fp16 KV-cache reference and K− the compressed KV formats. For configuration c,
+
+RKV  
+
+> c,k
+
+= eSc,k 
+
+eSc,K 0
+
+, Score KV (c) = 100 × GM k∈K −
+
+ RKV 
+
+> c,k
+
+ · min k∈K − RKV 
+
+> c,k
+
+max k∈K − RKV 
+
+> c,k
+
+.
+
+Module 6: Expert pruning sensitivity. This module measures quality retained as experts are removed. Let p0 denote the unpruned reference and P− the evaluated pruning settings. For configu-ration c,
+
+Rprune  
+
+> c,p
+
+= eSc,p 
+
+eSc,p 0
+
+, Score prune (c) = 100 × GM p∈P −
+
+ Rprune 
+
+> c,p
+
+ · min p∈P − Rprune 
+
+> c,p
+
+max p∈P − Rprune 
+
+> c,p
+
+.
+
+Module 7: Inference efficiency. This module measures deployment-cost reduction. Let Mc, Tc, prefill ,and Tc, decode be peak memory, prefill latency, and decode latency for configuration c, with base-model values subscripted by B. Raw values are reported separately. We define 
+
+Score cost (c) = 100 · GM 
+
+ MB
+
+Mc
+
+, TB, prefill 
+
+Tc, prefill 
+
+, TB, decode 
+
+Tc, decode 
+
+
+
+.
+
+5Module 8: Hardware acceleration. This module measures effective runtime speedup per unit effective memory compression. Let Sc = GM 
+
+ TB, prefill  
+
+> Tc, prefill
+
+, TB, decode 
+
+> Tc, decode
+
+
+
+and CR eff  
+
+> c
+
+= WB +KV B 
+
+> Wc+KV c
+
+. Here, 
+
+B is the baseline, c is the compressed configuration, T is phase latency, W is weight memory, and 
+
+KV is KV-cache memory at the same context length and batch size. We define 
+
+Score hw (c) = 100 · Sc
+
+CR eff 
+
+> c
+
+.
+
+A score below 100 means compression does not translate into proportional speedup. Note that this score measures speedup relative to compression rate, not absolute speedup. 
+
+## 4 Experimental Setup 
+
+Models. We evaluate 10 MoE LLMs across standard-attention, hybrid linear-attention, and sliding-window-attention families : Qwen3-30B, Qwen3-Coder-30B, Qwen3-235B, GLM-4.7-Flash, MiniMax-M2, Kimi-Linear-48B, Qwen3-Next-80B, Qwen3-Coder-Next, Qwen3.6-35B, and Step-3.5-Flash. These models span diverse scales, attention architecture, and deployment use cases. Modules 1-2 and 4-6 use the primary Qwen3 models for controlled compression sweeps, while Module 3 uses the full set for architecture reliability. 
+
+Compression Settings. We evaluate the six configurations in Table 2, covering empty, single-axis, and composable subsets of expert pruning, weight quantization, and KV-cache compression. We use representative methods for each orthogonal axis: REAP [20] for expert pruning, GGUF quantization [9] for weight and uniform/turboquant KV-cache compression. evaluation with alternate expert compression method (REAM [14]) in subsection A.3. Unless otherwise stated, the default setting is 20% pruning, Q4_K_M model precision, and Q8 KV cache. All reported latency/throughput measurements use BS=1, a deliberate choice: MoE-XBench targets commodity-hardware, local deployment, where single-request serving dominates. Sensitivity studies sweep pruning ratios from 25%-50%, model weight precision from 1 to 16 bits, and KV formats including FP16, Q8, Q4, and TurboQuant. We use the same four calibration datasets as REAP [20]. 
+
+Tasks and Datasets. We evaluate seven workload categories that are central to real-world use cases: knowledge (MMLU [11]), math reasoning (GSM8K [2]), generative reasoning (MuSR [27]), instruction following (IFEval [33]), code generation (HumanEval [1]), tool use (BFCLv3 [25]), and long-context understanding (RULER [12]). Modules 3-6 report perplexity on Wikitext-2 [24]. 
+
+Hardware Setup. We evaluate efficiency on an Apple M1 Max with 64 GB unified memory, NVIDIA H100 with 80 GB RAM covering unified and non-unified memory architectures. We use llama.cpp [9] 
+
+[build b9050] for inference, while keeping the evaluation framework-agnostic as GGUF support expands across backends such as vLLM [19] and SGLang [32]. We use llama-cpp-turboquant 
+
+as reference implementation for TurboQuant. 
+
+Measurement Metrics. We report raw measurements and the normalized module scores defined in §3.3. Accuracy metrics include task accuracy and perplexity. Efficiency metrics include compression rate, peak memory, prefill and decode throughput. Raw results are reported per model, dataset, hardware, context length, batch size, and KV-cache setting; normalized scores summarize cross-configuration tradeoffs across compression configurations. 
+
+## 5 Accuracy Evaluation 
+
+We attempt to answer RQ1 and RQ2 through this empirical study and primarily look into the model quality retention, robustness and interaction (composable effect) scores (Module 1-6). 
+
+Finding 1: Compression ratio is not predictive of quality loss. We challenge the common assumption that quality degradation scales with the fraction of parameters or bits removed. On Qwen3-30B-A3B, 19.35% expert pruning increases PPL by 28.5%, while 69.5% Q4_K_M weight quantization increases PPL by only 0.7% (Figure 3). The same asymmetry appears in accuracy: prune-only obtains Score perf = 96 .96 and Score robust = 88 .87 , while Prune+Quant remains close at 96.35/88.91 despite substantially higher compression; adding KV-Q8 further changes the scores only marginally to 96.31/88.28 (Table 3). The PPL gap between Prune+Quant and Prune+Quant+KV is negligible across models (Table 4). Thus, the compression axis matters more than the nominal compression rate: a smaller pruning step ( ∼25%) hurts more than aggressive 4-bit quantization. 6Table 3: Performance comparison across different compression configurations for Qwen3-30B-A3B-Instruct-2507 (Q-30B-A3B) and Qwen3.6-35B-A3B (Q-35B-A3B) on diverse workloads.                                                                                                                                        
+
+> Method Model Model Size (Compression Rate) Workload Score perf Score robust
+> GSM8K MMLU MuSR IFEval HumanEval BFCLv3 RULER Avg. Baseline (BF16) Q-30B-A3B 61.10 GB (0.0%) 0.8360 0.8470 0.4290 0.8170 0.9390 0.8880 0.9441 0.8143 100.00 100.00 Q-35B-A3B 69.38 GB (0.0%) 0.8741 0.8657 0.4405 0.8207 0.9695 0.8662 0.9470 0.8262 Prune only Q-30B-A3B 44.00 GB (28.0%) 0.8400 0.7420 0.4380 0.7650 0.8110 0.8560 0.9452 0.7710 96.96 88.87 Q-35B-A3B 52.04 GB (25.0%) 0.8779 0.8467 0.4444 0.8022 0.9634 0.8554 0.9473 0.8196 Quant. only Q-30B-A3B 18.63 GB (69.5%) 0.8330 0.8450 0.4250 0.8260 0.9270 0.8910 0.9422 0.8127 99.91 97.00 Q-35B-A3B 21.39 GB (69.2%) 0.8711 0.8655 0.4392 0.8392 0.9573 0.8644 0.9477 0.8263 Quant. + KV Q-30B-A3B 18.63 GB (69.5%) 0.8378 0.8422 0.4246 0.8336 0.9268 0.8694 0.9435 0.8111 99.77 96.42 Q-35B-A3B 21.39 GB (69.2%) 0.8681 0.8655 0.4365 0.8336 0.9512 0.8775 0.9473 0.8257 Prune + Quant. Q-30B-A3B 13.42 GB (78.0%) 0.8230 0.7330 0.4310 0.7430 0.8170 0.8410 0.9424 0.7615 96.35 88.91 Q-35B-A3B 16.04 GB (76.9%) 0.8779 0.8443 0.4378 0.8133 0.9390 0.8769 0.9447 0.8191 Prune + Quant. + KV Q-30B-A3B 13.42 GB (78.0%) 0.8180 0.7320 0.4270 0.7600 0.8050 0.8420 0.9435 0.7611 96.31 88.28 Q-35B-A3B 16.04 GB (76.9%) 0.8772 0.8447 0.4418 0.8115 0.9390 0.8729 0.9453 0.8189
+
+Table 4: Cross-architecture reliability across compression config. PPL, ↓ is better; score, ↑ is better. 
+
+Model Baseline Pruning Quant only Quant+KV Prune+Quant Prune+Quant+KV 
+
+Standard MoE 
+
+Qwen3-30B-A3B-Instruct 7.36 9.46 7.41 7.49 9.55 9.54 Qwen3-Coder-30B-A3B-Instruct 9.54 12.88 9.74 9.71 13.11 13.11 Qwen3-235B-A22B-Instruct-2507 4.31 6.50 4.41 4.41 6.62 6.62 GLM-4.7-Flash 9.86 17.64 10.27 9.85 18.25 18.25 MiniMax-M2 6.79 13.16 7.09 7.13 10.41 10.41 
+
+Aggregate (Score arch ) 100.00 65.13 97.35 97.90 66.85 66.86 
+
+Hybrid Linear-Attn MoE 
+
+Kimi-Linear-48B-A3B-Instruct 7.08 9.63 7.17 7.17 9.79 9.79 Qwen3-Next-80B-A3B-Instruct 5.72 7.37 5.82 5.82 7.47 7.48 Qwen3-Coder-Next 8.23 13.74 8.35 8.35 13.94 13.95 Qwen3.6-35B-A3B 6.72 8.67 6.82 6.82 8.80 8.80 
+
+Aggregate (Score arch ) 100.00 72.15 98.53 98.55 71.09 71.06 
+
+Sliding-window Attention MoE 
+
+Step-3.5-Flash 2.27 5.40 2.57 2.57 6.27 6.26 
+
+Overall Score arch 100.00 65.63 96.93 97.21 65.48 65.48 
+
+Finding 2: MoE compression is architecture-dominated, not scale-dominated. Larger expert pools do not necessarily imply greater pruning tolerance. Qwen3-235B-A22B suffers a 54% PPL increase under Prune+Quant, while the 6.71x smaller Qwen3.6-35B-A3B increases by only 31% (Table 4). Across pruning sweeps, MiniMax-M2 remains highly sensitive despite its size, whereas Step-3.5-Flash and Qwen3.6-35B-A3B degrade more gradually (Figure 2). This suggests that pruning tolerance is governed more by model architecture design than by parameter count alone. Hybrid linear attention MoE models are more robust under extreme compression than standard MoE (Table 4). 
+
+Finding 3: Average accuracy masks workload and model-specific failures. Average quality alone is insufficient to characterize compressed MoEs: Prune+Quant retains high average perfor-mance ( Score perf = 96 .35 ) but drops to Score robust = 88 .91 , indicating uneven degradation across workloads (Table 3). The largest drop is seen on MMLU and HumanEval for Qwen3-30B-A3B, while GSM8K, MuSR, and RULER remain comparatively stable; similarly, coder-oriented variants show larger PPL inflation than instruction-tuned models under comparable pruning (Table 4). This motivates reporting workload robustness alongside average retention. 
+
+Finding 4: KV-cache compression is robust at 8-bit but sensitive at lower precision. KV-q8 preserves short-context accuracy across baseline, quantized, pruned, and composable settings, while q4 and TurboQuant-style variants cause larger losses (Table 5). Although smaller than expert-pruning loss, KV degradation grows at lower precision and is more pronounced in pruned models. Maintaining higher precision for key tensors preserves quality. 
+
+Finding 5: At the same memory target, different compression combinations are not equivalent. 
+
+Figure 5 shows that composable compression losses are not additive: at ∼75–80% compression, Q4-based prune+quant remains near the quantization-only PPL, while IQ1_M sharply increases PPL despite similar or larger size reduction. Adding KV-q8 changes PPL only marginally, so expert 7Figure 2: Model performance at different prun-ing rates validate finding 2. 3.32 GB 
+
+> 3.33 GB
+> 7.65 GB
+> 7.98 GB
+
+Figure 3: Quantization sensitivity for Qwen3-30B-A3B across bit-widths. Table 5: KV-cache sensitivity. Higher score kv indicates greater tolerance to KV-cache compression.                                    
+
+> Configuration Fp16/fp16 Q8/Q8 Q4/Q4 Q8/Turbo4 Q8/Turbo3 Turbo4/Turbo3 score kv
+> Baseline FP16 6.4935 6.4949 6.6130 6.5127 6.5311 6.7846 94.38
+> Quant + KV 6.5509 6.5492 6.6741 6.5614 6.5795 6.8459 94.37
+> Prune + KV 8.1727 8.1730 8.3441 8.2070 8.2417 8.6205 93.18
+> Prune + Quant + KV 8.2479 8.2469 8.4371 8.2856 8.3184 8.7095 93.00
+
+pruning and low-bit weight precision dominate quality loss, while KV compression mainly adds memory savings. 
+
+## 6 Efficiency Evaluation 
+
+We answer RQ3 using Modules 7-8 to test whether compression reduces practical deployment cost. 
+
+Finding 6: Smaller memory footprint does not guarantee higher throughput. We challenge the common assumption that memory reduction translates monotonically into faster inference. Q4_K_M Prune+Quant cuts peak memory from 60.3 GB to 17.1 GB while improving prefill by 1.37 × and decode by 1.30 × over BF16 in Figure 4. Yet adding KV compression further reduces memory to 15.7 GB but lowers prefill to 0.96 × and decode to 0.63 × of Prune+Quant. The effect is phase and context-dependent: Q4 Quant+KV nearly preserves 2K decode ( 0.97 ×) but reduces 32K decode to 
+
+0.61 × of Quant-only. Quantization scheme also matters: IQ1_M uses less memory than Q4_K_M at 
+
+Figure 4: Inference efficiency. Peak memory, prefill throughput, and decode throughput on NVIDIA 1xH100 for Qwen3-30B-A3B-Instruct at varying context lengths, across the six com-pression configurations for Q4_K_M (top) and IQ1_M (bottom) with Q8 KV-cache under bs=1. Both higher compression rate and higher throughput are desirable although their relationship is non-monotonic. 8Figure 5: Performance under extreme compres-sion scenario on Qwen3.6-35B-A3B. Similar compression rates yield different PPL. 
+
+Figure 6: Hardware acceleration on H100 at 32K context length. Effective memory compression ratio vs. absolute prefill speedup; the gap shows how much theoretical compression fails to trans-late into runtime. 32K Quant-only (10.5 GB vs. 21.2 GB), but achieves only 0.41 × the Q4_K_M prefill throughput, showing that aggressive low-bit dequantization overhead can dominate memory savings. 
+
+Finding 7: KV compression reduces peak memory, but its runtime benefit deteriorates at long context. We challenge the hypothesis that KV compression should improve runtime by reducing memory traffic. Figure 4 demonstrates that at Q4_K_M (32K context), adding KV compression to Quant-only reduces peak memory from 21.2 to 19.9 GB, but decode drops to 0.61 × while prefill stays at 0.93 ×. The same holds after pruning: Prune+Quant+KV lowers memory from 17.1 to 15.7 GB, but decode falls to 0.63 × while prefill remains 0.96 ×. This penalty is context-sensitive: Q4 Quant+KV preserves 2K decode at 0.97 ×, but falls to 0.61 × at 32K, since long-context decode repeatedly reads and dequantizes the compressed KV cache. This trend is also reflected on M1 Max, where KV-q8 at 32K reduces peak memory by 46% but also lowers decode throughput by 46%. 
+
+Finding 8: Compression effects on throughput are hardware-dependent. Compression reduces memory on both H100 and M1 Max, but the throughput benefit is not proportional. At 32K, Q4_K_M on H100 cuts peak memory from 60.3 to 21.2 GB and improves prefill by 1.36 × over BF16 (Figure 4). On M1 Max (Appendix C), Q4_K_M also reduces estimated total memory, from roughly 33.3 to 20.4 GiB, but prefill remains near parity with Q8_0 ( 0.97 ×). Thus, memory savings are portable, but throughput gains depend on whether the runtime can hide dequantization and cache-format overhead. 
+
+Finding 9: Expert pruning provides more effective hardware acceleration than aggressive low-bit quantization. We challenge the assumption that larger memory compression implies better hardware acceleration. As shown in Figure 6, prune-only achieves smaller compression on H100 (∼1.3x) but preserves the BF16 execution path and maintains near-baseline speedup (0.94-1.03), yielding Score hw = 72 .0-79 .4. In contrast, Q4_K_M compresses more (2.8x-3.1x) but achieves only 1.38x-1.51x effective speedup, reducing Score hw to ∼48; IQ1_M falls further to 8.6x-12.8x as unpacking and dequantization overhead dominate. 
+
+## 7 Discussion 
+
+Compression Interaction. Comparing the six radar plots in Figure 1 shows that composable compression mainly shifts sensitivity and hardware axes, not average accuracy. Quantization preserves 
+
+Sperf and Srobust near baseline, while adding pruning drives Sarch toward the pruning-only regime, indicating pruning-dominated reliability loss. KV compression has little quality impact but further reduces Shw . Thus, the main harmful interaction is not additive accuracy degradation, but reduced cross-architecture reliability and hardware efficiency under composable compression. 
+
+Practical Guidelines for MoE Compression. Our results suggest several deployment guidelines. First, practitioners should optimize for the target accuracy-memory-latency point rather than maxi-mum size reduction, since smaller artifacts do not necessarily improve throughput. Second, moderate-bit weight quantization is often a low-risk first step, whereas expert pruning requires architecture-specific tuning. Third, KV-cache compression should be treated primarily as a long-context memory reduction technique, not as a guaranteed runtime optimization, since on-the-fly KV dequantization can slow decode at long context. Finally, composable compression should be validated as a complete deployment pipeline on the target backend: average accuracy, workload robustness, architecture reliability, peak memory, prefill throughput, and decode throughput should be reported together before selecting a configuration. 9Why a separate MoE specific benchmark? (1) MoE introduces a unique compression axis : Expert pruning reduces memory but not active computation, so smaller MoE models may see little or no speedup. (2) Expert compression dominates and interacts with other compression : It causes far greater quality loss than quantization and amplifies the penalties of both weight and KV-cache compression, making results dependent on the pruning ratio. (3) Results do not transfer across MoE models : a single-model study cannot substitute for a benchmark. (4) Existing benchmarks do not capture joint MoE compression : A proper benchmark must evaluate pruning, quantization, and KV compression together across multiple MoE families with both quality and speed metrics. 
+
+Does accuracy depend on the order of compression? It has limited order sensitivity (but is not order invariant) as the compression techniques are applied on largely independent axes (model weights, KV cache, sparsity). KV-cache compression is a runtime setting invariant to offline compression schemes. Ref. Appendix A. 
+
+Limitations. We use representative methods for each compression axis and leave alternatives such as expert parameter sharing and non-GGUF quantization to future work. Additionally, we agree serving-layer techniques e.g. speculative decoding, concurrent batching or optimized kernels would shift the latency picture; our efficiency claims are scoped to the evaluated execution path, and we report both CUDA and Metal to show how much findings vary across backends. Future work will also expand to more models and devices. 
+
+## 8 Conclusion 
+
+We present MoE-XBench, an end-to-end benchmark for MoE compression deployment. We envision our work as a milestone to guide the community in choosing and understanding the combination of compression strategies for deploying Mixture-of-Experts models in practice. We hope MoE-XBench can provide insightful takeaways and findings for Mixture-of-Experts model compression design and serve as a solid foundation for future benchmarks. Our end-to-end model compression tool, including configuration and raw measurements, will be open-sourced upon acceptance. 
+
+## References 
+
+[1] Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, et al. Evaluating large language models trained on code. arXiv preprint arXiv:2107.03374 , 2021. [2] Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, Christopher Hesse, and John Schulman. Training verifiers to solve math word problems. arXiv preprint arXiv:2110.14168 ,2021. [3] Damai Dai, Chengqi Deng, Chenggang Zhao, R. X. Xu, Huazuo Gao, Deli Chen, Jiashi Li, Wangding Zeng, Xingkai Yu, Y. Wu, Zhenda Xie, Y. K. Li, Panpan Huang, Fuli Luo, Chong Ruan, Zhifang Sui, and Wenfeng Liang. Deepseekmoe: Towards ultimate expert specialization in mixture-of-experts language models. arXiv preprint arXiv:2401.06066 , 2024. [4] Zahra Dehghanighobadi and Asja Fischer. Depthkv: Layer-dependent kv cache pruning for long-context llm inference. arXiv preprint arXiv:2604.24647 , 2026. [5] Artyom Eliseev and Denis Mazur. Fast inference of mixture-of-experts language models with offloading. arXiv preprint arXiv:2312.17238 , 2023. [6] William Fedus, Barret Zoph, and Noam Shazeer. Switch transformers: Scaling to trillion parameter models with simple and efficient sparsity. Journal of Machine Learning Research , 23 (120):1–39, 2022. [7] Elias Frantar and Dan Alistarh. Qmoe: Practical sub-1-bit compression of trillion-parameter models. arXiv preprint arXiv:2310.16795 , 2023. [8] Elias Frantar, Saleh Ashkboos, Torsten Hoefler, and Dan Alistarh. GPTQ: Accurate post-training quantization for generative pre-trained transformers. In The Eleventh International Conference on Learning Representations , 2023. 10 [9] Georgi Gerganov and llama.cpp contributors. llama.cpp: Llm inference in c/c++. https: //github.com/ggml-org/llama.cpp , 2023. Accessed: 2026-05-06. [10] GLM-4.5 Team. GLM-4.5: Agentic, reasoning, and coding (ARC) foundation models. arXiv preprint arXiv:2508.06471 , 2025. [11] Dan Hendrycks, Collin Burns, Steven Basart, Andy Zou, Mantas Mazeika, Dawn Song, and Jacob Steinhardt. Measuring massive multitask language understanding. Proceedings of the International Conference on Learning Representations (ICLR) , 2021. [12] Cheng-Ping Hsieh, Simeng Sun, Samuel Kriman, Shantanu Acharya, Dima Rekesh, Fei Jia, and Boris Ginsburg. RULER: What’s the real context size of your long-context language models? In Conference on Language Modeling (COLM) , 2024. [13] Xing Hu, Zhixuan Chen, Dawei Yang, Zukang Xu, Chen Xu, Zhihang Yuan, Sifan Zhou, and Jiangyong Yu. Moequant: Enhancing quantization for mixture-of-experts large language models via expert-balanced sampling and affinity guidance. In Proceedings of the 42nd International Conference on Machine Learning , volume 267 of Proceedings of Machine Learning Research ,pages 8245–8260, 2025. [14] Saurav Jha, Maryam Hashemzadeh, Ali Saheb Pasand, Ali Parviz, Min-Joong Lee, and Boris Knyazev. Ream: Merging improves pruning of experts in llms. arXiv preprint arXiv:2604.04356 ,2026. [15] Albert Q. Jiang, Alexandre Sablayrolles, Antoine Roux, et al. Mixtral of experts. arXiv preprint arXiv:2401.04088 , 2024. [16] Yinsicheng Jiang, Yao Fu, Diandian Gu Tortorella, Tianyi Tang, and Luo Mai. MoE-CAP: Benchmarking cost, accuracy and performance of sparse mixture-of-experts systems. arXiv preprint arXiv:2412.07067 , 2024. [17] Gyeongman Kim, Gyouk Chu, and Eunho Yang. Every expert matters: Towards effective knowl-edge distillation for mixture-of-experts language models. arXiv preprint arXiv:2502.12947 ,2025. [18] Kimi Team. Kimi linear: An expressive, efficient attention architecture. arXiv preprint arXiv:2510.26692 , 2025. [19] Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph E. Gonzalez, Hao Zhang, and Ion Stoica. Efficient memory management for large language model serving with PagedAttention. In Proceedings of the 29th Symposium on Operating Systems Principles (SOSP) , 2023. [20] Mike Lasby, Ivan Lazarevich, Nish Sinnadurai, Sean Lie, Yani Ioannou, and Vithursan Thangarasa. Reap the experts: Why pruning prevails for one-shot moe compression. arXiv preprint arXiv:2510.13999 , 2025. [21] Yaniv Leviathan, Matan Kalman, and Yossi Matias. Fast inference from transformers via speculative decoding. In Proceedings of the 40th International Conference on Machine Learning (ICML) , 2023. [22] Opher Lieber, Barak Lenz, Hofit Bata, Gal Cohen, Jhonathan Osin, Itay Dalmedigos, Erez Safahi, Shaked Meirom, Yonatan Belinkov, Shai Shalev-Shwartz, Omri Abend, Raz Alon, Tomer Asida, Amir Bergman, Roman Glozman, Michael Gokhman, Avashalom Manevich, Nir Ratner, Noam Rozen, Erez Shwartz, Mor Zusman, and Yoav Shoham. Jamba: A hybrid transformer-mamba language model. arXiv preprint arXiv:2403.19887 , 2024. [23] Zirui Liu, Jiayi Yuan, Hongye Jin, Shaochen Zhong, Zhaozhuo Xu, Vladimir Braverman, Beidi Chen, and Xia Hu. Kivi: A tuning-free asymmetric 2bit quantization for kv cache. In Proceedings of the 41st International Conference on Machine Learning , volume 235 of 
+
+Proceedings of Machine Learning Research , pages 32332–32344, 2024. 11 [24] Stephen Merity, Caiming Xiong, James Bradbury, and Richard Socher. Pointer sentinel mixture models. In Proceedings of the International Conference on Learning Representations (ICLR) ,2017. [25] Shishir G. Patil, Huanzhi Mao, Charlie Cheng-Jie Ji, Fanjia Yan, Vishnu Suresh, Ion Stoica, and Joseph E. Gonzalez. Berkeley function calling leaderboard (BFCL) V3: Multi-turn & multi-step function calling evaluation. https://gorilla.cs.berkeley.edu/blogs/13_ bfcl_v3_multi_turn.html , 2024. [26] Noam Shazeer, Azalia Mirhoseini, Krzysztof Maziarz, Andy Davis, Quoc Le, Geoffrey Hinton, and Jeff Dean. Outrageously large neural networks: The sparsely-gated mixture-of-experts layer. arXiv preprint arXiv:1701.06538 , 2017. [27] Zayne Sprague, Xi Ye, Kaj Bostrom, Swarat Chaudhuri, and Greg Durrett. MuSR: Testing the limits of chain-of-thought with multistep soft reasoning. In Proceedings of the International Conference on Learning Representations (ICLR) , 2024. [28] StepFun Team. Step 3.5 flash: Open frontier-level intelligence with 11b active parameters. 
+
+arXiv preprint arXiv:2602.10604 , 2026. [29] An Yang, Anfeng Li, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang Gao, Chengen Huang, Chenxu Lv, et al. Qwen3 technical report. arXiv preprint arXiv:2505.09388 , 2025. [30] Ge Yang, Changyi Lu, Wen Su, Ying Wang, Lu Yang, Hanting Cai, Yunhe Wang, and Kai Han. LLMCBench: Benchmarking large language model compression for efficient deployment. 
+
+arXiv preprint arXiv:2410.21352 , 2024. [31] Amir Zandieh, Majid Daliri, Majid Hadian, and Vahab Mirrokni. Turboquant: Online vector quantization with near-optimal distortion rate. arXiv preprint arXiv:2504.19874 , 2025. [32] Lianmin Zheng, Liangsheng Yin, Zhiqiang Xie, Chuyue Sun, Jeff Huang, Cody Hao Yu, Shiyi Cao, Christos Kozyrakis, Ion Stoica, Joseph E. Gonzalez, Clark Barrett, and Ying Sheng. SGLang: Efficient execution of structured language model programs. In Advances in Neural Information Processing Systems (NeurIPS) , 2024. [33] Jeffrey Zhou, Tianjian Lu, Swaroop Mishra, Siddhartha Brahma, Sujoy Basu, Yi Luan, Denny Zhou, and Le Hou. Instruction-following evaluation for large language models. arXiv preprint arXiv:2311.07911 , 2023. [34] Xunyu Zhu, Jian Li, Yong Liu, Can Ma, and Weiping Wang. A survey on model compression for large language models. arXiv preprint arXiv:2308.07633 , 2024. 
+
+## A Ablation Study 
+
+A.1 Calibration Dataset 
+
+REAP estimates expert saliency from calibration routing statistics, so the calibration corpus can bias which capabilities are preserved after pruning. We isolate this effect on Qwen3.6-35B-A3B by fixing the pruning ratio ( r = 0 .30 ), seed, router renormalization, and final GGUF Q4_K_M export, and varying only the calibration source. Table 6: Calibration-dataset ablation for REAP on Qwen3.6-35B-A3B. All variants use the same pruning ratio r = 0 .30 , seed, router renormalization, and GGUF Q4_K_M deployment path. Higher is better for all metrics.                                    
+
+> Calibration GSM8K MMLU-R MuSR HumanEval MBPP Math-Hard IFEval Official mixture 0.883 0.811 0.431 0.713 0.148 0.539 0.797 C4 general 0.898 0.827 0.418 0.281 0.524 0.297 0.771 Code-only 0.891 0.796 0.427 0.665 0.516 0.557 0.782 Math-only 0.896 0.804 0.438 0.720 0.264 0.560 0.815
+
+12 Table 6 shows that calibration materially changes the retained capability profile. C4 gives the best GSM8K and MMLU-R scores but is weakest on MuSR, HumanEval, Math-Hard, and IFEval; code-only calibration improves MBPP but not HumanEval; math-only calibration is strongest on MuSR, Math-Hard, HumanEval, and IFEval. Calibration can therefore change the interpretation of pruning results and should be treated as a first-class REAP hyperparameter. The official mixture is not uniformly optimal, but it remains the safest general-purpose default because it avoids the largest single-domain failures. 
+
+A.2 Quantization-aware REAP 
+
+REAP collects saliency scores before pruning, while the deployed artifact is pruned, exported to GGUF, and quantized. This can create a score–deployment mismatch if low-bit quantization changes expert usefulness. We test a 4-bit packed-MoE-aware scoring surrogate used only for expert ranking; the selected pruning mask is still applied to the original full-precision checkpoint before GGUF Q4_K_M export. Table 7: Quantization-aware REAP ablation on Qwen3.6-35B-A3B. All pruned variants use REAP with r = 0 .30 and are evaluated after GGUF Q4_K_M quantization through the same deployment path. “Module” quantizes only standard linear modules during scoring, while “Packed MoE” also covers packed routed experts and router weights.                
+
+> Scoring setup GSM8K MMLU-R MuSR Unpruned Q4_K_M 0.8916 0.8625 0.4365
+> BF16 REAP 0.8825 0.8111 0.4312
+> Module quant.-aware REAP 0.8741 0.8107 0.4272 Packed-MoE quant.-aware REAP 0.8779 0.8131 0.4299
+
+Table 7 shows that packed-MoE-aware scoring improves consistently over module-level quantization-aware scoring, but not over standard BF16 REAP. For Qwen3.6-35B-A3B at r = 0 .30 , the remaining degradation is better explained by structural expert removal than by BF16-to-GGUF mismatch, so BF16 REAP remains the default pruning path. 
+
+A.3 Alternate expert compression methods 
+
+Although our original scope selected one representative method per compression axis, we acknowl-edge that a single method can be deemed as insufficient to establish method-independent conclusions. We add REAM [14], a representative expert-merging method, and compare it with REAP at a matched 25% expert-count reduction on the seven Table 3 workloads, using the same backend and evaluation protocol. First, the expert-compression axis remains the dominant source of aggregate quality loss (finding 1). Starting from score_perf=100, the expert-only stage causes loss of 5.31 points under REAP and 6.05 under REAM. Adding both Q4_K_M and Q8 KV contributes only 1.23 and 0.31 additional points, respectively. The fully composable configurations also retain nearly identical average performance (93.46 vs 93.64). This trend is expected because both pruning and merging directly alter expert capacity and specialization, whereas weight and KV cache quantization preserve the model structure and introduce only lower-precision representations. Thus, expert-axis dominance is not specific to REAP. Second, the qualitative trend across compression axes is consistent across both expert-compression methods tested, while the exact magnitudes can slightly differ. Adding Q4_K_M changes score_perf by -1.18 under REAP but -0.06 under REAM, while adding Q8 KV changes it by -0.05 and -0.25, respectively. This also reconfirms finding 5 (isolated results cannot fully predict composable configurations.) We include the complete per-workload results rather than claim identical/exact behaviour across methods in Table 8. These experiments extend the evidence from pruning to merging and show that the central claims: expert-axis dominance and non-separable composable effects are not artifacts of REAP. It is to be noted that we do not claim method independence over all possible algorithms. 13 Table 8: Performance comparison of expert compression methods across configurations.                                                                                                               
+
+> Expert comp. method Config GSM8K MMLU MuSR IFEval HumanEval BFCLv3 RULER Avg. Score_perf Score_robust
+> —Baseline BF16 0.8360 0.8470 0.4290 0.8170 0.9390 0.8880 0.9441 0.8143 100.00 100.00 REAP Expert only 0.8400 0.7420 0.4380 0.7650 0.8110 0.8560 0.9452 0.7710 94.69 80.41 —Q4_K_M only 0.8330 0.8450 0.4250 0.8260 0.9270 0.8910 0.9422 0.8127 99.81 97.43 —Q4_K_M + Q8 KV 0.8378 0.8422 0.4246 0.8336 0.9268 0.8694 0.9435 0.8111 99.61 95.56 REAP + Q4_K_M 0.8230 0.7330 0.4310 0.7430 0.8170 0.8410 0.9424 0.7615 93.51 80.82 REAP + Q4_K_M + Q8 KV 0.8180 0.7320 0.4270 0.7600 0.8050 0.8420 0.9435 0.7611 93.46 80.41
+> REAM Expert only 0.8658 0.7377 0.4246 0.7634 0.7317 0.8810 0.9509 0.7650 93.95 70.74 REAM + Q4_K_M 0.8673 0.7321 0.4233 0.7745 0.7134 0.8915 0.9497 0.7645 93.89 68.76 REAM + Q4_K_M + Q8 KV 0.8628 0.7351 0.4193 0.7579 0.7256 0.8875 0.9497 0.7625 93.64 70.11
+
+Table 9: Pruning sensitivity under fixed quantization and KV-cache settings. For each pruning ratio, the bf16/f16 row serves as the same-prune baseline. 
+
+Pruning Weights KV cache PPL ± stderr ∆ vs 0% bf16 ∆ vs same-prune bf16 
+
+0% bf16 f16 6.8200 – –0% Q4_K_M f16 6.8198 ± 0.0444 −0.0002 −0.0002 
+
+0% Q4_K_M q8_0 6.8180 ± 0.0444 −0.0020 −0.0020 
+
+20% bf16 f16 8.6695 ± 0.0592 +1 .8495 –20% Q4_K_M f16 8.7952 ± 0.0602 +1 .9752 +0 .1257 
+
+20% Q4_K_M q8_0 8.7998 ± 0.0602 +1 .9798 +0 .1303 
+
+30% bf16 f16 10 .0449 ± 0.0706 +3 .2249 –30% Q4_K_M f16 10 .2242 ± 0.0721 +3 .4042 +0 .1793 
+
+30% Q4_K_M q8_0 10 .2272 ± 0.0721 +3 .4072 +0 .1823 
+
+50% bf16 f16 15 .8121 ± 0.1206 +8 .9921 –50% Q4_K_M f16 16 .2116 ± 0.1246 +9 .3916 +0 .3995 
+
+50% Q4_K_M q8_0 16 .2051 ± 0.1245 +9 .3851 +0 .3930 
+
+## B Sensitivity Studies 
+
+B.1 Pruning Sensitivity 
+
+As shown in Table 9, across 0%–50% pruning, the same-prune gaps from Q4_K_M weights and q8_0 KV cache remain small relative to the pruning-induced PPL increase. Pruning is therefore the dominant source of degradation in this sweep. 
+
+B.2 Quantization Sensitivity 
+
+We report the without-IQ1_M version of Score quant as the primary radar score because IQ1_M is a deployment-uncommon outlier. As shown in ?? , including IQ1_M lowers the stability term to roughly 0.60 and compresses all scores into the 53–56 range; excluding it raises the scores by about 30 points and better reflects the practical quantization regime. Table 10: Quantization sensitivity score with and without IQ1_M. 
+
+Method Score (with IQ1_M) Score (without IQ1_M) Quant-only 56.12 87.45 Quant+KV (q8) 56.10 87.42 Prune+Quant 55.67 84.35 Prune+Quant+KV (q8) 55.62 84.32 Prune+Quant+KV (q4) 53.21 83.14 
+
+## C Inference Efficiency on Apple M1 Max 
+
+Figure 7 reports peak memory, prefill throughput, and decode throughput on Apple M1 Max for Qwen3-30B-A3B-Instruct at context lengths {2K , 8K , 32K }, across the same six compression con-figurations of Table 2 at Q4_K_M and IQ1_M weight quantization with Q8 KV-cache. In this unified-memory regime, long-context footprint is dominated by KV cache and runtime buffers rather than weights. As a result, weight-only compression yields limited memory benefit, whereas KV 14 Table 11: Original and REAP-pruned Hugging Face checkpoints. 
+
+Model Original HF ID REAP-pruned HF ID 
+
+Qwen3-30B-A3B Qwen/Qwen3-30B-A3B-Instruct-2507 SamsungSAILMontreal/Qwen3-30B-A3B-Instruct-2507-REAP 
+
+Qwen3-Coder-30B-A3B Qwen/Qwen3-Coder-30B-A3B-Instruct cerebras/Qwen3-Coder-REAP-25B-A3B 
+
+Qwen3-235B-A22B Qwen/Qwen3-235B-A22B-Instruct-2507 SamsungSAILMontreal/Qwen3-235B-A22B-Instruct-2507-REAP 
+
+GLM-4.7-Flash zai-org/GLM-4.7-Flash cerebras/GLM-4.7-Flash-REAP-23B-A3B 
+
+MiniMax-M2 MiniMaxAI/MiniMax-M2 cerebras/MiniMax-M2-REAP-162B-A10B 
+
+Kimi-Linear-48B-A3B moonshotai/Kimi-Linear-48B-A3B-Instruct cerebras/Kimi-Linear-REAP-35B-A3B-Instruct 
+
+Qwen3-Next-80B-A3B Qwen/Qwen3-Next-80B-A3B-Instruct SamsungSAILMontreal/Qwen3-Next-80B-A3B-Instruct-REAP 
+
+Qwen3-Coder-Next Qwen/Qwen3-Coder-Next SamsungSAILMontreal/Qwen3-Coder-Next-REAP 
+
+Qwen3.6-35B-A3B Qwen/Qwen3.6-35B-A3B RangerX/Qwen3.6-35B-REAP-Pruned-ratio-0.2 
+
+Step-3.5-Flash stepfun-ai/Step-3.5-Flash cerebras/Step-3.5-Flash-REAP-149B-A11B 
+
+compression lowers peak memory substantially but also hurts decode throughput because on-the-fly dequantization stays on the critical path. 
+
+Figure 7: Inference efficiency on Apple-M1-Max. Peak memory, prefill throughput, and decode throughput for Qwen3-30B-A3B-Instruct at context lengths {2K , 8K , 32K }, across the six com-pression configurations of Table 2 at two weight-quantization formats (Q4_K_M, IQ1_M) with Q8 KV-cache. Q8_0 is used as the baseline because BF16 caused memory thrashing for this model. 
+
+## D Reproducibility 
+
+All model checkpoints used in our experiments are listed in Table 11. 15

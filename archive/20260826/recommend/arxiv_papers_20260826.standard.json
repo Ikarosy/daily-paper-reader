@@ -1,0 +1,95 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-26T22:05:25.584207+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 1,
+    "quick_skim_target": 11,
+    "quick_selected": 1
+  },
+  "deep_dive": [
+    {
+      "id": "2608.21134v1",
+      "source": "arxiv",
+      "title": "Llama-Mobile: Efficient 2.7-Bit Quantization of VLMs",
+      "abstract": "Deploying vision-language models (VLMs) on mobile devices is challenging due to their significant memory and compute requirements. We present a framework for quantizing VLMs for efficient inference on resource-constrained hardware. Our approach combines a quantization pipeline that uses the model itself to generate training data and does not require access to the training setup, with a novel 2.7-bit-per-parameter format supporting efficient execution on Arm CPUs. We validate our approach by compressing the Llama 3.2 11B Vision Instruct model to 3.7 GB with 8-bit activations, preserving strong performance on a set of standard visual question answering tasks.",
+      "authors": [
+        "Luka Ribar",
+        "Jeevan Bhoot",
+        "Douglas Orr"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-08-21T14:10:31+00:00",
+      "link": "https://arxiv.org/pdf/2608.21134v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "2.7-bit VLM quantization for efficient mobile inference, matches extreme low-bit VQ theme",
+      "llm_evidence_cn": "2.7位量化视觉语言模型，贴合极低比特VQ主题",
+      "llm_evidence": "2.7位量化视觉语言模型，贴合极低比特VQ主题",
+      "canonical_evidence": "2.7位量化视觉语言模型，贴合极低比特VQ主题",
+      "llm_tldr_en": "Presents a framework for quantizing vision-language models to 2.7 bits per parameter, enabling efficient on-device inference without training data, and preserving strong VQA performance on Llama 3.2 11B.",
+      "llm_tldr_cn": "在移动设备上部署视觉语言模型常受内存与算力限制，极低比特量化是重要解决方向。本文提出一种无需训练数据即可完成的量化框架，依靠模型自身生成校准数据，并设计了支持Arm CPU高效执行的2.7比特/参数存储格式。实验将Llama 3.2 11B视觉指令模型压缩至3.7GB（激活8比特），在标准视觉问答任务上保持强性能。此工作证明了极低比特量化在VLM上的实用性，为端侧部署提供新方案。",
+      "llm_tldr": "在移动设备上部署视觉语言模型常受内存与算力限制，极低比特量化是重要解决方向。本文提出一种无需训练数据即可完成的量化框架，依靠模型自身生成校准数据，并设计了支持Arm CPU高效执行的2.7比特/参数存储格式。实验将Llama 3.2 11B视觉指令模型压缩至3.7GB（激活8比特），在标准视觉问答任务上保持强性能。此工作证明了极低比特量化在VLM上的实用性，为端侧部署提供新方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2608.21693v1",
+      "source": "arxiv",
+      "title": "Benchmarking Composable Compression Techniques in Mixture-of-Experts LLMs",
+      "abstract": "Mixture-of-Experts (MoE) LLMs scale model capacity efficiently through sparse activation, but their large expert parameter footprint, routing imbalance, and long-context KV-cache growth make deployment difficult on commodity hardware. Practical deployment often requires stacking multiple compression techniques: expert pruning removes redundant experts, weight quantization lowers model memory footprint, and KV-cache compression reduces long-context memory pressure. However, these techniques are typically evaluated in isolation, leaving open how they interact when applied together in realistic deployment pipelines.   In this work, we present MoEXBench, a systematic benchmark for evaluating composable MoE compression as an end-to-end deployment workflow. MoEXBench studies 10 MoE models ranging from 30B to 235B total parameters across standard-attention, hybrid linear-attention, and sliding window attention architectures. It evaluates 20%-50% expert pruning rates, 1 to 16 bit weight-quantization schemes, and multiple KV-cache precision settings, applied both individually and in combination.   MoEXBench introduces an eight-module evaluation suite that jointly measures composable-compression quality, workload and architecture robustness, pruning/quantization/KV cache sensitivity, and deployment efficiency on commodity hardware. Our results reveal non-trivial interactions among compression methods: composable compression cannot be predicted from standalone techniques, compression rate alone does not reliably predict quality loss or runtime gain, expert pruning is the dominant degradation source, and average quality can hide workload and architecture-specific failures. By releasing normalized module scores, compressed artifacts, and reproducible scripts, MoEXBench enables practical accuracy-memory-latency comparison across MoE families and hardware backends.",
+      "authors": [
+        "Afsara Benazir",
+        "Chen Chen",
+        "Rongxiao Qu",
+        "Jiabo Huang",
+        "Jingtao Li",
+        "Lingjuan Lyu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-08-22T00:01:18+00:00",
+      "link": "https://arxiv.org/pdf/2608.21693v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "benchmark for composable MoE compression explicitly covers weight quantization, a low-bit SQ/VQ use case",
+      "llm_evidence_cn": "可组合MoE压缩基准明确覆盖权重量化，与低比特SQ/VQ应用相关",
+      "llm_evidence": "可组合MoE压缩基准明确覆盖权重量化，与低比特SQ/VQ应用相关",
+      "canonical_evidence": "可组合MoE压缩基准明确覆盖权重量化，与低比特SQ/VQ应用相关",
+      "llm_tldr_en": "MoEXBench systematically benchmarks composable MoE compression (expert pruning, weight quantization, KV-cache compression) as an end-to-end deployment workflow, exposing interactions between techniques and providing a platform to evaluate low-bit quantizers.",
+      "llm_tldr_cn": "混合专家大语言模型部署时面临专家参数、路由失衡和长上下文缓存带来的内存压力，而各类压缩技术通常被孤立评估。作者提出MoEXBench，在端到端部署流程中系统组合并评测专家剪枝、权重量化和KV缓存压缩，揭示其交互效应。该基准为可组合压缩提供了统一评估平台，也为测试低比特标量量化与向量量化方案提供了可扩展工具。",
+      "llm_tldr": "混合专家大语言模型部署时面临专家参数、路由失衡和长上下文缓存带来的内存压力，而各类压缩技术通常被孤立评估。作者提出MoEXBench，在端到端部署流程中系统组合并评测专家剪枝、权重量化和KV缓存压缩，揭示其交互效应。该基准为可组合压缩提供了统一评估平台，也为测试低比特标量量化与向量量化方案提供了可扩展工具。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
