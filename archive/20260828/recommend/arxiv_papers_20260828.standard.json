@@ -1,0 +1,100 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-28T03:38:38.303253+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 2,
+    "deep_cap": 6,
+    "deep_selected": 2,
+    "quick_candidates": 0,
+    "quick_skim_target": 11,
+    "quick_selected": 0
+  },
+  "deep_dive": [
+    {
+      "id": "2608.21134v1",
+      "source": "arxiv",
+      "title": "Llama-Mobile: Efficient 2.7-Bit Quantization of VLMs",
+      "abstract": "Deploying vision-language models (VLMs) on mobile devices is challenging due to their significant memory and compute requirements. We present a framework for quantizing VLMs for efficient inference on resource-constrained hardware. Our approach combines a quantization pipeline that uses the model itself to generate training data and does not require access to the training setup, with a novel 2.7-bit-per-parameter format supporting efficient execution on Arm CPUs. We validate our approach by compressing the Llama 3.2 11B Vision Instruct model to 3.7 GB with 8-bit activations, preserving strong performance on a set of standard visual question answering tasks.",
+      "authors": [
+        "Luka Ribar",
+        "Jeevan Bhoot",
+        "Douglas Orr"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-08-21T14:10:31+00:00",
+      "link": "https://arxiv.org/pdf/2608.21134v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Ultra-low-bit (2.7-bit) quantization framework for VLMs with strong VQA results, central to the low-bit VQ theme",
+      "llm_evidence_cn": "2.7比特超低比特量化视觉语言模型，与极低比特VQ主题高度契合",
+      "llm_evidence": "2.7比特超低比特量化视觉语言模型，与极低比特VQ主题高度契合",
+      "canonical_evidence": "2.7比特超低比特量化视觉语言模型，与极低比特VQ主题高度契合",
+      "llm_tldr_en": "A training-free quantization pipeline for VLMs uses self-generated data and a novel 2.7-bit-per-parameter format for Arm CPU efficiency, compressing Llama 3.2 11B to 3.7GB while preserving strong VQA accuracy.",
+      "llm_tldr_cn": "面向资源受限的移动端部署，本框架在不访问训练环境的情况下，利用模型自身生成数据完成视觉语言模型的量化流程，并提出支持Arm CPU高效执行的2.7比特每参数格式。将Llama 3.2 11B Vision Instruct模型压缩至3.7GB，同时保持标准视觉问答任务上的良好性能，为超低比特量化提供了实用方案。",
+      "llm_tldr": "面向资源受限的移动端部署，本框架在不访问训练环境的情况下，利用模型自身生成数据完成视觉语言模型的量化流程，并提出支持Arm CPU高效执行的2.7比特每参数格式。将Llama 3.2 11B Vision Instruct模型压缩至3.7GB，同时保持标准视觉问答任务上的良好性能，为超低比特量化提供了实用方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.26581v1",
+      "source": "arxiv",
+      "title": "Activation Outliers Matter: Robust Recovery for Quantized Multimodal LLMs",
+      "abstract": "Low-bit quantization offers a promising avenue for reducing the computational and memory demands of Multimodal Large Language Models (MLLMs). Recent hardware support for low-precision formats, ranging from MXFP8 to ultra-low-bit formats such as MXFP4 and HiF4, has accelerated research into efficient MLLM training and deployment. In this work, we present a systematic study of these quantization schemes in representative MLLMs that span both video generation and reasoning tasks. Our analysis shows that MXFP8 achieves near-lossless performance, whereas aggressive 4-bit quantization leads to significant degradation. Through extensive ablations, we identify activation quantization as the primary source of this performance loss, contributing substantially more than weight quantization. Motivated by this observation, we propose Residual Fallback Quantization (RFQ), a lightweight activation reconstruction framework that supplements the primary ulta-low-bit activation representation with an auxiliary quantized residual pathway. By explicitly modeling and compensating for quantization errors, RFQ improves activation fidelity while preserving the efficiency advantages of ultra-low-bit computation. RFQ requires no architectural modifications and incurs negligible computational overhead. Extensive experiments on Wan2.2 and Qwen3-VL demonstrate that RFQ consistently recovers a substantial portion of the performance lost under the quantization of MXFP4 and HiF4, significantly narrowing the gap to BF16 baselines across both generation and 4 reasoning benchmarks. Our findings establish activation quantization as the dominant bottleneck in ultra-low-bit MLLMs and highlight residual-based activation reconstruction as an effective and practical strategy for robust 4-bit deployment.",
+      "authors": [
+        "Tanzila Rahman",
+        "Mehran Taghian Jazi",
+        "Yunke Peng",
+        "Zhuang Ma",
+        "Anandharaju Durai Raju",
+        "Yao Wang",
+        "Xing Huang",
+        "Hei Yi Mak",
+        "Shadan Golestan",
+        "Hoang Le",
+        "Yonghan Dong",
+        "Wei Guo",
+        "Yaoyuan Wang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-08-27T03:47:58+00:00",
+      "link": "https://arxiv.org/pdf/2608.26581v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "low-bit quantization of multimodal LLMs, robust recovery from activation outliers, advanced results",
+      "llm_evidence_cn": "多模态大模型的低比特量化与激活异常鲁棒恢复，提供先进结果",
+      "llm_evidence": "多模态大模型的低比特量化与激活异常鲁棒恢复，提供先进结果",
+      "canonical_evidence": "多模态大模型的低比特量化与激活异常鲁棒恢复，提供先进结果",
+      "llm_tldr_en": "Systematic study of low-bit quantization for multimodal LLMs shows aggressive 4-bit formats degrade performance mainly due to activation outliers. Robust recovery techniques reduce this loss, with MXFP8 near-lossless and improved 4-bit results, guiding ultra-low-bit deployment.",
+      "llm_tldr_cn": "多模态大模型在低比特量化下存在显著性能下降，尤其是4比特格式。论文系统比较了MXFP8、MXFP4等量化方案，通过大量消融实验发现激活量化中的异常值是主要损伤来源，并据此提出鲁棒恢复方法。实验结果显示MXFP8接近无损，所提恢复技术能明显缓解激进4比特量化的精度损失。该工作为超低比特量化在多模态模型上的可靠部署提供了分析依据和有效策略。",
+      "llm_tldr": "多模态大模型在低比特量化下存在显著性能下降，尤其是4比特格式。论文系统比较了MXFP8、MXFP4等量化方案，通过大量消融实验发现激活量化中的异常值是主要损伤来源，并据此提出鲁棒恢复方法。实验结果显示MXFP8接近无损，所提恢复技术能明显缓解激进4比特量化的精度损失。该工作为超低比特量化在多模态模型上的可靠部署提供了分析依据和有效策略。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": []
+}
