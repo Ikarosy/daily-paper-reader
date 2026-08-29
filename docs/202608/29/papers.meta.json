@@ -1,0 +1,39 @@
+{
+  "label": "2026-08-29",
+  "date": "2026-08-29",
+  "generated_at": "2026-08-29T02:51:01",
+  "count": 2,
+  "papers": [
+    {
+      "paper_id": "202608/29/2608.21134v1-llama-mobile-efficient-27-bit-quantization-of-vlms",
+      "section": "deep",
+      "title_en": "Llama-Mobile: Efficient 2.7-Bit Quantization of VLMs",
+      "authors": "Luka Ribar, Jeevan Bhoot, Douglas Orr",
+      "date": "2026-08-21",
+      "pdf": "https://arxiv.org/pdf/2608.21134v1",
+      "score": "10.0",
+      "evidence": "2.7比特极低比特量化视觉语言模型，面向移动端高效推理",
+      "tldr": "视觉语言模型在移动设备上部署困难，主要受限于内存和算力。我们提出一种高效量化框架，利用模型自身生成训练数据，无需原始训练流程，并设计新颖的2.7-bit参数格式，支持Arm CPU高效执行。该方法将Llama 3.2 11B Vision Instruct模型压缩至3.7GB，配合8-bit激活，在标准视觉问答任务上保持强性能，为资源受限设备上的VLM部署提供了可行方案。",
+      "tags": "query:wbv",
+      "abstract_en": "Deploying vision-language models (VLMs) on mobile devices is challenging due to their significant memory and compute requirements. We present a framework for quantizing VLMs for efficient inference on resource-constrained hardware. Our approach combines a quantization pipeline that uses the model itself to generate training data and does not require access to the training setup, with a novel 2.7-bit-per-parameter format supporting efficient execution on Arm CPUs. We validate our approach by compressing the Llama 3.2 11B Vision Instruct model to 3.7 GB with 8-bit activations, preserving strong performance on a set of standard visual question answering tasks.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202608/29/2608.26581v1-activation-outliers-matter-robust-recovery-for-quantized-multimodal-llms",
+      "section": "quick",
+      "title_en": "Activation Outliers Matter: Robust Recovery for Quantized Multimodal LLMs",
+      "authors": "Tanzila Rahman, Mehran Taghian Jazi, Yunke Peng, Zhuang Ma, Anandharaju Durai Raju, Yao Wang, Xing Huang, Hei Yi Mak, Shadan Golestan, Hoang Le, Yonghan Dong, Wei Guo, Yaoyuan Wang",
+      "date": "2026-08-27",
+      "pdf": "https://arxiv.org/pdf/2608.26581v1",
+      "score": "7.0",
+      "evidence": "多模态大模型的低比特量化与激活离群值鲁棒恢复，可迁移至极低比特压缩",
+      "tldr": "低比特量化可降低多模态大模型计算与内存需求，但4比特量化导致性能严重退化。系统研究表明激活量化是主要瓶颈，其影响远超权重量化。为此提出残差回退量化(RFQ)，以辅助残差路径补偿激活量化误差，无需架构修改。在Wan2.2与Qwen3-VL上，RFQ恢复MXFP4/HiF4大部分损失，逼近BF16基线，为稳健4比特部署提供有效方案。",
+      "tags": "query:wbv",
+      "abstract_en": "Low-bit quantization offers a promising avenue for reducing the computational and memory demands of Multimodal Large Language Models (MLLMs). Recent hardware support for low-precision formats, ranging from MXFP8 to ultra-low-bit formats such as MXFP4 and HiF4, has accelerated research into efficient MLLM training and deployment. In this work, we present a systematic study of these quantization schemes in representative MLLMs that span both video generation and reasoning tasks. Our analysis shows that MXFP8 achieves near-lossless performance, whereas aggressive 4-bit quantization leads to significant degradation. Through extensive ablations, we identify activation quantization as the primary source of this performance loss, contributing substantially more than weight quantization. Motivated by this observation, we propose Residual Fallback Quantization (RFQ), a lightweight activation reconstruction framework that supplements the primary ulta-low-bit activation representation with an auxiliary quantized residual pathway. By explicitly modeling and compensating for quantization errors, RFQ improves activation fidelity while preserving the efficiency advantages of ultra-low-bit computation. RFQ requires no architectural modifications and incurs negligible computational overhead. Extensive experiments on Wan2.2 and Qwen3-VL demonstrate that RFQ consistently recovers a substantial portion of the performance lost under the quantization of MXFP4 and HiF4, significantly narrowing the gap to BF16 baselines across both generation and 4 reasoning benchmarks. Our findings establish activation quantization as the dominant bottleneck in ultra-low-bit MLLMs and highlight residual-based activation reconstruction as an effective and practical strategy for robust 4-bit deployment.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

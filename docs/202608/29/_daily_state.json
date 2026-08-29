@@ -1,0 +1,41 @@
+{
+  "date": "20260829",
+  "date_label": "",
+  "generated_at": "2026-08-29 02:50:58 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.21134v1",
+      "route": "202608/29/2608.21134v1-llama-mobile-efficient-27-bit-quantization-of-vlms",
+      "title": "Llama-Mobile: Efficient 2.7-Bit Quantization of VLMs",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 10.0,
+      "evidence": "2.7比特极低比特量化视觉语言模型，面向移动端高效推理",
+      "first_seen_at": "2026-08-29 02:50:58 UTC",
+      "updated_at": "2026-08-29 02:50:58 UTC"
+    },
+    {
+      "paper_id": "2608.26581v1",
+      "route": "202608/29/2608.26581v1-activation-outliers-matter-robust-recovery-for-quantized-multimodal-llms",
+      "title": "Activation Outliers Matter: Robust Recovery for Quantized Multimodal LLMs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "多模态大模型的低比特量化与激活离群值鲁棒恢复，可迁移至极低比特压缩",
+      "first_seen_at": "2026-08-29 02:50:58 UTC",
+      "updated_at": "2026-08-29 02:50:58 UTC"
+    }
+  ]
+}
