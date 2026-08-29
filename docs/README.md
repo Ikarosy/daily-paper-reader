@@ -47,11 +47,11 @@
     <strong class="dpr-home-dashboard-count">共 2 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
-    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>2 次</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>1</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-08-29 02:50:58 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-08-29 21:46:13 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读与速读共2篇，聚焦多模态大模型量化压缩。</p>
-<p>最值得关注的是《Llama-Mobile》提出的2.7-bit极低比特量化方案（满分10分），以及《Activation Outliers Matter》揭示激活离群值对量化恢复的关键作用。</p>
-<p>建议普通读者优先了解前者如何实现高效端侧部署，后者可作为补充理解量化难点。</p>
+<p>今日精读1篇、速读1篇，聚焦多模态大模型量化压缩技术。最值得关注的是《Llama-Mobile》，提出2.7-bit超低比特量化方案并获满分评价；另一篇则揭示激活异常值对量化恢复的关键影响。建议优先精读Llama-Mobile，理解其高效量化设计，再结合异常值处理思路完善实际部署方案。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
