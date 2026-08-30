@@ -1,0 +1,99 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-30T22:03:27.310382+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 1,
+    "quick_skim_target": 11,
+    "quick_selected": 1
+  },
+  "deep_dive": [
+    {
+      "id": "2608.22979v2",
+      "source": "arxiv",
+      "title": "SA-RSQ: A Versatile Sparse Representation Framework for Multi-modal Recommender Systems",
+      "abstract": "Deploying high-dimensional multimodal features in industrial recommender systems incurs substantial storage and latency overhead. Hard quantization is compact but introduces boundary distortion, whereas dense soft quantization couples representation quality to the limited storage budget. We propose Sparse Activation-based Residual Soft Quantization (SA-RSQ), which uses Top-K sparse routing and softmax weights to store compact (Index, Probability) tuples. The stored tuples decouple per-item storage from codebook dimensionality; for a fixed selected support, gradients propagate through the routing weights and weighted reconstruction without relying on a straight-through estimator. Experiments on a proprietary food-delivery advertising dataset show favorable reconstruction-performance and CTR trade-offs across storage budgets of 8-48 bytes per item. A preliminary Next-Distribution Prediction study and a one-week online A/B test further demonstrate the practical potential of SA-RSQ, with relative lifts of +2.51% in CTR and +3.66% in CPM.",
+      "authors": [
+        "Xiang Wang",
+        "Shigang Quan",
+        "Tingzhen Chang",
+        "Kang Yang",
+        "Sitong Chen",
+        "Yabo Fan",
+        "Xingxing Wang",
+        "Zhaodian He"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-08-24T08:39:36+00:00",
+      "link": "https://arxiv.org/pdf/2608.22979v2",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "residual soft quantization for multi-modal recommender systems",
+      "llm_evidence_cn": "多模态推荐系统中的残差软量化方法",
+      "llm_evidence": "多模态推荐系统中的残差软量化方法",
+      "canonical_evidence": "多模态推荐系统中的残差软量化方法",
+      "llm_tldr_en": "SA-RSQ proposes sparse activation-based residual soft quantization for multi-modal recommender systems, using Top-K routing to store compact (index, probability) tuples, decoupling storage from codebook size. Experiments on a food-delivery dataset show improved efficiency.",
+      "llm_tldr_cn": "多模态推荐系统因高维特征导致存储和延迟开销大，现有硬量化存在边界失真，稠密软量化又受限于存储预算。为此提出稀疏激活残差软量化框架SA-RSQ，利用Top-K稀疏路由和softmax权重存储紧凑的(索引,概率)元组，实现存储与码本维度解耦。在餐饮推荐广告数据集上验证了方法在降低开销的同时保持表示质量。该方法为工业级多模态特征量化提供了新思路。",
+      "llm_tldr": "多模态推荐系统因高维特征导致存储和延迟开销大，现有硬量化存在边界失真，稠密软量化又受限于存储预算。为此提出稀疏激活残差软量化框架SA-RSQ，利用Top-K稀疏路由和softmax权重存储紧凑的(索引,概率)元组，实现存储与码本维度解耦。在餐饮推荐广告数据集上验证了方法在降低开销的同时保持表示质量。该方法为工业级多模态特征量化提供了新思路。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2608.21693v1",
+      "source": "arxiv",
+      "title": "Benchmarking Composable Compression Techniques in Mixture-of-Experts LLMs",
+      "abstract": "Mixture-of-Experts (MoE) LLMs scale model capacity efficiently through sparse activation, but their large expert parameter footprint, routing imbalance, and long-context KV-cache growth make deployment difficult on commodity hardware. Practical deployment often requires stacking multiple compression techniques: expert pruning removes redundant experts, weight quantization lowers model memory footprint, and KV-cache compression reduces long-context memory pressure. However, these techniques are typically evaluated in isolation, leaving open how they interact when applied together in realistic deployment pipelines.   In this work, we present MoEXBench, a systematic benchmark for evaluating composable MoE compression as an end-to-end deployment workflow. MoEXBench studies 10 MoE models ranging from 30B to 235B total parameters across standard-attention, hybrid linear-attention, and sliding window attention architectures. It evaluates 20%-50% expert pruning rates, 1 to 16 bit weight-quantization schemes, and multiple KV-cache precision settings, applied both individually and in combination.   MoEXBench introduces an eight-module evaluation suite that jointly measures composable-compression quality, workload and architecture robustness, pruning/quantization/KV cache sensitivity, and deployment efficiency on commodity hardware. Our results reveal non-trivial interactions among compression methods: composable compression cannot be predicted from standalone techniques, compression rate alone does not reliably predict quality loss or runtime gain, expert pruning is the dominant degradation source, and average quality can hide workload and architecture-specific failures. By releasing normalized module scores, compressed artifacts, and reproducible scripts, MoEXBench enables practical accuracy-memory-latency comparison across MoE families and hardware backends.",
+      "authors": [
+        "Afsara Benazir",
+        "Chen Chen",
+        "Rongxiao Qu",
+        "Jiabo Huang",
+        "Jingtao Li",
+        "Lingjuan Lyu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-08-22T00:01:18+00:00",
+      "link": "https://arxiv.org/pdf/2608.21693v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Composable compression benchmark covering weight quantization in MoE LLMs",
+      "llm_evidence_cn": "覆盖MoE大模型中权重量化的可组合压缩基准",
+      "llm_evidence": "覆盖MoE大模型中权重量化的可组合压缩基准",
+      "canonical_evidence": "覆盖MoE大模型中权重量化的可组合压缩基准",
+      "llm_tldr_en": "MoEXBench systematically evaluates combined expert pruning, weight quantization, and KV-cache compression in MoE LLMs, revealing interactions and trade-offs when stacking techniques in end-to-end deployment workflows.",
+      "llm_tldr_cn": "Mixture-of-Experts（MoE）大模型在部署时通常需要同时叠加多种压缩技术，如专家剪枝、权重量化和KV缓存压缩，但这些技术此前多被单独评测，缺乏组合场景下的系统研究。为此，本文提出MoEXBench基准，以端到端部署工作流的方式系统评估这些可组合压缩技术，并分析它们叠加使用时的交互作用与性能权衡。基准覆盖多种压缩组合，为低比特量化等压缩方法的实际部署效果提供了新的评测依据。该工作有助于研究者理解组合压缩对模型效率与质量的影响，并为极低比特VQ等主题提供评测参考。",
+      "llm_tldr": "Mixture-of-Experts（MoE）大模型在部署时通常需要同时叠加多种压缩技术，如专家剪枝、权重量化和KV缓存压缩，但这些技术此前多被单独评测，缺乏组合场景下的系统研究。为此，本文提出MoEXBench基准，以端到端部署工作流的方式系统评估这些可组合压缩技术，并分析它们叠加使用时的交互作用与性能权衡。基准覆盖多种压缩组合，为低比特量化等压缩方法的实际部署效果提供了新的评测依据。该工作有助于研究者理解组合压缩对模型效率与质量的影响，并为极低比特VQ等主题提供评测参考。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

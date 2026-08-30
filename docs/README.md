@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-08-29</span>
+      <span class="dpr-home-dashboard-kicker">2026-08-30</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 2 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
-    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>2 次</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>1</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-08-29 21:46:13 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-08-30 22:05:01 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,7 +62,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读1篇、速读1篇，聚焦多模态大模型量化压缩技术。最值得关注的是《Llama-Mobile》，提出2.7-bit超低比特量化方案并获满分评价；另一篇则揭示激活异常值对量化恢复的关键影响。建议优先精读Llama-Mobile，理解其高效量化设计，再结合异常值处理思路完善实际部署方案。</p>
+<p>今日精读一篇多模态推荐稀疏表示框架（8.0分），速读一篇MoE大模型压缩基准测评（7.0分），共两篇论文。</p>
+<p>最值得关注的是多模态推荐中的SA-RSQ方法，以及混合专家模型的可组合压缩技术对比。</p>
+<p>下一步可深入验证SA-RSQ在不同推荐场景的泛化性，并关注压缩组件在实际任务中的组合收益。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -74,7 +76,7 @@
     <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Llama-Mobile: Efficient 2.7-Bit Quantization of VLMs">Llama-Mobile: Efficient 2.7-Bit Quantization of VLMs</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="SA-RSQ: A Versatile Sparse Representation Framework for Multi-modal Recommender Systems">SA-RSQ: A Versatile Sparse Representation Framework for Multi-modal Recommender Systems</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>1</strong></span></div>
 </section>
@@ -87,7 +89,7 @@
     <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Activation Outliers Matter: Robust Recovery for Quantized Multimodal LLMs">Activation Outliers Matter: Robust Recovery for Quantized Multimodal LLMs</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Benchmarking Composable Compression Techniques in Mixture-of-Experts LLMs">Benchmarking Composable Compression Techniques in Mixture-of-Experts LLMs</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>1</strong></span></div>
 </section>
