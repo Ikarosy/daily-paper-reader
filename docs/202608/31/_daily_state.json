@@ -1,0 +1,41 @@
+{
+  "date": "20260831",
+  "date_label": "",
+  "generated_at": "2026-08-31 23:49:55 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.27875v1",
+      "route": "202608/31/2608.27875v1-hyquant-hybrid-precision-quantization-for-llm-attention",
+      "title": "HyQuant: Hybrid-Precision Quantization for LLM Attention",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "LLM注意力混合低比特量化，与极低比特量化主题直接相关",
+      "first_seen_at": "2026-08-31 23:49:55 UTC",
+      "updated_at": "2026-08-31 23:49:55 UTC"
+    },
+    {
+      "paper_id": "2608.28113v1",
+      "route": "202608/31/2608.28113v1-h-scale-hessian-guided-scale-refinement-for-nvfp4-sub-byte-llm-inference",
+      "title": "H-Scale: Hessian-Guided Scale Refinement for NVFP4 Sub-Byte LLM Inference",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向NVFP4亚字节量化的Hessian引导缩放因子精化，符合极低比特VQ主题",
+      "first_seen_at": "2026-08-31 23:49:55 UTC",
+      "updated_at": "2026-08-31 23:49:55 UTC"
+    }
+  ]
+}

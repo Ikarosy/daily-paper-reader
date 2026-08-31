@@ -1,0 +1,39 @@
+{
+  "label": "2026-08-31",
+  "date": "2026-08-31",
+  "generated_at": "2026-08-31T23:49:57",
+  "count": 2,
+  "papers": [
+    {
+      "paper_id": "202608/31/2608.27875v1-hyquant-hybrid-precision-quantization-for-llm-attention",
+      "section": "deep",
+      "title_en": "HyQuant: Hybrid-Precision Quantization for LLM Attention",
+      "authors": "Jiatong Ding, Bingxin Xing, Yu Zhang, Dian Ding, Xiaodong Yi, Xianbin Ouyang, Feihu Zhou, Kun Zhang, Zhenyu Guo, Hao Pan, Guangtao Xue, Yiming Zhang",
+      "date": "2026-08-28",
+      "pdf": "https://arxiv.org/pdf/2608.27875v1",
+      "score": "8.0",
+      "evidence": "LLM注意力混合低比特量化，与极低比特量化主题直接相关",
+      "tldr": "低比特量化注意力模块会因异常值产生较大误差，导致性能下降。现有方法依赖平滑技术处理异常值，而HyQuant提出混合精度量化方案，将多数注意力状态低比特化，仅保留垂直条带token与局部窗口为高精度，并利用轻量注意力模式信号选择关键区域。在Prefill和Decode阶段分别实现混合精度算子与KV缓存压缩，融合反量化计算。实验表明该设计在多种任务和模型上近乎无损，简单高效。",
+      "tags": "query:wbv",
+      "abstract_en": "Quantization has been widely adopted in LLM training and inference to reduce cost and improve efficiency. However, low-bit quantization of the \\emph{attention} module often introduces large errors at very low bit-widths, causing performance degradation. Existing methods mainly rely on smoothing techniques to handle outliers, while we propose a hybrid quantization design to better balance accuracy and efficiency. Specifically, we propose \\textbf{HyQuant}, an efficient hybrid quantization framework for LLM attention. HyQuant quantizes most attention states into low-bit formats while retaining a small set of vertical-line tokens and local-window states in high precision. These accuracy-critical regions are selected using lightweight vertical-line-aware attention-pattern signals, reducing quantization error with limited overhead. In the Prefill stage, HyQuant uses a hybrid-precision quantized attention operator that preserves vertical-line tokens and a local sliding window in full precision while quantizing the remaining context. In the Decode stage, HyQuant applies the same principle to KV-cache compression and fuses KV dequantization with attention computation to improve memory and hardware efficiency. Across diverse tasks, models, and datasets, HyQuant maintains nearly lossless accuracy with an extremely simple design, demonstrating the efficiency and practical feasibility of hybrid quantization for LLM attention. Code is available at: https://github.com/jerrysfls/HyQuant .",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202608/31/2608.28113v1-h-scale-hessian-guided-scale-refinement-for-nvfp4-sub-byte-llm-inference",
+      "section": "deep",
+      "title_en": "H-Scale: Hessian-Guided Scale Refinement for NVFP4 Sub-Byte LLM Inference",
+      "authors": "Hao Yu, Zheng Li, Dayiheng Liu, Jianwei Zhang",
+      "date": "2026-08-28",
+      "pdf": "https://arxiv.org/pdf/2608.28113v1",
+      "score": "8.0",
+      "evidence": "面向NVFP4亚字节量化的Hessian引导缩放因子精化，符合极低比特VQ主题",
+      "tldr": "NVFP4微块量化可加速Blackwell上LLM推理，但其逐组缩放因子空间大且敏感，现有PTQ只精修权重，缩放选择未获足够关注。H-Scale提出用校准激活的二阶代理精炼缩放因子，直接优化层输出扰动。实验显示，该方法在主流LLM上广泛改善多个NVFP4基线，使精度逼近BF16。作为RTN式选择的轻量替代，H-Scale离线校准、推理零开销，为NVFP4 PTQ提供了即插即用的精度提升方案。",
+      "tags": "query:wbv",
+      "abstract_en": "The NVIDIA Blackwell architecture, with native support for the ultra-fine-grained NVFP4 format, opens new opportunities for accelerating large language model (LLM) inference. NVFP4's micro-block design, such as a group size of 16, offers strong representational flexibility for capturing local weight distributions and isolating outliers, but it also introduces a large and highly sensitive space of per-group scaling factors. Existing post-training quantization (PTQ) methods primarily focus on refining quantized weight values, leaving this scale-selection step underexplored. To address this gap, we propose \\textbf{H-Scale}, a lightweight post-processing method for NVFP4 per-group scale refinement. Instead of minimizing plain weight reconstruction error, H-Scale selects hardware-valid group scales using a diagonal second-order proxy derived from calibration activations, thereby targeting layer output perturbation more directly. It is designed as a drop-in replacement for RTN-style scale selection in diverse NVFP4 pipelines, requires only modest offline calibration, and introduces strictly zero overhead at inference time. Under a fixed evaluation protocol, experiments on mainstream LLMs show that H-Scale generally improves a broad range of NVFP4 baselines and brings several variants closer to the BF16 reference.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

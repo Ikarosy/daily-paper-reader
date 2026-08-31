@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-08-30</span>
+      <span class="dpr-home-dashboard-kicker">2026-08-31</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 2 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>1</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>0</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-08-30 22:05:01 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-08-31 23:49:55 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读一篇多模态推荐稀疏表示框架（8.0分），速读一篇MoE大模型压缩基准测评（7.0分），共两篇论文。</p>
-<p>最值得关注的是多模态推荐中的SA-RSQ方法，以及混合专家模型的可组合压缩技术对比。</p>
-<p>下一步可深入验证SA-RSQ在不同推荐场景的泛化性，并关注压缩组件在实际任务中的组合收益。</p>
+<p>今日精读两篇LLM量化新作，聚焦注意力机制与亚字节推理优化；最值得关注的是《HyQuant》混合精度方案与《H-Scale》基于Hessian的NVFP4缩放，均获8分高分；建议跟进实际部署效果，优先尝试HyQuant对注意力层的低比特加速。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -73,12 +71,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">1 篇</strong>
+    <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="SA-RSQ: A Versatile Sparse Representation Framework for Multi-modal Recommender Systems">SA-RSQ: A Versatile Sparse Representation Framework for Multi-modal Recommender Systems</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="HyQuant: Hybrid-Precision Quantization for LLM Attention">HyQuant: Hybrid-Precision Quantization for LLM Attention</span></li><li><span class="dpr-home-dashboard-paper-title" title="H-Scale: Hessian-Guided Scale Refinement for NVFP4 Sub-Byte LLM Inference">H-Scale: Hessian-Guided Scale Refinement for NVFP4 Sub-Byte LLM Inference</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -86,12 +84,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">1 篇</strong>
+    <strong class="dpr-home-dashboard-count">0 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Benchmarking Composable Compression Techniques in Mixture-of-Experts LLMs">Benchmarking Composable Compression Techniques in Mixture-of-Experts LLMs</span></li></ul>
+<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>1</strong></span></div>
+
 </section>
 </div>
 

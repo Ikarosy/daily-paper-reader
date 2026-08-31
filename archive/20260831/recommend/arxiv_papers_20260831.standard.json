@@ -1,0 +1,98 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-31T23:48:04.515885+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 2,
+    "deep_cap": 6,
+    "deep_selected": 2,
+    "quick_candidates": 0,
+    "quick_skim_target": 11,
+    "quick_selected": 0
+  },
+  "deep_dive": [
+    {
+      "id": "2608.27875v1",
+      "source": "arxiv",
+      "title": "HyQuant: Hybrid-Precision Quantization for LLM Attention",
+      "abstract": "Quantization has been widely adopted in LLM training and inference to reduce cost and improve efficiency. However, low-bit quantization of the \\emph{attention} module often introduces large errors at very low bit-widths, causing performance degradation. Existing methods mainly rely on smoothing techniques to handle outliers, while we propose a hybrid quantization design to better balance accuracy and efficiency. Specifically, we propose \\textbf{HyQuant}, an efficient hybrid quantization framework for LLM attention. HyQuant quantizes most attention states into low-bit formats while retaining a small set of vertical-line tokens and local-window states in high precision. These accuracy-critical regions are selected using lightweight vertical-line-aware attention-pattern signals, reducing quantization error with limited overhead. In the Prefill stage, HyQuant uses a hybrid-precision quantized attention operator that preserves vertical-line tokens and a local sliding window in full precision while quantizing the remaining context. In the Decode stage, HyQuant applies the same principle to KV-cache compression and fuses KV dequantization with attention computation to improve memory and hardware efficiency. Across diverse tasks, models, and datasets, HyQuant maintains nearly lossless accuracy with an extremely simple design, demonstrating the efficiency and practical feasibility of hybrid quantization for LLM attention. Code is available at: https://github.com/jerrysfls/HyQuant .",
+      "authors": [
+        "Jiatong Ding",
+        "Bingxin Xing",
+        "Yu Zhang",
+        "Dian Ding",
+        "Xiaodong Yi",
+        "Xianbin Ouyang",
+        "Feihu Zhou",
+        "Kun Zhang",
+        "Zhenyu Guo",
+        "Hao Pan",
+        "Guangtao Xue",
+        "Yiming Zhang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-08-28T03:30:28+00:00",
+      "link": "https://arxiv.org/pdf/2608.27875v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "hybrid low-bit quantization for LLM attention, central to extreme low-bit quantization theme",
+      "llm_evidence_cn": "LLM注意力混合低比特量化，与极低比特量化主题直接相关",
+      "llm_evidence": "LLM注意力混合低比特量化，与极低比特量化主题直接相关",
+      "canonical_evidence": "LLM注意力混合低比特量化，与极低比特量化主题直接相关",
+      "llm_tldr_en": "Low-bit quantization reduces LLM cost but harms attention accuracy. HyQuant uses hybrid precision, keeping key vertical-line tokens and local-window states high-precision while quantizing the rest low-bit, yielding better accuracy-efficiency trade-offs.",
+      "llm_tldr_cn": "低比特量化虽能降低LLM推理成本，但注意力模块在极低比特下误差很大。现有方法多用平滑技术处理异常值，本文提出混合精度量化框架HyQuant，将大部分注意力状态量化为低位格式，同时保留少数垂直令牌和局部窗口状态为高精度，并通过轻量级垂直感知注意力模式选择关键区域。实验表明该方法在极低比特下显著缓解性能下降，在精度与效率之间取得更好平衡，为LLM注意力极低比特量化提供了新的思路。",
+      "llm_tldr": "低比特量化虽能降低LLM推理成本，但注意力模块在极低比特下误差很大。现有方法多用平滑技术处理异常值，本文提出混合精度量化框架HyQuant，将大部分注意力状态量化为低位格式，同时保留少数垂直令牌和局部窗口状态为高精度，并通过轻量级垂直感知注意力模式选择关键区域。实验表明该方法在极低比特下显著缓解性能下降，在精度与效率之间取得更好平衡，为LLM注意力极低比特量化提供了新的思路。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.28113v1",
+      "source": "arxiv",
+      "title": "H-Scale: Hessian-Guided Scale Refinement for NVFP4 Sub-Byte LLM Inference",
+      "abstract": "The NVIDIA Blackwell architecture, with native support for the ultra-fine-grained NVFP4 format, opens new opportunities for accelerating large language model (LLM) inference. NVFP4's micro-block design, such as a group size of 16, offers strong representational flexibility for capturing local weight distributions and isolating outliers, but it also introduces a large and highly sensitive space of per-group scaling factors. Existing post-training quantization (PTQ) methods primarily focus on refining quantized weight values, leaving this scale-selection step underexplored. To address this gap, we propose \\textbf{H-Scale}, a lightweight post-processing method for NVFP4 per-group scale refinement. Instead of minimizing plain weight reconstruction error, H-Scale selects hardware-valid group scales using a diagonal second-order proxy derived from calibration activations, thereby targeting layer output perturbation more directly. It is designed as a drop-in replacement for RTN-style scale selection in diverse NVFP4 pipelines, requires only modest offline calibration, and introduces strictly zero overhead at inference time. Under a fixed evaluation protocol, experiments on mainstream LLMs show that H-Scale generally improves a broad range of NVFP4 baselines and brings several variants closer to the BF16 reference.",
+      "authors": [
+        "Hao Yu",
+        "Zheng Li",
+        "Dayiheng Liu",
+        "Jianwei Zhang"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-08-28T09:22:17+00:00",
+      "link": "https://arxiv.org/pdf/2608.28113v1",
+      "tags": [
+        "keyword:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Hessian-guided scale refinement for NVFP4 sub-byte LLM quantization, aligning with the extremely low-bit VQ theme",
+      "llm_evidence_cn": "面向NVFP4亚字节量化的Hessian引导缩放因子精化，符合极低比特VQ主题",
+      "llm_evidence": "面向NVFP4亚字节量化的Hessian引导缩放因子精化，符合极低比特VQ主题",
+      "canonical_evidence": "面向NVFP4亚字节量化的Hessian引导缩放因子精化，符合极低比特VQ主题",
+      "llm_tldr_en": "H-Scale is a lightweight post-processing method for NVFP4 per-group scale refinement. It uses Hessian-guided optimization instead of plain weight error minimization, improving sub-byte LLM inference accuracy and efficiency.",
+      "llm_tldr_cn": "现有后训练量化方法主要关注量化权重值的精化，而忽略了缩放因子选择这一关键步骤。本文提出H-Scale，一种轻量级的后处理方法，利用Hessian信息指导NVFP4中每个微块缩放因子的精化，以改善LLM推理的性能。在Blackwell架构的原生NVFP4格式上，该方法能够显著提升低比特推理的精度与效率。这项工作为亚字节LLM推理中的缩放因子优化提供了新的思路。",
+      "llm_tldr": "现有后训练量化方法主要关注量化权重值的精化，而忽略了缩放因子选择这一关键步骤。本文提出H-Scale，一种轻量级的后处理方法，利用Hessian信息指导NVFP4中每个微块缩放因子的精化，以改善LLM推理的性能。在Blackwell架构的原生NVFP4格式上，该方法能够显著提升低比特推理的精度与效率。这项工作为亚字节LLM推理中的缩放因子优化提供了新的思路。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": []
+}
