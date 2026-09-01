@@ -1,0 +1,39 @@
+{
+  "label": "2026-09-01",
+  "date": "2026-09-01",
+  "generated_at": "2026-09-01T22:42:45",
+  "count": 2,
+  "papers": [
+    {
+      "paper_id": "202609/01/2608.30996v1-faithfulness-is-not-free-auditing-offline-kv-cache-quantization-in-retrieval-augmented-generation",
+      "section": "deep",
+      "title_en": "Faithfulness Is Not Free: Auditing Offline KV-Cache Quantization in Retrieval-Augmented Generation",
+      "authors": "Atta Ul Asad, Ahsan Bilal, Muhammad Ali, Muhammad Haseeb, Dean F. Hougen",
+      "date": "2026-08-31",
+      "pdf": "https://arxiv.org/pdf/2608.30996v1",
+      "score": "8.0",
+      "evidence": "KV缓存INT4/INT8量化，与低比特标量量化（SQ）研究直接相关",
+      "tldr": "检索增强生成系统常预计算并存储检索文档的KV缓存来避免重复编码，量化这些缓存可减少存储，但尚无工作审计压缩是否破坏忠实性——回答是否仍基于给定证据。本文用Qwen2.5-7B-Instruct在RGB和HotpotQA上评估INT8/INT4量化，配合幻觉检测器、NLI和LLM评判。结果显示INT8近乎无损，而INT4不仅降低准确率，且即使答案正确，超过90%的忠实性变化为负，准确率对此完全盲目。危害随检索噪声和块数增加而加剧，因此部署前必须审计忠实性。",
+      "tags": "query:wbv",
+      "abstract_en": "Retrieval-augmented generation systems can precompute and store key-value caches of retrieved documents to avoid re-encoding context at every query. Quantizing these caches further reduces storage, but no prior work asks whether compression damages faithfulness, whether responses remain grounded in the retrieved evidence. Faithfulness and accuracy are not equivalent: a model can produce a correct answer that is no longer supported by the context it was given. We evaluate Qwen2.5-7B-Instruct under INT8 and INT4 quantization on RGB and HotpotQA, measuring both accuracy and faithfulness with a hallucination detector, NLI entailment, and an LLM judge. INT8 is near-lossless across both metrics. INT4 reduces accuracy and, more critically, even among answers that remain factually correct, over 90% of faithfulness changes are negative, i.e., accuracy metrics are blind to this regression. The harm grows under noisy retrieval and with more retrieved chunks. Faithfulness must be audited before compressed caches are deployed.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/01/2608.29667v1-a-target-centric-survey-of-quantization-aware-training",
+      "section": "quick",
+      "title_en": "A Target-Centric Survey of Quantization-Aware Training",
+      "authors": "Jiamin Song, Mengjie Zhao, Zijing Wang, Yongkang Liu, Qian Li, Shi Feng, Feiliang Ren, Daling Wang, Hinrich Schütze",
+      "date": "2026-08-30",
+      "pdf": "https://arxiv.org/pdf/2608.29667v1",
+      "score": "7.0",
+      "evidence": "面向低比特模型的量化感知训练综述，与3比特标量量化需求直接相关",
+      "tldr": "大型语言模型带来巨大内存和计算开销，量化感知训练通过在训练中模拟量化过程，使低比特模型保持接近全精度性能。本文以目标为中心梳理QAT方法，系统分析不同量化目标的误差特性与数值格式，并探讨训练策略的可迁移性。文章进一步总结评估范式，讨论优化与部署中的挑战，为QAT研究提供结构化参考。",
+      "tags": "query:wbv",
+      "abstract_en": "The rapid development of LLMs incurs prohibitive memory footprints and intensive computational demands. Quantization-Aware Training (QAT) techniques have emerged as a promising solution to address these challenges by explicitly simulating quantization effects during model training, yielding low-bit models that achieve accuracy comparable to their full-precision counterparts. In this work, we provide a target-centric survey of QAT, aimed at clarifying both its theoretical foundations and its evolving implementation landscape. We systematically review existing QAT methods through a target-centric taxonomy and synthesize cross-target differences in error characteristics, numerical formats, and strategy transferability. We further summarize QAT evaluation paradigms and discuss challenges in optimization and deployment, outlining potential directions for future research.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

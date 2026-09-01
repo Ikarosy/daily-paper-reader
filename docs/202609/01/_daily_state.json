@@ -1,0 +1,41 @@
+{
+  "date": "20260901",
+  "date_label": "",
+  "generated_at": "2026-09-01 22:42:43 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.30996v1",
+      "route": "202609/01/2608.30996v1-faithfulness-is-not-free-auditing-offline-kv-cache-quantization-in-retrieval-augmented-generation",
+      "title": "Faithfulness Is Not Free: Auditing Offline KV-Cache Quantization in Retrieval-Augmented Generation",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "KV缓存INT4/INT8量化，与低比特标量量化（SQ）研究直接相关",
+      "first_seen_at": "2026-09-01 22:42:43 UTC",
+      "updated_at": "2026-09-01 22:42:43 UTC"
+    },
+    {
+      "paper_id": "2608.29667v1",
+      "route": "202609/01/2608.29667v1-a-target-centric-survey-of-quantization-aware-training",
+      "title": "A Target-Centric Survey of Quantization-Aware Training",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向低比特模型的量化感知训练综述，与3比特标量量化需求直接相关",
+      "first_seen_at": "2026-09-01 22:42:43 UTC",
+      "updated_at": "2026-09-01 22:42:43 UTC"
+    }
+  ]
+}
