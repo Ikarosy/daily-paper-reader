@@ -1,0 +1,152 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-02T22:59:55.707186+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2609.00049v1",
+      "source": "arxiv",
+      "title": "REAL-Q: E2E LLM Quantization via Dynamic Gradient Descent",
+      "abstract": "Post-training quantization (PTQ) is essential for deploying large language models (LLMs) under strict resource constraints. State-of-the-art PTQ methods quantize each layer with a single closed-form second-order solver: to remain analytically tractable, they heavily approximate the global loss (dropping cross-channel coupling, pooling output rows into groups), and they then freeze the resulting Hessian across the entire layer, with no way to refresh it as the loss landscape shifts column by column--a phenomenon we call information misalignment. We propose REAL-Q (Real-time E2E-loss Aligned LLM Quantization), a novel PTQ paradigm that breaks this compromise: instead of diluting the objective for the sake of analytic tractability, REAL-Q targets an end-to-end-aligned surrogate of the global loss and refines it via fine-grained, dynamic Block-wise Gradient Descent applied after every column block (128 columns). By coupling this fine-grained correction with a sliding window mechanism for smooth cross-layer transitions, REAL-Q effectively mitigates error propagation across the network. On LLaMA-3.1 (8B and 70B) and Qwen3 (0.6B-32B) at W4A16, REAL-Q reduces end-to-end KL divergence by up to ~49% relative to state-of-the-art globally-guided methods.",
+      "authors": [
+        "Qian Zhang",
+        "Yaoming Li",
+        "Zhewen Tan",
+        "Yanshu Wang",
+        "Heng Lu",
+        "Kun Su",
+        "Zongwei Lv",
+        "Wenhan Yu",
+        "Yongge Ma",
+        "Yinjun Han",
+        "Ruikuang Liu",
+        "Tong Yang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-08-30T06:30:31+00:00",
+      "link": "https://arxiv.org/pdf/2609.00049v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "end-to-end aligned low-bit LLM post-training quantization under strict resource constraints",
+      "llm_evidence_cn": "面向极低比特大模型部署的端到端对准后训练量化",
+      "llm_evidence": "面向极低比特大模型部署的端到端对准后训练量化",
+      "canonical_evidence": "面向极低比特大模型部署的端到端对准后训练量化",
+      "llm_tldr_en": "REAL-Q replaces frozen closed-form PTQ solvers with dynamic gradient descent that tracks the shifting per-column loss landscape, achieving end-to-end alignment; it outperforms state-of-the-art PTQ methods on diverse LLMs and quantizer difficulties, advancing very-low-bit deployment.",
+      "llm_tldr_cn": "PTQ是大模型低比特部署的关键，但现有最先进方法为了可解析性大幅近似全局损失并冻结逐层Hessian，导致损失形态逐列变化时无法更新，产生信息错位。论文提出REAL-Q，以动态梯度下降实时追踪端到端损失景观，不再因解析可解而稀释优化目标。实验表明，REAL-Q在多个LLM与量化难度上都优于现有PTQ方法，在精度和效率之间取得更好折中，为极低比特量化提供了新的端到端优化范式。",
+      "llm_tldr": "PTQ是大模型低比特部署的关键，但现有最先进方法为了可解析性大幅近似全局损失并冻结逐层Hessian，导致损失形态逐列变化时无法更新，产生信息错位。论文提出REAL-Q，以动态梯度下降实时追踪端到端损失景观，不再因解析可解而稀释优化目标。实验表明，REAL-Q在多个LLM与量化难度上都优于现有PTQ方法，在精度和效率之间取得更好折中，为极低比特量化提供了新的端到端优化范式。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.00066v1",
+      "source": "arxiv",
+      "title": "OCGQuant: Outlier-Companion Grouping for NVFP4 Quantization",
+      "abstract": "NVFP4 is an efficient microscaling format for low-bit inference, but activation outliers can still degrade quantization accuracy within NVFP4 blocks. Within each quantization block, large activations can dominate the block scale, increasing the quantization error of the remaining values sharing the same scale. Existing post-training quantization (PTQ) methods mitigate outlier errors through strategies such as mixed precision, rotation, or residual compensation, but these approaches are either not specifically tailored to NVFP4 or introduce additional computation. In this work, we revisit NVFP4 from a channel-grouping perspective and define the reducible error incurred by remaining block values under the scale set by the block maximum as Collateral Quantization Error. Based on this insight, we propose OCGQuant, a post-training quantization method centered on Outlier-Companion Grouping (OCG), which adaptively pairs outlier channels with low-magnitude companion channels to improve NVFP4 activation block composition. Experiments on Llama3 and Qwen3 show that OCGQuant achieves the lowest WikiText-2 perplexity and highest average downstream accuracy among evaluated PTQ methods, while maintaining prefill speedup close to RTN and matching its peak decoding memory. Code is available at https://github.com/Eshamont/OCGQuant.",
+      "authors": [
+        "Yishan Yao",
+        "Binjun Li",
+        "Hanling Yi",
+        "Pengyu Li",
+        "Xiaoqing Liu",
+        "Zihan Yang",
+        "Xiaotian Yu",
+        "Zhiwen Yu"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-08-30T16:00:11+00:00",
+      "link": "https://arxiv.org/pdf/2609.00066v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "low-bit NVFP4 scalar quantization with channel grouping, close to 3-bit SQ and extreme low-bit quantization theme",
+      "llm_evidence_cn": "NVFP4低比特标量量化与异常值分组，贴近3比特SQ及极低比特量化主题",
+      "llm_evidence": "NVFP4低比特标量量化与异常值分组，贴近3比特SQ及极低比特量化主题",
+      "canonical_evidence": "NVFP4低比特标量量化与异常值分组，贴近3比特SQ及极低比特量化主题",
+      "llm_tldr_en": "NVFP4 low-bit inference degrades when an activation outlier dominates the block scale. OCGQuant tackles this by grouping outliers with companion channels to reduce collaterally quantized remaining values, yielding efficient PTQ with improved low-bit accuracy.",
+      "llm_tldr_cn": "NVFP4是一种高效的低比特微缩放格式，但块内激活异常值会主导块缩放，抬高其他数值的量化误差。作者从通道分组视角重新定义可缩减的连带量化误差，提出OCGQuant：把异常值与其伴随通道归组，避免剩余数值被同一异常主导缩放所伤害。该后训练量化方法无需引入混合精度、旋转或额外补偿计算，即可在低比特推理中获得更优精度，说明分组策略对NVFP4这类格式有效。",
+      "llm_tldr": "NVFP4是一种高效的低比特微缩放格式，但块内激活异常值会主导块缩放，抬高其他数值的量化误差。作者从通道分组视角重新定义可缩减的连带量化误差，提出OCGQuant：把异常值与其伴随通道归组，避免剩余数值被同一异常主导缩放所伤害。该后训练量化方法无需引入混合精度、旋转或额外补偿计算，即可在低比特推理中获得更优精度，说明分组策略对NVFP4这类格式有效。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "3 bit SQ",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.00450v1",
+      "source": "arxiv",
+      "title": "HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference",
+      "abstract": "Block Quantization (BQ) is a promising approach for efficient deployment of large language models (LLMs), enabling low-precision computation with controlled accuracy degradation. Compared to scalar weight-only quantization (WoQ), BQ quantizes both weight and activation, offering higher hardware efficiency and end-to-end inference on a unified datapath, but its design space, spanning bit-width, block size, scaling, and numeric formats, remains underexplored.   We provide hardware/benchmark results through design space exploration (DSE). We find that increasing block size improves hardware efficiency by amortizing dequantization and accumulation costs, but degrades accuracy. This trade-off limits conventional BQ methods.   Motivated by this insight, we propose Hierarchical Block Quantization (HBQ). Unlike prior methods [1], [2], which use small blocks and conventional Power-of-Two (PoT) or integer-based scaling, HBQ uses large blocks to maximize efficiency and introduces low-overhead significand (SIG) scaling for second-level quantization. By allocating quantization levels effectively and accounting for distinct activation and weight distributions, SIG scaling compensates for large-block errors more effectively than prior PoT and INT schemes. HBQ-A (accurate) achieves W4A16-level accuracy using only W4A5 while requiring less silicon area than NVFP4. HBQ-E (efficient) further reduces hardware cost by 17% while maintaining higher accuracy than all existing BQ methods.   We implemented a 28nm ASIC accelerator applying HBQ to weights, activations, and KV cache, and integrated a novel partial-sum BQ scheme to further reduce EMA energy.   Compared to state-of-the-art WoQ, HBQ delivers $2.3\\times$/$4.6\\times$ higher area/energy efficiency at the same accuracy level; $1.6$--$3.3\\times$ system energy reduction and $1.5$--$3.0\\times$ speedup over prior BQ methods while providing best accuracy.",
+      "authors": [
+        "Chun-Ting Chen",
+        "Dongmin Han",
+        "Hangyeol Mun",
+        "Jake Hyun",
+        "Arnab Raha",
+        "Amit Agarwal",
+        "Mark Anders",
+        "Mohamed Abdelfattah",
+        "Jae-sun Seo"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.AR"
+      ],
+      "published": "2026-08-31T22:39:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.00450v1",
+      "tags": [
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "low-precision block quantization for LLM inference with hardware-efficient design and benchmark results",
+      "llm_evidence_cn": "低比特块量化用于LLM推理，关注硬件效率并给出设计探索与基准结果",
+      "llm_evidence": "低比特块量化用于LLM推理，关注硬件效率并给出设计探索与基准结果",
+      "canonical_evidence": "低比特块量化用于LLM推理，关注硬件效率并给出设计探索与基准结果",
+      "llm_tldr_en": "BQ enables low-precision LLM inference but its design space is underexplored. HBQ contributes HW-aware hierarchical scaling block quantization with DSE, showing larger block sizes improve hardware efficiency yet degrade accuracy, helping to balance cost and model quality.",
+      "llm_tldr_cn": "块量化可在可控精度损失下支持低比特LLM推理，并对权重和激活都进行量化以获得统一硬件数据通路，但其位宽、块大小、缩放与数值格式等设计空间未系统研究。HBQ提出硬件效率感知的分层缩放块量化，并基于设计空间探索提供硬件与基准结果。结果表明增大块大小能摊销反量化与累加成本从而提升硬件效率，但会降低模型精度。HBQ为极低比特LLM量化提供了精度与硬件开销权衡的系统性设计参考。",
+      "llm_tldr": "块量化可在可控精度损失下支持低比特LLM推理，并对权重和激活都进行量化以获得统一硬件数据通路，但其位宽、块大小、缩放与数值格式等设计空间未系统研究。HBQ提出硬件效率感知的分层缩放块量化，并基于设计空间探索提供硬件与基准结果。结果表明增大块大小能摊销反量化与累加成本从而提升硬件效率，但会降低模型精度。HBQ为极低比特LLM量化提供了精度与硬件开销权衡的系统性设计参考。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

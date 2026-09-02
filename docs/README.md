@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-01</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-02</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 2 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 3 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>1</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>2</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-01 22:42:43 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-02 23:03:18 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读1篇、速读1篇，共2篇论文，重点围绕KV缓存量化与量化感知训练。</p>
-<p>最值得关注的是精读论文《Faithfulness Is Not Free》，揭示了检索增强生成中离线KV缓存量化对忠实度的影响；速读论文则提供了量化感知训练的目标视角综述。</p>
-<p>建议普通读者优先关注量化对RAG系统可靠性的权衡，后续可深入对比不同量化方案的精度与成本。</p>
+<p>今日聚焦LLM量化前沿，精读1篇高分解法并速读2篇相关方案。</p>
+<p>最值得看的是9.0分的《REAL-Q》，用动态梯度下降实现端到端量化，显著优于其余两篇（各7.0分）。</p>
+<p>建议优先研读REAL-Q的动态优化思路，再对比OCGQuant的异常值分组与HBQ的硬件感知分层设计。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -76,7 +76,7 @@
     <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Faithfulness Is Not Free: Auditing Offline KV-Cache Quantization in Retrieval-Augmented Generation">Faithfulness Is Not Free: Auditing Offline KV-Cache Quantization in Retrieval-Augmented Generation</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="REAL-Q: E2E LLM Quantization via Dynamic Gradient Descent">REAL-Q: E2E LLM Quantization via Dynamic Gradient Descent</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>1</strong></span></div>
 </section>
@@ -86,12 +86,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">1 篇</strong>
+    <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="A Target-Centric Survey of Quantization-Aware Training">A Target-Centric Survey of Quantization-Aware Training</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="OCGQuant: Outlier-Companion Grouping for NVFP4 Quantization">OCGQuant: Outlier-Companion Grouping for NVFP4 Quantization</span></li><li><span class="dpr-home-dashboard-paper-title" title="HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference">HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span></div>
 </section>
 </div>
 

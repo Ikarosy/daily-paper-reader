@@ -1,0 +1,57 @@
+{
+  "date": "20260902",
+  "date_label": "",
+  "generated_at": "2026-09-02 23:03:18 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.00049v1",
+      "route": "202609/02/2609.00049v1-real-q-e2e-llm-quantization-via-dynamic-gradient-descent",
+      "title": "REAL-Q: E2E LLM Quantization via Dynamic Gradient Descent",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向极低比特大模型部署的端到端对准后训练量化",
+      "first_seen_at": "2026-09-02 23:03:18 UTC",
+      "updated_at": "2026-09-02 23:03:18 UTC"
+    },
+    {
+      "paper_id": "2609.00066v1",
+      "route": "202609/02/2609.00066v1-ocgquant-outlier-companion-grouping-for-nvfp4-quantization",
+      "title": "OCGQuant: Outlier-Companion Grouping for NVFP4 Quantization",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "NVFP4低比特标量量化与异常值分组，贴近3比特SQ及极低比特量化主题",
+      "first_seen_at": "2026-09-02 23:03:18 UTC",
+      "updated_at": "2026-09-02 23:03:18 UTC"
+    },
+    {
+      "paper_id": "2609.00450v1",
+      "route": "202609/02/2609.00450v1-hbq-hierarchical-scaling-block-quantization-with-hardware-efficiency-aware-design-for-accurate-llm-inference",
+      "title": "HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "低比特块量化用于LLM推理，关注硬件效率并给出设计探索与基准结果",
+      "first_seen_at": "2026-09-02 23:03:18 UTC",
+      "updated_at": "2026-09-02 23:03:18 UTC"
+    }
+  ]
+}

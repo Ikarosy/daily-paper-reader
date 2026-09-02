@@ -1,0 +1,54 @@
+{
+  "label": "2026-09-02",
+  "date": "2026-09-02",
+  "generated_at": "2026-09-02T23:03:22",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202609/02/2609.00049v1-real-q-e2e-llm-quantization-via-dynamic-gradient-descent",
+      "section": "deep",
+      "title_en": "REAL-Q: E2E LLM Quantization via Dynamic Gradient Descent",
+      "authors": "Qian Zhang, Yaoming Li, Zhewen Tan, Yanshu Wang, Heng Lu, Kun Su, Zongwei Lv, Wenhan Yu, Yongge Ma, Yinjun Han, Ruikuang Liu, Tong Yang",
+      "date": "2026-08-30",
+      "pdf": "https://arxiv.org/pdf/2609.00049v1",
+      "score": "9.0",
+      "evidence": "面向极低比特大模型部署的端到端对准后训练量化",
+      "tldr": "现有PTQ方法常采用单次闭式二阶求解，需近似全局损失并冻结Hessian，导致信息错位与误差传播。REAL-Q提出端到端对齐的代理损失，通过每128列动态块梯度下降实时修正量化过程，并借助滑动窗口平滑跨层过渡。在LLaMA-3.1与Qwen3系列W4A16量化上，端到端KL散度相对降低达49%，显著缓解误差传播，提升量化精度。",
+      "tags": "query:wbv",
+      "abstract_en": "Post-training quantization (PTQ) is essential for deploying large language models (LLMs) under strict resource constraints. State-of-the-art PTQ methods quantize each layer with a single closed-form second-order solver: to remain analytically tractable, they heavily approximate the global loss (dropping cross-channel coupling, pooling output rows into groups), and they then freeze the resulting Hessian across the entire layer, with no way to refresh it as the loss landscape shifts column by column--a phenomenon we call information misalignment. We propose REAL-Q (Real-time E2E-loss Aligned LLM Quantization), a novel PTQ paradigm that breaks this compromise: instead of diluting the objective for the sake of analytic tractability, REAL-Q targets an end-to-end-aligned surrogate of the global loss and refines it via fine-grained, dynamic Block-wise Gradient Descent applied after every column block (128 columns). By coupling this fine-grained correction with a sliding window mechanism for smooth cross-layer transitions, REAL-Q effectively mitigates error propagation across the network. On LLaMA-3.1 (8B and 70B) and Qwen3 (0.6B-32B) at W4A16, REAL-Q reduces end-to-end KL divergence by up to ~49% relative to state-of-the-art globally-guided methods.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/02/2609.00066v1-ocgquant-outlier-companion-grouping-for-nvfp4-quantization",
+      "section": "quick",
+      "title_en": "OCGQuant: Outlier-Companion Grouping for NVFP4 Quantization",
+      "authors": "Yishan Yao, Binjun Li, Hanling Yi, Pengyu Li, Xiaoqing Liu, Zihan Yang, Xiaotian Yu, Zhiwen Yu",
+      "date": "2026-08-30",
+      "pdf": "https://arxiv.org/pdf/2609.00066v1",
+      "score": "7.0",
+      "evidence": "NVFP4低比特标量量化与异常值分组，贴近3比特SQ及极低比特量化主题",
+      "tldr": "NVFP4量化中激活异常值会主导块尺度，放大其余值的量化误差。现有PTQ方法多不针对NVFP4或引入额外开销。OCGQuant提出异常-伴生分组（OCG），将异常通道与低幅值通道配对以优化块组成。在Llama3/Qwen3上困惑度与下游精度最优，速度接近RTN，内存匹配其峰值。",
+      "tags": "query:wbv",
+      "abstract_en": "NVFP4 is an efficient microscaling format for low-bit inference, but activation outliers can still degrade quantization accuracy within NVFP4 blocks. Within each quantization block, large activations can dominate the block scale, increasing the quantization error of the remaining values sharing the same scale. Existing post-training quantization (PTQ) methods mitigate outlier errors through strategies such as mixed precision, rotation, or residual compensation, but these approaches are either not specifically tailored to NVFP4 or introduce additional computation. In this work, we revisit NVFP4 from a channel-grouping perspective and define the reducible error incurred by remaining block values under the scale set by the block maximum as Collateral Quantization Error. Based on this insight, we propose OCGQuant, a post-training quantization method centered on Outlier-Companion Grouping (OCG), which adaptively pairs outlier channels with low-magnitude companion channels to improve NVFP4 activation block composition. Experiments on Llama3 and Qwen3 show that OCGQuant achieves the lowest WikiText-2 perplexity and highest average downstream accuracy among evaluated PTQ methods, while maintaining prefill speedup close to RTN and matching its peak decoding memory. Code is available at https://github.com/Eshamont/OCGQuant.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/02/2609.00450v1-hbq-hierarchical-scaling-block-quantization-with-hardware-efficiency-aware-design-for-accurate-llm-inference",
+      "section": "quick",
+      "title_en": "HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference",
+      "authors": "Chun-Ting Chen, Dongmin Han, Hangyeol Mun, Jake Hyun, Arnab Raha, Amit Agarwal, Mark Anders, Mohamed Abdelfattah, Jae-sun Seo",
+      "date": "2026-08-31",
+      "pdf": "https://arxiv.org/pdf/2609.00450v1",
+      "score": "7.0",
+      "evidence": "低比特块量化用于LLM推理，关注硬件效率并给出设计探索与基准结果",
+      "tldr": "块量化（BQ）可同时量化权重和激活，但增大块大小虽提升硬件效率却损害精度。针对此权衡，提出分层块量化（HBQ），采用大块结合低开销有效数（SIG）缩放作为第二级量化，适配权重与激活的分布差异。HBQ-A以W4A5实现W4A16级精度且面积小于NVFP4；HBQ-E进一步降低17%硬件成本并超越现有BQ精度。在28nm加速器上部署权重、激活及KV cache，部分和BQ降低能量，面积/能量效率较SOTA WoQ提升2.3x/4.6x，系统能量降低1.6-3.3x，加速1.5-3.0x。",
+      "tags": "query:wbv",
+      "abstract_en": "Block Quantization (BQ) is a promising approach for efficient deployment of large language models (LLMs), enabling low-precision computation with controlled accuracy degradation. Compared to scalar weight-only quantization (WoQ), BQ quantizes both weight and activation, offering higher hardware efficiency and end-to-end inference on a unified datapath, but its design space, spanning bit-width, block size, scaling, and numeric formats, remains underexplored.   We provide hardware/benchmark results through design space exploration (DSE). We find that increasing block size improves hardware efficiency by amortizing dequantization and accumulation costs, but degrades accuracy. This trade-off limits conventional BQ methods.   Motivated by this insight, we propose Hierarchical Block Quantization (HBQ). Unlike prior methods [1], [2], which use small blocks and conventional Power-of-Two (PoT) or integer-based scaling, HBQ uses large blocks to maximize efficiency and introduces low-overhead significand (SIG) scaling for second-level quantization. By allocating quantization levels effectively and accounting for distinct activation and weight distributions, SIG scaling compensates for large-block errors more effectively than prior PoT and INT schemes. HBQ-A (accurate) achieves W4A16-level accuracy using only W4A5 while requiring less silicon area than NVFP4. HBQ-E (efficient) further reduces hardware cost by 17% while maintaining higher accuracy than all existing BQ methods.   We implemented a 28nm ASIC accelerator applying HBQ to weights, activations, and KV cache, and integrated a novel partial-sum BQ scheme to further reduce EMA energy.   Compared to state-of-the-art WoQ, HBQ delivers $2.3\\times$/$4.6\\times$ higher area/energy efficiency at the same accuracy level; $1.6$--$3.3\\times$ system energy reduction and $1.5$--$3.0\\times$ speedup over prior BQ methods while providing best accuracy.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
