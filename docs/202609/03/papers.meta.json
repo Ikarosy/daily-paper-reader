@@ -1,0 +1,54 @@
+{
+  "label": "2026-09-03",
+  "date": "2026-09-03",
+  "generated_at": "2026-09-03T21:53:36",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202609/03/2609.02652v1-unfolding-the-leech-lattice-fused-multi-shell-decoding-and-vram-layouts-for-2-bit-llm-weights",
+      "section": "deep",
+      "title_en": "Unfolding the Leech Lattice: Fused Multi-Shell Decoding and VRAM Layouts for 2-Bit LLM Weights",
+      "authors": "Pier-Jean Malandrino",
+      "date": "2026-09-02",
+      "pdf": "https://arxiv.org/pdf/2609.02652v1",
+      "score": "10.0",
+      "evidence": "正好命中“2 bit VQ”：对2比特LLM权重做李格点向量量化，补齐多壳解码并给出显存布局评测",
+      "tldr": "利奇晶格向量量化在2比特权重上报告最强质量，但现有内核仅解码单壳，缺少多壳解码器；本文提供完整301类码本的服务路径，用离线GPU布局展开与融合去量化-矩阵乘内核消除线程束发散。二进制位平面以4.80比特/权重的显存率实现2.15倍FP16；相比网格内核，其读取字节多2.40倍、速度慢2.27倍，体现展开大码本的开销。端到端在4B、8B、14B规模获得1.11x、1.29x、1.41x加速。",
+      "tags": "query:wbv",
+      "abstract_en": "Leech-lattice vector quantization holds the strongest reported 2-bit quality under its own evaluation protocol. Its kernel decodes one shell; we found no implementation of the multi-shell decoder the rate requires. This paper supplies one and measures its serving cost for decode-phase GEMV at batch 1. First, a serving path for the full 301-class codebook: an offline expansion into GPU layouts and a fused dequantize-plus-matvec kernel reading them without warp divergence, verified against f64. Second, the in-VRAM rate is a design axis distinct from the on-disk rate. Four bit-exact layouts timed in one process show binary bit planes beating one-hot masks on size and speed at constant bandwidth (4.80 bits per weight, 2.15x FP16). Below 4.3 bits a second, irregular stream enters; at 3.6 the decode stops being shifts and masks. Third, deployed four-bit (AWQ) and two-bit (QTIP) GEMV kernels run in the same process. The trellis kernel reads 2.40x fewer bytes than our served layout and runs 2.27x faster at near-equal fractions of their byte bounds: the time gap tracks the traffic gap, the price of unfolding a codebook too large for a lookup table. Fourth, the validity envelope: the trellis kernel outruns our no-weights control, so our launch geometry sets that floor, and on a second memory hierarchy every lattice arm falls below FP16. With the output head held identical across arms, the kernel-and-format path gains 1.11x, 1.29x and 1.41x end to end at 4B, 8B and 14B; with an int8 output head the served 4B reaches 87.0 tok/s in 2.60 GB. The quality cost, 1.38x perplexity and 14.7 MMLU points at 4B, shrinks across the three sizes measured.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/03/2609.00450v1-hbq-hierarchical-scaling-block-quantization-with-hardware-efficiency-aware-design-for-accurate-llm-inference",
+      "section": "deep",
+      "title_en": "HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference",
+      "authors": "Chun-Ting Chen, Dongmin Han, Hangyeol Mun, Jake Hyun, Arnab Raha, Amit Agarwal, Mark Anders, Mohamed Abdelfattah, Jae-sun Seo",
+      "date": "2026-08-31",
+      "pdf": "https://arxiv.org/pdf/2609.00450v1",
+      "score": "9.0",
+      "evidence": "面向高精度LLM推理的块量化方法，处理极低比特量化下的精度与硬件效率权衡",
+      "tldr": "块量化虽能统一LLM低精度推理，但块大小与精度、硬件效率之间存在固有矛盾。本文提出层级块量化HBQ，采用大块与低开销显著性缩放实现二级量化，在提升硬件效率的同时补偿精度损失。HBQ-A仅用W4A5位宽即达到W4A16精度，且面积小于NVFP4；HBQ-E进一步降低17%硬件成本并保持精度领先。28nm ASIC验证表明，HBQ面积/能量效率较最优权重量化提升2.3/4.6倍，较既有块量化实现1.5-3.3倍能耗节省与1.5-3.0倍加速。",
+      "tags": "query:wbv",
+      "abstract_en": "Block Quantization (BQ) is a promising approach for efficient deployment of large language models (LLMs), enabling low-precision computation with controlled accuracy degradation. Compared to scalar weight-only quantization (WoQ), BQ quantizes both weight and activation, offering higher hardware efficiency and end-to-end inference on a unified datapath, but its design space, spanning bit-width, block size, scaling, and numeric formats, remains underexplored.   We provide hardware/benchmark results through design space exploration (DSE). We find that increasing block size improves hardware efficiency by amortizing dequantization and accumulation costs, but degrades accuracy. This trade-off limits conventional BQ methods.   Motivated by this insight, we propose Hierarchical Block Quantization (HBQ). Unlike prior methods [1], [2], which use small blocks and conventional Power-of-Two (PoT) or integer-based scaling, HBQ uses large blocks to maximize efficiency and introduces low-overhead significand (SIG) scaling for second-level quantization. By allocating quantization levels effectively and accounting for distinct activation and weight distributions, SIG scaling compensates for large-block errors more effectively than prior PoT and INT schemes. HBQ-A (accurate) achieves W4A16-level accuracy using only W4A5 while requiring less silicon area than NVFP4. HBQ-E (efficient) further reduces hardware cost by 17% while maintaining higher accuracy than all existing BQ methods.   We implemented a 28nm ASIC accelerator applying HBQ to weights, activations, and KV cache, and integrated a novel partial-sum BQ scheme to further reduce EMA energy.   Compared to state-of-the-art WoQ, HBQ delivers $2.3\\times$/$4.6\\times$ higher area/energy efficiency at the same accuracy level; $1.6$--$3.3\\times$ system energy reduction and $1.5$--$3.0\\times$ speedup over prior BQ methods while providing best accuracy.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/03/2609.00049v1-real-q-e2e-llm-quantization-via-dynamic-gradient-descent",
+      "section": "quick",
+      "title_en": "REAL-Q: E2E LLM Quantization via Dynamic Gradient Descent",
+      "authors": "Qian Zhang, Yaoming Li, Zhewen Tan, Yanshu Wang, Heng Lu, Kun Su, Zongwei Lv, Wenhan Yu, Yongge Ma, Yinjun Han, Ruikuang Liu, Tong Yang",
+      "date": "2026-08-30",
+      "pdf": "https://arxiv.org/pdf/2609.00049v1",
+      "score": "7.0",
+      "evidence": "大模型低比特量化方法，以端到端损失对齐为目标，可为极低比特VQ/SQ主题提供可迁移的优化范式",
+      "tldr": "后训练量化（PTQ）是资源受限下部署大语言模型的关键技术，但现有方法以单次闭式二阶求解近似全局损失并冻结Hessian，造成列级信息错位与误差传播。为此提出REAL-Q，直接优化端到端对齐的代理损失，以128列为块执行动态块梯度下降，并引入滑动窗口平滑跨层过渡。实验表明，在LLaMA-3.1和Qwen3上W4A16量化中，端到端KL散度相对先进全局引导方法最多降低约49%，为PTQ提供了新范式。",
+      "tags": "query:wbv",
+      "abstract_en": "Post-training quantization (PTQ) is essential for deploying large language models (LLMs) under strict resource constraints. State-of-the-art PTQ methods quantize each layer with a single closed-form second-order solver: to remain analytically tractable, they heavily approximate the global loss (dropping cross-channel coupling, pooling output rows into groups), and they then freeze the resulting Hessian across the entire layer, with no way to refresh it as the loss landscape shifts column by column--a phenomenon we call information misalignment. We propose REAL-Q (Real-time E2E-loss Aligned LLM Quantization), a novel PTQ paradigm that breaks this compromise: instead of diluting the objective for the sake of analytic tractability, REAL-Q targets an end-to-end-aligned surrogate of the global loss and refines it via fine-grained, dynamic Block-wise Gradient Descent applied after every column block (128 columns). By coupling this fine-grained correction with a sliding window mechanism for smooth cross-layer transitions, REAL-Q effectively mitigates error propagation across the network. On LLaMA-3.1 (8B and 70B) and Qwen3 (0.6B-32B) at W4A16, REAL-Q reduces end-to-end KL divergence by up to ~49% relative to state-of-the-art globally-guided methods.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
