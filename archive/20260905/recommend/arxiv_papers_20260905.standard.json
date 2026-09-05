@@ -1,0 +1,108 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-05T22:03:40.011925+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 1,
+    "quick_skim_target": 11,
+    "quick_selected": 1
+  },
+  "deep_dive": [
+    {
+      "id": "2609.00049v1",
+      "source": "arxiv",
+      "title": "REAL-Q: E2E LLM Quantization via Dynamic Gradient Descent",
+      "abstract": "Post-training quantization (PTQ) is essential for deploying large language models (LLMs) under strict resource constraints. State-of-the-art PTQ methods quantize each layer with a single closed-form second-order solver: to remain analytically tractable, they heavily approximate the global loss (dropping cross-channel coupling, pooling output rows into groups), and they then freeze the resulting Hessian across the entire layer, with no way to refresh it as the loss landscape shifts column by column--a phenomenon we call information misalignment. We propose REAL-Q (Real-time E2E-loss Aligned LLM Quantization), a novel PTQ paradigm that breaks this compromise: instead of diluting the objective for the sake of analytic tractability, REAL-Q targets an end-to-end-aligned surrogate of the global loss and refines it via fine-grained, dynamic Block-wise Gradient Descent applied after every column block (128 columns). By coupling this fine-grained correction with a sliding window mechanism for smooth cross-layer transitions, REAL-Q effectively mitigates error propagation across the network. On LLaMA-3.1 (8B and 70B) and Qwen3 (0.6B-32B) at W4A16, REAL-Q reduces end-to-end KL divergence by up to ~49% relative to state-of-the-art globally-guided methods.",
+      "authors": [
+        "Qian Zhang",
+        "Yaoming Li",
+        "Zhewen Tan",
+        "Yanshu Wang",
+        "Heng Lu",
+        "Kun Su",
+        "Zongwei Lv",
+        "Wenhan Yu",
+        "Yongge Ma",
+        "Yinjun Han",
+        "Ruikuang Liu",
+        "Tong Yang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-08-30T06:30:31+00:00",
+      "link": "https://arxiv.org/pdf/2609.00049v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "LLM post-training quantization toward low-bit weights/activations; dynamic gradient descent gives advanced end-to-end quantization accuracy",
+      "llm_evidence_cn": "面向低比特大模型量化的端到端损失对齐后训练方法，提供先进的量化精度",
+      "llm_evidence": "面向低比特大模型量化的端到端损失对齐后训练方法，提供先进的量化精度",
+      "canonical_evidence": "面向低比特大模型量化的端到端损失对齐后训练方法，提供先进的量化精度",
+      "llm_tldr_en": "LLM deployment is bottlenecked by memory; PTQ layer solvers freeze Hessian and misalign loss. REAL-Q uses dynamic gradient descent for end-to-end aligned per-column quantization, yielding stronger low-bit accuracy and practical efficiency for compressed LLM serving.",
+      "llm_tldr_cn": "大语言模型部署通常需要低比特后训练量化，但现有PTQ为了保持可解性会近似全局损失并在整个层上冻结Hessian，造成信息错配，限制精度。REAL-Q提出一种实时端到端损失对齐的PTQ新范式，通过动态梯度下降逐列刷新量化过程，使损失函数始终贴近真实端到端目标。实验证明REAL-Q在低比特压缩中取得优于既有PTQ方法的精度，同时保持部署效率，为资源受限场景提供先进LLM量化基准。",
+      "llm_tldr": "大语言模型部署通常需要低比特后训练量化，但现有PTQ为了保持可解性会近似全局损失并在整个层上冻结Hessian，造成信息错配，限制精度。REAL-Q提出一种实时端到端损失对齐的PTQ新范式，通过动态梯度下降逐列刷新量化过程，使损失函数始终贴近真实端到端目标。实验证明REAL-Q在低比特压缩中取得优于既有PTQ方法的精度，同时保持部署效率，为资源受限场景提供先进LLM量化基准。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.00450v1",
+      "source": "arxiv",
+      "title": "HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference",
+      "abstract": "Block Quantization (BQ) is a promising approach for efficient deployment of large language models (LLMs), enabling low-precision computation with controlled accuracy degradation. Compared to scalar weight-only quantization (WoQ), BQ quantizes both weight and activation, offering higher hardware efficiency and end-to-end inference on a unified datapath, but its design space, spanning bit-width, block size, scaling, and numeric formats, remains underexplored.   We provide hardware/benchmark results through design space exploration (DSE). We find that increasing block size improves hardware efficiency by amortizing dequantization and accumulation costs, but degrades accuracy. This trade-off limits conventional BQ methods.   Motivated by this insight, we propose Hierarchical Block Quantization (HBQ). Unlike prior methods [1], [2], which use small blocks and conventional Power-of-Two (PoT) or integer-based scaling, HBQ uses large blocks to maximize efficiency and introduces low-overhead significand (SIG) scaling for second-level quantization. By allocating quantization levels effectively and accounting for distinct activation and weight distributions, SIG scaling compensates for large-block errors more effectively than prior PoT and INT schemes. HBQ-A (accurate) achieves W4A16-level accuracy using only W4A5 while requiring less silicon area than NVFP4. HBQ-E (efficient) further reduces hardware cost by 17% while maintaining higher accuracy than all existing BQ methods.   We implemented a 28nm ASIC accelerator applying HBQ to weights, activations, and KV cache, and integrated a novel partial-sum BQ scheme to further reduce EMA energy.   Compared to state-of-the-art WoQ, HBQ delivers $2.3\\times$/$4.6\\times$ higher area/energy efficiency at the same accuracy level; $1.6$--$3.3\\times$ system energy reduction and $1.5$--$3.0\\times$ speedup over prior BQ methods while providing best accuracy.",
+      "authors": [
+        "Chun-Ting Chen",
+        "Dongmin Han",
+        "Hangyeol Mun",
+        "Jake Hyun",
+        "Arnab Raha",
+        "Amit Agarwal",
+        "Mark Anders",
+        "Mohamed Abdelfattah",
+        "Jae-sun Seo"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.AR"
+      ],
+      "published": "2026-08-31T22:39:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.00450v1",
+      "tags": [
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "low-bit block quantization for LLM inference with hardware-aware hierarchical scaling; conceptually aligned with extremely low-bit VQ/SQ advanced results",
+      "llm_evidence_cn": "低比特分块量化与硬件效率感知设计，贴合极低比特VQ/SQ先进结果主题",
+      "llm_evidence": "低比特分块量化与硬件效率感知设计，贴合极低比特VQ/SQ先进结果主题",
+      "canonical_evidence": "低比特分块量化与硬件效率感知设计，贴合极低比特VQ/SQ先进结果主题",
+      "llm_tldr_en": "Presents HBQ, a hardware-aware hierarchical scaling block quantization scheme for accurate LLM inference. It quantizes both weights and activations and explores bit-width, block size, scaling, and numeric formats, showing larger blocks improve hardware efficiency but degrade accuracy, with hardware/benchmark results.",
+      "llm_tldr_cn": "大语言模型高效推理需要低比特量化，但分块量化在位宽、块大小、缩放与数值格式上的设计空间尚不清晰。该文提出HBQ这一硬件效率感知的分层缩放分块量化方法，同时量化权重与激活并开展系统设计空间探索。硬件与基准实验表明增大块大小可摊薄反量化与累加成本以提升硬件效率，却会导致精度下降。这项工作为极低比特分块量化的端到端推理提供了重要的设计依据与评测结果。",
+      "llm_tldr": "大语言模型高效推理需要低比特量化，但分块量化在位宽、块大小、缩放与数值格式上的设计空间尚不清晰。该文提出HBQ这一硬件效率感知的分层缩放分块量化方法，同时量化权重与激活并开展系统设计空间探索。硬件与基准实验表明增大块大小可摊薄反量化与累加成本以提升硬件效率，却会导致精度下降。这项工作为极低比特分块量化的端到端推理提供了重要的设计依据与评测结果。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

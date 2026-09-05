@@ -1,0 +1,41 @@
+{
+  "date": "20260905",
+  "date_label": "",
+  "generated_at": "2026-09-05 22:07:25 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.00049v1",
+      "route": "202609/05/2609.00049v1-real-q-e2e-llm-quantization-via-dynamic-gradient-descent",
+      "title": "REAL-Q: E2E LLM Quantization via Dynamic Gradient Descent",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向低比特大模型量化的端到端损失对齐后训练方法，提供先进的量化精度",
+      "first_seen_at": "2026-09-05 22:07:25 UTC",
+      "updated_at": "2026-09-05 22:07:25 UTC"
+    },
+    {
+      "paper_id": "2609.00450v1",
+      "route": "202609/05/2609.00450v1-hbq-hierarchical-scaling-block-quantization-with-hardware-efficiency-aware-design-for-accurate-llm-inference",
+      "title": "HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "低比特分块量化与硬件效率感知设计，贴合极低比特VQ/SQ先进结果主题",
+      "first_seen_at": "2026-09-05 22:07:25 UTC",
+      "updated_at": "2026-09-05 22:07:25 UTC"
+    }
+  ]
+}
