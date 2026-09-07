@@ -1,0 +1,54 @@
+{
+  "label": "2026-09-07",
+  "date": "2026-09-07",
+  "generated_at": "2026-09-07T23:15:03",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202609/07/2609.00450v1-hbq-hierarchical-scaling-block-quantization-with-hardware-efficiency-aware-design-for-accurate-llm-inference",
+      "section": "deep",
+      "title_en": "HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference",
+      "authors": "Chun-Ting Chen, Dongmin Han, Hangyeol Mun, Jake Hyun, Arnab Raha, Amit Agarwal, Mark Anders, Mohamed Abdelfattah, Jae-sun Seo",
+      "date": "2026-08-31",
+      "pdf": "https://arxiv.org/pdf/2609.00450v1",
+      "score": "9.0",
+      "evidence": "低比特硬件感知块量化，契合极低比特VQ主题",
+      "tldr": "块量化（BQ）可在统一数据路径上实现低比特LLM推理，但增大量化块会损失精度，束缚了传统方法。本文提出分层块量化（HBQ），借助大块提升硬件效率，并引入低开销尾数（SIG）缩放以适配权激活分布差异，从而恢复精度。HBQ-A以W4A5达到W4A16精度且面积低于NVFP4，HBQ-E进一步减少17%硬件成本。28nm加速器显示，HBQ相比最先进权重量化获得2.3/4.6倍面积/能效提升，相对既有BQ降低1.6-3.3倍能耗且精度最优。",
+      "tags": "query:wbv",
+      "abstract_en": "Block Quantization (BQ) is a promising approach for efficient deployment of large language models (LLMs), enabling low-precision computation with controlled accuracy degradation. Compared to scalar weight-only quantization (WoQ), BQ quantizes both weight and activation, offering higher hardware efficiency and end-to-end inference on a unified datapath, but its design space, spanning bit-width, block size, scaling, and numeric formats, remains underexplored.   We provide hardware/benchmark results through design space exploration (DSE). We find that increasing block size improves hardware efficiency by amortizing dequantization and accumulation costs, but degrades accuracy. This trade-off limits conventional BQ methods.   Motivated by this insight, we propose Hierarchical Block Quantization (HBQ). Unlike prior methods [1], [2], which use small blocks and conventional Power-of-Two (PoT) or integer-based scaling, HBQ uses large blocks to maximize efficiency and introduces low-overhead significand (SIG) scaling for second-level quantization. By allocating quantization levels effectively and accounting for distinct activation and weight distributions, SIG scaling compensates for large-block errors more effectively than prior PoT and INT schemes. HBQ-A (accurate) achieves W4A16-level accuracy using only W4A5 while requiring less silicon area than NVFP4. HBQ-E (efficient) further reduces hardware cost by 17% while maintaining higher accuracy than all existing BQ methods.   We implemented a 28nm ASIC accelerator applying HBQ to weights, activations, and KV cache, and integrated a novel partial-sum BQ scheme to further reduce EMA energy.   Compared to state-of-the-art WoQ, HBQ delivers $2.3\\times$/$4.6\\times$ higher area/energy efficiency at the same accuracy level; $1.6$--$3.3\\times$ system energy reduction and $1.5$--$3.0\\times$ speedup over prior BQ methods while providing best accuracy.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/07/2609.05081v1-deep-microcompression-structured-pruning-and-bit-packed-quantization-for-microcontrollers",
+      "section": "deep",
+      "title_en": "Deep Microcompression: Structured Pruning and Bit-packed Quantization for Microcontrollers",
+      "authors": "Opegbemi Matthias Busoye, Tolulope Matthew Busoye, Eghonghon-aye Eigbe",
+      "date": "2026-09-04",
+      "pdf": "https://arxiv.org/pdf/2609.05081v1",
+      "score": "8.0",
+      "evidence": "通过结构化剪枝和位打包量化实现面向微控制器的超低比特压缩，与极低比特VQ/SQ主题的核心方法一致",
+      "tldr": "微控制器存储与算力资源极度受限，传统CNN推理一直被认为难以甚至无法实现。本文提出深度微压缩（DMC）硬件感知流水线，有机结合结构化剪枝、量化感知训练和定长位打包技术。在LeNet-5上取得55.8倍权重压缩比，精度仍保持98.77%；在RP2040上代码体积比TensorFlow Lite缩减3倍。该项工作首次在仅有2KB SRAM的ATmega328P芯片上成功部署标准CNN，极大降低了深度学习的算力门槛，验证了超低资源端侧推理的可行性。",
+      "tags": "query:wbv",
+      "abstract_en": "This paper introduces Deep Microcompression (DMC), a hardware-aware pipeline for deep learning inference on bare-metal microcontrollers. DMC integrates structured pruning, quantization-aware training, and fixed-length bit-packing to achieve a 55.8$\\times$ weight compression ratio on LeNet-5 (98.77\\% accuracy), generating a dependency-free C library with deterministic latency. On the RP2040 (Cortex-M0+), DMC reduces binary size by 3$\\times$ versus TensorFlow Lite while matching its accuracy. Critically, DMC enables the first documented deployment of a standard CNN on the ATmega328P, a device constrained to 2KB SRAM, previously considered infeasible for CNN inference.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/07/2609.00049v1-real-q-e2e-llm-quantization-via-dynamic-gradient-descent",
+      "section": "quick",
+      "title_en": "REAL-Q: E2E LLM Quantization via Dynamic Gradient Descent",
+      "authors": "Qian Zhang, Yaoming Li, Zhewen Tan, Yanshu Wang, Heng Lu, Kun Su, Zongwei Lv, Wenhan Yu, Yongge Ma, Yinjun Han, Ruikuang Liu, Tong Yang",
+      "date": "2026-08-30",
+      "pdf": "https://arxiv.org/pdf/2609.00049v1",
+      "score": "6.0",
+      "evidence": "面向端到端低比特LLM量化的动态梯度下降优化，可复用于极低比特VQ/SQ",
+      "tldr": "现有PTQ量化大模型时常用闭式二阶求解器，为可解性严重近似全局损失，且固定Hessian无法适应逐列分布漂移，造成信息错位与误差跨层累积。REAL-Q直接以端到端对齐的替代损失为目标，在每个128列块后施加细粒度动态块梯度下降，并利用滑动窗口平滑层间过渡。在LLaMA-3.1与Qwen3系列W4A16任务上，该方法将端到端KL散度较SOTA最多降低约49%。该范式说明逐列动态校正可在保持全局对齐的同时有效缓解误差传播，为PTQ提供新的精度-效率平衡思路。",
+      "tags": "query:wbv",
+      "abstract_en": "Post-training quantization (PTQ) is essential for deploying large language models (LLMs) under strict resource constraints. State-of-the-art PTQ methods quantize each layer with a single closed-form second-order solver: to remain analytically tractable, they heavily approximate the global loss (dropping cross-channel coupling, pooling output rows into groups), and they then freeze the resulting Hessian across the entire layer, with no way to refresh it as the loss landscape shifts column by column--a phenomenon we call information misalignment. We propose REAL-Q (Real-time E2E-loss Aligned LLM Quantization), a novel PTQ paradigm that breaks this compromise: instead of diluting the objective for the sake of analytic tractability, REAL-Q targets an end-to-end-aligned surrogate of the global loss and refines it via fine-grained, dynamic Block-wise Gradient Descent applied after every column block (128 columns). By coupling this fine-grained correction with a sliding window mechanism for smooth cross-layer transitions, REAL-Q effectively mitigates error propagation across the network. On LLaMA-3.1 (8B and 70B) and Qwen3 (0.6B-32B) at W4A16, REAL-Q reduces end-to-end KL divergence by up to ~49% relative to state-of-the-art globally-guided methods.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

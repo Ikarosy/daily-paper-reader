@@ -1,0 +1,273 @@
+Title: Deep Microcompression: Structured Pruning and Bit-packed Quantization for Microcontrollers
+
+URL Source: https://arxiv.org/pdf/2609.05081v1
+
+Published Time: Mon, 07 Sep 2026 00:55:44 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# Deep Microcompression: Structured Pruning and Bit-packed Quantization for Microcontrollers 
+
+Opegbemi Matthias Busoye 1 Tolulope Matthew Busoye 1 Eghonghon-aye Eigbe 1
+
+## Abstract 
+
+This paper introduces Deep Microcompression (DMC), a hardware-aware pipeline for deep learn-ing inference on bare-metal microcontrollers. DMC integrates structured pruning, quantization-aware training, and fixed-length bit-packing to achieve a 55.8 × weight compression ratio on LeNet-5 (98.77% accuracy), generating a dependency-free C library with deterministic la-tency. On the RP2040 (Cortex-M0+), DMC re-duces binary size by 3 × versus TensorFlow Lite while matching its accuracy. Critically, DMC enables the first documented deployment of a standard CNN on the ATmega328P, a device con-strained to 2KB SRAM, previously considered infeasible for CNN inference. 
+
+## 1. Introduction 
+
+The rapid evolution of Artificial Intelligence (AI) over the last decade is increasingly pushing computational workloads from the cloud to the edge, enabling local, energy-efficient intelligence in a new generation of embedded systems. This paradigm, known as TinyML, focuses on deploying ma-chine learning models on ultra-low-power microcontrollers (MCUs). However, this trend has exposed a fundamental challenge: a significant and growing gap exists between the resource requirements of modern neural networks and the severe constraints of the hardware designed to run them. MCUs are defined by their strict memory, power, and com-pute limitations. For instance, popular platforms such as the ATmega328P feature just 2 KB of RAM and 32 KB of flash memory, while the more powerful RP2040 offers 264 KB of RAM and 2 MB of flash. Deploying full-scale, unoptimized models on these bare-metal systems is simply infeasible. To address this, various compression strategies have been developed, including pruning, quantization, binarization and 
+
+> 1
+
+PowerLabs Technologies, Lagos, Nigeria. Correspondence to: Opegbemi Matthias Busoye <matthias@powerlabstech.com >,Tolulope Matthew Busoye <matthew@powerlabstech.com >.
+
+Preprint. September 7, 2026. 
+
+knowledge distillation, which aim to reduce a model’s size and operational complexity (Zhang & Li, 2023). The influential Deep Compression framework achieved sig-nificant size reduction through a combination of pruning, trained quantization, and Huffman coding (Han et al., 2015). However, its methods relied on complex, variable-length coding and unstructured pruning, which require specialized software decoders or hardware accelerators due to, (i) ir-regular memory access patterns and, (ii) additional control overhead introduced because standard dense matrix multipli-cation kernels on general-purpose CPUs or microcontrollers (Jeong et al., 2020; Gale et al., 2019; Tang et al., 2023) cannot efficiently process the decoding. These requirements critically limit their deployability for real-time inference on bare-metal microcontrollers. This limitation highlights a significant gap: the need for a unified compression pipeline explicitly designed to reconcile the theoretical efficiency of deep learning compression methods with the rigid architec-tural constraints of bare-metal devices. This paper introduces the Deep Microcompression (DMC) pipeline to bridge this gap, proposing a method that is simple, effective, and directly addresses the unique chal-lenges of bare-metal development. Our approach is a cohe-sive end-to-end pipeline that integrates structured pruning, quantization-aware training, and a practical hardware-aware bit-packing scheme. This pipeline is specifically designed to be framework-independent, generating a minimal C-based model that is more portable than solutions relying on large runtime libraries. The bit-packing method serves as an effi-cient alternative to complex techniques like Huffman coding by using simple bitwise operations for decompression on any standard MCU. 
+
+Relation to Prior Work. The seminal Deep Compres-sion framework (Han et al., 2015) demonstrated that prun-ing, quantization, and Huffman coding can achieve large compression ratios, but its variable-length encoding intro-duces non-deterministic latency incompatible with bare-metal MCU. TF Lite Micro (David et al., 2021) provides a runtime for embedded inference but incurs significant binary overhead ( >250KB), exceeding the flash budget of 8-bit de-vices. DMC addresses both limitations through fixed-length bit-packing and dependency-free code generation. 1arXiv:2609.05081v1 [cs.LG] 4 Sep 2026 Deep Microcompression 
+
+Global South Motivation. In much of the Global South, legacy 8-bit MCUs like the ATmega328P are already embed-ded in low-cost agricultural, medical, and IoT deployments — not the Raspberry Pi Zero, which demands Linux, an SD card, and higher sustained power draw unsuitable for battery-powered field use. By enabling CNN inference on $2 hardware that practitioners already own, DMC eliminates cloud dependency entirely, allowing a student or engineer in Lagos or Nairobi to deploy a trained model with no internet connection and no specialized accelerator required. 
+
+## 2. The Deep Microcompression (DMC) Method 
+
+The DMC pipeline is built on a microcontroller-centric de-sign philosophy with the explicit goal of enabling deep learning on bare-metal systems without requiring expensive, specialized hardware. This means avoiding computation-ally expensive tasks, complex data structures, unnecessary memory movement, and the need for specialized hardware or software decoders. The DMC framework operates in two phases: model de-velopment (Figure 1) and on-device inference (Figure 2). The development pipeline first transforms a full-precision model through structured pruning to ensure hardware effi-ciency, followed by quantization-aware training to reduce parameter bitwidth, and finally utilizes a custom bit-packing scheme to consolidate multiple weights into single bytes for maximum storage density. At runtime, the inference engine decodes these packed parameters and encodes activations us-ing low-cost bitwise operations to execute the forward pass entirely via integer operations. To enforce the integer based operations, we utilize computationally efficient activations like ReLU while complex nonlinearities like Softmax are approximated using precomputed Look-up Tables (LUTs) stored in Flash. 
+
+2.1. Structured Pruning Stage 
+
+To maintain architectural compatibility with standard dense matrix kernels, the initial stage of the DMC pipeline em-ploys structured channel pruning for parameter reduction. Following the methodology in (Li et al., 2017), we utilize an L2-norm magnitude criterion to identify and remove the least important filters in convolutional layers and neurons in fully connected layers followed by retraining for perfor-mance recovery. This ensures that the pruned model retains a dense, contiguous memory layout, preserving determinis-tic execution latency without requiring specialized sparse linear algebra libraries. 
+
+2.2. Quantization Stage 
+
+Quantization in the DMC pipeline is designed to favor integer-based model representations over floating-point due to their superior performance on low-power devices in terms of time and energy consumption. We employ Quantization-Aware Training (QAT) to simulate discretization noise in the training phase, allowing the network to adapt to low-precision constraints. The method utilizes static quantiza-tion, a deliberate choice over dynamic quantization for both weights and activations. Static quantization pre-computes all scaling factors during a calibration phase, effectively ”freezing” the dynamic range enabling a fully integer-based inference pipeline. This approach avoids the runtime over-head associated with dynamic quantization, where param-eters are computed on the fly, eliminating floating-point operations from the inference stage. 
+
+2.3. The Hardware-Aware Low-Level Optimization 
+
+A key component of the DMC pipeline is the automated generation of bit-packed inference kernels for weights and activations. While storing multiple weights per byte is a known concept, existing implementations often rely on run-time calculation of bit-offsets or heavy decoder libraries. DMC differentiates itself by shifting this complexity to the compilation stage. The pipeline generates a dependency-free C header where the layout of every tensor is pre-calculated, serving as a practical alternative to complex schemes like Huffman cod-ing (Han et al., 2015) or bit-serial processing (Li & Gupta, 2022). By enforcing a fixed-length storage format (e.g., 
+
+4×2-bit weights per uint8 ), we maximize memory density while ensuring that every decompression operation executes in constant time (O(1)) independent of bitwidth, a strict requirement for real-time bare-metal inference. 2.3.1. B IT -P ACKING STRATEGY 
+
+To maximize storage density on resource-constrained micro-controllers, we implement a deterministic packing routine. The compiler maps a list of quantized integers into con-tiguous standard memory units. This structure eliminates the need for look-up tables (LUTs) for address decoding or variable length decoding. The procedure ensures that the endianness of the packed byte matches the target MCU’s architecture, preventing runtime byte-swapping overhead. The specific procedures for packing individual quantized scalars and flattened tensors are detailed in Algorithm 2. 2.3.2. O PTIMIZED BIT -U NPACKING 
+
+The unpacking stage retrieves parameter values during infer-ence. A naive implementation would calculate the bit-offset for every weight at runtime using division and modulo op-2Deep Microcompression   
+
+> Figure 1. Deep microcompression: Development Pipeline
+> Figure 2. Deep microcompression: Inference Pipeline
+
+erations, which are computationally expensive on 8-bit and 16-bit MCUs. To ensure minimal latency, DMC replaces these arithmetic operations with compile-time computed constants. The extraction logic is baked into the generated C code using efficient bitwise shifts and masks. 
+
+Unsigned Integer Datatype For unsigned values, decom-pression is a single-step shift-and-mask operation. As de-tailed in Algorithm 1, the packed byte is retrieved, and the target bits are isolated using pre-calculated offsets. For example, determining the bit-offset within a byte is optimized as follows:                         
+
+> Operation 4-bit 2-bit
+> i÷nbi >> 1i >> 2
+> bof f set ←(imod nb)×bi&0b1 << 2i&0b11 << 1
+
+Signed Integers: Standard signed integers (e.g., int8 t) rely on the Most Significant Bit (MSB) to indicate polar-ity so signed integers require an additional step to handle the sign bit correctly in a larger memory space (e.g., repre-senting a 4-bit negative number in an 8-bit container). For signed data, step 6 of Algorithm 1 is modified to pass the extracted raw bits into a sign-extension routine. 
+
+## 3. Experimental Results 
+
+Our computational experiments focus on deployment feasi-bility across the hardware spectrum. We utilize the LeNet-5 architecture on MNIST as a primary case study to ana-lyze the interaction between compression algorithms and bare-metal constraints. Though LeNet-5 is considered a trivial benchmark for 32-bit platforms, it represents a ‘worst-case’ stress test for 8-bit bare-metal deployment. Its initial convolutional layers generate high activation volumes that exceed the 2KB SRAM limit of common MCUs like the ATmega328P by nearly 3×. We utilize this architecture to evaluate DMC’s ability to reconcile standard CNN struc-tures with extreme hardware scarcity. We aim to answer the following questions: • Compression and Accuracy: What is the minimum achievable model size without significant accuracy degradation? • Resource Feasibility: Can the pipeline enable deploy-ment on devices previously considered too constrained for deep networks (e.g., <2KB SRAM)? • System Efficiency: How does the compressed model perform against the baseline? How does the dependency-free code compare to standard frameworks (TFLite)? 
+
+3.1. Metrics and Setup 
+
+To comprehensively evaluate the proposed pipeline, we track three categories of performance metrics, comparing all re-sults against an uncompressed 32-bit floating-point baseline: • Memory Footprint: We measure Model Binary Size 
+
+(Flash usage for weights and instruction code) and 
+
+Peak SRAM Usage (the static buffers, stack over-head, and Activation Workspace required during a forward pass). These metrics determine the feasibil-ity of deployment on constrained devices such as the ATmega328P. 3Deep Microcompression 
+
+Table 1. Performance Comparison: Deployment Feasibility & Benchmarking                                                              
+
+> Model Config Flash Memory (B) SRAM Usage (B) #MACs #BOPs Latency (s) Energy (J) Accuracy (%) Weights Code Global Data Workspace Stack
+> I. Target Deployment (Hardware: ATmega328P)
+> DMC-Tiny (Ours) 16,384 10,578 1,588 1,296 78 131,040 1,619,428 2.80 0.308 98.17
+> II. Comparative Benchmark (Proxy Hardware: RP2040/Pico) †
+> Baseline (FP32) 148,242 43,604 25,288 5,880 532 392,040 05.58 15.624 99.42
+> DMC-Ultra 2,640 43,876 7,712 5,880 544 226,740 2,269,400 0.15 0.431 98.77 DMC-Tiny (Ref) 16,384 43,916 3,128 1,296 552 131,040 1,619,428 0.09 0.257 98.17
+> Reduction (Base vs Ultra) 56.2 ×1∼1.0 ×∼1.0 ×3.3 ×-1.7 ×N/A 36 ×36 ×-0.6%
+> 1
+
+Weights loaded from flash. †Baseline and Ultra models exceed ATmega resources; metrics measured on Raspberry Pi Pico (RP2040) with software-emulated FPU for fair comparison. Code size on Pico is higher due to SDK overhead. 
+
+• Computational Complexity: We quantify the algorith-mic workload using Multiply–Accumulate operations (#MACs ) and Bit Operations ( #BOPs ). Lower values indicate reduced and memory processing requirements. • Deployment Performance: We report Inference La-tency and Estimated Energy Usage 1 per inference to validate real-time efficiency. Finally, we track Top-1 Accuracy to assess the trade-off between aggressive compression and model fidelity. 
+
+3.2. LeNet-5 on MNIST 
+
+We first evaluated the pipeline on LeNet-5 (Baseline: 99.42% accuracy, 145KB size). Following a layer-sensitivity analysis , we performed a neural architecture search to identify optimal pruning and quantization configu-rations for two distinct objectives: 1. DMC-Ultra (Max Compression): Optimized for min-imum weight storage to test the limits of the pipeline. 2. DMC-Tiny (Feasibility): Optimized to satisfy the strict 2KB SRAM constraint of the ATmega328P while maximizing accuracy. 3.2.1. C OMPRESSION PERFORMANCE 
+
+As shown in Table 1, DMC-Ultra achieved a 55 .8× reduc-tion in parameter size (2.66KB vs. 145KB) with a minimal accuracy drop of 0.65% (98.77%). However, Table 1 re-veals a major bottleneck for deployment. While DMC-Ultra fits best into the 32KB Flash of the ATmega328P, its peak activation memory (5.74 KB) violates the device’s strict 2KB SRAM limit. This highlights that weight compression alone is insufficient for bare-metal deployment, activation memory is often a harder constraint. To address this, the DMC-Tiny configuration utilizes ag-gressive early-layer pruning to reduce the peak activa-tion workspace to 1.27 KB. This leaves ample headroom 
+
+> 1
+
+Estimated Energy Usage per inference is computed as the product of measured inference latency and the device’s power. 
+
+(≈ 700 bytes) for the system stack and drivers, enabling, to the best of our knowledge, the first documented deploy-ment of a standard CNN on an Arduino Uno with 98 .17% 
+
+accuracy. 3.2.2. C OMPARISON WITH PRIOR BARE -M ETAL 
+
+IMPLEMENTATIONS 
+
+Compared to prior bare-metal implementations on the AT-mega328P, DMC offers a strong balance of accuracy, mem-ory, and generality. While LogNNet (Izotov et al., 2021) fits within memory, it suffers from low accuracy (84%) and extreme latency (7.11s). Conversely, Gural et al. (Gural & Murmann, 2019) achieved high accuracy (99.11%) with a significantly lower latency of 684ms. However, this per-formance is dependent on domain-specific optimizations that sacrifice generality. The reduced latency discrepancy stems from three critical design choices in (Gural & Mur-mann, 2019): the use of 16-bit accumulation (vs. DMC’s numerically stable 32-bit), downsampling inputs to 14×14 (reducing MACs by ≈ 30% vs. our full-resolution 28×28), and fitting the model entirely in single-cycle SRAM. In con-trast, DMC streams weights from Flash to support larger, more expressive models. While adopting these constraints would align our latency, we prioritize architectural univer-sality over single-task specialization. 
+
+## 4. Conclusion 
+
+This work presented Deep Microcompression (DMC), a framework for deploying neural networks on bare-metal mi-crocontrollers without heavy runtime dependencies. By successfully integrating structured pruning, QAT, and a hardware-aware bit-packing scheme, DMC achieves signifi-cant compression ratios (up to 55 .8× for LeNet-5). Bench-marks against TFLite highlight DMC’s superior footprint and portability, enabling workload migration from 32-bit to energy-efficient 8-bit devices. Future work will explicitly target Transformer-based architectures, furthering our goal to provide locally relevant, accessible, and high-impact AI solutions for low-resource communities worldwide. 4Deep Microcompression 
+
+## References 
+
+Courbariaux, M., Hubara, I., Soudry, D., El-Yaniv, R., and Bengio, Y. Binarized neural networks: Training deep neural networks with weights and activations constrained to +1 or -1, 2016. URL https://arxiv.org/abs/ 1602.02830 .Cowan, M., Moreau, T., Chen, T., and Ceze, L. Automating generation of low precision deep learning operators, 2018. URL https://arxiv.org/abs/1810.11066 .David, R., Duke, J., Jain, A., Reddi, V. J., Jeffries, N., Li, J., Kreeger, N., Nappier, I., Natraj, M., Regev, S., Rhodes, R., Wang, T., and Warden, P. Tensorflow lite micro: Embedded machine learning on tinyml systems, 2021. URL https://arxiv.org/abs/2010.08678 .Frankle, J. and Carbin, M. The lottery ticket hypothesis: Finding sparse, trainable neural networks, 2019. URL 
+
+https://arxiv.org/abs/1803.03635 .Gale, T., Elsen, E., and Hooker, S. The state of sparsity in deep neural networks, 2019. URL https://arxiv. org/abs/1902.09574 .Gural, A. and Murmann, B. Memory-optimal direct convo-lutions for maximizing classification accuracy in embed-ded applications. In Chaudhuri, K. and Salakhutdinov, R. (eds.), Proceedings of the 36th International Confer-ence on Machine Learning , volume 97 of Proceedings of Machine Learning Research , pp. 2515–2524. PMLR, 09– 15 Jun 2019. URL https://proceedings.mlr. press/v97/gural19a.html .Han, S., Mao, H., and Dally, W. J. Deep compres-sion: Compressing deep neural networks with pruning, trained quantization and huffman coding. arXiv preprint arXiv:1510.00149 , 2015. Hassibi, B., Stork, D. G., and Wolff, G. J. Optimal brain surgeon and general network pruning. IEEE International Conference on Neural Networks , pp. 293–299 vol.1, 1993. URL https://api.semanticscholar. org/CorpusID:61815367 .Izotov, Y. A., Velichko, A. A., Ivshin, A. A., and Novit-skiy, R. E. Recognition of handwritten mnist digits on low-memory 2 kb ram arduino board using lognnet reservoir neural network. IOP Conference Series: Ma-terials Science and Engineering , 1155(1):012056, June 2021. ISSN 1757-899X. doi: 10.1088/1757-899x/1155/ 1/012056. URL http://dx.doi.org/10.1088/ 1757-899X/1155/1/012056 .Jacob, B., Kligys, S., Chen, B., Zhu, M., Tang, M., Howard, A., Adam, H., and Kalenichenko, D. Quantization and training of neural networks for efficient integer-arithmetic-only inference. In Proceedings of the IEEE conference on computer vision and pattern recognition ,pp. 2704–2713, 2018. Jeong, T., Ghasemi, E., Tuyls, J., Delaye, E., and Sirasao, A. Neural network pruning and hardware acceleration. In 2020 IEEE/ACM 13th International Conference on Utility and Cloud Computing (UCC) , pp. 440–445, 2020. doi: 10.1109/UCC48980.2020.00069. Junaid, M., Arslan, S., Lee, T., and Kim, H. Optimal architecture of floating-point arithmetic for neural net-work training processors. Sensors , 22(3), 2022. ISSN 1424-8220. doi: 10.3390/s22031230. URL https: //www.mdpi.com/1424-8220/22/3/1230 .Le Cun, Y., Denker, J. S., and Solla, S. A. Optimal brain damage. In Proceedings of the 3rd International Conference on Neural Information Processing Systems ,NIPS’89, pp. 598–605, Cambridge, MA, USA, 1989. MIT Press. Li, H., Kadav, A., Durdanovic, I., Samet, H., and Graf, H. P. Pruning filters for efficient convnets, 2017. URL 
+
+https://arxiv.org/abs/1608.08710 .Li, S. and Gupta, P. Bit-serial weight pools: Compression and arbitrary precision execution of neural networks on resource constrained processors, 2022. URL https: //arxiv.org/abs/2201.11651 .Liu, Z., Li, J., Shen, Z., Huang, G., Yan, S., and Zhang, C. Learning efficient convolutional networks through net-work slimming. In Proceedings of the IEEE International Conference on Computer Vision (ICCV) , pp. 2755–2763, Oct 2017. Liu, Z., Sun, M., Zhou, T., Huang, G., and Darrell, T. Rethinking the value of network pruning, 2019. URL 
+
+https://arxiv.org/abs/1810.05270 .Luo, J.-H., Wu, J., and Lin, W. Thinet: A filter level pruning method for deep neural network compression. In Proceed-ings of the IEEE International Conference on Computer Vision (ICCV) , pp. 5068–5076, Oct 2017. Migacz, S. 8-bit inference with tensorrt, 2017. URL https://www.cse.iitd.ac.in/ ˜rijurekha/course/tensorrt.pdf .Tang, H., Yang, S., Liu, Z., Hong, K., Yu, Z., Li, X., Dai, G., Wang, Y., and Han, S. Torchsparse++: Efficient train-ing and inference framework for sparse convolution on gpus. In Proceedings of the 56th Annual IEEE/ACM In-ternational Symposium on Microarchitecture , MICRO ’23, pp. 225–239, New York, NY, USA, 2023. Associa-tion for Computing Machinery. ISBN 9798400703294. 5Deep Microcompression 
+
+doi: 10.1145/3613424.3614303. URL https://doi. org/10.1145/3613424.3614303 .Zhang, Z. and Li, J. A review of artificial intelligence in embedded systems. Micromachines , 14(5):897, 2023. Zhu, C., Han, S., Mao, H., and Dally, W. J. Trained ternary quantization, 2017. URL https://arxiv. org/abs/1612.01064 .Zhu, M. and Gupta, S. To prune, or not to prune: exploring the efficacy of pruning for model compression, 2017. URL https://arxiv.org/abs/1710.01878 .6Deep Microcompression 
+
+## A. Preliminaries and Related Work 
+
+The field of model compression has a rich history, driven by the dual goals of reducing the footprint of the model and accelerating inference. This section provides a comprehen-sive overview of key compression techniques that serve as the foundation for the proposed DMC pipeline, critically examining their historical context and modern applications, particularly in the domain of TinyML. 
+
+A.1. Pruning 
+
+Pruning, the process of removing redundant connections or neurons from a neural network, dates back to early foun-dational methods. These include ”Optimal Brain Damage” and ”Optimal Brain Surgeon,” which analyzed the second derivative of the loss function to identify and remove the least important weights (Le Cun et al., 1989; Hassibi et al., 1993). The modern resurgence of pruning was catalyzed by the Deep Compression framework by Han et al. (Han et al., 2015) which showed that significant weight reduction could be achieved through an iterative pruning, retraining, and quantization process. A key distinction in pruning is between unstructured and structured methods. Unstructured pruning arbitrarily re-moves individual weights, offering maximum selection flex-ibility and the highest possible compression ratios (Frankle & Carbin, 2019; Zhu & Gupta, 2017) , although this often comes with more computation cost (Jeong et al., 2020; Gale et al., 2019; Tang et al., 2023). Structured pruning removes entire groups of parameters, such as channels, filters, or layers, resulting in a smaller but still dense model (Li et al., 2017; Luo et al., 2017; Liu et al., 2017; 2019). Methods like ThiNet (Luo et al., 2017) and Network Slimming (Liu et al., 2017) use channel-level scaling factors to identify and remove redundant channels. Channel pruning, in par-ticular, offers a balance between compression and hardware efficiency. The resulting model is a subset of the original model with the same type but with reduced operations. The remaining model is a standard network architecture that can be deployed on any platform without specialized sparse matrix libraries. This inherent hardware-friendliness makes structured pruning a critical component of any compression pipeline targeting microcontrollers. Our approach adopts this approach to ensure a dense, highly efficient model after pruning. 
+
+A.2. Quantization 
+
+Most neural networks are traditionally trained and deployed using floats, which require at least 32 bits to be stored in memory. This has been the standard due to the preci-sion required for convergence and accuracy, though lower-precision formats like 16-bit and 8-bit floats are increasingly used (Junaid et al., 2022). There are several methods for implementing quantization. Integer types have been used as a look-up for parameters, where parameters are stored as an index for a code book and retrieved during inference (Han et al., 2015). This suffers from a similar computational problem to floats, as the operation performed is in floating point which we aim to avoid in favor of integer operations. Other approaches, such as (Li & Gupta, 2022), have proposed techniques such as group weight pool to optimize the lookup process and reduce the number of weight operations. To avoid the overhead associated with look-ups, dynamic and static quantization are employed, this approach requires one extra parameter (scale) for symmetric quantization and two (scale and zero point) for asymmetric quantization. We employ static quantization, which pre-computes scaling fac-tors to enable pure integer arithmetic, avoiding the runtime overhead of dynamic quantization. Model size and per-formance after quantization depend on the bitwidth. The move to extremely low bitwidths, such as binary (1-bit) or ternary (2-bit) networks, represents the extreme end of quantization (Courbariaux et al., 2016; Zhu et al., 2017). Furthermore, we adopt Quantization-Aware Training (QAT) (Jacob et al., 2018) over Post-Training Quantization (PTQ) (Migacz, 2017) to mitigate accuracy degradation. 
+
+A.3. Bit-Packing and Low-Level Optimizations 
+
+While pruning and quantization reduce model parameter count, the final step of efficiently storing the low-bitwidth weights in memory is critically important for TinyML de-ployment. Prior work has explored sub-byte storage but often introduces computational overheads unsuitable for generic microcontrollers. The Deep Compression frame-work (Han et al., 2015) utilizes Huffman coding, a variable-length scheme that necessitates complex serial decoding, in-troducing non-deterministic latency. More recent hardware-centric approaches have proposed alternative layouts: (Li & Gupta, 2022) introduces bit-serial weight pools, with a custom lookup process that iterates over input bits, compli-cating the standard convolution kernel. Similarly, (Cowan et al., 2018) utilizes bit-plane decomposition, effectively creating a new axis of addressing that increases memory access irregularity while also requiring to iterate over input bits for computation. In contrast, our approach prioritizes architectural univer-sality. We implement fixed-length bit-packing, mapping multiple low-precision weights (e.g., four 2-bit weights) directly into standard memory units (8-bit bytes or 32-bit words). Unlike bit-serial approaches that require specialized execution kernels, our structure allows for decompression via elementary bitwise shift and mask operations, ensuring that the compressed model can be executed on any standard 7Deep Microcompression 
+
+Algorithm 1 Runtime Bit-Unpacking  
+
+> 1:
+
+Input: Index i; packed tensor TP ; bitwidth b 
+
+> 2:
+
+Constants: nb ← ⌊ 8/b ⌋; M ← (2 b) − 1 
+
+> 3:
+
+bof f set ← (i mod nb) × b 
+
+> 4:
+
+B ← TP [i ÷ nb] 
+
+> 5:
+
+B ← (B ≫ bof f set ) & M 
+
+> 6:
+
+if is signed then  
+
+> 7:
+
+P ← SIGN EXTEND (B, b ) 
+
+> 8:
+
+else  
+
+> 9:
+
+P ← B 
+
+> 10:
+
+end if  
+
+> 11:
+
+return P
+
+microcontroller architecture using generic integer instruc-tions and offering a balance between theoretical compres-sion ratios and execution efficiency. 
+
+Algorithm 2 Compile-time Bit Packing  
+
+> 1:
+
+Input: Parameter list P = ( p1, p 2, . . . , p nb ); bitwidth 
+
+b 
+
+> 2:
+
+Require: len (P ) ≤ 8 ÷ b 
+
+> 3:
+
+shif t ← b; mask ← (2 b) − 1; B ← 0 
+
+> 4:
+
+for each value v in reverse (P ) do  
+
+> 5:
+
+B ← (B ≪ shif t ) | (v & mask ) 
+
+> 6:
+
+end for  
+
+> 7:
+
+return B
+
+A.4. Impact of Toolchain Optimization 
+
+To determine the optimal build configuration for bare-metal deployment, we performed an ablation study on the DMC-Ultra model using avrgcc, compilers with varying optimiza-tion levels. The results are detailed in Table 2. 
+
+Code Size vs. Latency Trade-off: As illustrated in Ta-ble 2, optimization flags have a decisive impact on deploy-ability. The unoptimized build (avr-gcc -O0) resulted in a binary size of 17.1KB, which can exceed the available flash memory of 8-bit devices. Enabling size optimization (-Os) reduced the instruction footprint by approximately 38.7%, making it best viable configuration for the ATmega328P. In terms of computational efficiency (-O3) gives the best latency and less energy consumption per inference which is of large interest for real world deployment. 
+
+Memory Overhead: Crucially, the static RAM usage (Global variables) remains largely constant across optimiza-tion levels ( ≈ 6KB which is dominated by the preallocated activation workspace 5.74 KB). However, stack usage varies significantly. The -Os flag minimized stack depth (by 23%) by aggressively inlining bit-unpacking routines, ensuring that the DMC-Tiny model stays within the strict 2KB SRAM budget (Peak: Static+Stack < 2048 B). 
+
+A.5. Impact of Packing Operation 
+
+As detailed in Table 2, we analyzed the runtime overhead of the bit-unpacking routine by comparing the 4-bit DMC-Ultra configuration (4W4A) against a byte-aligned 8-bit variant (8W8A). While 4-bit packing reduces weight stor-age by 56% and Static RAM by 48%, allowing deploy-ment on more constrained devices, it introduces more than 
+
+20 × #MAC additional Bit Operations (BOPs) for on the-fly decoding workload. Consequently, inference latency increases by 46% and energy consumption rises proportion-ally. This identifies software-based unpacking as a major bottleneck, suggesting a need for more efficient packing and unpacking methods and specialized hardware support (e.g., barrel shifters) in future low-power MCUs. 
+
+A.6. Benchmarking Against TFLite for Microcontrollers 
+
+To quantify the performance trade-offs of our dependency-free inference engine against specialized frameworks, we benchmarked DMC against Tensorflow Lite for Microcon-trollers(David et al., 2021). Experiments were conducted using a fp32 and quantized (W8A8) LeNet-5 model RP2040 (Cortex-M0+). 
+
+Latency vs. Portability: From Table 3 we observed that TFLite Micro achieves superior inference speed by lever-aging CMSIS-NN optimized kernels. However, this hard-ware acceleration does not extend to floating-point opera-tions, hence the similar latency. In contrast, DMC generates generic scalar C code. While this results in higher latency compared to platform-tuned libraries, it ensures execution on architectures lacking CMSIS-NN support. 
+
+Binary Footprint Efficiency: Despite the latency gap, DMC demonstrates a clear advantage in binary size. By eliminating the TFLite runtime interpreter and library overhead, DMC reduces the total binary size by ≈ 3 ×
+
+(168 .5KB ). This saving is critical for ultra-constrained devices (e.g., ATmega328P) which possess only 32 KB of flash. These results reveal a fundamental trade-off between hardware-specific optimization and universal portability. Ex-plicitly trading ARM-specific speed for universality pro-vides three critical advantages-Architectural Portability, Minimal Footprint, and Zero-Dependencies. 8Deep Microcompression 
+
+Table 2. Ablation Study: Impact of Toolchain and Bit-Packing (Hardware: ATmega2560) 
+
+Configuration Flash Memory (B) SRAM Usage (B) #MACs #BOPs Latency (s) Energy (J) Accuracy (%) Weights Code Global Data Workspace Stack Peak 
+
+I. Compiler Optimization (Model: DMC-Ultra, Pack: 4-bit) 
+
+avr-gcc -O0 (None) 2,638 17,484 6,158 5,880 83 226,740 2,269,400 9.37 2.76 98.77 avr-gcc -O3 (Speed) 2,638 13,566 6,168 5,880 64 226,740 2,269,400 4.77 1.41 98.77 avr-gcc -Os (Size) 2,638 10,712 6,172 5,880 69 226,740 2,269,400 5.07 1.50 98.77 
+
+II. Bit-Packing Impact (Model: DMC-Ultra, Compiler: -Os) 
+
+8-bit Packing (8W8A) 5,090 10,634 6,172 5,880 66 226,740 0 3.97 1.17 98.95 4-bit Packing (4W4A) 2,638 10,712 3,232 2,940 67 226,740 4,682,579 6.14 1.81 98.03 
+
+Table 3. Benchmark: DMC vs. TFLite Micro (LeNet-5 on RP2040/Pico)                                        
+
+> Framework Flash (KB) RAM (KB) Worksp. (KB) Latency (s) Energy (J) Acc (%)
+> Float32 Baseline
+> TFLite Micro (FP32) 365.2 27.4 24.7 0.60 0.13 98.91
+> DMC (FP32) 199.4 4.5 22.97 0.56 0.12 98.91
+> Int8 Quantized
+> TFLite Micro (Int8) 254.9 10.7 8.4 0.055 0.012 98.88
+> DMC (Int8) 86.4 7.7 5.7 0.226 0.05 98.89
+> DMC Advantage 3×Less 1.4 ×Less 1.5 ×Less Slower -Equal
+
+9
