@@ -1,0 +1,201 @@
+{
+  "date": "20260830-20260908",
+  "date_label": "2026-08-30 ~ 2026-09-08",
+  "generated_at": "2026-09-08 09:48:34 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.30564v1",
+      "route": "20260830-20260908/2608.30564v1-q-strata-hierarchical-bit-allocation-for-mixed-precision-quantization-of-mixture-of-experts-llms",
+      "title": "Q-Strata: Hierarchical Bit Allocation for Mixed-Precision Quantization of Mixture-of-Experts LLMs",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 10.0,
+      "evidence": "直接针对混合专家大语言模型的混合精度量化，提出层次化比特分配",
+      "first_seen_at": "2026-09-08 09:48:34 UTC",
+      "updated_at": "2026-09-08 09:48:34 UTC"
+    },
+    {
+      "paper_id": "2609.02107v1",
+      "route": "20260830-20260908/2609.02107v1-a-unified-rate-distortion-perspective-on-vector-product-and-scalar-quantization",
+      "title": "A Unified Rate-Distortion Perspective on Vector, Product, and Scalar Quantization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "统一VQ/PQ/SQ率失真框架，切合极低比特VQ主题",
+      "first_seen_at": "2026-09-08 09:48:34 UTC",
+      "updated_at": "2026-09-08 09:48:34 UTC"
+    },
+    {
+      "paper_id": "2608.30384v1",
+      "route": "20260830-20260908/2608.30384v1-rslm-training-free-vector-quantization-for-approximate-nearest-neighbor-search",
+      "title": "RSLM: Training-Free Vector Quantization for Approximate Nearest Neighbor Search",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "无需训练的低比特矢量量化，每维压缩到2-4比特，是极低比特VQ主题的核心方法",
+      "first_seen_at": "2026-09-08 09:48:34 UTC",
+      "updated_at": "2026-09-08 09:48:34 UTC"
+    },
+    {
+      "paper_id": "2609.00224v2",
+      "route": "20260830-20260908/2609.00224v2-qtea-ternary-llms-with-sparse-residual-salient-weight-and-by-column-optimization",
+      "title": "QTEA: Ternary LLMs with Sparse Residual Salient Weight and By-Column Optimization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "亚2比特三值权重量化，结合稀疏残差显著列与逐列优化",
+      "first_seen_at": "2026-09-08 09:48:34 UTC",
+      "updated_at": "2026-09-08 09:48:34 UTC"
+    },
+    {
+      "paper_id": "2609.00450v1",
+      "route": "20260830-20260908/2609.00450v1-hbq-hierarchical-scaling-block-quantization-with-hardware-efficiency-aware-design-for-accurate-llm-inference",
+      "title": "HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "硬件感知的LLM权重激活低比特块量化，与极低比特SQ/VQ主题高度契合",
+      "first_seen_at": "2026-09-08 09:48:34 UTC",
+      "updated_at": "2026-09-08 09:48:34 UTC"
+    },
+    {
+      "paper_id": "2609.03363v1",
+      "route": "20260830-20260908/2609.03363v1-pacodec-a-low-bitrate-neural-speech-codec-with-parallel-additive-vector-quantization",
+      "title": "PACodec: A Low-bitrate Neural Speech Codec with Parallel Additive Vector Quantization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "提出基于并行加性矢量量化(PAVQ)的低比特率神经语音编解码器，面向低比特VQ设计",
+      "first_seen_at": "2026-09-08 09:48:34 UTC",
+      "updated_at": "2026-09-08 09:48:34 UTC"
+    },
+    {
+      "paper_id": "2608.30908v1",
+      "route": "20260830-20260908/2608.30908v1-fine-tuning-low-bit-models-with-gradient-in-quantized-code-space",
+      "title": "Fine-Tuning Low-Bit Models with Gradient in Quantized Code Space",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "在量化码空间中低比特模型微调优化，针对低比特部署场景",
+      "first_seen_at": "2026-09-08 09:48:34 UTC",
+      "updated_at": "2026-09-08 09:48:34 UTC"
+    },
+    {
+      "paper_id": "2609.01587v1",
+      "route": "20260830-20260908/2609.01587v1-the-structure-of-quantization-damage-in-llms-why-the-next-bit-should-be-spent-globally",
+      "title": "The Structure of Quantization Damage in LLMs: Why the Next Bit Should Be Spent Globally",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "研究LLM量化损伤与全局比特分配，可指导极低比特量化方案",
+      "first_seen_at": "2026-09-08 09:48:34 UTC",
+      "updated_at": "2026-09-08 09:48:34 UTC"
+    },
+    {
+      "paper_id": "2609.01743v1",
+      "route": "20260830-20260908/2609.01743v1-sculpt-training-edge-vision-models-for-post-training-quantization-readiness",
+      "title": "SCULPT: Training Edge Vision Models for Post-Training Quantization Readiness",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向边缘模型的低比特后训练量化就绪性，可支撑3比特标量PTQ的训练期方法",
+      "first_seen_at": "2026-09-08 09:48:34 UTC",
+      "updated_at": "2026-09-08 09:48:34 UTC"
+    },
+    {
+      "paper_id": "2609.04724v1",
+      "route": "20260830-20260908/2609.04724v1-flexposit-tunable-fractional-precision-for-llm-inference-accelerators",
+      "title": "FlexPosit: Tunable Fractional Precision for LLM Inference Accelerators",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向低比特量化主题的Posit可调精度LLM量化研究",
+      "first_seen_at": "2026-09-08 09:48:34 UTC",
+      "updated_at": "2026-09-08 09:48:34 UTC"
+    },
+    {
+      "paper_id": "2608.30607v2",
+      "route": "20260830-20260908/2608.30607v2-bytex-a-unified-ai-search-engine-at-bytedance",
+      "title": "ByteX: A Unified AI Search Engine at ByteDance",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "采用SymRaBitQ对称量化与量化感知内核压缩大规模向量表示，是向量搜索场景的低比特量化方案",
+      "first_seen_at": "2026-09-08 09:48:34 UTC",
+      "updated_at": "2026-09-08 09:48:34 UTC"
+    },
+    {
+      "paper_id": "2609.00049v1",
+      "route": "20260830-20260908/2609.00049v1-real-q-e2e-llm-quantization-via-dynamic-gradient-descent",
+      "title": "REAL-Q: E2E LLM Quantization via Dynamic Gradient Descent",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "端到端对齐的PTQ新范式，可作为MoE量化的方法桥接",
+      "first_seen_at": "2026-09-08 09:48:34 UTC",
+      "updated_at": "2026-09-08 09:48:34 UTC"
+    }
+  ]
+}

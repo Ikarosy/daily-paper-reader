@@ -1,0 +1,1222 @@
+Title: ByteX: A Unified AI Search Engine at ByteDance
+
+URL Source: https://arxiv.org/pdf/2608.30607v2
+
+Published Time: Wed, 02 Sep 2026 00:43:54 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# ByteX : A Unified AI Search Engine at ByteDance 
+
+## Yao Tian †, Yuncheng Lu †, Liyao Xiong, Yuming Xu, Hao Zhang *, Weichen Zhao Xi Zhao, Bo Kuang, Dongyu Wang, Jiehui Li, Yakun Li *, Lei Zhang ByteDance 
+
+## Abstract 
+
+Since 2016, ByteX has been the foundation of ByteDance’s search infrastructure, scaling to more than 7,000 clusters and 300 PB of indexed data. Driven by the demands of AI workloads, ByteX has evolved from a text search engine into a unified AI search system supporting vector retrieval, lexical matching, and predicate filtering. Its largest deployment indexes nearly one trillion high-dimensional vectors. This scale exposes two central bottlenecks in AI-era retrieval: memory-intensive graph-index construction under sustained ingestion, and the prohibitive cost of keeping vector indexes entirely in memory. 
+
+ByteX addresses these bottlenecks with two techniques. First, it introduces a quantization-aware vector kernel based on SymRaBitQ , a new symmetric quantization scheme with tight theoretical guarantees that allows index construction to run directly in the quantized space accurately and efficiently without retaining a copy of full-precision vectors. Second, it provides a hybrid storage engine that supports memory-resident, hybrid, and SSD-resident deployments, with fine-grained record-level caching to trade memory for latency under operational control. On large-scale benchmarks, ByteX 
+
+improves throughput by up to 3 ×, reduces indexing memory by 80%, and lowers operating cost by 86% compared with prior systems, while supporting trillion-vector scale, write-heavy or latency-sensitive workloads in production. 
+
+## 1 Introduction 
+
+ByteX 1 has served since 2016 as ByteDance’s core search infrastructure. Today, ByteX manages more than 7,000 clus-ters and over 300 PB of storage. AI applications, such as retrieval-augmented generation [23], recommendation [25, 34], semantic analytics [26, 33], and conversational assis-tants [4, 17], have driven ByteX to evolve from text-based search engine to AI search engine, where vectors are first-class indexed data and queries combine vector similarity with lexical matching, structured predicates, and reranking. Vector data growth is multiplicative rather than incre-mental. As shown in Fig. 1, ByteX is storing vectors at an exponential rate, while Fig. 2 shows two production work-loads each ingesting several billion new vectors per day. Our largest clusters are already nearing trillion-vector scale with  
+
+> †Equal contribution: {yao.tian, luyuncheng}@bytedance.com.
+> ∗Corresponding authors: {zhanghao.ai, liyakun.hit}@bytedance.com.
+> 1ByteX originated from an early OpenSearch branch; we thank the commu-nity for its foundational contributions.
+
+PB-scale storage footprints. The demand is rising along three coupled axes: granularity, dimensionality, and retention. Re-trieval units are becoming finer-grained, e.g., video search moving from scene-level to frame-level embeddings; newer encoders are increasing embedding dimensionality from 128 to 2048; and vectors are being stored for longer periods, e.g., AI-memory workloads extending retention from 45 to 365 days. These trends compound: each application may gen-erate more vectors per user, store wider vectors, and retain them for longer. Consequently, vector data management has shifted from a component-level optimization to a PB-scale system-level optimization. Vector data is resource-intensive and challenging to man-age. Unlike scalar fields, each vector is a dense object that is expensive to store, index, and query. A 2048-dimensional FP32 vector occupies 8 KB, so 100 million vectors require 800 GB of raw storage before indexing. Vectors are usually partitioned into random segments during ingestion 2, and indexes are built over them. Index construction for these vec-tors is memory- and compute-intensive. For example, build-ing a graph-based vector index [19, 45], typically the fastest option for vector search, for a 1-million-vector segment re-quires at least 8 GB of memory and takes over one hour. Querying, in other words, finding the approximate nearest neighbor (ANN) vectors to a query vector, is similarly ex-pensive: graph-based methods employ a greedy traversal to progressively move toward vertices closer to the query. Each hop takes at least 1 random I/O, and there could be 100+ hops to reach 95% recall in a single segment, and it must search all segments. At trillion-vector scale, with ingestion and serving run-ning concurrently, memory becomes the central constraint: 
+
+every byte spent on index construction is a byte unavailable for serving . Our production workloads in §2 expose two bot-tlenecks. First, ingestion amplifies memory usage: index builders must retain full-precision vectors until segment finalization, so at 10+ billion vectors ingested per day and peaks above 700K vectors/s, naive construction can consume tens of terabytes and exhaust cluster memory. Second, serv-ing becomes I/O-bound because memory-only serving is    
+
+> 2Production vector engines such as OpenSearch/ElasticSearch [11, 30] and Milvus [46] commonly adopt segment-based index management, which supports high-throughput vector ingestion while simplifying incremental addition and deletion in deployed systems. 1arXiv:2608.30607v2 [cs.DB] 1 Sep 2026 0.1 0.2 0.5 1.0 2.0 Dec Jan Feb Mar Apr May Jun Total Vectors (×10 12 ,log scale) Date
+
+Figure 1. Overall Growth 036912 1st 10th 17th 24th 31st Daily Growth (×10 9)Date custormer E custormer D Figure 2. Daily Growth 10 -2 10 -1 10 010 110 21st 10th 17th 24th 31st Read QPS Date custormer E custormer D Figure 3. Daily QPS 10 -4 10 -2 10 010 210 41st 10th 17th 24th 31st P99 Latency (s) Date Read Write Figure 4. P99 of Customer E economically infeasible, making SSD-backed serving neces-sary at a trillion-vector scale 3. Cache efficiency is therefore critical: misses on graph neighbors or vectors trigger SSD reads, increasing tail latency and reducing throughput. These problems cannot be avoided by moving vector search into an isolated service. Customers require OpenSearch com-patibility to preserve existing APIs, dashboards, access con-trol, ranking pipelines, and operational playbooks, 4 while also demanding hybrid queries that combine vector similar-ity, lexical matching, structured predicates, and reranking. Existing systems miss one side of this requirement. Faiss [12] provides efficient ANN kernels but lacks distributed inges-tion, durability, and operational control. Milvus [46] provides an integrated vector service but does not match OpenSearch’s mature lexical and ranking ecosystem. OpenSearch and Elas-ticsearch [11, 30] provide the right ecosystem, but their vec-tor paths hit memory and I/O bottlenecks at trillion-vector scale. This leaves a practical gap: production hybrid search needs OpenSearch compatibility and extreme-scale vector performance in the same system. We present ByteX , a production-grade search engine for AI workloads built inside the OpenSearch/Elasticsearch ecosys-tem. Rather than proposing a standalone vector service, By-teX replaces the quantization, storage, and query-execution paths that become bottlenecks at extreme scale, enhances hy-brid search ability, enables unified storage between memory-only, hybrid, and disk-only deployed mode, while preserving existing APIs, DSLs, dashboards, and operational playbooks. Its design follows from a deployment constraint: at trillion-vector scale, the hard problem is not only low-latency ANN search, but sustaining ingestion, index, storage, and hybrid query execution within an operational search platform. 
+
+ByteX addresses these challenges through two design choices. First, compression is integrated into the indexing path. Full-precision vectors otherwise dominate memory consumption during index construction, so ByteX introduces 
+
+SymRaBitQ (§4), a symmetric quantization scheme with solid theoretical guarantees. Its unbiased, error-bounded dis-tance estimator operates directly on quantized codes, elimi-nating full-precision vector copies and substantially reduc-ing indexing cost. Second, storage placement is adaptive and optimized for cache efficiency. Production clusters span    
+
+> 3VM memory costs roughly 61 ×more per byte than SSD storage. A typical VM instance with 8 GB memory is priced at ≈6.7$/GiB-month, versus an SSD-backed block device is priced at 0.10$/GiB-month.
+> 4Many customers are migrating from OpenSearch-based lexical search to hybrid search that combines vector, lexical, and structured retrieval; preserving OpenSearch compatibility is therefore essential.
+
+memory-rich, memory-constrained, and SSD-heavy deploy-ments, and their cost–latency trade-offs change with work-load. ByteX supports memory-resident, hybrid memory-disk, and SSD-resident execution within the same system, using fine-grained record-level caching and asynchronous graph traversal optimized for SSD I/O patterns (§5). Both design choices are integrated into an OpenSearch-compatible ar-chitecture that preserves support for rich predicates, rank-ing functions, and hybrid retrieval workloads (§6). Together, these choices make ByteX a drop-in evolution of existing search infrastructure rather than a parallel vector stack, clos-ing the gap between ecosystem maturity and trillion-scale AI retrieval without requiring migration or abandoning opera-tional tooling. On large-scale benchmarks, ByteX delivers up to 3 × higher throughput, 80% lower indexing memory, and 86% lower operating cost compared to state-of-the-art sys-tems while preserving recall and latency. In production, By-teX supports both PB-scale write-heavy clusters and latency-sensitive online serving clusters within the same operational ecosystem. In summary, this paper makes the following contributions: 
+
+• We distill the production insights from ByteDance’s AI search platform–7 000+ clusters, 300+ PB storage, trillion-scale vectors–identifying memory-efficient graph construc-tion during ingestion and vector storage during serving as the two dominant physical bottlenecks at extreme scale. 
+
+• We introduce SymRaBitQ , a quantization scheme with strong theoretical accuracy guarantees, and a quantization-aware vector kernel that enables search, graph construc-tion, and segment merge entirely in the quantized space. 
+
+• We design an adaptive storage engine supporting memory-resident, hybrid, and SSD-resident vector indexes with fine-grained cache management for efficiently utilizing cache in trillion-scale vector workloads, and a hybrid query engine that integrates vector, lexical, predicate, and reranking operators within a single distributed query plan. 
+
+• We evaluate ByteX on public benchmarks and produc-tion deployments up to 838 B vectors and 3 PB of storage, achieving up to 80% lower graph-build peak memory, 60% faster build time, and 7 .3× lower storage cost while pre-serving recall and latency. 
+
+## 2 Production Workload & Challenges 
+
+2.1 Production Workloads 
+
+Table 1 summarizes representative ByteX workloads across 7000+ clusters/services with over 300 PB storage. Customers first adopted ByteX as an OpenSearch-compatible platform, 
+
+> 2
+
+Table 1. Representative ByteX production workloads across query patterns, ingestion rates, storage tiers, and scale.                                                                    
+
+> ID Workload Access pattern Vectors Dim Write/s QPS SLA Tier Size
+> AImage Assets Search Text-to-Image retrieval with tenant ID, tags, and time ordering 125 M 768 100 10+ <100 ms Memory 2 TB BMultimodal Assets Search Multimodal-to-Multimodal 2retrieval with tenant ID and keywords 52 B 1024 65 1000+ <100 ms Memory 120 TB CAD Recommendation Video-to-Video retrieval with range predicates 28.4 B 512 81 K 10+ <1 s Memory 212 TB DCompliance Review Search (Text, Image)-to-Image retrieval with tags 1 T (1,000 B) 2048 100+ K 31–10 <100 s SSD 2 PB EUser Identity Search (Text, Image)-to-(Text, Image) retrieval with time range and tags 1 T (1,000 B) 512 100+ K 1–10 <100 s SSD 3 PB FPretraining Data Search Text-to-Text retrieval with content filters 52 B 1024 offline 1100 K+ <100 ms Memory 100 TB
+> 1Index is constructed offline in batch, no online writes.
+> 2Multimodal: Text, Image, Video, Audio.
+> 3Peak at 700+ K
+
+then incrementally enabled vector search over existing queries and workflows. Consequently, ByteX cannot expose vector search as a standalone ANN service: it must preserve query semantics, shard/segment management, filtering, ranking, and hybrid retrieval across memory- and SSD-resident in-dices. Workloads expose overlapping features: 
+
+• Hybrid queries. Customers A–F combine vector simi-larity with lexical, scalar, and domain-specific predicates, then apply ranking and LLM-based recall. Their cost is therefore dominated not by ANN traversal alone, but by materialization, filtering, merging, and downstream rerank-ing. These workloads require end-to-end hybrid query optimization. 
+
+• Low-latency online serving. Memory-resident work-loads, such as A, B, C, and F, target p99 latencies in the tens to hundreds of milliseconds for high-dimensional vec-tor queries. 
+
+• PB-scale ingestion & serving. Disk-resident workloads, such as D and E, operate at PB scale, where the memory-only option is economically infeasible. Their query require-ments are comparatively relaxed: both QPS and tail latency remain modest, as shown in Fig. 3 and Fig. 4. The primary challenge is sustaining ingestion and serving over massive datasets. 
+
+System requirements. These workloads impose three requirements on ByteX .
+
+• OpenSearch-native hybrid execution. ByteX must pre-serve the OpenSearch compatibility—including ingestion, segment merge, replication, recovery, monitoring, query DSL, filtering, ranking, and shard-level execution—while making vector search a first-class operator inside the same distributed query plan. 
+
+• Unified memory–SSD backend. ByteX must support memory-resident, SSD-resident, and mixed deployments with one architecture. As Table 1 shows, production de-ployments span 105–212 TiB memory-backed workloads and 2–3 PB SSD-backed workloads, so the system cannot rely on a DRAM-only ANN design or a separate disk-specialized serving path. 
+
+• Large-scale continuous ingestion and serving. ByteX 
+
+must sustain hundreds of billions to trillions of vectors under continuous writes while serving queries in reason-able times. At this scale, ingestion-side index construction and serving-side cache management contend for the same memory, making ingestion and serving a coupled system problem rather than two independent pipelines. 
+
+2.2 Challenges 
+
+At the trillion-vector scale, DRAM is the shared bottleneck between ingestion and serving. In practice, naïve graph con-struction can transiently consume more memory than the final index itself. For Customer E, construction peaked at 27 TB against a 13.8 TB DRAM budget, making the system infeasible even before reserving memory for the serving-side caches needed to hide SSD latency. This exposes a funda-mental trade-off: allocating DRAM for fast ingestion inflates peak memory, while leaving too little for caching slows query throughput. Two interdependent challenges emerge: 
+
+• Excessive peak memory during graph construction. 
+
+Conventional builders retain full-precision vectors, candi-date neighborhoods, pruning state, partial edges, and meta-data until segments are finalized, inflating peak memory. The challenge is reducing this peak without fragmenting segments or degrading index quality, ensuring that SSD traversal remains efficient downstream. 
+
+• Ineffective DRAM use for SSD-resident graph search. 
+
+Trillion-scale indices cannot fit in DRAM, so queries tra-verse SSD-resident graphs, vectors, and metadata. The challenge is that DRAM capacity alone does not deter-mine performance: cached data only helps when it avoids SSD accesses on the query-critical path. Without traversal-aware cache allocation, scarce DRAM can be spent on bytes with low latency impact, while hot graph regions still trigger SSD reads. 
+
+Limitations of existing systems. Disk-based ANN in OpenSearch and Elasticsearch [11, 30] reduces serving-time DRAM with better binary quantization (BBQ) [41], but leaves the ingestion–serving memory conflict unresolved. On the ingestion side, BBQ is asymmetric: its compressed represen-tation is used for search, but graph construction still ma-terializes full-precision vectors and construction metadata, directly competing with serving caches for DRAM. On the serving side, generic mmap /page caches operate at page gran-ularity and cannot prioritize ANN records on query-critical traversal paths. ByteX addresses this shared bottleneck by quantized construction (§4), and a fine-grained DRAM–SSD                                               
+
+> 3Routing, Scatter/Gather Data Preprocess
+> Segment Files
+> NVMe SSD /AWS S3
+> Adaptive Storage Engine
+> Control Plane ML Services
+> LLMs
+> Customers Conversational
+> Assistant RAG Recommendation Semantic
+> Analysis
+> Agent
+> Inde
+> APIs Dashboards
+> Ingest Nodes Coordinate Nodes
+> DSL /SQL
+> Index Files
+> Operators
+> Apache Lucene Vector Kernel
+> Hybrid Query Engine
+> Embedding Generation
+> Data Augmentation
+> Learned Re -Ranker
+> Data Files
+> Vector Kernel
+> SIMD (SSE, AVX, AVX512)
+> GPU (Tensor /Cuda Core)
+> Async Execution Model
+> Index &Query
+> PQ |SQ |SymRabitQ |…
+> IVF |DiskANN |LSH |…
+> Buffer Pool
+> Index
+> Management
+> Inde Snapshot
+> Management
+> Inde  Model
+> Management
+> Inde Workload
+> Management
+> Inde  …
+> Vector
+> Search Hybrid
+> Search Radial
+> Search Ranking
+> Coordinate Service
+> …
+> Filtered
+> Search
+> ByteX
+
+Figure 5. System architecture of ByteX .cache (§5), reducing ingestion peak memory and converting the freed DRAM into higher serving-cache efficiency, while preserving full opensearch compatibility and support rich predicates, filtering, and ranking options (§6). 
+
+## 3 System Overview 
+
+Fig. 5 shows the ByteX architecture. Externally, it preserves full OpenSearch compatibility: clients, REST APIs, SDKs, ingestion pipelines, dashboards, and index lifecycle tools work unchanged. This lets existing deployments adopt ByteX 
+
+without rewriting workflows. Internally, ByteX treats vectors as first-class citizens. In-stead of treating vectors as add-ons, it co-designs vector representation, storage layout, and hybrid query execution to boost search efficiency while keeping OpenSearch’s ro-bustness for non-vector workloads. The engine redesign targets three core components for production-scale vectors: 
+
+• Quantization-aware vector kernel (§4): SymRaBitQ en-ables distance estimation, index construction, and segment merge without repeated full-precision materialization. 
+
+• Adaptive storage engine (§5): controls segment lifecycle, memory/SSD placement, caching, and async I/O, address-ing the large memory-to-SSD cost gap in production. 
+
+• Hybrid query engine (§6): unifies vector similarity, lex-ical relevance, structured predicates, score fusion, and reranking within an OpenSearch-compatible distributed plan. 
+
+Ingestion & Query Workflow. ByteX separates write freshness from serving efficiency. Newly refreshed data first becomes searchable as lightweight fresh segments, while background merge bounds query fanout and progressively upgrades segments from raw vectors, to IVF indexes, to graph indexes. For graph-indexed segments, ByteX builds and merges directly in the SymRaBitQ quantized space, avoiding repeated full-precision vector materialization. The segment abstraction also decouples indexing from placement: the same index can serve from DRAM, hybrid memory–SSD, or SSD-resident storage without reindexing. Appendix A details the ingestion path. On the read path, ByteX preserves native DSL seman-tics but executes hybrid retrieval as one distributed plan. BM25, vector search, predicates, range filters, score fusion, and reranking are optimized together rather than stitched across separate services. The query engine is placement-oblivious: DRAM segments use in-memory traversal, while SSD-resident graph records use a record-level buffer pool and asynchronous traversal to overlap I/O with distance compu-tation. Appendix B details the serving paths, and Appendix C shows a representative native DSL query. 
+
+## 4 Quantization-Aware Vector Kernel 
+
+Existing SOTA quantization schemes, such as RabitQ/BBQ [15, 41], are asymmetric: they quantize data vectors but eval-uate them against full-precision query vectors. Thus, they do not directly support quantized-domain data-to-data distance evaluation, which ByteX needs during index construction. Falling back to full precision would require an extra uncom-pressed data copy, which amplifies memory usage. ByteX 
+
+therefore introduces SymRaBitQ , a symmetric scheme that unifies data-to-query and data-to-data evaluation in the same quantized-space primitive. 
+
+4.1 SymRaBitQ Quantization 
+
+SymRaBitQ is the distance primitive used by the ByteX vec-tor kernel. It keeps the high-accuracy RaBitQ/ExtRaBitQ code construction (reviewed in Appendix D.1) and changes the estimator so that both operands may be represented by compact codes. Throughout this section, raw vectors are de-noted by 𝒙 𝑟 , 𝒒 𝑟 ∈ R𝐷 . When a vector is encoded relative to a centroid 𝒄 , e.g., in IVF or partitioned graph indexes, ByteX 
+
+uses normalized residuals 
+
+𝒐 := 𝒙 𝑟 − 𝒄 
+
+∥𝒙 𝑟 − 𝒄 ∥ , 𝒒 := 𝒒 𝑟 − 𝒄 
+
+∥𝒒 𝑟 − 𝒄 ∥ . (1) 
+
+We write ¯ 𝒐 and ¯ 𝒒 for their quantized representations, and store for every encoded data vector the residual norm 𝜌 𝒐 =
+
+∥𝒙 𝑟 − 𝒄 ∥ and the self-correlation 𝛾 𝒐 = ⟨¯𝒐 , 𝒐 ⟩. Algorithm 1 summarizes the encoding path used for both data and query residuals. The variable 𝒙 is instantiated as 𝒐 for stored vectors and 𝒒 for queries. 
+
+Symmetric estimator. Given two encoded residual unit vectors, SymRaBitQ estimates their inner product as 
+
+⟨𝒐 , 𝒒 ⟩ = ⟨¯𝒐 , ¯𝒒 ⟩⟨¯𝒐 , 𝒐 ⟩ ⟨ ¯𝒒 , 𝒒 ⟩ . (2) 
+
+For data-to-data comparisons, both denominator terms are precomputed; for query-to-data comparisons, only ⟨ ¯𝒒 , 𝒒 ⟩ is computed online once. The corresponding squared 𝐿 2 dis-tance used by the graph and IVF kernels is 
+
+SymDist 𝐵 (¯𝒐 , ¯𝒒 ; 𝒄 ) = 𝜌 2 
+
+> 𝒐
+
++ 𝜌 2 
+
+> 𝒒
+
+− 2𝜌 𝒐 𝜌 𝒒 · ⟨𝒐 , 𝒒 ⟩, (3) 
+
+> 4
+
+Algorithm 1: SymRaBitQ Quantization                                                              
+
+> Input: Raw vector 𝒙 𝑟 , centroid 𝒄 , bit width 𝐵 , rotation matrix 𝑃
+> Output: Encoded record 𝑧 𝒙 =(¯𝒙 ,¯𝒙 0, 𝛾 𝒙 , 𝜌 𝒙 )
+> 1𝜌 𝒙 ← ∥ 𝒙 𝑟 −𝒄 ∥,𝒙 ← ( 𝒙 𝑟 −𝒄 )/ 𝜌 𝒙 ;
+> 2𝒚 ←𝑃 −1𝒙 ;
+> 3𝒖 ←nearest 𝐵 -bit integer-lattice code to 𝒚 ;
+> 4˜𝒖 ←𝒖 − ( 2𝐵 −1)1𝐷 /2, ¯ 𝒙 ←𝑃 ˜𝒖 /∥ ˜𝒖 ∥;
+> 5¯𝒙 0←first-bit/sign projection of 𝒖 ;
+> 6𝛾 𝒙 ← ⟨ ¯𝒙 ,𝒙 ⟩;
+> 7return 𝑧 𝒙 =(¯𝒙 ,¯𝒙 0, 𝛾 𝒙 , 𝜌 𝒙 )
+
+where 𝐵 denotes the bit width of the code. Inner-product search is handled by the same estimator after applying the standard residual reconstruction terms. 
+
+Code-only computation. The numerator ⟨¯𝒐 , ¯𝒒 ⟩ in Eq. (2) is computed directly from the integer codes, not by mate-rializing rotated floating-point vectors. For 𝐵 = 1, the com-putation reduces to sign agreement and can be evaluated with bit operations and popcount. For the 𝐵 = 5 construction code used in ByteX , it becomes a compact integer-code dot product; the graph and IVF kernels below call Eq. (3) directly rather than a generic full-precision distance. 
+
+Accuracy guarantee. SymRaBitQ preserves the accuracy properties needed by an ANN kernel: the estimator is unbi-ased and has an 𝑂 (1/√𝐷 ) error bound with high probability. 
+
+Theorem 1 (SymRaBitQ Estimator) . For normalized residual vectors 𝒐 and 𝒒 ,        
+
+> E
+> ⟨¯𝒐 ,¯𝒒 ⟩⟨¯𝒐 ,𝒐 ⟩⟨ ¯𝒒 ,𝒒 ⟩
+> 
+> =⟨𝒐 ,𝒒 ⟩.(4)
+
+Furthermore,                
+
+> P
+> ⟨¯𝒐 ,¯𝒒 ⟩⟨¯𝒐 ,𝒐 ⟩⟨ ¯𝒒 ,𝒒 ⟩ − ⟨ 𝒐 ,𝒒 ⟩>Δ𝒐 ,𝒒 ·𝜖 0
+> √𝐷 −1
+> 
+> ≤4𝑒 −𝑐 0𝜖 20,(5)
+
+where 𝜖 0 is a parameter which controls the failure probability, 
+
+𝑐 0 is a constant factor, and                  
+
+> Δ𝒐 ,𝒒 =√︄ 1− ⟨ ¯𝒒 ,𝒒 ⟩2
+> ⟨¯𝒒 ,𝒒 ⟩2+√︄ 1− ⟨ ¯𝒐 ,𝒐 ⟩2
+> ⟨¯𝒐 ,𝒐 ⟩2⟨¯𝒒 ,𝒒 ⟩2.(6)
+
+The error bound can be concisely presented as          
+
+> ⟨¯𝒐 ,¯𝒒 ⟩⟨¯𝒐 ,𝒐 ⟩⟨ ¯𝒒 ,𝒒 ⟩ − ⟨ 𝒐 ,𝒒 ⟩=𝑂
+> 1
+> √𝐷
+> 
+> with high probability .(7)
+
+Proof Sketch. We decompose the estimation error into two residual terms and bound each using high-dimensional con-centration arguments. Unbiasedness is established using the near-orthogonality of random transformations and the expected sign agreement between quantized vectors. Full proofs are provided in Appendix E and Appendix F. □
+
+Remark 1. Compared with RaBitQ, SymRaBitQ appears to introduce only a modest mathematical modification. However, this change has important system implications. RaBitQ accel-erates query-time estimation, whereas graph construction and segment merging require a large number of distance compu-tations over stored vectors. By moving both operands into the quantized space, SymRaBitQ eliminates raw-vector accesses for these data-to-data computations, extending the benefits of quantization from the query path to the entire index con-struction and maintenance lifecycle. Appendix D.1 provides additional background on RaBitQ. 
+
+4.2 Graph-based Kernel 
+
+Large merged segments in ByteX use a DiskANN/Vamana-style graph because the construction cost is amortized across many future queries (§2); the graph background and full pseu-docode are given in Appendix D.2. Our contribution is not a new graph topology. The graph kernel keeps DiskANN’s can-didate discovery, robust pruning, and backward-edge repair, but changes the representation and every distance oracle used by these steps. 
+
+Quantization-aware Construction. Before graph con-struction starts, each assigned vector is encoded as a Sym-RaBitQ record 𝑧 𝒐 = (¯𝒐 , ¯𝒐 0, 𝛾 𝒐 , 𝜌 𝒐 ), where 𝛾 𝒐 = ⟨¯𝒐 , 𝒐 ⟩ and 
+
+𝜌 𝒐 = ∥𝒙 𝑟 − 𝒄 ∥ are precomputed. After this point, the graph builder no longer calls a full-precision distance function. In 
+
+FindCandidates (Algorithm 3), the greedy frontier is ranked by SymDist 𝐵 between encoded records. In RobustPrune (Al-gorithm 4), both target-to-candidate distances and candidate-to-candidate diversity checks also use SymDist 𝐵 . Backward-edge repair uses the same pruning routine when a neighbor exceeds the degree bound. Algorithm 2 shows the complete construction flow. This change is precisely where SymRa-BitQ differs from a query-only quantizer. Standard RaBitQ can score a quantized data vector against a raw query, but robust pruning needs distances among stored vectors, such as 𝑑 (𝒐 , 𝒗 ) and 𝑑 (𝒑 , 𝒗 ). Without a symmetric estimator, these comparisons would fetch raw candidate vectors from disk or keep them in memory. With SymRaBitQ , all such compar-isons read only 𝐵 -bit codes and per-vector scalars, so graph construction operates in the quantized space. 
+
+Quantization-aware Search. The query path uses the same record format. A query is encoded once for the searched partition, producing 𝑧 𝒒 = ( ¯𝒒 , ¯𝒒 0, 𝛾 𝒒 , 𝜌 𝒒 ). During greedy tra-versal (Algorithm 5), ByteX uses SymDist 1 on the first-bit projections ¯ 𝒐 0 and ¯ 𝒒 0 to expand the graph with a bit opera-tion plus SIMD popcount ( vpopcntq ). Only the small promis-ing set retained by traversal is rescored with SymDist 𝐵 using the full code. Thus construction uses the higher-precision 
+
+𝐵 -bit estimator to preserve graph quality, while search uses a coarse-to-fine version of the same estimator to reduce mem-ory bandwidth and CPU work. 
+
+Impact. The immediate effect is that raw vectors are re-moved from candidate search, pruning, backward-edge re-pair, and most graph-search distance computations. The memory footprint of construction becomes proportional 
+
+> 5
+
+to compact codes plus graph metadata rather than high-dimensional floating-point vectors; random I/O to raw vec-tors is eliminated from the recurring merge path. In our implementation, 𝐵 = 5 preserves more than 98% distance-estimation accuracy and causes less than 0.01 recall loss under the same search parameters. On GIST-1M (Table 2 in §7), SymRaBitQ reduces peak build memory by 80% and to-tal build time by 60%, demonstrating the significant benefits of quantization for index construction. 
+
+4.3 IVF-based Kernel 
+
+For medium-size segments (§2), ByteX builds an IVF index because it is cheap to construct and the segment may still participate in later merges. IVF background is given in Ap-pendix D.3; the key point in the vector kernel is that IVF list construction and list scanning also use SymRaBitQ as the distance primitive. 
+
+Index primitives. ByteX first quantizes all vectors with 
+
+SymRaBitQ using the segment centroid. The entire 𝑘 -means clustering procedure then operates in the quantized space via SymDist 𝐵 . The quantized codes (¯𝒐 , ¯𝒐 0, 𝛾 𝒐 , 𝜌 𝒐 ) are stored in their assigned inverted lists, while full-precision vectors remain on disk and are no longer needed for list construc-tion or later segment merge. This keeps medium-segment indexing lightweight while preserving the same compressed representation used by graph segments. 
+
+Search primitives. At query time, ByteX encodes the query with SymRaBitQ and probes the closest 𝑛 probe cen-troids in the IVF index. For each probed centroid, we eval-uate SymDist 1 on 1-bit codes to obtain coarse distances us-ing vpopcntq . Candidates whose lower bounds are already worse than the current 𝑘 -th result are discarded without touching the remaining bits. The survivors are refined with SymDist 𝐵 using FastScan-style lookup tables [1–3], and the top-𝑘 heap is updated. In this path, SymRaBitQ improves both bandwidth and CPU efficiency: most list entries are judged by compact 1-bit codes, and only promising entries pay for the full 𝐵 -bit estimate. 
+
+## 5 Vector Storage Engine 
+
+ByteX ’s storage engine manages the lifecycle of vector seg-ments beneath the OpenSearch-compatible interface. At a high level, it makes newly written segments searchable at re-fresh time, bounds query fanout through background merges, upgrades per-segment indexes from scan to IVF and then to graph-based search, and places each segment on memory-only, hybrid memory–disk, or disk-resident serving paths. We inherit OpenSearch’s data layout; the ingestion path is described in Appendix A. The rest of this section focuses on the optimizing of serv-ing disk-resident segments inspired by [49]. Sec. 5.1 intro-duce fine-grained cache mechanism that largely reduces disk I/Os. Sec. 5.2 describes the asynchronous execution model Recording  Mapping  Array  (DRAM)                                
+
+> 𝑜 1𝑜 2𝑜 3
+> MSB State Offset
+> disk /memory
+> free /locked /occupied /marked
+> memory slot offset /disk page offset
+> Paging Index (On -Disk)
+> 𝑟 1
+> 𝑟 2
+> Slotted Buffer Pool (DRAM)
+> 𝑟 3𝑟 2𝑟 8
+> SymRabitQ
+> quantized vector Neighbor IDs
+> Available slot Allocated slot
+> 𝑜 4⋯
+> 𝑟 3
+> 𝑟 4
+> ⋯
+> ⋯
+
+Figure 6. Record-level cache layout that reduces tail latency by overlapping graph traversal with SSD reads. 
+
+5.1 Fine-Grained Record Cache 
+
+Given the cache-efficiency problem, ByteX must spend lim-ited DRAM on data that actually advances graph traversal. Traditional page-granular caching is too coarse for graph search: it can spend DRAM on incidental bytes that do not advance traversal. ByteX therefore employs fine-grained, record-level caching. Each record stores the compact vector payload for distance estimation and a bounded neighbor list for traversal. As shown in Fig. 6, a dense record-mapping array indexed by vertex ID gives 𝑂 (1) access to each record through pointer-swizzling-style logical pointers [22]. Each entry of the record-mapping array is a 64-bit logical pointer consisting of a residency bit, a 2-bit state field, and a 61-bit offset. An MSB of 0 indicates that the record is on disk and the offset is the disk-page offset; an MSB of 1 indicates that the record is cached in memory and the offset is the slot offset in the slotted buffer region. The state field records transient cache states, which ByteX uses to coordinate record load-ing, prefetching, and eviction under concurrent queries. To manage these operations, ByteX uses a lightweight lock-free protocol. On a miss, the requester locks the disk-resident mapping entry, obtains a free slot or runs clock-style eviction, issues a non-blocking SSD read, copies the fetched record into the slot, and publishes the memory-slot offset as an occu-pied resident record. Concurrent demand loads or prefetches that observe the disk entry in the locked state wait for the same load to complete rather than issuing duplicate reads. During eviction, the clock hand first demotes occupied resi-dent entries to marked; a later access promotes the marked entry back to occupied, while an unaccessed marked entry can be locked, its slot reclaimed and returned to the free list, and its mapping entry restored to the disk location. 
+
+5.2 Asynchronous ANN Execution 
+
+Fine-grained caching improves DRAM utilization, but cache misses can still occur during graph traversal. ByteX treats those misses as scheduling points inside the SSD-resident vector operator. Each ANN search runs as a coroutine that carries its candidate frontier, visited vertices, and current top-𝑘 results. The traversal is cache-aware at the candidate-beam level: it expands resident candidates first when they are available, while issuing asynchronous reads or prefetches for promising on-disk candidates. If no ready candidate can make progress, the coroutine yields after submitting the 
+
+> 6
+
+required SSD read. The worker then advances another ready ANN coroutine and resumes the suspended search when the read completes. This design complements the record cache: the cache reduces avoidable SSD traffic, while coroutine scheduling overlaps the remaining SSD latency with useful vector-search computation. 
+
+## 6 Hybrid Query Engine 
+
+Production workloads (§2) are rarely plain top-𝑘 ANN re-trieval: they often combine vector similarity with lexical matching, structured predicates, ranking, reranking, and threshold-based retrieval. To support diverse workloads effi-ciently, ByteX integrates vector search into an OpenSearch-compatible distributed query engine. The coordinator parses the DSL, routes the request to shards, and composes vector operators with the rest of the search pipeline. We refer the reader to Appendix. B and Appendix C for query path details and example DSL that enables hybrid query. For the rest of this section, we focus on three concrete techniques that enhance three kinds of specific hybrid queries. 
+
+Vector + Full-text Search. Production workloads often benefit from combining lexical matching, which excels at exact term retrieval, e.g., searching logs by error codes, with vector search that captures semantic relationships beyond literal expressions. ByteX provides flexible hybrid retrieval within a unified query framework, where query terms are processed through Lucene’s inverted index with BM25 scor-ing and query embeddings are evaluated by the vector search engine. Users can choose from multiple score normalization strategies, including min-max , L2 , z-score , and reciprocal rank fusion ( RRF ), as well as several score fusion methods, such as weighted arithmetic mean , geometric mean ,and harmonic mean . These configurable options allow fine-grained control over the balance between lexical and se-mantic signals, enabling retrieval behavior to be tailored to different applications and relevance objectives. 
+
+Radial Search. Radial search is useful when applications specify similarity or distance constraints rather than a fixed top-𝑘 . Recommendation workloads, e.g., Customer C, of-ten require retrieving results within a relevance threshold (e.g., max_distance or min_score ) while excluding near-duplicates via an exclusion threshold ( e.g., min_distance 
+
+or max_score ). To efficiently support these query patterns, 
+
+ByteX designs a threshold-guided neighborhood expansion 
+
+strategy on graph-based indexes. The search starts from an entry point obtained via a top-1 ANN lookup and expands neighbors in a breadth-first manner, interleaving threshold evaluation with traversal. Nodes satisfying the bound are emitted and recursively explored, while others are pruned early. The search terminates when the frontier is exhausted or when a system-defined exploration limit is reached, en-suring bounded work while preserving recall within the specified range. 
+
+Filtered Vector Search. Production workloads often in-clude structured predicates such as tenants, categories, tags, timestamp ranges, and access-control policies. ByteX sup-ports three filtering modes: pre-filtering, post-filtering, and in-filtering. Pre-filtering applies predicates before vector search and is effective for highly selective conditions, while post-filtering evaluates predicates after ANN retrieval and is suitable for low-selectivity predicates. When neither strategy is effective, ByteX enables an in-filter execution mode. The predicate is first materialized as a bitmap over valid vector IDs, and ANN search retrieves a small set of high-similarity seeds. The vector operator then expands from these seeds while checking the bitmap on the fly, admitting only quali-fying candidates. Expansion continues until sufficient valid results are collected. 
+
+## 7 Experiment 
+
+We evaluate ByteX using public benchmarks and production-derived workloads on a controlled testbed. Production de-ployment results are presented in Sec. 2. Specifically, our evaluation answers six production-facing questions: 
+
+Q1 : Can quantization-aware vector kernel in ByteX reduce recurring indexing cost, improve the QPS–recall frontier, and lower tail latency? (§7.2) 
+
+Q2 : Can a unified engine efficiently support filtered, hybrid, and radial retrieval? (§7.3) 
+
+Q3 : Does ByteX improve the operating-cost envelope? (§7.4) 
+
+Q4 : Can the storage runtime mask SSD stalls under con-strained memory and smoothly transition between disk-resident and memory-resident serving? (§7.5) 
+
+Q5 : Does ByteX scale with data size and cluster size? (§7.6) 
+
+Q6 : Can ByteX sustain stable read–write performance dur-ing prolonged streaming ingestion? (§7.7) 
+
+7.1 Experiment Setup Datasets. We use one production-derived dataset and six public datasets. The production-derived dataset is a 100M-vector sample from Customer D, the 327B-vector deployment described in Sec. 2. Together with Wiki (1M, 768D, cosine) [7], GIST (1M, 960D, L2) [6], and Cohere (113M, 1024D, L2) [5], these datasets are used to evaluate throughput, latency, recall, and index construction cost. For end-to-end hybrid retrieval quality, we use NFCorpus, FIQA, and Quora from a popular benchmark BEIR [21, 39]. 
+
+Competitors. We compare our system with three well-known specialized and generalized vector databases: Elas-ticsearch 8.18 5, Milvus 2.5 6, and PostgreSQL 17 7 with the VectorChord 1.0 extension 8. Elasticsearch is a distributed search and analytics engine that has recently incorporated 
+
+> 5https://github.com/elastic/elasticsearch
+> 6https://github.com/milvus-io/milvus
+> 7http://www.postgresql.org/
+> 8https://github.com/tensorchord/VectorChord/
+> 7
+
+Table 2. Build Time and Peak Memory.                                     
+
+> Variant Dataset Indexing Time Reduction Peak Mem. Reduction HNSW Cohere 1M 359.8 s –4.8 GB –Cohere 100M 41946.2 s –476.19 GB –DiskANN GIST 1M 587 s –3.75 GB –Cohere 100M 23826 s –453 GB –
+> ByteX GIST 1M 194+43 s ↓60% 0.75 GB ↓80%
+> Cohere 100M 11033+1463 s ↓48% 90 GB ↓80%
+
+vector search via an HNSW-based index with BBQ [41]. Mil-vus is a widely used specialized vector database, providing high-performance ANN search with multiple indexing algo-rithms ( e.g., IVF, HNSW, SQ). PostgreSQL with VectorChord represents the trend of integrating vector search into rela-tional databases, enabling ANN search within SQL-based hybrid workloads. 
+
+Environment and Configurations. Our controlled bench-marks run on machines equipped with Intel(R) Xeon(R) Plat-inum 8457C CPUs. ByteX is deployed as an OpenSearch-compatible cluster with three data nodes and two coordina-tor nodes. For smaller-scale datasets (Wiki and GIST), each data node uses 8 CPU cores, 64 GB of memory, and 1 TB of network-attached storage, and each coordinator node uses 8 CPU cores and 16 GB of memory. For large-scale datasets (Cohere and In-house), each data node uses 24 CPU cores, 192 GB of memory, and 2 TB of network-attached storage, and each coordinator node uses 16 CPU cores and 32 GB of mem-ory. Storage is connected via 10 Gigabit Ethernet. Baseline systems are provisioned under comparable resource budgets and tuned according to their recommended practices. Un-less otherwise stated, all results use the default per-system resource and index settings reported in Appendix G. 
+
+Evaluation Metrics. We report Queries Per Second (QPS) latency, and Recall@ 𝑘 for query performance, and normal-ized discounted cumulative gain (NDCG) for end-to-end ranking quality. Recall is defined as 
+
+𝑅𝑒𝑐𝑎𝑙𝑙 @𝑘 = |𝑅 ∩ 𝑅 ∗ |
+
+𝑘 , (8) 
+
+where 𝑅 denotes the returned top-𝑘 results and 𝑅 ∗ denotes the exact top-𝑘 results for a query. NDCG is defined as 
+
+NDCG @k = DCG @kIDCG @k , DCG @k = rel 1 +
+
+> 𝑘
+
+∑︁ 
+
+> 𝑖 =2
+
+rel 𝑖 
+
+log 2 (𝑖 ) , (9) 
+
+where rel 𝑖 denotes the relevance score of the result at rank 
+
+𝑖 , and IDCG @k is the maximum possible 𝐷𝐶𝐺 @𝑘 under an ideal ranking. We measure indexing performance by con-struction time, peak memory consumption, and index size. We also report query cost per million queries and estimated in-house storage cost for cost-effectiveness. 02000 4000 6000 8000 Wiki 1M GIST 1M Index Size (MB)  ByteX PostgreSQL(VectorChord) ElasticSearch Milvus 0400 800 1200 1600 COHERE 100M In-House 100M Index Size (GB) 
+
+Figure 7. Index Size 
+
+7.2 Indexing & Vector Search Performance 
+
+This subsection evaluates whether ByteX reduces index-construction cost and improves high-recall serving efficiency. 
+
+Indexing. We evaluate the recurring cost of index construc-tion along three dimensions: build time, peak memory, and final index footprint. Table 2 isolates the effect of SymRaBitQ 
+
+on the construction path by comparing ByteX ’s quantization-aware construction with DiskANN and HNSW, the graph-construction backends used by systems such as Milvus and OpenSearch/Elasticsearch. DiskANN builds the graph over full-precision vectors, whereas ByteX constructs the graph directly in the quantized space. On GIST 1M, SymRaBitQ re-duces build time from 587 s to 237 s (60%). Of the 237 s, 43 s is spent on quantization and the remaining 194 s on graph construction in the quantized space. Peak memory is simul-taneously reduced from 3.75 GB to 0.75 GB (80%). The same effect holds at production scale: on Cohere 100M, build time drops from 23,826 s to 12,496 s (48%), while peak memory drops from 453 GB to 90 GB (80%). These results show that 
+
+SymRaBitQ is not merely a query-time compression tech-nique; it moves quantization into the recurring build and merge path, cutting the memory spikes that contend with online serving during continuous ingestion. The effect is not limited to graph construction. SymRa-bitQ also reduces the cost of IVF indexing. On GIST 1M, conventional IVF requires 176 s and 3.7 GB peak memory, while SymRaBitQ -enhanced IVF reduces build time to 129 s (27%) and peak memory to 1.9 GB (49%). Since IVF shows similar behavior, we omit further IVF results and focus sub-sequent experiments on graph indexing, which dominates both indexing complexity and serving performance in ByteX .Fig. 7 further shows that ByteX achieves the smallest end-to-end index footprint across datasets. The reason is architec-tural: because ByteX constructs a high-quality graph directly over high-precision quantized vectors, full-precision vec-tors are no longer needed in the hot serving path and are kept only in remote storage for durability and offline main-tenance. On Wiki, ByteX ’s index is 1,182 MB, only 29% of PostgreSQL and 42% of Milvus, the most space-efficient base-line. The trend persists on the 100M-scale datasets, where retaining full-precision or weakly compressed vectors di-rectly increases serving footprint and storage cost. 
+
+Vector Search. We next evaluate whether ByteX improves the throughput–recall and tail-latency–recall frontiers. Since                           
+
+> 80510 15 20 88 89 90 91 92 93 QPS (×1000) Recall (%) ByteX PostgreSQL(VectorChord) ElasticSearch Milvus In-House 100M 0510 15 20 25 88 89 90 91 92 93 94 95 Recall (%) COHERE 100M 510 15 20 25 86 88 90 92 94 96 98 Recall (%) Wiki 1M 036912 15 86 88 90 92 94 96 Recall (%) GIST 1M
+
+Figure 8. QPS–Recall Trade-off Overview. 0250 500 750 1000 88 89 90 91 92 93 Latency (ms) Recall (%) ByteX PostgreSQL(VectorChord) ElasticSearch Milvus In-House 100M 0300 600 900 88 89 90 91 92 93 94 95 Recall (%) COHERE 100M 050 100 150 86 88 90 92 94 96 98 Recall (%) Wiki 1M 0100 200 300 86 88 90 92 94 96 Recall (%) GIST 1M 
+
+Figure 9. Concurrent P99 Latency–Recall Trade-off. 036912 10 20 30 40 50 60 70 80 90 99 QPS (×1000) Filter Rate (%) ByteX PostgreSQL(VectorChord) ElasticSearch Milvus All Selectivities 46810 12 93 94 95 96 97 Recall (%) 50% Selectivity 357911 13 86 89 92 95 98 Recall (%) 70% Selectivity 
+
+Figure 10. Filtered Search Performance Overview on Wiki 1M recall above 90% is a common target in our production work-loads, we focus on this high-recall regime and compare against Elasticsearch, Milvus, and PostgreSQL/VectorChord. Fig. 8 shows that ByteX moves the QPS–recall frontier rather than improving only one operating point. On the in-house 100M dataset, ByteX reaches 21,445 QPS at around 90% recall@10, which is 9.5 × higher than Milvus, 5.5 × higher than PostgreSQL, and 2.3 × higher than Elasticsearch. As recall increases, the baselines degrade rapidly around 92% recall, while ByteX still sustains over 10K QPS. On Cohere, 
+
+ByteX reaches 23,013 QPS at around 92% recall@10, outper-forming Milvus by 11.7 ×, Elasticsearch by 5.4 ×, and Post-greSQL by 3.5 ×.On smaller datasets such as GIST 1M and Wiki 1M, the gap narrows because most systems can keep a larger fraction of the working set in memory and avoid frequent disk I/O. Nevertheless, ByteX remains on the best QPS–recall frontier. On GIST, it is up to 5 × faster than PostgreSQL and more than 2 × faster than the second-best Milvus configuration. On Wiki, it reaches nearly 25K QPS at 87% recall and still sustains around 15K QPS at 97% recall. Although the second-best baseline changes across datasets, ByteX consistently provides the best frontier. The improvement comes from three design choices. First, 
+
+ByteX uses a vector-native execution path integrated into the OpenSearch query pipeline, avoiding redundant data movement and cross-engine coordination. Second, ByteX 
+
+adopt a quantization aware vector kernel, where distance computation is performed in the quantized space using fast scan operations such as vpopcnt , reducing per-query com-putation cost. Third, the quantization scheme preserves dis-tance fidelity well enough to sustain high recall under ag-gressive pruning and high-QPS settings. Fig. 9 shows the corresponding concurrent p99 latency results: at compara-ble recall, ByteX also maintains lower tail latency than the baselines. Together, the throughput and latency results show that ByteX improves the high-recall serving frontier on both axes. Additional average, p95, and serial-latency results are reported in Appendix I. 
+
+7.3 Complex Query Performance 
+
+This subsection evaluates whether ByteX can efficiently sup-port diverse retrieval workloads. We focus on three repre-sentative query patterns: filtered search (vector + attribute filters), hybrid search (vector + lexical matching), and radial search (similarity-threshold retrieval). 
+
+Filtered Search. Fig. 10 reports QPS at approximately 96% recall@10 as predicate selectivity varies from 10% to 99%. We make four observations. First, ByteX consistently achieves the highest throughput across the entire selectivity spectrum. Second, all systems experience throughput degradation rel-ative to pure vector search. Although scalar filtering itself is inexpensive, its overhead becomes significant when vec-tor search latency is already only a few milliseconds. Third, throughput decreases as predicates become more selective. With fewer candidates satisfying the predicate, ANN search 
+
+> 9
+
+Table 3. NDCG@10 Results with Different Fusion Strategies.                               
+
+> Dataset BM25 Dense Min-Max RRF Z-score Δ(%)
+> NFCorpus 0.3040 0.2321 0.3271 0.3327 0.3288 +43.3%
+> FIQA 0.2386 0.1983 0.2890 0.3071 0.3281 +65.5%
+> Quora 0.7412 0.7469 0.8189 0.8300 0.8666 +16.9% 0.1 110 60 10 20 50 100 Latency (s) # of Returned Results (K) Radial Search k-ANN Search timeout timeout timeout In-House 100M 0.1 110 60 10 20 50 100 # of Returned Results (K) timeout timeout In-House 1M
+
+Figure 11. Radial Search Performance Overview must explore a larger portion of the graph to collect enough valid results. Finally, at the extreme selectivity of 99%, ByteX 
+
+exhibits a noticeable throughput advantage. This is because 
+
+ByteX automatically switches to pre-filtering when the es-timated candidate set falls below a configurable threshold (10,000 in this experiment). The middle and right panels provide a finer-grained comparison at 50% and 70% selec-tivity. Across all recall levels, ByteX consistently delivers higher throughput than competing systems, demonstrating the effectiveness of its adaptive filtering strategy. 
+
+Hybrid Search. Table 3 evaluates end-to-end retrieval qual-ity by comparing traditional lexical retrieval (BM25), dense vector retrieval, and three score-fusion strategies supported by ByteX ’s query engine in Sec. 6. The results show that lexical and semantic signals are complementary: fusion con-sistently outperforms BM25 and dense retrieval alone. No single normalization strategy dominates across all datasets. Z-score fusion performs best on FIQA and Quora, improv-ing NDCG@10 by 65.5% and 16.9%, respectively, while RRF performs best on NFCorpus with a 43.3% improvement. 
+
+Radial Search. This experiment evaluates the radial search algorithm introduced in Sec. 6. As shown in Fig. 11, we vary the radius so that the search region contains approxi-mately {10k , 20k , 50k , 100k } vectors, and evaluate both the 100M in-house dataset and a random 1M subset. A naive implementation that emulates radial search with kNN at 
+
+𝑘 ∈ { 10k , 20k , 50k , 100k } does not finish within the one-minute timeout. In contrast, ByteX ’s threshold-guided neigh-borhood expansion returns 10K results in 140 ms on both datasets. Even at 100K returned results, latency remains prac-tical: 3.68s on the 100M dataset and 1.2s on the 1M subset. These results show that radial search can support large-range queries without reducing them to repeated large-𝑘 ANN calls. 
+
+7.4 Operating Costs 
+
+Table 4 reports the monthly operating cost for serving the 100M 2048D dataset, using the deployment configuration 
+
+Table 4. Monthly operating cost (USD) on In-House 100M.                           
+
+> Method QPS Monthly Cost Cost / 1M Vecs Cost / 1K QPS Milvus (self-managed) 2262 2790 27.8 1233 PG (self-managed) 3929 2790 27.8 710 ES (self-managed) 9342 2790 27.8 299
+> ByteX (Memory-only) 21445 2790 27.8 130
+> ByteX (Disk-only) 63 382 3.7 6063
+
+in Appendix H. We report cost per 1M vectors for keeping the dataset online and cost per 1K QPS for buying serving throughput. In the memory-only case, all systems use the same monthly budget of 2790: Milvus, PG, and ES reach 2262, 3929, and 9342 QPS, respectively, while ByteX reaches 21445 QPS, improving over ES by 2 .3× and reducing serving cost to 130 per 1K QPS. In the disk-only case, ByteX targets mini-mum standing cost rather than peak throughput, reducing monthly cost to 382 and cost per 1M vectors to 3.7, which is 7 .5× lower than the memory-only baselines, while still serving 63 QPS for low-duty-cycle or archival workloads. Overall, the experiment shows that ByteX is cost-saving in both end of operating modes: maximizes throughput under a fixed budget or minimizes the cost of keeping a large vector collection online. 
+
+7.5 Storage Runtime Analysis 
+
+This subsection evaluates ByteX ’s storage runtime for SSD-resident vector search using controlled ablations. Experi-ments are conducted on a single 48C371GiB serving, fixing recall at 90%. We isolate the effects of record-level caching and asynchronous execution, and then vary the buffer-pool ratio to measure the smooth memory–throughput transition. 
+
+Record-Level Cache Effectiveness. We first evaluate whether the record-level cache described in Sec. 5.1 reduces SSD traffic during graph traversal. Fig. 12 and Fig. 13 compare DiskANN with ByteX (-sync), which enables the 20%-size record cache. ByteX -sync consistently outperforms DiskANN as the thread count increases, indicating that record-level caching effectively eliminates a large fraction of random SSD accesses. Fig. 13 quantifies the resulting I/O savings. By-teX achieves a 97.7% cache hit rate on GIST. Although each query visits 105.99 graph records on average, only 51.90 SSD accesses per query are required (I/O misses + prefetches), compared to 80.9 for DiskANN. Similar benefits are observed on the in-house dataset, indicating that the effectiveness of record-level caching persists at larger scales. 
+
+Asynchronous Execution Effectiveness. Fig. 12 eval-uates the impact of asynchronous execution. ByteX -async issues graph-record fetches asynchronously and switches to other ready query coroutines while I/O is outstanding, whereas ByteX -sync uses the same cache mechanism but waits synchronously on cache misses. As the number of worker threads increases, ByteX -async scales substantially             
+
+> 10 0.0 5.0 10.0 15.0 124816 32 QPS (×1000) Threads DiskANN ByteX-sync ByteX-async (a) Throughput scaling 1.5 2.0 2.5 3.0 3.5 4.0 124816 32 Latency (ms) Threads (b) Average latency
+
+Figure 12. Benefits of Cache and Async DiskANN ByteX DiskANN ByteX 0 50 100 IO/query In-House GIST 77.5 (69.1%) 101.1 (90.2%) 51.9 (49.0%) 80.9 (76.3%) cache hit 94.1% 54.8% 97.7% 49.7% 
+
+Figure 13. I/O Savings 456780 10 20 30 40 50 60 70 80 90 100 QPS (×1000) Bu ff er Ratio Figure 14. Smooth Transition better than ByteX -sync. At 32 threads, it achieves roughly 15K QPS, about 1.8 × higher than ByteX -sync and 2 × higher than DiskANN. At the same time, ByteX -async maintains an average latency of approximately 1.7 ms, while ByteX -sync and DiskANN increase to about 3.5 ms and 4 ms, respectively. These results show that asynchronous execution comple-ments the record cache by turning remaining graph-record I/O stalls into useful inter-query overlap. 
+
+Smooth Memory–Throughput Transition. We further evaluate whether buffer-pool sizing provides a continuous performance knob across storage configurations. We vary the buffer-pool ratio from 0% to 100% on the in-house dataset, using a fixed thread count of 12. As shown in Fig. 14, increas-ing the buffer ratio from 0% to 10% improves throughput from 4,163 to 5,381 QPS (1.29 ×), showing that a small mem-ory budget can already absorb many hot-record accesses in SSD-resident workloads. At a 10% buffer ratio, ByteX 
+
+reaches roughly 70% of the peak throughput at 100% (7,701 QPS). Throughput then improves monotonically as the buffer ratio grows, giving operators a smooth path from capacity-oriented SSD-resident deployments toward memory-resident high-QPS deployments without changing the query interface or rebuilding the index. 
+
+7.6 Operational Scaling Behavior 
+
+This subsection evaluates whether ByteX provides predictable serving performance as data volume and cluster resources change. 
+
+Data-Scale Scalability. We first examine how ByteX scales as the indexed data grows. We construct datasets by ran-domly sampling {1M , 10M , 20M , . . . , 100M } vectors from the in-house collection while keeping the serving configuration unchanged. For each data scale, index parameters are tuned to meet the same 90% recall target, and the corresponding QPS is measured. As shown in Fig. 15, QPS decreases grad-ually as the dataset grows, reflecting the increased cost of candidate selection and distance evaluation. Notably, the degradation remains smooth and approximately logarithmic: when the dataset size increases by two orders of magnitude, 22 23 24 25 1 10 20 30 40 50 60 70 80 90 100 QPS (×1000) Data Size (M) 
+
+Figure 15. Scalability 520 35 50 65 1 2 3 4 5 6 7 8 9 10 QPS (×1000) Nodes Figure 16. Elasticity 10 100 1000 0 30000 60000 90000 QPS Ingestion time (s) Search Write 
+
+Figure 17. Streaming QPS 100 200 300 0 30000 60000 90000 Latency (ms) Ingestion time (s) Search Write Figure 18. Streaming P99 from 1M to 100M vectors, QPS decreases by only 9%, from 24,410 to 22,386. This behavior is consistent with the log-arithmic scaling characteristics of graph-based similarity search and provides a predictable performance envelope as collections grow. 
+
+Node-Scale Elasticity. Fig. 16 further evaluates whether 
+
+ByteX can translate additional data nodes into higher serving throughput. We vary the number of data nodes from 1 to 10 on the in-house dataset and measure the QPS achieved at the same recall target. As shown in Fig. 16, ByteX achieves near-linear throughput growth as more data nodes are pro-visioned. This trend is expected given ByteX ’s OpenSearch-based architecture: queries are coordinated and executed in parallel across shards hosted on data nodes, and each additional data node contributes additional CPU, memory, and I/O bandwidth to process its share of shard-level ANN search. With balanced shard allocation and stable per-shard index structures, the workload is effectively partitioned and processed independently. As a result, cluster-level through-put scales approximately proportionally with the number of data nodes, until secondary bottlenecks ( e.g., coordination overhead or network bandwidth) begin to dominate. 
+
+7.7 Streaming Micro-benchmark 
+
+We finally evaluate whether ByteX can sustain stable serving performance during continuous ingestion. We run a 30-hour micro-benchmark on Cohere: vectors are inserted from an empty index at a fixed rate of 1,000 vectors/s, while read queries are issued concurrently under fixed system config-urations and index parameters. We continuously monitor query throughput, ingestion throughput, and P99 read/write latencies throughout the run. As shown in Fig. 17, ByteX 
+
+sustains the configured ingestion rate throughout the run while keeping query QPS stable, showing that background indexing and segment maintenance do not noticeably disrupt foreground search. Fig. 18 reports the P99 read and write la-tencies over the same period. Both remain stable, indicating that continuous writes do not introduce frequent read-path latency spikes or write-side backpressure. We attribute this stability to ByteX ’s fast indexing path and controlled merge 
+
+> 11
+
+process. By accelerating segment construction and merge, 
+
+ByteX prevents many small streaming segments from accu-mulating, which would otherwise increase query fan-out and hurt read performance. Overall, these results show that 
+
+ByteX provides predictable read–write performance under prolonged streaming workloads. 
+
+## 8 Lessons 
+
+We distill five lessons from building and operating ByteX .
+
+Lesson 1: Innovate within compatibility boundary. Com-patibility shaped ByteX end-to-end, from API surface to in-dex lifecycle, distributed execution. The lesson is to keep the boundary stable and innovate inside it: ByteX preserves OpenSearch-facing behavior while redesigning the vector kernel and storage underneath. A standalone vector service might be cleaner, but it would export operational complexity to every application team. Production teams already operate 7,000+ clusters with existing APIs, dashboards, alerts, access controls, and playbooks. 
+
+Lesson 2: Quantize the build path, not just the query path. Many vector systems apply quantization at query time but still rely on full-precision vectors for index construction. In a system with sustained ingestion (Customers D, E), index construction is a recurring production path, and its memory footprint and construction time matters as much as the query-time memory usage and speed, as it will compete the memory and computation resource for serving. SymRaBitQ enables graph construction and merge entirely in the quantized space. In our experiments (Table 2), this reduced peak build memory by 80% and indexing time by 60% on GIST 1 M, with less than 0.01 recall loss under the same search parameters. 
+
+Lesson 3: Bridge the cost gap with I/O co-design, not just tiered storage. The 60 × memory-to-SSD price gap makes memory-only serving unsustainable for large corpora such as Customer D’s with near trillion-scale vectors. How-ever, simply placing graph data on SSD hurts tail latency because graph traversal has sparse, pointer-chasing access patterns that break page-level caching. ByteX addresses this with record-level buffer pools and asynchronous graph tra-versal. In our cache-sensitivity experiment (Fig. 14), a 10% buffer ratio already achieves ∼70% of peak memory-resident throughput, showing that a small, well-targeted cache can bridge most of the performance gap. 
+
+Lesson 4: Make storage placement a tunable segment property. Production workloads evolve: what starts as a latency-sensitive service may need to shift toward cost-effective SSD-resident serving as retention or data granu-larity grows. ByteX avoids this becoming a migration event by making storage placement a per-segment property con-trolled by buffer pool sizing. 
+
+Lesson 5: Compose retrieval operators in one plan. In production, it is common that vector similarity is composed with structured predicates, lexical matching, and rerank-ing (Customers A-F). Executing these operators in one dis-tributed plan avoids materializing large intermediate re-sults and enables end-to-end scheduling that a multi-service pipeline cannot provide. 
+
+## 9 Related Work 
+
+We briefly review core methods and system designs for vector systems. For detailed surveys, we refer the reader to [32, 36]. 
+
+Vector Search Algorithms. Existing ANN methods can be broadly categorized into three groups: LSH-based meth-ods [16, 18, 40, 52], graph-based methods [9, 13, 27, 37, 50], and quantization-based methods [15, 20]. In modern vector databases, graph-based methods such as HNSW [27] and DiskANN [37] are highly effective for ANN search. They build approximate proximity graphs that capture neighbor-hood relationships among data points, enabling accurate and efficient query processing. Nevertheless, their high construc-tion cost and substantial random memory/disk accesses often motivate the use of quantization-based methods, such as PQ [20] and RaBitQ [15], to reduce computation and memory footprint. 
+
+Architectures for Vector Data Management. Production-grade vector search is increasingly closer to a full data man-agement system than to a standalone ANN operator [12]. Be-yond similarity search, systems are expected to provide scal-able storage and layout management, durability and recov-ery [28], distributed execution [43], buffer management [8], and high-concurrency updates [31, 47]. Vector similarity is also more useful when exposed as a composable operator (e.g., via DSL [10]) to enable hybrid retrieval (text+vector), structured filtering, and reranking within a unified execution engine. To meet these system-level requirements, existing solutions can be broadly categorized into three architec-tural lines. Native vector databases, such as Milvus [46] and Pinecone [35], are designed for high-throughput, low-latency similarity search with elastic distributed scaling; their pri-mary focus is vector-first index lifecycle management and distributed ANN execution, including segment organization, background compaction, and parallel search across shards. Relational databases extended with vector support, includ-ing pgvector [48], GaussDB-Vector [38], Blendhouse [29], Cosmos [42], and MariaDB-Vector [44], embed vector data types and similarity operators into the relational stack; their central axis is tight integration with the storage manager, execution engine, and cost-based optimizer to enable com-posable plans with joins and predicates while controlling storage and computation overhead. Enterprise search en-gines such as OpenSearch [30] and Elasticsearch [11] incor-porate vector retrieval into text-centric search pipelines; they emphasize the co-design of inverted and vector indexes to support hybrid ranking, filtering, and large-scale distributed search serving. 
+
+> 12
+
+## 10 Conclusion 
+
+Modern AI applications have transformed search from a standalone nearest-neighbor operator into a production data-management problem: vector collections scale rapidly, queries mix vector similarity with diverse constraints, deployment modes shift between memory and disk as costs change, and operators still need mature search APIs and tooling. This paper presented ByteX , an OpenSearch-compatible AI search engine built from these observations. By combining a high-performance quantization-aware vector kernel, asynchro-nous SSD-resident graph traversal, and adaptive storage, 
+
+ByteX supports both PB-scale ingestion-heavy deployments and latency-sensitive online serving. Our experience shows that modern AI search systems must treat vectors as first-class database primitives while preserving the operational ecosystem that production teams already depend on. 
+
+## References 
+
+[1] Fabien André, Anne-Marie Kermarrec, and Nicolas Le Scouarnec. 2015. Cache locality is not enough: High-Performance Nearest Neighbor Search with Product Quantization Fast Scan. Proc. VLDB Endow. 9, 4 (2015), 288–299. [2] Fabien André, Anne-Marie Kermarrec, and Nicolas Le Scouarnec. 2017. Accelerated Nearest Neighbor Search with Quick ADC. In ICMR . ACM, 159–166. [3] Fabien André, Anne-Marie Kermarrec, and Nicolas Le Scouarnec. 2021. Quicker ADC : Unlocking the Hidden Potential of Product Quantiza-tion With SIMD. IEEE Trans. Pattern Anal. Mach. Intell. 43, 5 (2021), 1666–1677. [4] Cursor. 2024. Cursor Documentation. https://docs.cursor.sh . Accessed: 2026-02-09. [5] Cohere Dataset. 2024. https://huggingface.co/datasets/Cohere/ msmarco-v2.1-embed-english-v3 .[6] GIST Dataset. 2010. http://corpus-texmex.irisa.fr/ .[7] Wiki Dataset. 2023. https://huggingface.co/datasets/timescale/ wikipedia-22-12-simple-embeddings .[8] Jaeyoung Do, Donghui Zhang, Jignesh M Patel, David J DeWitt, Jef-frey F Naughton, and Alan Halverson. 2011. Turbocharging DBMS buffer pool using SSDs. In Proceedings of the 2011 ACM SIGMOD Inter-national Conference on Management of data . 1113–1124. [9] Wei Dong, Moses Charikar, and Kai Li. 2011. Efficient k-nearest neigh-bor graph construction for generic similarity measures. In WWW .577–586. [10] Elastic. 2024. Elasticsearch Query DSL. https://www.elastic.co/guide/ en/elasticsearch/reference/current/query-dsl.html .[11] Elastic NV. 2024. Elasticsearch Reference Documentation. https://www. elastic.co/guide/en/elasticsearch/reference/current/index.html . Ac-cessed: 2026-02-09. [12] Faiss. 2025. Faiss. https://github.com/facebookresearch/faiss .[13] Cong Fu, Chao Xiang, Changxu Wang, and Deng Cai. 2019. Fast Ap-proximate Nearest Neighbor Search With The Navigating Spreading-out Graph. Proc. VLDB Endow. 12, 5 (2019), 461–474. [14] Jianyang Gao, Yutong Gou, Yuexuan Xu, Yongyi Yang, Cheng Long, and Raymond Chi-Wing Wong. 2025. Practical and asymptotically optimal quantization of high-dimensional vectors in euclidean space for approximate nearest neighbor search. Proceedings of the ACM on Management of Data 3, 3 (2025), 1–26. [15] Jianyang Gao and Cheng Long. 2024. RaBitQ: Quantizing High-Dimensional Vectors with a Theoretical Error Bound for Approximate Nearest Neighbor Search. Proc. ACM Manag. Data 2, 3 (2024), 167. [16] Aristides Gionis, Piotr Indyk, and Rajeev Motwani. 1999. Similarity Search in High Dimensions via Hashing. In VLDB . 518–529. [17] GitHub, Inc. 2023. GitHub Copilot Documentation. https://docs.github. com/en/copilot . Accessed: 2026-02-09. [18] Qiang Huang, Jianlin Feng, Yikai Zhang, Qiong Fang, and Wilfred Ng. 2015. Query-Aware Locality-Sensitive Hashing for Approximate Nearest Neighbor Search. PVLDB 9, 1 (2015), 1–12. [19] Suhas Jayaram Subramanya, Fnu Devvrit, Harsha Vardhan Simhadri, Ravishankar Krishnawamy, and Rohan Kadekodi. 2019. Diskann: Fast accurate billion-point nearest neighbor search on a single node. Ad-vances in neural information processing Systems 32 (2019). [20] Hervé Jégou, Matthijs Douze, and Cordelia Schmid. 2011. Product Quantization for Nearest Neighbor Search. IEEE Trans. Pattern Anal. Mach. Intell. 33, 1 (2011), 117–128. [21] Ehsan Kamalloo, Nandan Thakur, Carlos Lassance, Xueguang Ma, Jheng-Hong Yang, and Jimmy Lin. 2024. Resources for Brewing BEIR: Reproducible Reference Models and Statistical Analyses. In SIGIR .ACM, 1431–1440. [22] Viktor Leis. 2024. LeanStore: A High-Performance Storage Engine for NVMe SSDs. Proceedings of the VLDB Endowment 17, 12 (2024), 4536–4545. [23] Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, et al. 2020. Retrieval-augmented generation for knowledge-intensive nlp tasks. Advances in neural information processing systems 33 (2020), 9459–9474. [24] Binhong Li, Xiao Yan, and Shangqi Lu. 2025. Fast-Convergent Prox-imity Graphs for Approximate Nearest Neighbor Search. CoRR 
+
+abs/2510.05975 (2025). [25] Jie Li, Haifeng Liu, Chuanghua Gui, Jianyu Chen, Zhenyuan Ni, Ning Wang, and Yuan Chen. 2018. The design and implementation of a real time visual search system on JD E-commerce platform. In Proceedings of the 19th International Middleware Conference Industry . 9–16. [26] Shicheng Liu, Jialiang Xu, Wesley Tjangnaka, Sina Semnani, Chen Yu, and Monica Lam. 2024. SUQL: Conversational search over structured and unstructured data with large language models. In Findings of the Association for Computational Linguistics: NAACL 2024 . 4535–4555. [27] Yury A. Malkov and Dmitry A. Yashunin. 2020. Efficient and Robust Approximate Nearest Neighbor Search Using Hierarchical Navigable Small World Graphs. IEEE Trans. Pattern Anal. Mach. Intell. 42, 4 (2020), 824–836. [28] Chandrasekaran Mohan, Don Haderle, Bruce Lindsay, Hamid Pirahesh, and Peter Schwarz. 1992. ARIES: A transaction recovery method supporting fine-granularity locking and partial rollbacks using write-ahead logging. ACM Transactions on Database Systems (TODS) 17, 1 (1992), 94–162. [29] Zhaojie Niu, Xinhui Tian, Xindong Peng, and Xing Chen. 2025. Blend-House: A Cloud-Native Vector Database System in ByteHouse. In ICDE .IEEE, 4332–4345. [30] OpenSearch Project. 2024. OpenSearch Documentation. https:// opensearch.org/docs/ . Accessed: 2026-02-09. [31] Patrick O’Neil, Edward Cheng, Dieter Gawlick, and Elizabeth O’Neil. 1996. The log-structured merge-tree (LSM-tree). Acta informatica 33, 4 (1996), 351–385. [32] James Jie Pan, Jianguo Wang, and Guoliang Li. 2024. Survey of vector database management systems. VLDB J. 33, 5 (2024), 1591–1615. [33] Liana Patel, Siddharth Jha, Melissa Pan, Harshit Gupta, Parth Asawa, Carlos Guestrin, and Matei Zaharia. 2025. Semantic operators and their optimization: Enabling llm-based data processing with accuracy guarantees in lotus. Proceedings of the VLDB Endowment 18, 11 (2025), 4171–4184. [34] Wenjun Peng, Guiyang Li, Yue Jiang, Zilong Wang, Dan Ou, Xiaoyi Zeng, Derong Xu, Tong Xu, and Enhong Chen. 2024. Large language model based long-tail query rewriting in taobao search. In Companion 
+
+> 13
+
+Proceedings of the ACM Web Conference 2024 . 20–28. [35] Pinecone. 2024. Available at: . https://www.pinecone.io/ 
+
+[36] Yitong Song, Xuanhe Zhou, Christian S Jensen, and Jianliang Xu. 2026. Vector Search for the Future: From Memory-Resident, Static Heterogeneous Storage, to Cloud-Native Architectures. arXiv preprint arXiv:2601.01937 (2026). [37] Suhas Jayaram Subramanya, Devvrit, Harsha Vardhan Simhadri, Rav-ishankar Krishnaswamy, and Rohan Kadekodi. 2019. DiskANN: Fast Accurate Billion-point Nearest Neighbor Search on a Single Node. In 
+
+NeurIPS . 13748–13758. [38] Ji Sun, Guoliang Li, James Pan, Jiang Wang, Yongqing Xie, Ruicheng Liu, and Wen Nie. 2025. GaussDB-Vector: A Large-Scale Persistent Real-Time Vector Database for LLM Applications. Proceedings of the VLDB Endowment 18, 12 (2025), 4951–4963. [39] Nandan Thakur, Nils Reimers, Andreas Rücklé, Abhishek Srivastava, and Iryna Gurevych. 2021. BEIR: A Heterogeneous Benchmark for Zero-shot Evaluation of Information Retrieval Models. In NeurIPS Datasets and Benchmarks .[40] Yao Tian, Xi Zhao, and Xiaofang Zhou. 2022. DB-LSH: Locality-Sensitive Hashing with Query-based Dynamic Bucketing. In ICDE .2250–2262. [41] Benjamin Trent. 2025. Better Binary Quantization (BBQ) in Lucene and Elasticsearch. https://www.elastic.co/search-labs/blog/better-binary-quantization-lucene-elasticsearch .[42] Nitish Upreti, Harsha Vardhan Simhadri, Hari Sudan Sundar, Krish-nan Sundaram, Samer Boshra, Balachandar Perumalswamy, Shivam Atri, Martin Chisholm, Revti Raman Singh, Greg Yang, Tamara Hass, Nitesh Dudhey, Subramanyam Pattipaka, Mark Hildebrand, Magdalen Dobson, Jack Moffitt, Haiyang Xu, Naren Datha, Suryansh Gupta, Rav-ishankar Krishnaswamy, Prashant Gupta, Abhishek Sahu, Hemeswari Varada, Sudhanshu Barthwal, Ritika Mor, James Codella, Shaun Cooper, Kevin Pilch, Simon Moreno, Aayush Kataria, Santosh Kulkarni, Neil Deshpande, Amar Sagare, Dinesh Billa, Zishan Fu, and Vipul Vishal. 2025. Cost-Effective, Low Latency Vector Search with Azure Cosmos DB. Proc. VLDB Endow. 18, 12 (2025), 5166–5183. [43] Maarten Van Steen and Andrew S Tanenbaum. 2017. Distributed systems . Maarten van Steen Leiden, The Netherlands. [44] MariaDB Vector. 2023. Available at: . https://mariadb.org/projects/ mariadb-vector/ 
+
+[45] Vamana vs. HNSW Exploring ANN algorithms Part 1. 2022. Available at: . https://weaviate.io/blog/ann-algorithms-vamana-vs-hnsw 
+
+[46] Jianguo Wang, Xiaomeng Yi, Rentong Guo, Hai Jin, Peng Xu, Shengjun Li, Xiangyu Wang, Xiangzhou Guo, Chengming Li, Xiaohai Xu, Kun Yu, Yuxing Yuan, Yinghao Zou, Jiquan Long, Yudong Cai, Zhenxiang Li, Zhifeng Zhang, Yihua Mo, Jun Gu, Ruiyi Jiang, Yi Wei, and Charles Xie. 2021. Milvus: A Purpose-Built Vector Data Management System. In SIGMOD Conference . ACM, 2614–2627. [47] Yuming Xu, Hengyu Liang, Jin Li, Shuotao Xu, Qi Chen, Qianxi Zhang, Cheng Li, Ziyue Yang, Fan Yang, Yuqing Yang, Peng Cheng, and Mao Yang. 2023. SPFresh: Incremental In-Place Update for Billion-Scale Vector Search. In SOSP . ACM, 545–561. [48] Wen Yang, Tao Li, Gai Fang, and Hong Wei. 2020. PASE: PostgreSQL Ultra-High-Dimensional Approximate Nearest Neighbor Search Ex-tension. In SIGMOD Conference . ACM, 2241–2253. [49] Weichen Zhao, Yuncheng Lu, Yao Tian, Hao Zhang, Jiehui Li, Minghao Zhao, Yakun Li, and Weining Qian. 2026. Optimizing SSD-Resident Graph Indexing for High-Throughput Vector Search. arXiv:2602.22805 [cs.DB] https://arxiv.org/abs/2602.22805 
+
+[50] Xi Zhao, Yao Tian, Kai Huang, Bolong Zheng, and Xiaofang Zhou. 2023. Towards Efficient Index Construction and Approximate Nearest Neighbor Search in High-Dimensional Spaces. Proc. VLDB Endow. 16, 8 (2023), 1979–1991. [51] Xi Zhao, Bolong Zheng, Xiaomeng Yi, Xiaofan Luan, Charles Xie, Xiaofang Zhou, and Christian S. Jensen. 2023. FARGO: Fast Maximum Inner Product Search via Global Multi-Probing. Proc. VLDB Endow. 16, 5 (2023), 1100–1112. [52] Bolong Zheng, Xi Zhao, Lianggui Weng, Nguyen Quoc Viet Hung, Hang Liu, and Christian S. Jensen. 2020. PM-LSH: A Fast and Accurate LSH Framework for High-Dimensional Approximate NN Search. Proc. VLDB Endow. 13, 5 (2020), 643–655. 
+
+## Appendix A Ingestion side in ByteX 
+
+Write and indexing path. The write path follows a staged lifecycle that makes fresh data searchable quickly while grad-ually turning it into serving-efficient indexes. 1○ Data first enters through the standard OpenSearch ingestion interface; on refresh, new vectors are exposed as small fresh segments, avoiding heavyweight index construction on the critical in-gestion path. 2○ As ingestion continues, background merge compacts these segments to bound query fanout, which is essential for sustaining low latency under continuous writes. 
+
+> 3
+
+○ During this process, ByteX upgrades the index represen-tation with segment maturity: small segments are searched by direct scan, medium segments use IVF, and large sta-ble segments are converted to graph indexes. 4○ For graph-indexed segments, construction and merge are performed in the quantized space using SymRaBitQ , eliminating re-peated full-precision vector materialization on the recurring merge path. 5○ Once merged, the same segment can be placed in memory-resident, hybrid memory–SSD, or SSD-resident serving mode without reindexing or application migration. 
+
+## B Serving side in ByteX 
+
+Read and serving path. The read path preserves OpenSearch-style query semantics while hiding the heterogeneity of vector placement and execution. 1○ A native DSL query is first parsed by the search coordinator and routed to the relevant shards. 2○ Within each distributed query plan, By-teX jointly executes BM25 retrieval, vector similarity search, structured predicates, score fusion, and reranking, so applica-tions do not need to issue separate requests or merge results across services. 3○ Vector serving then adapts to placement: memory-resident segments use in-memory graph traversal, whereas SSD-resident graph records are accessed through a record-level buffer pool and coroutine-based asynchronous traversal that overlaps SSD reads with distance computation. 
+
+> 4
+
+○ Output-heavy queries, including top-3 K and radial-style queries, are handled as increased serving pressure within the same execution framework rather than as a separate retrieval mode. 
+
+## C OpenSearch-Compatible Hybrid Query 
+
+Listing 1 presents an example hybrid query in the native DSL. The query combines structured predicates, lexical matching, vector top-𝑘 , score fusion, and a reranking pipeline without requiring applications to call separate retrieval services.   
+
+> 14 GET index_name/_search?search_pipeline=pipeline_name // specify the dataset and search pipeline { "size": 5, // number of returned results "query": { "hybrid": { "queries": [ {"match_phrase": {"content": "test"}}, // Traditional full-text search {"knn": {"vector_field": {"vector": [-0.21, ..., 0.89], "k": 100, "filter": {conditions}}}} ↩→
+> // Vector similarity search with structured predicates ↩→
+> ]}}}
+
+Example 1. Query DSL of Hybrid Search in ByteX 
+
+## D RaBitQ, Graph, and IVF Background 
+
+This subsection gives the background that Sec. 4 intention-ally keeps short. The main text focuses on SymRaBitQ and its integration into ByteX ; here we spell out the baseline quantization and indexing mechanics. 
+
+D.1 RaBitQ and ExtRaBitQ 
+
+RaBitQ [15] and ExtRaBitQ [14] estimate distances by reduc-ing raw-vector scoring to inner-product estimation between normalized residual vectors. Given a centroid 𝒄 , a raw data vector 𝒙 𝑟 , and a raw query vector 𝒒 𝑟 , define 
+
+𝒐 = 𝒙 𝑟 − 𝒄 
+
+∥𝒙 𝑟 − 𝒄 ∥ , 𝒒 = 𝒒 𝑟 − 𝒄 
+
+∥𝒒 𝑟 − 𝒄 ∥ . (10) 
+
+Then the squared Euclidean distance can be written as 
+
+∥𝒙 𝑟 − 𝒒 𝑟 ∥2 = ∥𝒙 𝑟 − 𝒄 ∥2 + ∥ 𝒒 𝑟 − 𝒄 ∥2 − 2∥𝒙 𝑟 − 𝒄 ∥∥ 𝒒 𝑟 − 𝒄 ∥⟨ 𝒐 , 𝒒 ⟩, (11) 
+
+and inner-product scoring can be recovered by 
+
+⟨𝒙 𝑟 , 𝒒 𝑟 ⟩ = ⟨𝒙 𝑟 , 𝒄 ⟩ − ∥ 𝒄 ∥2 + ⟨ 𝒒 𝑟 , 𝒄 ⟩ + ∥ 𝒙 𝑟 − 𝒄 ∥∥ 𝒒 𝑟 − 𝒄 ∥⟨ 𝒐 , 𝒒 ⟩. (12) 
+
+Terms involving the stored data vector and centroid are pre-computed, so the online problem is to estimate ⟨𝒐 , 𝒒 ⟩.RaBitQ builds a conceptual rotated codebook. Let 
+
+G :=
+
+
+
+− 2𝐵 − 12 + 𝑢 𝑢 = 0, 1, . . . , 2𝐵 − 1
+
+𝐷 
+
+,
+
+G𝑟 :=
+
+
+
+𝑃 𝒚 
+
+∥𝒚 ∥ 𝒚 ∈ G 
+
+
+
+,
+
+(13) 
+
+where 𝑃 is a random orthogonal transformation matrix and 𝐵 
+
+is the number of bits per dimension. A vector is quantized by finding the nearest element of G𝑟 . Because explicitly materi-alizing G𝑟 would require 2 𝐵𝐷 candidates, RaBitQ applies the inverse rotation to the vector and searches in the unrotated integer lattice: 
+
+arg min  
+
+> ¯𝒐 ∈ G 𝑟
+
+∥¯𝒐 − 𝒐 ∥2 = arg max  
+
+> ¯𝒚 ∈ G
+
+ ¯𝒚 
+
+∥ ¯𝒚 ∥ , 𝑃 −1 𝒐 
+
+
+
+. (14) 
+
+This yields a compact code 𝒖 ∈ { 0, . . . , 2𝐵 − 1}𝐷 and a quan-tized unit vector ¯ 𝒐 .For two encoded vectors with integer codes 𝒖 𝑜 and 𝒖 𝑞 ,define the centered code vectors ˜ 𝒖 𝑜 = 𝒖 𝑜 − ( 2𝐵 − 1)1𝐷 /2 and ˜𝒖 𝑞 = 𝒖 𝑞 − ( 2𝐵 − 1)1𝐷 /2. Since ¯ 𝒐 = 𝑃 ˜𝒖 𝑜 /∥ ˜𝒖 𝑜 ∥, ¯ 𝒒 = 𝑃 ˜𝒖 𝑞 /∥ ˜𝒖 𝑞 ∥,and 𝑃 𝑇 𝑃 = 𝐼 , the code-only numerator in SymRaBitQ is 
+
+⟨¯𝒐 , ¯𝒒 ⟩ = ⟨ ˜𝒖 𝑜 , ˜𝒖 𝑞 ⟩∥ ˜𝒖 𝑜 ∥ ∥ ˜𝒖 𝑞 ∥ . (15) 
+
+For 𝐵 = 1, the centered codes have only two signs, so Eq. (15) is equivalent to normalized sign agreement and can be com-puted from the Hamming distance between binary codes. The original RaBitQ/ExtRaBitQ query estimator is asym-metric: 
+
+⟨𝒐 , 𝒒 ⟩RaBitQ = ⟨¯𝒐 , 𝒒 ⟩⟨¯𝒐 , 𝒐 ⟩ . (16) 
+
+The denominator is a per-vector constant, but the numerator still contains the raw query/residual vector. This is suitable for data-to-query scoring. It is not sufficient for graph con-struction and segment merge, where the hot loop compares one stored vector against other stored candidate vectors. 
+
+SymRaBitQ keeps the same code construction but replaces Eq. (16) with the symmetric estimator in Eq. (2), so stored-vector comparisons use only codes and precomputed con-stants. 
+
+D.2 Graph Index Background 
+
+Graph-based ANN indexes represent each vector as a vertex and store a bounded set of outgoing neighbors. A query starts from one or more entry points and performs a greedy search: it keeps a candidate list, repeatedly expands the currently closest unvisited vertex, inserts its outgoing neighbors, and truncates the list to a configured search width. The quality of the graph determines whether this local greedy process quickly reaches the true nearest-neighbor region. 
+
+ByteX follows the DiskANN/Vamana-style construction process [19]. For an inserted vector, the builder first runs a greedy search on the current graph to collect a candi-date set. It then applies RobustPrune , which keeps at most 
+
+𝑅 outgoing neighbors while removing candidates that are close to an already selected neighbor. In a typical pruning step, after selecting the current closest candidate 𝒑 to the inserted vector 𝒐 , another candidate 𝒗 can be removed when 
+
+𝛼 𝑑 (𝒑 , 𝒗 ) ≤ 𝑑 (𝒐 , 𝒗 ). This rule encourages sparse, diverse neighborhoods and approximates the sparse-neighborhood property used by proximity graphs. The builder also inserts backward edges; if a neighbor’s out-degree exceeds 𝑅 , it is pruned again. Recent theoretical analysis further shows why Vamana-style graphs are attractive among proximity graph families [24]. In ByteX , graph building is additionally segment-aware. The system computes cluster centers on a sample, assigns each vector to its nearest centers, builds a subgraph inside each cluster, and merges the subgraphs by unioning edges. This keeps construction parallel and local while allowing large merged segments to obtain a high-quality graph. The 
+
+> 15
+
+Algorithm 2: SymRaBitQ Graph Construction 
+
+Input: Dataset D, parameters 𝑚, 𝑙, 𝑅, 𝛼, 𝐿 
+
+Output: Graph 𝐺  
+
+> 1
+
+Compute cluster centers {𝒄 𝑖 }𝑚 𝑖 =1 on a sample of D; 
+
+> 2
+
+Assign each 𝒙 𝑟 ∈ D to its 𝑙 nearest centers;  
+
+> 3
+
+For each assignment to center 𝒄 𝑖 , encode 𝒙 𝑟 as 
+
+𝑧 𝑖 (𝒐 ) = (¯𝒐 , ¯𝒐 0, 𝛾 𝒐 , 𝜌 𝒐 ) via SymRaBitQ ; 
+
+> 4
+
+for 1 ≤ 𝑖 ≤ 𝑚 do  
+
+> 5
+
+Initialize a random 𝑅 -regular directed graph 𝐺 𝑖 ; 
+
+> 6
+
+Choose an entry point 𝑠 𝑖 for cluster 𝑖 ; 
+
+> 7
+
+Randomly permute encoded records in cluster 𝑖 ; 
+
+> 8
+
+foreach 𝑧 𝑖 (𝒐 ) in parallel do  
+
+> 9
+
+V ← FindCandidates (𝐺 𝑖 , 𝑠 𝑖 , 𝑧 𝑖 (𝒐 ), 𝐿 ); 
+
+> 10
+
+𝑁 out (𝑧 𝑖 (𝒐 )) ← RobustPrune (𝐺 𝑖 , 𝑧 𝑖 (𝒐 ), V, 𝛼, 𝑅 ); 
+
+> 11
+
+foreach 𝑧 𝑗 ∈ 𝑁 out (𝑧 𝑖 (𝒐 )) do  
+
+> 12
+
+if |𝑁 out (𝑧 𝑗 ) ∪ { 𝑧 𝑖 (𝒐 )}| > 𝑅 then  
+
+> 13
+
+𝑁 out (𝑧 𝑗 ) ← 
+
+RobustPrune (𝐺 𝑖 , 𝑧 𝑗 , 𝑁 out (𝑧 𝑗 ) ∪ {𝑧 𝑖 (𝒐 )} , 𝛼, 𝑅 ); 
+
+> 14
+
+else  
+
+> 15
+
+𝑁 out (𝑧 𝑗 ) ← 𝑁 out (𝑧 𝑗 ) ∪ { 𝑧 𝑖 (𝒐 )} ; 
+
+> 16
+
+Merge all subgraphs {𝐺 𝑖 } into 𝐺 ; 
+
+> 17
+
+return 𝐺 
+
+Algorithm 3: FindCandidates (𝐺 𝑖 , 𝑠 𝑖 , 𝑧 𝒐 , 𝐿 )
+
+Input: Graph 𝐺 𝑖 , entry point 𝑠 𝑖 , encoded target 𝑧 𝒐 , search list size 𝐿 
+
+Output: Visited candidate set V 
+
+> 1
+
+L ← { 𝑠 𝑖 }, V ← ∅ ; 
+
+> 2
+
+while L \ V ≠ ∅ do  
+
+> 3
+
+𝑧 ∗ ← arg min 𝑧 𝑗 ∈ L\V SymDist 𝐵 (𝑧 𝑗 , 𝑧 𝒐 ); 
+
+> 4
+
+L ← L ∪ 𝑁 out (𝑧 ∗); 
+
+> 5
+
+V ← V ∪ { 𝑧 ∗ }; 
+
+> 6
+
+if |L| > 𝐿 then  
+
+> 7
+
+Keep the closest 𝐿 records in L under SymDist 𝐵 (· , 𝑧 𝒐 ); 
+
+> 8
+
+return V
+
+main-text contribution is that every distance 𝑑 (· , ·) in greedy search, pruning, and backward-edge repair is replaced by 
+
+SymDist 𝐵 .
+
+D.3 IVF and FastScan Background 
+
+An inverted-file (IVF) index partitions vectors by KMeans centroids. Each centroid owns an inverted list containing the vectors assigned to it, usually represented as residuals relative to the centroid. At query time, the system first com-pares the query with all centroids, chooses the closest 𝑛 probe 
+
+lists, and scans only those lists. IVF is cheap to build and works well for medium-size segments because it reduces 
+
+Algorithm 4: RobustPrune (𝐺 𝑖 , 𝑧 𝒐 , V, 𝛼, 𝑅 )
+
+Input: Graph 𝐺 𝑖 , encoded target 𝑧 𝒐 , candidate set V,pruning threshold 𝛼 , degree bound 𝑅 
+
+Output: Updated out-neighbor set 𝑁 out (𝑧 𝒐 ) 
+
+> 1
+
+V ← (V ∪ 𝑁 out (𝑧 𝒐 )) \ { 𝑧 𝒐 }; 
+
+> 2
+
+𝑁 out (𝑧 𝒐 ) ← ∅ ; 
+
+> 3
+
+while V ≠ ∅ do  
+
+> 4
+
+𝑧 ∗ ← arg min 𝑧 𝑗 ∈ V SymDist 𝐵 (𝑧 𝒐 , 𝑧 𝑗 ); 
+
+> 5
+
+𝑁 out (𝑧 𝒐 ) ← 𝑁 out (𝑧 𝒐 ) ∪ { 𝑧 ∗ }; 
+
+> 6
+
+if |𝑁 out (𝑧 𝒐 )| = 𝑅 then  
+
+> 7
+
+break ; 
+
+> 8
+
+foreach 𝑧 𝑗 ∈ V do  
+
+> 9
+
+if 𝛼 · SymDist 𝐵 (𝑧 ∗, 𝑧 𝑗 ) ≤ SymDist 𝐵 (𝑧 𝒐 , 𝑧 𝑗 ) then  
+
+> 10
+
+Remove 𝑧 𝑗 from V; 
+
+> 11
+
+return 𝑁 out (𝑧 𝒐 )
+
+Algorithm 5: SymRaBitQ Graph Search 
+
+Input: Graph 𝐺 , entry point 𝑠 , query 𝒒 𝑟 , parameters 𝑘, 𝐿, 𝛽 
+
+Output: Top-𝑘 nearest neighbors  
+
+> 1
+
+Encode 𝒒 𝑟 as 𝑧 𝒒 = ( ¯𝒒 , ¯𝒒 0, 𝛾 𝒒 , 𝜌 𝒒 ) via SymRaBitQ ; 
+
+> 2
+
+L ← { 𝑠 }, V ← ∅ ; 
+
+> 3
+
+while L \ V ≠ ∅ do  
+
+> 4
+
+𝑧 ∗ ← arg min 𝑧 𝑗 ∈ L\V SymDist 1 (𝑧 𝑗 , 𝑧 𝒒 ); 
+
+> 5
+
+L ← L ∪ 𝑁 out (𝑧 ∗); 
+
+> 6
+
+V ← V ∪ { 𝑧 ∗ }; 
+
+> 7
+
+if |L| > 𝐿 then  
+
+> 8
+
+Keep the closest 𝐿 records in L under SymDist 1 (· , 𝑧 𝒒 ); 
+
+> 9
+
+S ← closest 𝛽𝑘 records in L under SymDist 1 (· , 𝑧 𝒒 ); 
+
+> 10
+
+return closest 𝑘 records in S under SymDist 𝐵 (· , 𝑧 𝒒 )
+
+scan volume without paying the heavier graph-construction cost. IVF is commonly paired with quantization. The query is encoded or transformed with respect to each probed centroid, and list entries are scored with compressed codes. FastScan-style methods [1–3] speed up this scan by preparing query-specific lookup tables and evaluating low-bit codes with SIMD-friendly operations. ByteX uses the same idea in a SymRaBitQ form: the first-bit code gives a very cheap coarse distance and bound, and the remaining bits are used only for candidates that survive coarse filtering. 
+
+## E The Bounds of SymRaBitQ 
+
+We first show that SymRaBitQ admits a bounded error in the same spirit as RaBitQ [15]. Let 𝒆 1 = 𝒐 − ⟨ 𝒐 , 𝒒 ⟩𝒒 
+
+∥𝒐 − ⟨ 𝒐 , 𝒒 ⟩𝒒 ∥ , so that 𝒆 1 ⊥ 𝒒 . Then we can decompose 
+
+¯𝒒 =   ¯𝒒 − ⟨ ¯𝒒 , 𝒒 ⟩𝒒 − ⟨ ¯𝒒 , 𝒆 1⟩𝒆 1
+
+ + ⟨ ¯𝒒 , 𝒒 ⟩𝒒 + ⟨ ¯𝒒 , 𝒆 1⟩𝒆 1,
+
+𝒐 = ⟨𝒐 , 𝒒 ⟩𝒒 + ⟨ 𝒐 , 𝒆 1⟩𝒆 1. (17) 
+
+> 16
+
+Consequently, 
+
+⟨ ¯𝒒 , 𝒐 ⟩ = ⟨ ¯𝒒 , 𝒒 ⟩⟨ 𝒐 , 𝒒 ⟩ + ⟨ ¯𝒒 , 𝒆 1⟩⟨ 𝒐 , 𝒆 1⟩
+
+= ⟨ ¯𝒒 , 𝒒 ⟩⟨ 𝒐 , 𝒒 ⟩ + ⟨ ¯𝒒 , 𝒆 1⟩√︁ 1 − ⟨ 𝒐 , 𝒒 ⟩2. (18) 
+
+Thus, ⟨ ¯𝒒 , 𝒐 ⟩⟨ ¯𝒒 , 𝒒 ⟩ = ⟨𝒐 , 𝒒 ⟩ + √︁ 1 − ⟨ 𝒐 , 𝒒 ⟩2 · ⟨ ¯𝒒 , 𝒆 1⟩⟨ ¯𝒒 , 𝒒 ⟩ . (19) 
+
+Similarly, let 𝒆 2 = ¯𝒒 − ⟨ ¯𝒒 , 𝒐 ⟩𝒐 
+
+∥ ¯𝒒 − ⟨ ¯𝒒 , 𝒐 ⟩𝒐 ∥ , so that 𝒆 2 ⊥ 𝒐 . By the same argument, 
+
+⟨¯𝒐 , ¯𝒒 ⟩⟨¯𝒐 , 𝒐 ⟩ = ⟨𝒐 , ¯𝒒 ⟩ + √︁ 1 − ⟨ 𝒐 , ¯𝒒 ⟩2 · ⟨¯𝒐 , 𝒆 2⟩⟨¯𝒐 , 𝒐 ⟩ . (20) 
+
+Combining the two identities, we obtain 
+
+⟨𝒐 , 𝒒 ⟩ = ⟨¯𝒐 , ¯𝒒 ⟩⟨¯𝒐 , 𝒐 ⟩⟨ ¯𝒒 , 𝒒 ⟩ −√︁ 1 − ⟨ 𝒐 , ¯𝒒 ⟩2 · ⟨¯𝒐 , 𝒆 2⟩⟨¯𝒐 , 𝒐 ⟩⟨ ¯𝒒 , 𝒒 ⟩−√︁ 1 − ⟨ 𝒐 , 𝒒 ⟩2 · ⟨ ¯𝒒 , 𝒆 1⟩⟨ ¯𝒒 , 𝒒 ⟩ .
+
+(21) 
+
+We then prove the error bound. Let 𝑋 1 and 𝑋 2 denote the two normalized residual inner products in the last display, and let Δ𝒐 ,𝒒 be the coefficient defined in Theorem 1. The concentration argument gives 
+
+P
+
+ ⟨¯𝒐 , ¯𝒒 ⟩⟨¯𝒐 , 𝒐 ⟩⟨ ¯𝒒 , 𝒒 ⟩ − ⟨ 𝒐 , 𝒒 ⟩ > Δ𝒐 ,𝒒 
+
+𝜖 0
+
+√𝐷 − 1
+
+
+
+≤ P
+
+(√︄ 
+
+1 − ⟨ ¯𝒐 , 𝒐 ⟩2
+
+⟨¯𝒐 , 𝒐 ⟩2 ⟨ ¯𝒒 , 𝒒 ⟩2 |𝑋 2 | + √︄ 1 − ⟨ ¯𝒒 , 𝒒 ⟩2
+
+⟨ ¯𝒒 , 𝒒 ⟩2 |𝑋 1 | > Δ𝒐 ,𝒒 
+
+𝜖 0
+
+√𝐷 − 1
+
+)
+
+≤ P
+
+
+
+|𝑋 2 | > 𝜖 0
+
+√𝐷 − 1
+
+
+
++ P
+
+
+
+|𝑋 1 | > 𝜖 0
+
+√𝐷 − 1
+
+
+
+≤ 4𝑒 −𝑐 0𝜖 20 .
+
+(22) 
+
+## F The Unbiasedness of SymRaBitQ 
+
+To prove the unbiasedness of SymRaBitQ, we first recall a standard concentration fact for Gaussian matrices. 
+
+Lemma 2. For a 𝑑 × 𝑑 random matrix 𝐴 with i.i.d. entries from N ( 0, 1), the normalized Gram matrix 1 
+
+> 𝑑
+
+𝐴 𝑇 𝐴 concentrates around the identity; in particular, 
+
+ 1
+
+𝑑 𝐴 𝑇 𝐴 − 𝐼 𝑑 
+
+
+
+> 𝑖 𝑗
+
+= 𝑂 
+
+ 1
+
+√𝑑 
+
+
+
+. (23) 
+
+Equivalently, 1√𝑑 𝐴 is nearly orthogonal when 𝑑 is large. Proof. The entries of 𝐴 𝑇 𝐴 are 
+
+(𝐴 𝑇 𝐴 )𝑖 𝑗 =
+
+> 𝑑
+
+∑︁ 
+
+> 𝑘 =1
+
+𝑎 𝑘𝑖 𝑎 𝑘 𝑗 . (24) 
+
+For 𝑖 = 𝑗 , E[( 𝐴 𝑇 𝐴 )𝑖𝑖 ] = 𝑑 and Var (( 𝐴 𝑇 𝐴 )𝑖𝑖 ) = 2𝑑 ; for 𝑖 ≠
+
+𝑗 , E[( 𝐴 𝑇 𝐴 )𝑖 𝑗 ] = 0 and Var (( 𝐴 𝑇 𝐴 )𝑖 𝑗 ) = 𝑑 . Therefore, after normalization by 𝑑 , both diagonal and off-diagonal entries have fluctuations on the order of 1 /√𝑑 , i.e., 
+
+ 1
+
+𝑑 𝐴 𝑇 𝐴 − 𝐼 𝑑 
+
+
+
+> 𝑖 𝑗
+
+= 𝑂 
+
+ 1
+
+√𝑑 
+
+
+
+, (25) 
+
+which implies that 1√𝑑 𝐴 is close to an orthogonal matrix for large 𝑑 . □0.0 0.2 0.4 0.6 0.8 1.0      
+
+> Estimated Distance
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> Real Distance GIST(B=1)
+> Slope: 0.9666 Intercept: 0.0019
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> Estimated Distance
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> Real Distance GIST(B=5)
+> Slope: 1.0000 Intercept: 0.0000
+
+Figure 19. Linear comparison between estimated distance and real distance on GIST under two bit settings ( 𝐵 = 1 and 
+
+𝐵 = 5). With Lemma 2, we can treat the orthogonal matrix 𝑃 in RaBitQ as a properly normalized Gaussian random matrix. Then 
+
+⟨¯𝒐 , ¯𝒒 ⟩ =
+
+> 𝑑
+
+∑︁ 
+
+> 𝑖 =1
+
+𝜉 ( ¯𝒒 [𝑖 ], ¯𝒐 [𝑖 ]) 
+
+= 1
+
+𝑑 
+
+> 𝑑
+
+∑︁ 
+
+> 𝑖 =1
+
+𝜉  ℎ∗ 
+
+> 𝑖
+
+(𝒒 ′), ℎ ∗ 
+
+> 𝑖
+
+(𝒙 ),
+
+(26) 
+
+where ℎ∗ 
+
+> 𝑖
+
+(𝒙 ) is the inner product with a standard Gaussian random vector 𝒂 whose entries satisfy 𝑎 𝑖 𝑖.𝑖.𝑑. 
+
+∼ N ( 0, 1). The function 𝜉 (𝑋 1, 𝑋 2) is defined as 
+
+𝜉 (𝑋 1, 𝑋 2) =
+
+(
+
+1, sign (𝑋 1) = sign (𝑋 2),
+
+−1, sign (𝑋 1) ≠ sign (𝑋 2). (27) 
+
+By Lemma 1 in [51], E[𝜉 (𝑋 1, 𝑋 2)] = 1 − 2𝜃 𝜋 , where 𝜃 is the angle between 𝒒 and 𝒙 . Hence E[⟨ ¯𝒐 , ¯𝒒 ⟩] = 1 − 2𝜃 𝜋 . Moreover, 
+
+⟨¯𝒐 , 𝒐 ⟩ and ⟨ ¯𝒒 , 𝒒 ⟩ are both close to √︃ 2 
+
+> 𝜋
+
+, so 
+
+E
+
+ ⟨¯𝒐 , ¯𝒒 ⟩⟨¯𝒐 , 𝒐 ⟩⟨ ¯𝒒 , 𝒒 ⟩
+
+
+
+≈ 𝜋 
+
+2 − 𝜃 . (28) 
+
+Let 𝑡 = 𝜋  
+
+> 2
+
+− 𝜃 . In high dimensions, two unrelated vectors tend to be nearly orthogonal, so 𝑡 is typically close to 0. When 
+
+𝑡 = 0, we have ⟨𝒐 , 𝒒 ⟩ = 0 and SymRaBitQ is unbiased. When 
+
+𝑡 ≠ 0 but small, 
+
+E
+
+ ⟨¯𝒐 , ¯𝒒 ⟩⟨¯𝒐 , 𝒐 ⟩⟨ ¯𝒒 , 𝒒 ⟩
+
+
+
+− ⟨ 𝒐 , 𝒒 ⟩ = 𝑡 − sin (𝑡 ) = 𝑂 (𝑡 3), (29) 
+
+which is negligible as 𝑡 → 0. Therefore, SymRaBitQ is ap-proximately unbiased in typical high-dimensional settings. Fig. 19 further validates the unbiasedness analysis in prac-tice. Across both settings, most samples concentrate around the 𝑦 = 𝑥 line, and the fitted slope/intercept are close to the ideal values (slope 1, intercept 0). This shows that the estimated distance tracks the real distance well, with only limited deviation in the low-distance region. 
+
+## G Controlled Benchmark Configuration 
+
+Table 5 summarizes the resource provisioning and index/-tuning configurations used in the controlled benchmark de-ployments. For Elasticsearch and ByteX , the coordinator nodes run query coordination only; the data nodes store and 
+
+> 17
+
+Table 5. Controlled benchmark resource and index configurations. C denotes vCPUs. 
+
+System Datasets Resource configuration Index and tuning configuration ElasticSearch Wiki, GIST 3 × 8C64GiB data nodes 2 × 8C16GiB coordinator nodes 
+
+𝑚 = 48, ef_construction =400 Cohere, in-house 3 × 24C192GiB data nodes 2 × 16C32GiB coordinator nodes 
+
+𝑚 = 48, ef_construction =400 for Cohere 
+
+𝑚 = 20, ef_construction =400 for in-house 
+
+ByteX Wiki, GIST 3 × 8C64GiB data nodes 2 × 8C16GiB coordinator nodes 
+
+𝑚 = 64, ef_construction =300 Cohere, in-house 3 × 24C192GiB data nodes 2 × 16C32GiB coordinator nodes 
+
+𝑚 = 48, ef_construction =200 PostgreSQL (VectorChord) Wiki, GIST Single large host capped by cgroups at 24C192GiB 
+
+𝑚 = 20, ef_construction =400 Cohere, in-house Single large host capped by cgroups at 72C576GiB 
+
+𝑚 = 48, ef_construction =400 Milvus Wiki, GIST 3 × 8C64GiB query nodes 3 × 8C64GiB index nodes 2 × 8C16GiB proxy nodes 2 × 8C16GiB data nodes 2 × 4C8GiB mixcoord nodes 
+
+𝑀 = 24, ef_construction =300 Cohere, in-house 3 × 24C192GiB query nodes 3 × 24C192GiB index nodes 2 × 16C32GiB proxy nodes 2 × 16C32GiB data nodes 2 × 8C16GiB mixcoord nodes 
+
+𝑀 = 48, ef_construction =400 
+
+serve the vector index. PostgreSQL runs on a large host with cgroup limits to match the aggregate compute and memory budget of the corresponding data tier. Milvus uses its stan-dard role-separated deployment. Across distributed systems, Wiki and GIST use one shard with three total copies, while Cohere and the in-house dataset use three shards without replicas. PostgreSQL/VectorChord runs as a single-node sys-tem. To put each distributed system in its optimized query-serving state, we consolidate each shard into a single segment before evaluation for Elasticsearch, Milvus, and ByteX . For PostgreSQL, we follow VectorChord’s official performance-tuning guidance 9 and apply the parameters listed below: 
+
+max_worker_processes = 80, max_parallel_workers = 71, 
+
+max_parallel_maintenance_workers = 71, effective_io _concurrency = 20, maintenance_io_concurrency = 20, 
+
+jit = off, and shared_buffers = 460GB 
+
+## H Operating-Cost Configuration 
+
+The operating-cost comparison in Table 4 charges only the serving tier that physically stores or serves the in-house dataset. Auxiliary components, such as coordinators, proxies, index nodes, and mixcoord nodes, are excluded because their overhead is shared or amortized and does not scale directly 
+
+> 9https://docs.vectorchord.ai/vectorchord/usage/performance-tuning.html
+
+with dataset size. Milvus, Elasticsearch, ByteX (Memory-only), and PostgreSQL use the in-house serving footprint shown in Table 5; PostgreSQL is charged by its cgroup-limited serving footprint. 10 All charged nodes use the same commercial cloud instance family unless otherwise stated. 
+
+ByteX (Disk-only) uses 3 × 2C16GiB data nodes because only the minimal index structures are memory-resident, while the remaining data are stored on disk. 
+
+## I Additional Latency Results 
+
+Fig. 20–23 report the remaining latency–recall curves for the same controlled benchmark setting as Sec. 7.      
+
+> 10 A larger host may be used for deployment, but the resource and cost model charges only the cgroup-limited serving footprint.
+> 18 0500 1000 1500 88 89 90 91 92 93 Latency (ms)
+
+Recall (%) ByteX PostgreSQL(VectorChord) ElasticSearch Milvus In-House 100M 0100 200 300 400 500 88 89 90 91 92 93 94 95 Recall (%) COHERE 100M 010 20 30 40 50 86 88 90 92 94 96 98 Recall (%) Wiki 1M 050 100 150 200 86 88 90 92 94 96 Recall (%) GIST 1M Figure 20. Concurrent Average Latency–Recall Trade-off. 0500 1000 1500 2000 88 89 90 91 92 93 Latency (ms) Recall (%) ByteX PostgreSQL(VectorChord) ElasticSearch Milvus In-House 100M 0200 400 600 800 88 89 90 91 92 93 94 95 Recall (%) COHERE 100M 020 40 60 86 88 90 92 94 96 98 Recall (%) Wiki 1M 0100 200 300 86 88 90 92 94 96 Recall (%) GIST 1M 
+
+Figure 21. Concurrent P95 Latency–Recall Trade-off. 050 100 150 88 89 90 91 92 93 Latency (ms) Recall (%) ByteX PostgreSQL(VectorChord) ElasticSearch Milvus In-House 100M 0510 15 20 25 88 89 90 91 92 93 94 95 Recall (%) COHERE 100M 0510 15 86 88 90 92 94 96 98 Recall (%) Wiki 1M 0510 15 20 25 86 88 90 92 94 96 Recall (%) GIST 1M 
+
+Figure 22. Serial P95 Latency–Recall Trade-off. 050 100 150 88 89 90 91 92 93 Latency (ms) Recall (%) ByteX PostgreSQL(VectorChord) ElasticSearch Milvus In-House 100M 0510 15 20 25 88 89 90 91 92 93 94 95 Recall (%) COHERE 100M 0510 15 86 88 90 92 94 96 98 Recall (%) Wiki 1M 0510 15 20 25 86 88 90 92 94 96 Recall (%) GIST 1M 
+
+Figure 23. Serial P99 Latency–Recall Trade-off. 
+
+19

@@ -1,0 +1,515 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-08T09:41:03.735740+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 6,
+    "deep_cap": 7,
+    "deep_selected": 6,
+    "quick_candidates": 6,
+    "quick_skim_target": 12,
+    "quick_selected": 6
+  },
+  "deep_dive": [
+    {
+      "id": "2608.30564v1",
+      "source": "arxiv",
+      "title": "Q-Strata: Hierarchical Bit Allocation for Mixed-Precision Quantization of Mixture-of-Experts LLMs",
+      "abstract": "Mixed-precision quantization (MPQ) assigns a different bitwidth to each linear layer of a large language model (LLM) to minimize the quantization-induced quality loss under a fixed budget, but Mixture-of-Experts (MoE) models contain these layers in every expert of every MoE block, so the allocation space grows far larger than in a dense model. Existing methods either allocate within each block under a uniform per-block budget, or allocate across blocks through an additive proxy, and neither directly optimizes a model-level objective over the choices that couple the blocks. We propose Q-Strata, a bi-level allocator that ranks within-block assignments with a cheap proxy and allocates across blocks with a model-level objective evaluated on the assembled quantized model. Its inner stage caches a Pareto frontier of candidates per block over finely spaced budgets, leaving the outer stage to set one budget per block instead of a bitwidth for every linear layer. With the search reduced to one budget per block, the outer stage optimizes this model-level objective directly, capturing the inter-block coupling that additive proxies miss. On Mixtral-8x7B-Instruct, Qwen1.5-MoE-A2.7B, and DeepSeek-V2-Lite, Q-Strata consistently achieves lower WikiText2 perplexity than uniform-bitwidth GPTQ and the state-of-the-art MoE MPQ methods MxMoE and GEMQ in the low-bit regime. The code is available at https://github.com/snu-mllab/Q-Strata/tree/main.",
+      "authors": [
+        "Deokjae Lee",
+        "Sihun Chu",
+        "Hyun Oh Song"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-08-31T10:39:01+00:00",
+      "link": "https://arxiv.org/pdf/2608.30564v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Directly targets mixed-precision quantization of MoE LLMs with hierarchical bit allocation",
+      "llm_evidence_cn": "直接针对混合专家大语言模型的混合精度量化，提出层次化比特分配",
+      "llm_evidence": "直接针对混合专家大语言模型的混合精度量化，提出层次化比特分配",
+      "canonical_evidence": "直接针对混合专家大语言模型的混合精度量化，提出层次化比特分配",
+      "llm_tldr_en": "Q-Strata introduces a bi-level allocator for MoE LLM mixed-precision quantization, ranking intra-block assignments with a cheap proxy and allocating bits across blocks with a model-level objective, effectively handling the large allocation space and reducing quality loss.",
+      "llm_tldr_cn": "MoE大语言模型的每个专家、每个块都包含待量化层，使混合精度比特分配空间远大于稠密模型，现有按统一块预算或加性代理的分配方法无法逼近模型级最优。Q-Strata提出双层分配器：先以廉价代理对块内候选分配排序，再以模型级目标函数在块间分配比特，从而直接优化耦合的分配问题。实验表明固定预算下Q-Strata能减少量化带来的质量损失，为MoE混合精度量化提供了可扩展的分配框架。",
+      "llm_tldr": "MoE大语言模型的每个专家、每个块都包含待量化层，使混合精度比特分配空间远大于稠密模型，现有按统一块预算或加性代理的分配方法无法逼近模型级最优。Q-Strata提出双层分配器：先以廉价代理对块内候选分配排序，再以模型级目标函数在块间分配比特，从而直接优化耦合的分配问题。实验表明固定预算下Q-Strata能减少量化带来的质量损失，为MoE混合精度量化提供了可扩展的分配框架。",
+      "llm_tags": [
+        "query:moe-quant"
+      ],
+      "matched_query_tag": "query:moe-quant",
+      "matched_query_text": "MoE Quantization",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.02107v1",
+      "source": "arxiv",
+      "title": "A Unified Rate-Distortion Perspective on Vector, Product, and Scalar Quantization",
+      "abstract": "Discrete visual tokenization, predominantly driven by vector, scalar, and product quantization, lacks a unified conceptual framework for understanding quantization tradeoffs. In this paper, we propose a unified rate--distortion perspective on modern discrete visual tokenization. By viewing quantization as lossy compression, we characterize the nominal fixed-length coding rate through token count and codebook size, and quantization error as the distortion. Within this framework, we resolve three central questions. First, we theoretically and empirically show that minimizing distortion, rather than maximizing codebook utilization, is the primary intrinsic objective for reconstruction fidelity, with a direct connection to the STE-induced gradient discrepancy. Second, we establish two critical fairness conditions for intrinsic quantization comparison: controlling latent feature statistics and enforcing identical coding rates. Third, under these conditions, we recover the VQ--PQ--SQ distortion hierarchy in modern visual tokenization and show empirically that modern VQ methods achieve the lowest distortion. This work provides a foundational rate--distortion reframing of modern discrete visual tokenization, resolves ambiguities in quantizer evaluation, and provides a controlled framework for isolating intrinsic quantization effectiveness under fixed-rate constraints.",
+      "authors": [
+        "Xianghong Fang",
+        "Wenlong Mou",
+        "Yuan Yuan",
+        "Dehan Kong",
+        "Tim G. J. Rudner"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CV"
+      ],
+      "published": "2026-09-02T04:50:51+00:00",
+      "link": "https://arxiv.org/pdf/2609.02107v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Unified rate-distortion analysis of vector, product and scalar quantization, central to ultra-low-bit VQ design",
+      "llm_evidence_cn": "统一VQ/PQ/SQ率失真框架，切合极低比特VQ主题",
+      "llm_evidence": "统一VQ/PQ/SQ率失真框架，切合极低比特VQ主题",
+      "canonical_evidence": "统一VQ/PQ/SQ率失真框架，切合极低比特VQ主题",
+      "llm_tldr_en": "A unified rate-distortion framework for VQ, product, and scalar quantization explains codebook-size and fidelity tradeoffs. It shows minimizing distortion rather than codebook utilization drives reconstruction quality, informing ultra-low-bit visual tokenization.",
+      "llm_tldr_cn": "现代离散视觉tokenizer主要基于向量、乘积与标量量化，但缺少统一视角。该文把量化视为有损压缩，用token数与码本大小刻画率，把量化误差视为失真，在统一框架下比较三类量化。理论与实验表明，最小化失真而非最大化码本利用率才是重建保真的内在目标，并厘清STE梯度等关键环节。该工作为极低比特VQ设计提供了理论依据和算法指导。",
+      "llm_tldr": "现代离散视觉tokenizer主要基于向量、乘积与标量量化，但缺少统一视角。该文把量化视为有损压缩，用token数与码本大小刻画率，把量化误差视为失真，在统一框架下比较三类量化。理论与实验表明，最小化失真而非最大化码本利用率才是重建保真的内在目标，并厘清STE梯度等关键环节。该工作为极低比特VQ设计提供了理论依据和算法指导。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.00224v2",
+      "source": "arxiv",
+      "title": "QTEA: Ternary LLMs with Sparse Residual Salient Weight and By-Column Optimization",
+      "abstract": "Weight-only post-training quantization (PTQ) can alleviate the computational burden of serving large language models (LLMs) at scale. However, existing PTQ methods often fail to generalize across models and suffer severe accuracy loss below 2 bits. Many leverage unstructured sparsity to mitigate this loss, but at the cost of regularity and GPU-friendly execution. We present QTEA, a sub-2-bit PTQ framework that quantizes weights into ternary values and uses salient weights as residual error compensators. To maintain hardware efficiency, residuals are assigned to selected columns with semi-structured $1:4$ sparsity within the salient columns. We further add column-wise rescale refinement to GPTQ-style column-by-column quantization, alternately updating per-column scales and ternary assignments to reduce reconstruction error. We also identify order-dependent error propagation in GPTQ and introduce error decay to attenuate late-stage error accumulation. On Qwen3-14B, QTEA compresses all weights to an effective 1.7 bits per weight while improving average accuracy over the strongest ternary PTQ baseline by 16.7%. It also achieves 1.40$\\times$ and 2.61$\\times$ lower perplexity on WikiText and C4 respectively. This trend holds on Llama3-8B, where QTEA obtains a 6.6% accuracy gain and 1.34$\\times$ / 1.95$\\times$ lower perplexity on the same datasets. Finally, we develop a lookup-table based kernel that achieves 7.2$\\times$ faster per-token generation over an FP16 baseline. Code is available at https://github.com/Intelligent-Microsystems-Lab/QTEA.",
+      "authors": [
+        "Yipin Guo",
+        "Arun M George",
+        "Jie Fu",
+        "Tareq Mahmoud",
+        "Sixue Xing",
+        "Siddharth Joshi"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-08-31T18:33:36+00:00",
+      "link": "https://arxiv.org/pdf/2609.00224v2",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "sub-2-bit ternary weight post-training quantization with sparse residual salient weights",
+      "llm_evidence_cn": "亚2比特三值权重量化，结合稀疏残差显著列与逐列优化",
+      "llm_evidence": "亚2比特三值权重量化，结合稀疏残差显著列与逐列优化",
+      "canonical_evidence": "亚2比特三值权重量化，结合稀疏残差显著列与逐列优化",
+      "llm_tldr_en": "Proposes QTEA, sub-2-bit weight-only PTQ for LLMs: ternary weights plus salient residual compensators in 1:4 semi-structured sparse columns, with column-wise rescale refinement, giving hardware-friendly extreme low-bit accuracy.",
+      "llm_tldr_cn": "大语言模型低于2比特权重量化中，现有PTQ方法往往跨模型泛化差、精度损失严重，非结构化稀疏又不利于GPU执行。QTEA将权重三值化并利用显著权重作为残差补偿器，通过列级重缩放精化和半结构化1:4稀疏来保持硬件效率。实验表明它能够在极低比特量化下恢复精度并兼顾执行效率，为超低比特PTQ提供了实用方案。",
+      "llm_tldr": "大语言模型低于2比特权重量化中，现有PTQ方法往往跨模型泛化差、精度损失严重，非结构化稀疏又不利于GPU执行。QTEA将权重三值化并利用显著权重作为残差补偿器，通过列级重缩放精化和半结构化1:4稀疏来保持硬件效率。实验表明它能够在极低比特量化下恢复精度并兼顾执行效率，为超低比特PTQ提供了实用方案。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "2 bit VQ",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.30384v1",
+      "source": "arxiv",
+      "title": "RSLM: Training-Free Vector Quantization for Approximate Nearest Neighbor Search",
+      "abstract": "By introducing RSLM (Rotated Scaled Lloyd-Max), a family of training-free vector quantization codecs compressing embeddings to 1--4 bits per dimension, we reduce memory cost and memory bandwidth of a typical large-scale Approximate Nearest Neighbor (ANN) search system, while reducing its complexity and keeping or improving recall across multiple benchmark datasets. State-of-the-art systems filter candidates using coarse partitions, approximately score them to narrow the set, and then rescore the best with higher precision representations (often >=8 bits per dimension). Our relativized codecs can bring this down to 2--4 bits per dimension.   We use the properties of the ANN system to encode residual vectors instead of full vectors, both for the approximate scoring phase and the rescoring phase. Since Maximum Inner Product Search (MIPS) is very sensitive to vector norms, we correct the $L_2$ norms of quantized vectors. Our major innovation is that we correct the $L_2$ norm of the final reconstructed vector rather than just the residual. Our rescaling replaces more complicated schemes, such as Anisotropic loss. The residualization scheme gives us a more favorable quality vs size trade-off than generic quantization methods.   Our high-performance implementation leverages a block-wise cascaded Fast Walsh-Hadamard Transform (FWHT) with linear-like complexity, AVX SIMD-optimized codebooks, and a steganographic encoding of scaling factors for perfect cache-line alignment.",
+      "authors": [
+        "Rastislav Lenhardt",
+        "Teodora Dobos",
+        "Thomas Vecchiato",
+        "Jiri Isa",
+        "Igor Ginzburg"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.IR"
+      ],
+      "published": "2026-08-31T07:40:57+00:00",
+      "link": "https://arxiv.org/pdf/2608.30384v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Training-free vector quantization to 2-4 bits per dimension; central to ultra-low-bit VQ",
+      "llm_evidence_cn": "无需训练的低比特矢量量化，每维压缩到2-4比特，是极低比特VQ主题的核心方法",
+      "llm_evidence": "无需训练的低比特矢量量化，每维压缩到2-4比特，是极低比特VQ主题的核心方法",
+      "canonical_evidence": "无需训练的低比特矢量量化，每维压缩到2-4比特，是极低比特VQ主题的核心方法",
+      "llm_tldr_en": "RSLM presents a family of training-free vector quantization codecs compressing embeddings to 1-4 bits per dimension, reducing memory cost and bandwidth of large-scale ANN search while maintaining or improving recall.",
+      "llm_tldr_cn": "针对大规模近似最近邻搜索中向量存储与带宽开销大的问题，RSLM提出无需训练的旋转缩放Lloyd-Max矢量量化编码器，可将嵌入压缩到每维1-4比特，显著降低内存与带宽并保持或提升召回率。其方法可与粗筛选和重打分流程配合，用2-4比特替代传统的8比特以上高精度表示，为极低比特矢量量化提供了通用高效的无需训练方案。",
+      "llm_tldr": "针对大规模近似最近邻搜索中向量存储与带宽开销大的问题，RSLM提出无需训练的旋转缩放Lloyd-Max矢量量化编码器，可将嵌入压缩到每维1-4比特，显著降低内存与带宽并保持或提升召回率。其方法可与粗筛选和重打分流程配合，用2-4比特替代传统的8比特以上高精度表示，为极低比特矢量量化提供了通用高效的无需训练方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.03363v1",
+      "source": "arxiv",
+      "title": "PACodec: A Low-bitrate Neural Speech Codec with Parallel Additive Vector Quantization",
+      "abstract": "This paper proposes PACodec, a novel low-bitrate neural speech codec based on parallel additive vector quantization (PAVQ). Unlike the mainstream residual vector quantization (RVQ) used in most neural speech codecs, where vector quantizers (VQs) are sequentially dependent, the PAVQ strategy adopted in PACodec aggregates parallel quantization results to optimize bitrate usage. Specifically, the PAVQ adopts a \"global-local-global\" (GLG) design: the global encoded features are quantized in parallel by multiple independent VQs, each attending to a local component of the representation, and their outputs are aggregated through addition to yield the final global quantization result for decoding. Experimental results show that PACodec, as each VQ focuses only on local information, supports smaller codebooks and reduces bitrate by 30% compared with baselines at the same decoding quality, with only minor model complexity. Further analysis shows that, owing to the GLG framework of PAVQ, the proposed PACodec is disentanglement-friendly, and each independent VQ captures different aspects of speech, e.g., content, timbre, and acoustic details, suggesting potential for application to downstream tasks such as voice conversion.",
+      "authors": [
+        "Fei Liu",
+        "Yang Ai",
+        "Xiao-Hang Jiang",
+        "Zhen-Hua Ling"
+      ],
+      "primary_category": "cs.SD",
+      "categories": [
+        "cs.SD"
+      ],
+      "published": "2026-09-03T04:40:28+00:00",
+      "link": "https://arxiv.org/pdf/2609.03363v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "proposes parallel additive vector quantization for low-bitrate neural speech codec, directly relevant to low-bit vector quantization",
+      "llm_evidence_cn": "提出基于并行加性矢量量化(PAVQ)的低比特率神经语音编解码器，面向低比特VQ设计",
+      "llm_evidence": "提出基于并行加性矢量量化(PAVQ)的低比特率神经语音编解码器，面向低比特VQ设计",
+      "canonical_evidence": "提出基于并行加性矢量量化(PAVQ)的低比特率神经语音编解码器，面向低比特VQ设计",
+      "llm_tldr_en": "PACodec proposes parallel additive vector quantization for low-bitrate neural speech codecs, where multiple independent VQs quantize local components and are summed into the final representation, yielding strong reconstruction at low rates.",
+      "llm_tldr_cn": "低比特率神经语音编解码器通常采用顺序残差矢量量化(RVQ)，量化器前后依赖且比特率利用率不够理想。PACodec提出并行加性矢量量化(PAVQ)，让多个独立矢量量化器分别关注表示的局部分量，再通过加法聚合生成全局量化结果，形成全局—局部—全局结构。实验表明该设计能以更低比特率获得有竞争力的重构质量，为极低比特VQ提供新的量化范式。",
+      "llm_tldr": "低比特率神经语音编解码器通常采用顺序残差矢量量化(RVQ)，量化器前后依赖且比特率利用率不够理想。PACodec提出并行加性矢量量化(PAVQ)，让多个独立矢量量化器分别关注表示的局部分量，再通过加法聚合生成全局量化结果，形成全局—局部—全局结构。实验表明该设计能以更低比特率获得有竞争力的重构质量，为极低比特VQ提供新的量化范式。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "2 bit VQ",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.00450v1",
+      "source": "arxiv",
+      "title": "HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference",
+      "abstract": "Block Quantization (BQ) is a promising approach for efficient deployment of large language models (LLMs), enabling low-precision computation with controlled accuracy degradation. Compared to scalar weight-only quantization (WoQ), BQ quantizes both weight and activation, offering higher hardware efficiency and end-to-end inference on a unified datapath, but its design space, spanning bit-width, block size, scaling, and numeric formats, remains underexplored.   We provide hardware/benchmark results through design space exploration (DSE). We find that increasing block size improves hardware efficiency by amortizing dequantization and accumulation costs, but degrades accuracy. This trade-off limits conventional BQ methods.   Motivated by this insight, we propose Hierarchical Block Quantization (HBQ). Unlike prior methods [1], [2], which use small blocks and conventional Power-of-Two (PoT) or integer-based scaling, HBQ uses large blocks to maximize efficiency and introduces low-overhead significand (SIG) scaling for second-level quantization. By allocating quantization levels effectively and accounting for distinct activation and weight distributions, SIG scaling compensates for large-block errors more effectively than prior PoT and INT schemes. HBQ-A (accurate) achieves W4A16-level accuracy using only W4A5 while requiring less silicon area than NVFP4. HBQ-E (efficient) further reduces hardware cost by 17% while maintaining higher accuracy than all existing BQ methods.   We implemented a 28nm ASIC accelerator applying HBQ to weights, activations, and KV cache, and integrated a novel partial-sum BQ scheme to further reduce EMA energy.   Compared to state-of-the-art WoQ, HBQ delivers $2.3\\times$/$4.6\\times$ higher area/energy efficiency at the same accuracy level; $1.6$--$3.3\\times$ system energy reduction and $1.5$--$3.0\\times$ speedup over prior BQ methods while providing best accuracy.",
+      "authors": [
+        "Chun-Ting Chen",
+        "Dongmin Han",
+        "Hangyeol Mun",
+        "Jake Hyun",
+        "Arnab Raha",
+        "Amit Agarwal",
+        "Mark Anders",
+        "Mohamed Abdelfattah",
+        "Jae-sun Seo"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.AR"
+      ],
+      "published": "2026-08-31T22:39:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.00450v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Low-precision hardware-aware block quantization for LLM weights and activations; strong match to extreme low-bit SQ theme",
+      "llm_evidence_cn": "硬件感知的LLM权重激活低比特块量化，与极低比特SQ/VQ主题高度契合",
+      "llm_evidence": "硬件感知的LLM权重激活低比特块量化，与极低比特SQ/VQ主题高度契合",
+      "canonical_evidence": "硬件感知的LLM权重激活低比特块量化，与极低比特SQ/VQ主题高度契合",
+      "llm_tldr_en": "HBQ systematically explores LLM block quantization design space, quantizing weights and activations with hierarchical scaling; larger blocks boost hardware efficiency but hurt accuracy, guiding accurate low-bit inference.",
+      "llm_tldr_cn": "针对大语言模型块量化中位宽、块大小、缩放与数值格式等设计空间缺乏系统探索的问题，本文提出硬件效率感知的分层缩放块量化方法HBQ。HBQ同时量化权重与激活，通过分层缩放和统一数据通路实现端到端低精度推断。设计空间探索显示增大块大小可提升硬件效率但会降低精度，该权衡为低比特量化配置提供了系统准则并带来较优的精度-效率平衡。",
+      "llm_tldr": "针对大语言模型块量化中位宽、块大小、缩放与数值格式等设计空间缺乏系统探索的问题，本文提出硬件效率感知的分层缩放块量化方法HBQ。HBQ同时量化权重与激活，通过分层缩放和统一数据通路实现端到端低精度推断。设计空间探索显示增大块大小可提升硬件效率但会降低精度，该权衡为低比特量化配置提供了系统准则并带来较优的精度-效率平衡。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2608.30908v1",
+      "source": "arxiv",
+      "title": "Fine-Tuning Low-Bit Models with Gradient in Quantized Code Space",
+      "abstract": "Fine-tuning Low-bit models aims to adapt a quantized model while keeping the final deployed checkpoint in the same low-bit form. This setting is practically important as it reduces memory and inference cost for storage and deployment. Under this constraint, adaptation becomes an optimization problem over quantization codes and scales. Existing continuous low-bit training is efficient, but it can be distorted by straight through estimation error or by post-quantize gap; discrete search is deployment-faithful, but it is often too inefficient under a finite training budget. We propose code surrogate gradient as the first order signal in deployable code space to acceleate optimization, and performing guided search to preserve deployment faithfulness. Experiments across arithmetic reasoning, instruction following, and structured language understanding show that GradCodes consistently improves fine-tuning low-bit models across different quantization datatypes. Code is provided at https://github.com/ovo67/GradCodes.",
+      "authors": [
+        "Shiguang Wu",
+        "Zhouchen Lin",
+        "Quanming Yao"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-08-31T14:54:30+00:00",
+      "link": "https://arxiv.org/pdf/2608.30908v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Optimizes fine-tuning over quantization codes and scales in quantized code space for low-bit models",
+      "llm_evidence_cn": "在量化码空间中低比特模型微调优化，针对低比特部署场景",
+      "llm_evidence": "在量化码空间中低比特模型微调优化，针对低比特部署场景",
+      "canonical_evidence": "在量化码空间中低比特模型微调优化，针对低比特部署场景",
+      "llm_tldr_en": "To fine-tune low-bit models while preserving the low-bit deployed checkpoint, the paper proposes a code surrogate gradient as the first-order signal in quantized code space and performs guided search, reconciling training efficiency with deployment faithfulness.",
+      "llm_tldr_cn": "低比特模型微调要求在最终权重仍保持低比特格式的前提下进行适配，问题可建模为对量化码与尺度的优化。连续低比特训练存在直通估计误差或后量化偏差，离散搜索虽部署忠实但效率低下。本文提出码代理梯度作为可部署码空间的一阶优化信号，并用引导搜索保留部署一致性，从而在有限预算内实现高效且忠实的低比特模型微调。",
+      "llm_tldr": "低比特模型微调要求在最终权重仍保持低比特格式的前提下进行适配，问题可建模为对量化码与尺度的优化。连续低比特训练存在直通估计误差或后量化偏差，离散搜索虽部署忠实但效率低下。本文提出码代理梯度作为可部署码空间的一阶优化信号，并用引导搜索保留部署一致性，从而在有限预算内实现高效且忠实的低比特模型微调。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2608.30607v2",
+      "source": "arxiv",
+      "title": "ByteX: A Unified AI Search Engine at ByteDance",
+      "abstract": "Since 2016, ByteX has been the foundation of ByteDance's search infrastructure, scaling to more than 7,000 clusters and 300 PB of indexed data. Driven by the demands of AI workloads, ByteX has evolved from a text search engine into a unified AI search system supporting vector retrieval, lexical matching, and predicate filtering. Its largest deployment indexes nearly one trillion high-dimensional vectors. This scale exposes two central bottlenecks in AI-era retrieval: memory-intensive graph-index construction under sustained ingestion, and the prohibitive cost of keeping vector indexes entirely in memory. ByteX addresses these bottlenecks with two techniques. First, it introduces a quantization-aware vector kernel based on SymRaBitQ, a new symmetric quantization scheme with tight theoretical guarantees that allows index construction to run directly in the quantized space accurately and efficiently without retaining a copy of full-precision vectors. Second, it provides a hybrid storage engine that supports memory-resident, hybrid, and SSD-resident deployments, with fine-grained record-level caching to trade memory for latency under operational control. On large-scale benchmarks, ByteX improves throughput by up to 3x, reduces indexing memory by 80%, and lowers operating cost by 86% compared with prior systems, while supporting trillion-vector scale, write-heavy or latency-sensitive workloads in production.",
+      "authors": [
+        "Yao Tian",
+        "Yuncheng Lu",
+        "Liyao Xiong",
+        "Yuming Xu",
+        "Hao Zhang",
+        "Weichen Zhao",
+        "Xi Zhao",
+        "Bo Kuang",
+        "Dongyu Wang",
+        "Jiehui Li",
+        "Yakun Li",
+        "Lei Zhang"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB"
+      ],
+      "published": "2026-08-31T11:19:16+00:00",
+      "link": "https://arxiv.org/pdf/2608.30607v2",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "uses quantization-aware vector kernel and SymRaBitQ symmetric quantization to compress trillion-scale vector indexes",
+      "llm_evidence_cn": "采用SymRaBitQ对称量化与量化感知内核压缩大规模向量表示，是向量搜索场景的低比特量化方案",
+      "llm_evidence": "采用SymRaBitQ对称量化与量化感知内核压缩大规模向量表示，是向量搜索场景的低比特量化方案",
+      "canonical_evidence": "采用SymRaBitQ对称量化与量化感知内核压缩大规模向量表示，是向量搜索场景的低比特量化方案",
+      "llm_tldr_en": "ByteX scales to nearly one trillion vectors and mitigates memory costs of vector indexes via a quantization-aware kernel built on SymRaBitQ, a symmetric quantization scheme. It shows low-bit vector quantization enables massive hybrid search under memory constraints.",
+      "llm_tldr_cn": "大规模向量检索系统常受限于图索引构建的内存开销和向量索引常驻内存的成本。ByteX作为字节跳动统一AI搜索引擎，引入基于SymRaBitQ的量化感知向量内核和对称量化方案，在支持近万亿向量索引的同时降低内存占用。其工程部署表明该方案能在极大规模检索场景中高效支撑向量、词法和谓词混合查询，为低比特向量量化提供先进实践。",
+      "llm_tldr": "大规模向量检索系统常受限于图索引构建的内存开销和向量索引常驻内存的成本。ByteX作为字节跳动统一AI搜索引擎，引入基于SymRaBitQ的量化感知向量内核和对称量化方案，在支持近万亿向量索引的同时降低内存占用。其工程部署表明该方案能在极大规模检索场景中高效支撑向量、词法和谓词混合查询，为低比特向量量化提供先进实践。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.01587v1",
+      "source": "arxiv",
+      "title": "The Structure of Quantization Damage in LLMs: Why the Next Bit Should Be Spent Globally",
+      "abstract": "Post-training quantization (PTQ) is widely used to reduce the cost of serving large language models (LLMs), but its accuracy cost is uneven and is often tuned per model. We study where quantization damage occurs and how to allocate a small additional precision budget. Using causal mixed-precision intervention as ground truth (raise each layer to 8-bit in turn and measure the accuracy it recovers) across 9 open-weight models in 4 architecture families, we test 3 intuitive hypotheses: that quantization damage lives in task circuits, where the model computes, or in weight statistics. None of them predicts which layers benefit from restored precision. Recovery is instead diffuse: for 8 of 9 models, recovering 75% of the gap takes roughly half the layers; the lone exception, Qwen3-8B, is sharply concentrated. At a matched precision budget, spending it globally on finer quantization granularity beats locally repairing the most recoverable layers for all 8 group-128-compatible models (all but OpenLLaMA, whose width rules out group-128), by 21-52 points, including the concentrated Qwen3-8B. We report 2 secondary findings: the residual is budget-limited (8-bit is near-lossless in our evaluation across RTN, GPTQ, and AWQ), and the location of peak recovery correlates with architecture within a family, though not across families. Within this budget setting, global granularity is a better default than selectively protecting critical layers. More broadly, cheap signals that correlate with quantization damage do not necessarily identify where restoring precision improves accuracy; this must be tested with causal intervention.",
+      "authors": [
+        "Jundong Hu",
+        "Shekar Ramachandran"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-09-01T17:53:41+00:00",
+      "link": "https://arxiv.org/pdf/2609.01587v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Analyzes quantization damage and global bit allocation in LLMs, informing extremely low-bit quantization",
+      "llm_evidence_cn": "研究LLM量化损伤与全局比特分配，可指导极低比特量化方案",
+      "llm_evidence": "研究LLM量化损伤与全局比特分配，可指导极低比特量化方案",
+      "canonical_evidence": "研究LLM量化损伤与全局比特分配，可指导极低比特量化方案",
+      "llm_tldr_en": "Causal mixed-precision interventions across 9 LLMs show quantization recovery is diffuse, implying precision bits should be allocated globally for low-bit quantization.",
+      "llm_tldr_cn": "针对大语言模型后训练量化中的精度损失不均衡问题，本文通过因果混合精度干预方法系统分析各层恢复8比特精度带来的性能回升。研究发现量化损伤并非集中在任务回路或权重统计中，而是弥散分布，8/9个模型需要近乎全局的层才能恢复75%的量化差距。这提示在极低比特量化或逐层比特分配时，应当从全局视角花费下一个精度比特，而不能仅依赖局部启发式。",
+      "llm_tldr": "针对大语言模型后训练量化中的精度损失不均衡问题，本文通过因果混合精度干预方法系统分析各层恢复8比特精度带来的性能回升。研究发现量化损伤并非集中在任务回路或权重统计中，而是弥散分布，8/9个模型需要近乎全局的层才能恢复75%的量化差距。这提示在极低比特量化或逐层比特分配时，应当从全局视角花费下一个精度比特，而不能仅依赖局部启发式。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.00049v1",
+      "source": "arxiv",
+      "title": "REAL-Q: E2E LLM Quantization via Dynamic Gradient Descent",
+      "abstract": "Post-training quantization (PTQ) is essential for deploying large language models (LLMs) under strict resource constraints. State-of-the-art PTQ methods quantize each layer with a single closed-form second-order solver: to remain analytically tractable, they heavily approximate the global loss (dropping cross-channel coupling, pooling output rows into groups), and they then freeze the resulting Hessian across the entire layer, with no way to refresh it as the loss landscape shifts column by column--a phenomenon we call information misalignment. We propose REAL-Q (Real-time E2E-loss Aligned LLM Quantization), a novel PTQ paradigm that breaks this compromise: instead of diluting the objective for the sake of analytic tractability, REAL-Q targets an end-to-end-aligned surrogate of the global loss and refines it via fine-grained, dynamic Block-wise Gradient Descent applied after every column block (128 columns). By coupling this fine-grained correction with a sliding window mechanism for smooth cross-layer transitions, REAL-Q effectively mitigates error propagation across the network. On LLaMA-3.1 (8B and 70B) and Qwen3 (0.6B-32B) at W4A16, REAL-Q reduces end-to-end KL divergence by up to ~49% relative to state-of-the-art globally-guided methods.",
+      "authors": [
+        "Qian Zhang",
+        "Yaoming Li",
+        "Zhewen Tan",
+        "Yanshu Wang",
+        "Heng Lu",
+        "Kun Su",
+        "Zongwei Lv",
+        "Wenhan Yu",
+        "Yongge Ma",
+        "Yinjun Han",
+        "Ruikuang Liu",
+        "Tong Yang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-08-30T06:30:31+00:00",
+      "link": "https://arxiv.org/pdf/2609.00049v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "End-to-end loss-aligned PTQ via dynamic gradient descent is a transferable advanced quantization method relevant to MoE quantization",
+      "llm_evidence_cn": "端到端对齐的PTQ新范式，可作为MoE量化的方法桥接",
+      "llm_evidence": "端到端对齐的PTQ新范式，可作为MoE量化的方法桥接",
+      "canonical_evidence": "端到端对齐的PTQ新范式，可作为MoE量化的方法桥接",
+      "llm_tldr_en": "REAL-Q targets end-to-end loss alignment with dynamic gradient descent rather than frozen one-shot second-order solvers, avoiding approximate losses and Hessian misalignment in post-training quantization. This improves LLM quantization accuracy and offers a transferable technique for further generalized MoE quantization.",
+      "llm_tldr_cn": "现有PTQ常为可解性丢弃跨通道关联并用冻结Hessian逼近全层目标，造成信息错位。REAL-Q提出面向端到端对齐的动态梯度下降量化范式，不再稀释目标，随逐列优化刷新损失面。它缓解了传统二阶方法中的近似误差，使LLM量化更稳健高效。该端到端对齐思路也可迁移到MoE等结构化模型的量化中。",
+      "llm_tldr": "现有PTQ常为可解性丢弃跨通道关联并用冻结Hessian逼近全层目标，造成信息错位。REAL-Q提出面向端到端对齐的动态梯度下降量化范式，不再稀释目标，随逐列优化刷新损失面。它缓解了传统二阶方法中的近似误差，使LLM量化更稳健高效。该端到端对齐思路也可迁移到MoE等结构化模型的量化中。",
+      "llm_tags": [
+        "query:moe-quant"
+      ],
+      "matched_query_tag": "query:moe-quant",
+      "matched_query_text": "MoE Quantization",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.01743v1",
+      "source": "arxiv",
+      "title": "SCULPT: Training Edge Vision Models for Post-Training Quantization Readiness",
+      "abstract": "Edge vision models are difficult to deploy on resource-constrained hardware, making low-bit post-training quantization (PTQ) attractive. In practice, standard FP32 training often produces heavy-tailed activation distributions whose outliers destabilize activation quantization: preserving the full range wastes quantization bins on rare extremes, while aggressive clipping causes information loss. Existing solutions typically rely on quantization-aware training (QAT), which adds training complexity and bit-width coupling, or advanced PTQ procedures that repair the model after training.   We present SCULPT (Statistical Clipping and Uniform Loss for Post-Training), a training-time method that improves PTQ readiness during ordinary FP32 fine-tuning. SCULPT combines a topology-aware activation regularizer that suppresses quantization-hostile skewness and kurtosis with a stable percentile-based clipping mechanism that learns deployment-ready activation bounds. Unlike QAT, SCULPT does not simulate quantization during optimization; unlike post hoc outlier-repair PTQ methods, it does not require runtime activation transformations. The learned clipping bounds can be exported directly into a standard PTQ workflow for low-bit deployment, including INT8 and lower-bit settings such as W4A8.",
+      "authors": [
+        "Bharadwaj Kavuri",
+        "Sourav Babu-PK",
+        "Varadhraj Ellapan",
+        "Pullarao Maddu",
+        "Prasad Deshpande"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-01T18:10:19+00:00",
+      "link": "https://arxiv.org/pdf/2609.01743v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "low-bit post-training quantization readiness of edge models; training-time method for 3-bit scalar PTQ",
+      "llm_evidence_cn": "面向边缘模型的低比特后训练量化就绪性，可支撑3比特标量PTQ的训练期方法",
+      "llm_evidence": "面向边缘模型的低比特后训练量化就绪性，可支撑3比特标量PTQ的训练期方法",
+      "canonical_evidence": "面向边缘模型的低比特后训练量化就绪性，可支撑3比特标量PTQ的训练期方法",
+      "llm_tldr_en": "SCULPT improves edge vision models low-bit post-training quantization by statistical clipping and a uniform loss during standard FP32 fine-tuning, avoiding quantization-aware training and delivering better PTQ readiness.",
+      "llm_tldr_cn": "边缘视觉模型部署常依赖低比特后训练量化，但直接训练出的激活分布常带离群点，导致量化性能明显下降。既有方案要么用量化感知训练增加训练复杂度，要么在训练后做昂贵的修复。本文提出SCULPT，在普通FP32微调阶段通过统计裁剪和一致损失训练模型，使其天然对PTQ友好，避免QAT的位宽耦合问题。实验表明该方法能提升低比特标量量化的精度与稳定性，为边缘模型低成本部署提供了新训练范式。",
+      "llm_tldr": "边缘视觉模型部署常依赖低比特后训练量化，但直接训练出的激活分布常带离群点，导致量化性能明显下降。既有方案要么用量化感知训练增加训练复杂度，要么在训练后做昂贵的修复。本文提出SCULPT，在普通FP32微调阶段通过统计裁剪和一致损失训练模型，使其天然对PTQ友好，避免QAT的位宽耦合问题。实验表明该方法能提升低比特标量量化的精度与稳定性，为边缘模型低成本部署提供了新训练范式。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "3 bit SQ",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.04724v1",
+      "source": "arxiv",
+      "title": "FlexPosit: Tunable Fractional Precision for LLM Inference Accelerators",
+      "abstract": "Large language models (LLMs) offer remarkable capabilities but impose prohibitive compute and energy costs. Quantization governs the trade-offs between accuracy and hardware efficiency across granularity and bit-width. Finer granularity (e.g., group-wise) provides high accuracy but incurs scaling and control overhead, while coarser granularity (e.g., channel-wise) has lower overhead but loses accuracy at low precision. Meanwhile, mixed-precision quantization exposes rich accuracy-efficiency trade-offs algorithmically, but existing LLM accelerators remain limited to discrete precision modes, leaving the fractional design space between them unexplored.   FlexPosit bridges these gaps through co-design of Posit-based quantization and a precision-tunable bit-serial architecture. Algorithmically, FlexPosit employs distribution-aware quantization with hardware-aligned, sensitivity-guided mixed-precision allocation, leveraging the Posit format's tapered precision to achieve group-wise-like accuracy with channel-wise-like regularity. Architecturally, FlexPosit is a unified bit-serial systolic array with lightweight per-column decoders, unified Processing Elements (PEs), and a global precision controller, enabling tunable fractional precision while preserving fully regular systolic dataflow. Across diverse LLMs, FlexPosit achieves near-FP16 accuracy with sub-5-bit fractional weights. It achieves up to 1.8x higher throughput and 1.2x lower energy than BitMoD (group-wise quantization), and 1.5x higher throughput and 2.0x lower energy than OliVe (channel-wise quantization), establishing a new Pareto frontier for precision-tunable LLM acceleration.",
+      "authors": [
+        "Yimin Gao",
+        "Liangtao Dai",
+        "Jun Yin",
+        "Xinfei Guo",
+        "Mircea Stan"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-04T04:48:35+00:00",
+      "link": "https://arxiv.org/pdf/2609.04724v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "LLM quantization with posit format and tunable precision, related to low-bit wbv theme",
+      "llm_evidence_cn": "面向低比特量化主题的Posit可调精度LLM量化研究",
+      "llm_evidence": "面向低比特量化主题的Posit可调精度LLM量化研究",
+      "canonical_evidence": "面向低比特量化主题的Posit可调精度LLM量化研究",
+      "llm_tldr_en": "FlexPosit co-designs Posit number format and precision-tunable hardware for LLM inference accelerators, enabling fine-grained accuracy-efficiency trade-offs and exploring fractional bit-widths beyond discrete quantization modes.",
+      "llm_tldr_cn": "LLM推理普遍受计算与能耗瓶颈制约，而现有量化只能按离散位宽切换，无法细粒度地权衡精度和硬件效率。FlexPosit提出Posit数格式与精度可调硬件的协同量化方法，将量化设计从离散整数格式拓展到分数精度空间。该方法有望在不大幅牺牲精度的前提下提升LLM推理加速器的效率和泛用性，为极低比特及异构精度量化提供硬件层面的一般性支撑。",
+      "llm_tldr": "LLM推理普遍受计算与能耗瓶颈制约，而现有量化只能按离散位宽切换，无法细粒度地权衡精度和硬件效率。FlexPosit提出Posit数格式与精度可调硬件的协同量化方法，将量化设计从离散整数格式拓展到分数精度空间。该方法有望在不大幅牺牲精度的前提下提升LLM推理加速器的效率和泛用性，为极低比特及异构精度量化提供硬件层面的一般性支撑。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
