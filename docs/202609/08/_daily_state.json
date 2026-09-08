@@ -1,0 +1,57 @@
+{
+  "date": "20260908",
+  "date_label": "",
+  "generated_at": "2026-09-08 22:53:04 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.30607v2",
+      "route": "202609/08/2608.30607v2-bytex-a-unified-ai-search-engine-at-bytedance",
+      "title": "ByteX: A Unified AI Search Engine at ByteDance",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "提出基于SymRaBitQ的量化感知向量内核，面向大规模低比特向量索引",
+      "first_seen_at": "2026-09-08 22:53:04 UTC",
+      "updated_at": "2026-09-08 22:53:04 UTC"
+    },
+    {
+      "paper_id": "2609.00450v1",
+      "route": "202609/08/2609.00450v1-hbq-hierarchical-scaling-block-quantization-with-hardware-efficiency-aware-design-for-accurate-llm-inference",
+      "title": "HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向低比特大模型推理的块量化与硬件效率感知设计",
+      "first_seen_at": "2026-09-08 22:53:04 UTC",
+      "updated_at": "2026-09-08 22:53:04 UTC"
+    },
+    {
+      "paper_id": "2609.04724v1",
+      "route": "202609/08/2609.04724v1-flexposit-tunable-fractional-precision-for-llm-inference-accelerators",
+      "title": "FlexPosit: Tunable Fractional Precision for LLM Inference Accelerators",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向LLM推理的分数比特Posit量化与精度可调加速器协同设计，扩展极低比特/混合精度量化空间",
+      "first_seen_at": "2026-09-08 22:53:04 UTC",
+      "updated_at": "2026-09-08 22:53:04 UTC"
+    }
+  ]
+}

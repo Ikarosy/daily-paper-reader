@@ -1,0 +1,54 @@
+{
+  "label": "2026-09-08",
+  "date": "2026-09-08",
+  "generated_at": "2026-09-08T22:53:05",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202609/08/2608.30607v2-bytex-a-unified-ai-search-engine-at-bytedance",
+      "section": "deep",
+      "title_en": "ByteX: A Unified AI Search Engine at ByteDance",
+      "authors": "Yao Tian, Yuncheng Lu, Liyao Xiong, Yuming Xu, Hao Zhang, Weichen Zhao, Xi Zhao, Bo Kuang, Dongyu Wang, Jiehui Li, Yakun Li, Lei Zhang",
+      "date": "2026-08-31",
+      "pdf": "https://arxiv.org/pdf/2608.30607v2",
+      "score": "8.0",
+      "evidence": "提出基于SymRaBitQ的量化感知向量内核，面向大规模低比特向量索引",
+      "tldr": "ByteX是字节跳动从文本搜索演进出的统一AI搜索引擎，承担万亿向量和数百PB数据索引任务。针对图索引构建内存密集和全内存向量存储昂贵的瓶颈，提出SymRaBitQ对称量化感知内核，在量化空间直接构建索引；融合混合存储与记录级缓存，支持内存、混合及SSD部署。实测吞吐提升3倍，索引内存降80%，成本降86%，兼顾写密集与延迟敏感场景。",
+      "tags": "query:wbv",
+      "abstract_en": "Since 2016, ByteX has been the foundation of ByteDance's search infrastructure, scaling to more than 7,000 clusters and 300 PB of indexed data. Driven by the demands of AI workloads, ByteX has evolved from a text search engine into a unified AI search system supporting vector retrieval, lexical matching, and predicate filtering. Its largest deployment indexes nearly one trillion high-dimensional vectors. This scale exposes two central bottlenecks in AI-era retrieval: memory-intensive graph-index construction under sustained ingestion, and the prohibitive cost of keeping vector indexes entirely in memory. ByteX addresses these bottlenecks with two techniques. First, it introduces a quantization-aware vector kernel based on SymRaBitQ, a new symmetric quantization scheme with tight theoretical guarantees that allows index construction to run directly in the quantized space accurately and efficiently without retaining a copy of full-precision vectors. Second, it provides a hybrid storage engine that supports memory-resident, hybrid, and SSD-resident deployments, with fine-grained record-level caching to trade memory for latency under operational control. On large-scale benchmarks, ByteX improves throughput by up to 3x, reduces indexing memory by 80%, and lowers operating cost by 86% compared with prior systems, while supporting trillion-vector scale, write-heavy or latency-sensitive workloads in production.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/08/2609.00450v1-hbq-hierarchical-scaling-block-quantization-with-hardware-efficiency-aware-design-for-accurate-llm-inference",
+      "section": "deep",
+      "title_en": "HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference",
+      "authors": "Chun-Ting Chen, Dongmin Han, Hangyeol Mun, Jake Hyun, Arnab Raha, Amit Agarwal, Mark Anders, Mohamed Abdelfattah, Jae-sun Seo",
+      "date": "2026-08-31",
+      "pdf": "https://arxiv.org/pdf/2609.00450v1",
+      "score": "8.0",
+      "evidence": "面向低比特大模型推理的块量化与硬件效率感知设计",
+      "tldr": "块量化可实现低精度LLM推理，但增大块大小虽可提升硬件效率却损害精度，常规BQ难以兼顾。本文提出层次块量化HBQ，使用大块并用低开销有效数缩放作为二级量化补偿误差。HBQ-A以W4A5达到W4A16精度且面积小于NVFP4，HBQ-E再降17%硬件成本并保持最优精度。在28nm ASIC上验证，相对SOTA方法能效、速度均大幅提升。",
+      "tags": "query:wbv",
+      "abstract_en": "Block Quantization (BQ) is a promising approach for efficient deployment of large language models (LLMs), enabling low-precision computation with controlled accuracy degradation. Compared to scalar weight-only quantization (WoQ), BQ quantizes both weight and activation, offering higher hardware efficiency and end-to-end inference on a unified datapath, but its design space, spanning bit-width, block size, scaling, and numeric formats, remains underexplored.   We provide hardware/benchmark results through design space exploration (DSE). We find that increasing block size improves hardware efficiency by amortizing dequantization and accumulation costs, but degrades accuracy. This trade-off limits conventional BQ methods.   Motivated by this insight, we propose Hierarchical Block Quantization (HBQ). Unlike prior methods [1], [2], which use small blocks and conventional Power-of-Two (PoT) or integer-based scaling, HBQ uses large blocks to maximize efficiency and introduces low-overhead significand (SIG) scaling for second-level quantization. By allocating quantization levels effectively and accounting for distinct activation and weight distributions, SIG scaling compensates for large-block errors more effectively than prior PoT and INT schemes. HBQ-A (accurate) achieves W4A16-level accuracy using only W4A5 while requiring less silicon area than NVFP4. HBQ-E (efficient) further reduces hardware cost by 17% while maintaining higher accuracy than all existing BQ methods.   We implemented a 28nm ASIC accelerator applying HBQ to weights, activations, and KV cache, and integrated a novel partial-sum BQ scheme to further reduce EMA energy.   Compared to state-of-the-art WoQ, HBQ delivers $2.3\\times$/$4.6\\times$ higher area/energy efficiency at the same accuracy level; $1.6$--$3.3\\times$ system energy reduction and $1.5$--$3.0\\times$ speedup over prior BQ methods while providing best accuracy.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/08/2609.04724v1-flexposit-tunable-fractional-precision-for-llm-inference-accelerators",
+      "section": "deep",
+      "title_en": "FlexPosit: Tunable Fractional Precision for LLM Inference Accelerators",
+      "authors": "Yimin Gao, Liangtao Dai, Jun Yin, Xinfei Guo, Mircea Stan",
+      "date": "2026-09-04",
+      "pdf": "https://arxiv.org/pdf/2609.04724v1",
+      "score": "8.0",
+      "evidence": "面向LLM推理的分数比特Posit量化与精度可调加速器协同设计，扩展极低比特/混合精度量化空间",
+      "tldr": "大语言模型量化需在粒度与位宽间权衡：细粒度精度高但缩放和控制开销大，粗粒度开销低但低精度易损失精度；现有加速器仅支持离散精度模式，无法探索小数位宽的分数设计空间。FlexPosit通过Posit格式量化与位串行架构协同设计，算法上以分布感知和敏感性引导混合精度分配，硬件上采用统一脉动阵列与全局精度控制器，实现亚5位分数精度。在多种LLM上，FlexPosit逼近FP16准确率，吞吐较BitMoD提升1.8倍、较OliVe提升1.5倍，能耗分别降低1.2倍和2.0倍，建立了精度可调加速的新Pareto前沿。",
+      "tags": "query:wbv",
+      "abstract_en": "Large language models (LLMs) offer remarkable capabilities but impose prohibitive compute and energy costs. Quantization governs the trade-offs between accuracy and hardware efficiency across granularity and bit-width. Finer granularity (e.g., group-wise) provides high accuracy but incurs scaling and control overhead, while coarser granularity (e.g., channel-wise) has lower overhead but loses accuracy at low precision. Meanwhile, mixed-precision quantization exposes rich accuracy-efficiency trade-offs algorithmically, but existing LLM accelerators remain limited to discrete precision modes, leaving the fractional design space between them unexplored.   FlexPosit bridges these gaps through co-design of Posit-based quantization and a precision-tunable bit-serial architecture. Algorithmically, FlexPosit employs distribution-aware quantization with hardware-aligned, sensitivity-guided mixed-precision allocation, leveraging the Posit format's tapered precision to achieve group-wise-like accuracy with channel-wise-like regularity. Architecturally, FlexPosit is a unified bit-serial systolic array with lightweight per-column decoders, unified Processing Elements (PEs), and a global precision controller, enabling tunable fractional precision while preserving fully regular systolic dataflow. Across diverse LLMs, FlexPosit achieves near-FP16 accuracy with sub-5-bit fractional weights. It achieves up to 1.8x higher throughput and 1.2x lower energy than BitMoD (group-wise quantization), and 1.5x higher throughput and 2.0x lower energy than OliVe (channel-wise quantization), establishing a new Pareto frontier for precision-tunable LLM acceleration.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
