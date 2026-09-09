@@ -1,0 +1,153 @@
+{
+  "date": "20260909",
+  "date_label": "",
+  "generated_at": "2026-09-09 22:11:48 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.01587v1",
+      "route": "202609/09/2609.01587v1-the-structure-of-quantization-damage-in-llms-why-the-next-bit-should-be-spent-globally",
+      "title": "The Structure of Quantization Damage in LLMs: Why the Next Bit Should Be Spent Globally",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "研究LLM各层量化损伤与全局比特分配，直接为低比特PTQ与权重精度投放提供依据",
+      "first_seen_at": "2026-09-09 22:11:48 UTC",
+      "updated_at": "2026-09-09 22:11:48 UTC"
+    },
+    {
+      "paper_id": "2609.02107v1",
+      "route": "202609/09/2609.02107v1-a-unified-rate-distortion-perspective-on-vector-product-and-scalar-quantization",
+      "title": "A Unified Rate-Distortion Perspective on Vector, Product, and Scalar Quantization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "统一了向量量化、乘积量化与标量量化的率失真权衡分析，与极低比特VQ/SQ主题直接相关",
+      "first_seen_at": "2026-09-09 22:11:48 UTC",
+      "updated_at": "2026-09-09 22:11:48 UTC"
+    },
+    {
+      "paper_id": "2609.05641v1",
+      "route": "202609/09/2609.05641v1-a-nuclear-norm-lower-bound-for-dithered-scalar-quantization-of-matrix-products",
+      "title": "A Nuclear-Norm Lower Bound for Dithered Scalar Quantization of Matrix Products",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "抖动标量量化矩阵乘积误差下界及低精度理论",
+      "first_seen_at": "2026-09-09 22:11:48 UTC",
+      "updated_at": "2026-09-09 22:11:48 UTC"
+    },
+    {
+      "paper_id": "2609.06161v1",
+      "route": "202609/09/2609.06161v1-all-for-1-bit-towards-genuine-1-bit-post-training-quantization-for-llms",
+      "title": "All for 1-Bit: Towards Genuine 1-Bit Post-Training Quantization for LLMs",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向大语言模型的真正1比特后训练量化，直接对应极低比特量化主题且方法先进",
+      "first_seen_at": "2026-09-09 22:11:48 UTC",
+      "updated_at": "2026-09-09 22:11:48 UTC"
+    },
+    {
+      "paper_id": "2609.03641v1",
+      "route": "202609/09/2609.03641v1-tree-structured-vector-quantization-for-efficient-and-progressive-image-compression",
+      "title": "Tree-Structured Vector Quantization For Efficient And Progressive Image Compression",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "提出二叉树结构的层级向量量化，逐位前缀构成有效码字，与低比特VQ研究兴趣相符",
+      "first_seen_at": "2026-09-09 22:11:48 UTC",
+      "updated_at": "2026-09-09 22:11:48 UTC"
+    },
+    {
+      "paper_id": "2609.04724v1",
+      "route": "202609/09/2609.04724v1-flexposit-tunable-fractional-precision-for-llm-inference-accelerators",
+      "title": "FlexPosit: Tunable Fractional Precision for LLM Inference Accelerators",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "提出基于Posit的低比特LLM量化与可调分数位宽加速器协同设计，与低比特标量量化主题高度契合",
+      "first_seen_at": "2026-09-09 22:11:48 UTC",
+      "updated_at": "2026-09-09 22:11:48 UTC"
+    },
+    {
+      "paper_id": "2609.00450v1",
+      "route": "202609/09/2609.00450v1-hbq-hierarchical-scaling-block-quantization-with-hardware-efficiency-aware-design-for-accurate-llm-inference",
+      "title": "HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向低比特LLM推理的硬件效率感知块量化设计与基准结果，属于先进量化实现",
+      "first_seen_at": "2026-09-09 22:11:48 UTC",
+      "updated_at": "2026-09-09 22:11:48 UTC"
+    },
+    {
+      "paper_id": "2609.07901v1",
+      "route": "202609/09/2609.07901v1-quantization-amplifies-determinism-not-bias-scale-dependent-behavioral-effects-of-serving-time-weight-compression",
+      "title": "Quantization Amplifies Determinism, Not Bias: Scale-Dependent Behavioral Effects of Serving-Time Weight Compression",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "针对服务期权重量化（4位AWQ、8位FP8）的选择行为分析，契合权重量化检索主题",
+      "first_seen_at": "2026-09-09 22:11:48 UTC",
+      "updated_at": "2026-09-09 22:11:48 UTC"
+    },
+    {
+      "paper_id": "2609.08135v1",
+      "route": "202609/09/2609.08135v1-kbbq-a-predictive-noise-law-and-the-limits-of-spectrum-flattening-in-fp4-quantization",
+      "title": "KBBQ: A Predictive Noise Law and the Limits of Spectrum Flattening in FP4 Quantization",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "提供FP4量化中预测性噪声定律与SoTA方法可达的封闭上界，属于先进量化结果",
+      "first_seen_at": "2026-09-09 22:11:48 UTC",
+      "updated_at": "2026-09-09 22:11:48 UTC"
+    }
+  ]
+}

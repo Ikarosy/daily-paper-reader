@@ -1,0 +1,378 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-09T22:06:35.765352+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 4,
+    "deep_cap": 7,
+    "deep_selected": 4,
+    "quick_candidates": 5,
+    "quick_skim_target": 12,
+    "quick_selected": 5
+  },
+  "deep_dive": [
+    {
+      "id": "2609.01587v1",
+      "source": "arxiv",
+      "title": "The Structure of Quantization Damage in LLMs: Why the Next Bit Should Be Spent Globally",
+      "abstract": "Post-training quantization (PTQ) is widely used to reduce the cost of serving large language models (LLMs), but its accuracy cost is uneven and is often tuned per model. We study where quantization damage occurs and how to allocate a small additional precision budget. Using causal mixed-precision intervention as ground truth (raise each layer to 8-bit in turn and measure the accuracy it recovers) across 9 open-weight models in 4 architecture families, we test 3 intuitive hypotheses: that quantization damage lives in task circuits, where the model computes, or in weight statistics. None of them predicts which layers benefit from restored precision. Recovery is instead diffuse: for 8 of 9 models, recovering 75% of the gap takes roughly half the layers; the lone exception, Qwen3-8B, is sharply concentrated. At a matched precision budget, spending it globally on finer quantization granularity beats locally repairing the most recoverable layers for all 8 group-128-compatible models (all but OpenLLaMA, whose width rules out group-128), by 21-52 points, including the concentrated Qwen3-8B. We report 2 secondary findings: the residual is budget-limited (8-bit is near-lossless in our evaluation across RTN, GPTQ, and AWQ), and the location of peak recovery correlates with architecture within a family, though not across families. Within this budget setting, global granularity is a better default than selectively protecting critical layers. More broadly, cheap signals that correlate with quantization damage do not necessarily identify where restoring precision improves accuracy; this must be tested with causal intervention.",
+      "authors": [
+        "Jundong Hu",
+        "Shekar Ramachandran"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-09-01T17:53:41+00:00",
+      "link": "https://arxiv.org/pdf/2609.01587v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Quantization damage location and global bit allocation across LLM layers; central to weight-level low-bit PTQ",
+      "llm_evidence_cn": "研究LLM各层量化损伤与全局比特分配，直接为低比特PTQ与权重精度投放提供依据",
+      "llm_evidence": "研究LLM各层量化损伤与全局比特分配，直接为低比特PTQ与权重精度投放提供依据",
+      "canonical_evidence": "研究LLM各层量化损伤与全局比特分配，直接为低比特PTQ与权重精度投放提供依据",
+      "llm_tldr_en": "Causal mixed-precision intervention across 9 LLMs reveals quantization damage is diffuse; global bit allocation, not layer-specific fixes, should guide low-bit PTQ design.",
+      "llm_tldr_cn": "该论文研究大模型后训练量化中损伤究竟发生在哪些层，以及额外精度比特应如何分配。作者以因果混合精度干预为基准，对9个开源模型逐层提升到8位并测量恢复精度，发现损伤呈弥散分布，任务回路、计算位置和权值统计三类假设均不能预测需要恢复精度的层。结果表明要修复大部分量化损伤须把预算花到许多层上，为极低比特量化与全局比特分配提供了重要经验依据。",
+      "llm_tldr": "该论文研究大模型后训练量化中损伤究竟发生在哪些层，以及额外精度比特应如何分配。作者以因果混合精度干预为基准，对9个开源模型逐层提升到8位并测量恢复精度，发现损伤呈弥散分布，任务回路、计算位置和权值统计三类假设均不能预测需要恢复精度的层。结果表明要修复大部分量化损伤须把预算花到许多层上，为极低比特量化与全局比特分配提供了重要经验依据。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "w",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.02107v1",
+      "source": "arxiv",
+      "title": "A Unified Rate-Distortion Perspective on Vector, Product, and Scalar Quantization",
+      "abstract": "Discrete visual tokenization, predominantly driven by vector, scalar, and product quantization, lacks a unified conceptual framework for understanding quantization tradeoffs. In this paper, we propose a unified rate--distortion perspective on modern discrete visual tokenization. By viewing quantization as lossy compression, we characterize the nominal fixed-length coding rate through token count and codebook size, and quantization error as the distortion. Within this framework, we resolve three central questions. First, we theoretically and empirically show that minimizing distortion, rather than maximizing codebook utilization, is the primary intrinsic objective for reconstruction fidelity, with a direct connection to the STE-induced gradient discrepancy. Second, we establish two critical fairness conditions for intrinsic quantization comparison: controlling latent feature statistics and enforcing identical coding rates. Third, under these conditions, we recover the VQ--PQ--SQ distortion hierarchy in modern visual tokenization and show empirically that modern VQ methods achieve the lowest distortion. This work provides a foundational rate--distortion reframing of modern discrete visual tokenization, resolves ambiguities in quantizer evaluation, and provides a controlled framework for isolating intrinsic quantization effectiveness under fixed-rate constraints.",
+      "authors": [
+        "Xianghong Fang",
+        "Wenlong Mou",
+        "Yuan Yuan",
+        "Dehan Kong",
+        "Tim G. J. Rudner"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CV"
+      ],
+      "published": "2026-09-02T04:50:51+00:00",
+      "link": "https://arxiv.org/pdf/2609.02107v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Unified rate-distortion analysis of VQ, product quantization and scalar quantization with token count and codebook size",
+      "llm_evidence_cn": "统一了向量量化、乘积量化与标量量化的率失真权衡分析，与极低比特VQ/SQ主题直接相关",
+      "llm_evidence": "统一了向量量化、乘积量化与标量量化的率失真权衡分析，与极低比特VQ/SQ主题直接相关",
+      "canonical_evidence": "统一了向量量化、乘积量化与标量量化的率失真权衡分析，与极低比特VQ/SQ主题直接相关",
+      "llm_tldr_en": "Unified rate-distortion view of VQ, product and scalar quantization for visual tokenization; shows minimizing distortion, not codebook utilization, is the primary objective and explains tradeoffs among token count and codebook size.",
+      "llm_tldr_cn": "本文指出现有视觉离散分词通常由向量量化、乘积量化与标量量化驱动，但缺少统一概念框架来理解量化权衡。文章把量化视为有损压缩，用码本大小与token数刻画固定长度编码速率，以量化误差为失真，由此回答三个核心问题：最小化失真才是重构保真度的主要目标，码本利用率并非核心；不同量化家族在率失真层面的关系得以澄清。理论分析与实验同时表明该框架能为量化格式选择提供统一指导，对极低比特向量和标量量化研究具有重要参考意义。",
+      "llm_tldr": "本文指出现有视觉离散分词通常由向量量化、乘积量化与标量量化驱动，但缺少统一概念框架来理解量化权衡。文章把量化视为有损压缩，用码本大小与token数刻画固定长度编码速率，以量化误差为失真，由此回答三个核心问题：最小化失真才是重构保真度的主要目标，码本利用率并非核心；不同量化家族在率失真层面的关系得以澄清。理论分析与实验同时表明该框架能为量化格式选择提供统一指导，对极低比特向量和标量量化研究具有重要参考意义。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.05641v1",
+      "source": "arxiv",
+      "title": "A Nuclear-Norm Lower Bound for Dithered Scalar Quantization of Matrix Products",
+      "abstract": "We consider the problem of minimizing error in quantized matrix multiplication $C=AB$. Scalar quantization of the factors introduces rounding errors whose scale depends on the maximum absolute entries -- the ranges -- of their rows and columns. These ranges determine the quantization grid steps. To reduce the error, we optimize over product-preserving transformations that alter the factor ranges and grid steps without changing $C$. Specifically, we seek the smallest leading expected squared error over invertible inner changes of basis and orthogonal outer rotations. Under independent, zero-mean subtractive dither noise on an unbounded lattice, we prove the output-only bound $E_{\\rm lead} \\ge (c_A+c_B)/K \\Vert AB\\Vert_*^2$, where $K$ is the inner dimension, $c_A$ and $c_B$ are normalized noise variances, and $\\Vert AB\\Vert_*$ is the nuclear norm. The bound is tight: an SVD-aligned Hadamard construction attains the infimum whenever a Hadamard matrix of order $K$ exists, including every power of two, while an SVD-aligned DCT construction is within a factor of two for every $K$. Without outer rotations, Gram-matrix balancing minimizes factorization energy, and finite-set flattening achieves the bound within $C\\log(K(m+n))$. For power-of-two $K$, conditional expectations deterministically select the Hadamard signs in $O((m+n)K^2)$ exact-real operations. Synthetic experiments verify both constructions and illustrate the tradeoff between regularization and conditioning. These results characterize the full-gauge optimum and quantify the cost of preserving row and column indices.",
+      "authors": [
+        "Piyush Sao",
+        "Narasinga Miniskar",
+        "Pedro Valero-Lara",
+        "Keita Teranishi",
+        "Sudip Seal"
+      ],
+      "primary_category": "cs.IT",
+      "categories": [
+        "cs.IT",
+        "cs.LG",
+        "math.NA"
+      ],
+      "published": "2026-09-04T18:22:01+00:00",
+      "link": "https://arxiv.org/pdf/2609.05641v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "dithered scalar quantization of matrix products, quantization error lower bound, low-precision theory",
+      "llm_evidence_cn": "抖动标量量化矩阵乘积误差下界及低精度理论",
+      "llm_evidence": "抖动标量量化矩阵乘积误差下界及低精度理论",
+      "canonical_evidence": "抖动标量量化矩阵乘积误差下界及低精度理论",
+      "llm_tldr_en": "This theory paper studies dithered scalar quantization for matrix multiplication. It optimizes product-preserving transformations and proves a nuclear-norm lower bound on the leading expected squared error, giving a principled limit for low-precision quantized numerical linear algebra.",
+      "llm_tldr_cn": "针对量化矩阵乘法中误差最小化的问题，作者使用抖动标量量化并优化乘积保持的基变换与正交旋转，推导出领先阶期望平方误差的下界，该下界依赖矩阵乘积的核范数。这一结果为低比特标量量化矩阵运算提供了理论保障，也为极低比特量化方案和实际硬件的精度选择提供了可验证的分析工具。",
+      "llm_tldr": "针对量化矩阵乘法中误差最小化的问题，作者使用抖动标量量化并优化乘积保持的基变换与正交旋转，推导出领先阶期望平方误差的下界，该下界依赖矩阵乘积的核范数。这一结果为低比特标量量化矩阵运算提供了理论保障，也为极低比特量化方案和实际硬件的精度选择提供了可验证的分析工具。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "3 bit SQ",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.06161v1",
+      "source": "arxiv",
+      "title": "All for 1-Bit: Towards Genuine 1-Bit Post-Training Quantization for LLMs",
+      "abstract": "Large language models (LLMs) have achieved remarkable progress, yet their massive storage and memory-bandwidth demands still hinder efficient deployment. Weight binarization is a promising solution, but existing binarization-based post-training quantization (PTQ) methods usually far exceed the nominal 1-bit storage target due to hidden overhead. To address this gap, we propose All for 1-Bit (AF1), a genuine 1-bit PTQ framework for LLMs. AF1 comprises two complementary components: (1) Null-space-Aware Binary Factorization (NABF) for improving binary reconstruction through Hessian-aware surrogate reparameterization, null-space-aware binary factorization, and scale-only global reconstruction; and (2) Hierarchical Shapley Allocation (HiSA) for assigning structural capacity using hierarchical Shapley sensitivity. Together, they preserve model accuracy under a strict 1.0-BPW budget in the PTQ setting. Experiments on LLaMA, Qwen, and Gemma families show that AF1 consistently outperforms existing binarization-based PTQ methods in perplexity and zero-shot accuracy. Compared with BF16, AF1 achieves an average 2.5 times inference speedup and over 90% memory reduction across evaluated models, providing a practical path toward deployable genuine 1-bit compression for LLMs. The code for reproducibility is available at https://github.com/Kishon-zzx/AF1.",
+      "authors": [
+        "Zhixiong Zhao",
+        "Zukang Xu",
+        "Guangyu Sun",
+        "Lifeng Liu",
+        "Dawei Yang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-05T16:03:41+00:00",
+      "link": "https://arxiv.org/pdf/2609.06161v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Genuine 1-bit post-training quantization for LLMs; directly targets extreme low-bit weight compression with advanced results",
+      "llm_evidence_cn": "面向大语言模型的真正1比特后训练量化，直接对应极低比特量化主题且方法先进",
+      "llm_evidence": "面向大语言模型的真正1比特后训练量化，直接对应极低比特量化主题且方法先进",
+      "canonical_evidence": "面向大语言模型的真正1比特后训练量化，直接对应极低比特量化主题且方法先进",
+      "llm_tldr_en": "AF1 is a genuine 1-bit post-training quantization framework for LLMs that removes hidden overhead of binary PTQ via null-space-aware binary factorization and hierarchical Shapley allocation, advancing extreme low-bit compression.",
+      "llm_tldr_cn": "大语言模型存储和内存带宽开销巨大，权值二值化是很有吸引力的压缩手段，但现有基于二值化的后训练量化(PTQ)常因隐藏开销远超名义1比特存储目标。为此提出AF1框架，包含基于Hessian感知的重参数化、零空间感知二值分解与仅尺度全局重建的NABF组件，以及层次化Shapley分配HiSA组件，实现真正1比特的LLM PTQ。该方法从分解目标与预算分配两方面消除冗余开销，在极低比特量化方向提供了先进结果，对大模型高效部署有重要意义。",
+      "llm_tldr": "大语言模型存储和内存带宽开销巨大，权值二值化是很有吸引力的压缩手段，但现有基于二值化的后训练量化(PTQ)常因隐藏开销远超名义1比特存储目标。为此提出AF1框架，包含基于Hessian感知的重参数化、零空间感知二值分解与仅尺度全局重建的NABF组件，以及层次化Shapley分配HiSA组件，实现真正1比特的LLM PTQ。该方法从分解目标与预算分配两方面消除冗余开销，在极低比特量化方向提供了先进结果，对大模型高效部署有重要意义。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.03641v1",
+      "source": "arxiv",
+      "title": "Tree-Structured Vector Quantization For Efficient And Progressive Image Compression",
+      "abstract": "Vector-quantization based image compression has achieved strong rate--distortion performance, yet most of them still produce a separate compressed representation for each target bitrate. Such variable-rate behavior allows one model to operate at multiple rates, but it does not necessarily provide a progressive bitstream whose prefixes are themselves decodable and can be refined by appending additional bits. We propose \\textbf{Tree-VQ}, a progressive tree-structured vector quantization framework for learned image compression. Tree-VQ organizes discrete codewords as a hierarchical binary tree and represents each latent token by a routed root-to-leaf path. Crucially, every prefix of this path corresponds to a valid quantized representation, so shallow internal nodes serve as coarse reconstruction codes and deeper nodes provide successive refinements. This allows a compressed image to be decoded from an early prefix and progressively improved as more branch symbols are received, rather than being re-encoded for different target rates. To make this structure practical for compression, we introduce a prefix-compatible tree entropy model that codes progressive continuation decisions and routed branch refinements using only causally available decoded contexts. We further use rate-aware refinement scheduling to decide which spatial blocks should receive additional tree bits under a given prefix budget, and hierarchical prefix supervision to ensure that internal nodes are directly decodable at low rates. Experiments show that Tree-VQ achieves a superior performance--efficiency trade-off, delivering the best perceptual compression results with much fewer parameters and lower latency than competing methods.",
+      "authors": [
+        "Xinkun Wang",
+        "Tianyi Xu",
+        "Qingyu Luo",
+        "Mingming Ma",
+        "Changzhe Jiao",
+        "Fu Li",
+        "Yi Niu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-03T10:41:36+00:00",
+      "link": "https://arxiv.org/pdf/2609.03641v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Tree-structured vector quantization with hierarchical binary codebooks and progressive root-to-leaf codes, matching low-bit VQ interest",
+      "llm_evidence_cn": "提出二叉树结构的层级向量量化，逐位前缀构成有效码字，与低比特VQ研究兴趣相符",
+      "llm_evidence": "提出二叉树结构的层级向量量化，逐位前缀构成有效码字，与低比特VQ研究兴趣相符",
+      "canonical_evidence": "提出二叉树结构的层级向量量化，逐位前缀构成有效码字，与低比特VQ研究兴趣相符",
+      "llm_tldr_en": "Proposes Tree-VQ, a hierarchical binary-tree vector quantizer whose prefix codes are valid representations, enabling efficient progressive image compression across bitrates.",
+      "llm_tldr_cn": "现有基于向量量化的图像压缩通常为每个目标码率训练单独码本或仅支持可变码率，难以直接形成可逐步解码的渐进码流。该文提出Tree-VQ，把离散码词组织为层次二叉树，潜在token由根到叶的路由路径编码，任何路径前缀都是有效量化表示。由此一个模型可支持多位率渐进压缩：先解码低码率前缀，再追加比特细化重建质量。该方法在保真度与渐进性之间建立直接联系，对极低比特VQ的设计具有借鉴意义。",
+      "llm_tldr": "现有基于向量量化的图像压缩通常为每个目标码率训练单独码本或仅支持可变码率，难以直接形成可逐步解码的渐进码流。该文提出Tree-VQ，把离散码词组织为层次二叉树，潜在token由根到叶的路由路径编码，任何路径前缀都是有效量化表示。由此一个模型可支持多位率渐进压缩：先解码低码率前缀，再追加比特细化重建质量。该方法在保真度与渐进性之间建立直接联系，对极低比特VQ的设计具有借鉴意义。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "2 bit VQ",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.00450v1",
+      "source": "arxiv",
+      "title": "HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference",
+      "abstract": "Block Quantization (BQ) is a promising approach for efficient deployment of large language models (LLMs), enabling low-precision computation with controlled accuracy degradation. Compared to scalar weight-only quantization (WoQ), BQ quantizes both weight and activation, offering higher hardware efficiency and end-to-end inference on a unified datapath, but its design space, spanning bit-width, block size, scaling, and numeric formats, remains underexplored.   We provide hardware/benchmark results through design space exploration (DSE). We find that increasing block size improves hardware efficiency by amortizing dequantization and accumulation costs, but degrades accuracy. This trade-off limits conventional BQ methods.   Motivated by this insight, we propose Hierarchical Block Quantization (HBQ). Unlike prior methods [1], [2], which use small blocks and conventional Power-of-Two (PoT) or integer-based scaling, HBQ uses large blocks to maximize efficiency and introduces low-overhead significand (SIG) scaling for second-level quantization. By allocating quantization levels effectively and accounting for distinct activation and weight distributions, SIG scaling compensates for large-block errors more effectively than prior PoT and INT schemes. HBQ-A (accurate) achieves W4A16-level accuracy using only W4A5 while requiring less silicon area than NVFP4. HBQ-E (efficient) further reduces hardware cost by 17% while maintaining higher accuracy than all existing BQ methods.   We implemented a 28nm ASIC accelerator applying HBQ to weights, activations, and KV cache, and integrated a novel partial-sum BQ scheme to further reduce EMA energy.   Compared to state-of-the-art WoQ, HBQ delivers $2.3\\times$/$4.6\\times$ higher area/energy efficiency at the same accuracy level; $1.6$--$3.3\\times$ system energy reduction and $1.5$--$3.0\\times$ speedup over prior BQ methods while providing best accuracy.",
+      "authors": [
+        "Chun-Ting Chen",
+        "Dongmin Han",
+        "Hangyeol Mun",
+        "Jake Hyun",
+        "Arnab Raha",
+        "Amit Agarwal",
+        "Mark Anders",
+        "Mohamed Abdelfattah",
+        "Jae-sun Seo"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.AR"
+      ],
+      "published": "2026-08-31T22:39:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.00450v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Hardware-efficiency-aware block quantization design and benchmark results for low-bit LLM inference",
+      "llm_evidence_cn": "面向低比特LLM推理的硬件效率感知块量化设计与基准结果，属于先进量化实现",
+      "llm_evidence": "面向低比特LLM推理的硬件效率感知块量化设计与基准结果，属于先进量化实现",
+      "canonical_evidence": "面向低比特LLM推理的硬件效率感知块量化设计与基准结果，属于先进量化实现",
+      "llm_tldr_en": "Proposes hardware-efficiency-aware hierarchical scaling block quantization for LLM inference, exploring bit-width, block size, scaling and numeric formats; shows larger blocks improve hardware efficiency but degrade accuracy, providing a design-space map.",
+      "llm_tldr_cn": "大型语言模型部署中块量化相比逐权重量化能同时压缩权重和激活并提升硬件效率，但其位宽、块大小、缩放与数值格式的设计空间尚未被充分探索。本文提出层次化缩放块量化HBQ，并对硬件与基准性能做设计空间探索，发现增大块大小能摊还反量化与累加开销但会损害精度。通过硬件效率感知的设计选择，HBQ在端到端统一数据通路上实现高精度且高效的LLM推理，其缩放与块划分经验对低比特量化方案设计有参考价值。",
+      "llm_tldr": "大型语言模型部署中块量化相比逐权重量化能同时压缩权重和激活并提升硬件效率，但其位宽、块大小、缩放与数值格式的设计空间尚未被充分探索。本文提出层次化缩放块量化HBQ，并对硬件与基准性能做设计空间探索，发现增大块大小能摊还反量化与累加开销但会损害精度。通过硬件效率感知的设计选择，HBQ在端到端统一数据通路上实现高精度且高效的LLM推理，其缩放与块划分经验对低比特量化方案设计有参考价值。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "papers provide SoTA/advanced results",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.04724v1",
+      "source": "arxiv",
+      "title": "FlexPosit: Tunable Fractional Precision for LLM Inference Accelerators",
+      "abstract": "Large language models (LLMs) offer remarkable capabilities but impose prohibitive compute and energy costs. Quantization governs the trade-offs between accuracy and hardware efficiency across granularity and bit-width. Finer granularity (e.g., group-wise) provides high accuracy but incurs scaling and control overhead, while coarser granularity (e.g., channel-wise) has lower overhead but loses accuracy at low precision. Meanwhile, mixed-precision quantization exposes rich accuracy-efficiency trade-offs algorithmically, but existing LLM accelerators remain limited to discrete precision modes, leaving the fractional design space between them unexplored.   FlexPosit bridges these gaps through co-design of Posit-based quantization and a precision-tunable bit-serial architecture. Algorithmically, FlexPosit employs distribution-aware quantization with hardware-aligned, sensitivity-guided mixed-precision allocation, leveraging the Posit format's tapered precision to achieve group-wise-like accuracy with channel-wise-like regularity. Architecturally, FlexPosit is a unified bit-serial systolic array with lightweight per-column decoders, unified Processing Elements (PEs), and a global precision controller, enabling tunable fractional precision while preserving fully regular systolic dataflow. Across diverse LLMs, FlexPosit achieves near-FP16 accuracy with sub-5-bit fractional weights. It achieves up to 1.8x higher throughput and 1.2x lower energy than BitMoD (group-wise quantization), and 1.5x higher throughput and 2.0x lower energy than OliVe (channel-wise quantization), establishing a new Pareto frontier for precision-tunable LLM acceleration.",
+      "authors": [
+        "Yimin Gao",
+        "Liangtao Dai",
+        "Jun Yin",
+        "Xinfei Guo",
+        "Mircea Stan"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-04T04:48:35+00:00",
+      "link": "https://arxiv.org/pdf/2609.04724v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Proposes Posit-based low-precision LLM quantization with tunable fractional bit-widths and accelerator co-design, closely aligned with the low-bit scalar quantization theme",
+      "llm_evidence_cn": "提出基于Posit的低比特LLM量化与可调分数位宽加速器协同设计，与低比特标量量化主题高度契合",
+      "llm_evidence": "提出基于Posit的低比特LLM量化与可调分数位宽加速器协同设计，与低比特标量量化主题高度契合",
+      "canonical_evidence": "提出基于Posit的低比特LLM量化与可调分数位宽加速器协同设计，与低比特标量量化主题高度契合",
+      "llm_tldr_en": "FlexPosit co-designs Posit quantization and a precision-tunable accelerator for LLM inference. It spans group-wise and channel-wise granularity and fractional bit-widths, filling the gap between discrete precision modes for better accuracy-efficiency trade-offs.",
+      "llm_tldr_cn": "大语言模型推理在计算与能耗上代价高昂，量化需要在精度与硬件效率之间权衡，而细粒度与混合精度配置尚未被硬件充分利用。FlexPosit提出基于Posit的量化格式和可调分数比特宽度的推理加速器协同设计，支持组级/通道级粒度并探索离散低位宽之间的分数精度空间。该方案能在低精度场景下兼顾模型精度与硬件能效，为LLM低比特推理加速提供了硬件友好的新路径。",
+      "llm_tldr": "大语言模型推理在计算与能耗上代价高昂，量化需要在精度与硬件效率之间权衡，而细粒度与混合精度配置尚未被硬件充分利用。FlexPosit提出基于Posit的量化格式和可调分数比特宽度的推理加速器协同设计，支持组级/通道级粒度并探索离散低位宽之间的分数精度空间。该方案能在低精度场景下兼顾模型精度与硬件能效，为LLM低比特推理加速提供了硬件友好的新路径。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.07901v1",
+      "source": "arxiv",
+      "title": "Quantization Amplifies Determinism, Not Bias: Scale-Dependent Behavioral Effects of Serving-Time Weight Compression",
+      "abstract": "Weight quantization largely determines the economics of serving open-weight LLMs. Its costs are usually assessed with capability benchmarks, on which 4-bit quantization of mid-sized models is often considered \"nearly free.\" We examine a different question: when several answers are valid, does quantization change what a model chooses to say? We serve three checkpoints (Qwen3-8B/14B/32B) at three weight precisions (W4A16 AWQ, W8A16 FP8-Marlin, and bf16), holding the hardware, software, and sampling configuration constant, and collect approximately 71,000 completions paired by prompt and seed across two custom, leak-checked prompt batteries. We pre-specified the analyses in three waves in version control. At 8B, int4 reduces output diversity: the probability that two samples for the same scenario recommend the same brand increases by 5.1 percentage points (prompt-paired sign-flip test, Holm p = .023; reproduced at +4.4pp on a full regeneration of the arm), and lexical diversity falls substantially (TTR -0.011, standardized effect -0.51; robust to a length-controlled measure). At 14B and 32B, no content-concentration measure reaches significance; instead, stylistic drift emerges (em-dash rate +0.46/1k words at 14B and +0.61/1k at 32B, both Holm p <= .0024). Pre-specified tests of stereotype direction are null at every scale: outputs concentrate on the modal answer for each prompt rather than on stereotypical answers. Mechanistically, the token-level distribution becomes flatter (decision-token entropy +0.091 bits, p = .015) while the semantic distribution, measured directly from first-token log probabilities, becomes more concentrated (collision +2.6pp, p = .023): individual tokens become less predictable even as meanings become more repetitive. At 8B, the smallest size tested, AWQ-int4 serving measurably narrows the range of suggestions; audits should assess concentration as well as bias.",
+      "authors": [
+        "Dachi Kurtskhalia"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-07T19:06:31+00:00",
+      "link": "https://arxiv.org/pdf/2609.07901v1",
+      "tags": [
+        "keyword:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "4-bit/8-bit serving-time weight compression and behavioral evaluation, aligned with weight-quantization search query",
+      "llm_evidence_cn": "针对服务期权重量化（4位AWQ、8位FP8）的选择行为分析，契合权重量化检索主题",
+      "llm_evidence": "针对服务期权重量化（4位AWQ、8位FP8）的选择行为分析，契合权重量化检索主题",
+      "canonical_evidence": "针对服务期权重量化（4位AWQ、8位FP8）的选择行为分析，契合权重量化检索主题",
+      "llm_tldr_en": "With ~71K paired generations on Qwen3-8B/14B/32B, shows 4-bit and 8-bit weight compression changes choice behavior in a scale-dependent way, strengthening determinism.",
+      "llm_tldr_cn": "权重量化主要决定开源LLM服务经济性，但现有评估多用能力基准而忽视多个有效答案下的行为改变。该论文在固定硬件与采样条件下，对Qwen3-8B/14B/32B使用W4A16 AWQ、W8A16 FP8-Marlin和bf16三种精度，收集约7.1万条按提示与随机种子配对生成。结果显示量化对输出行为的影响随模型尺度依赖不同路径，更多表现为增强确定性而非放大偏差，提示低比特权重量化不能仅凭基准分数判断其是否近似无损。",
+      "llm_tldr": "权重量化主要决定开源LLM服务经济性，但现有评估多用能力基准而忽视多个有效答案下的行为改变。该论文在固定硬件与采样条件下，对Qwen3-8B/14B/32B使用W4A16 AWQ、W8A16 FP8-Marlin和bf16三种精度，收集约7.1万条按提示与随机种子配对生成。结果显示量化对输出行为的影响随模型尺度依赖不同路径，更多表现为增强确定性而非放大偏差，提示低比特权重量化不能仅凭基准分数判断其是否近似无损。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "w",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.08135v1",
+      "source": "arxiv",
+      "title": "KBBQ: A Predictive Noise Law and the Limits of Spectrum Flattening in FP4 Quantization",
+      "abstract": "We develop a second-order theory of quantization noise in matrix multiplication in which the quantization format is characterized by the variance it assigns to each element. The constant variance profile of integer quantization recovers existing integer-noise theory, while the multiplicative profile of floating-point rounding reduces the data dependence to a scalar, the participation factor $κ$, yielding a closed-form signal-to-noise-ratio law. The resulting functional also admits a closed-form upper bound $κ^{*}$ that no function-preserving linear transform can exceed and that is attained by a recent state-of-the-art method. Building on this analysis, we introduce KBBQ (\\textbf{K}appa-\\textbf{B}raked \\textbf{B}lockwise \\textbf{Q}uantization), which parameterizes the extent to which a transform approaches this ceiling. At W4A4, across four base models and two FP4 formats, KBBQ outperforms the prior state of the art without additional deployment-time computation.",
+      "authors": [
+        "Lexington Whalen",
+        "Yuki Ito",
+        "Ryo Sakamoto"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-08T02:12:30+00:00",
+      "link": "https://arxiv.org/pdf/2609.08135v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Advanced FP4 quantization theory and closed-form noise law that attains a state-of-the-art upper bound",
+      "llm_evidence_cn": "提供FP4量化中预测性噪声定律与SoTA方法可达的封闭上界，属于先进量化结果",
+      "llm_evidence": "提供FP4量化中预测性噪声定律与SoTA方法可达的封闭上界，属于先进量化结果",
+      "canonical_evidence": "提供FP4量化中预测性噪声定律与SoTA方法可达的封闭上界，属于先进量化结果",
+      "llm_tldr_en": "Develops a second-order quantization-noise theory for matrix multiplication where formats are characterized by per-element variance; derives a closed-form SNR law with a bound attained by recent SoTA, then builds KBBQ block quantization for FP4.",
+      "llm_tldr_cn": "本文针对低精度矩阵乘法的量化噪声缺乏二阶预测理论的问题，提出用每个元素分配的方差刻画量化格式，从而为浮点舍入得到参与因子κ和闭合信噪比定律，并证明任何保函数线性变换都无法超过的上界κ*。在理论之上提出KBBQ块量化方法，在FP4场景中取得先进结果。该噪声定律和频谱展平限度可迁移至极端低比特量化方案的设计与验证，为后续低比特格式选择提供理论依据。",
+      "llm_tldr": "本文针对低精度矩阵乘法的量化噪声缺乏二阶预测理论的问题，提出用每个元素分配的方差刻画量化格式，从而为浮点舍入得到参与因子κ和闭合信噪比定律，并证明任何保函数线性变换都无法超过的上界κ*。在理论之上提出KBBQ块量化方法，在FP4场景中取得先进结果。该噪声定律和频谱展平限度可迁移至极端低比特量化方案的设计与验证，为后续低比特格式选择提供理论依据。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "papers provide SoTA/advanced results",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
