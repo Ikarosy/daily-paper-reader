@@ -1,0 +1,1687 @@
+Title: When Does Low-Bit Quantization Preserve the Decisions of Vector Search?
+
+URL Source: https://arxiv.org/pdf/2609.09854v1
+
+Published Time: Thu, 10 Sep 2026 00:43:03 GMT
+
+Number of Pages: 42
+
+Markdown Content:
+# When Does Low-Bit Quantization Preserve the Decisions of Vector Search? 
+
+Wenxuan Xiao w.xiao@astrmira.com 
+
+Astrmira Tech. 
+
+Xu Cao x.cao@astrmira.com 
+
+Astrmira Tech. 
+
+## Abstract 
+
+The same two-bit coordinate code that recovers 95% of exact nearest neighbours on Cohere text embeddings recovers 2% on GIST image descriptors. Average distortion does not explain the gap. A graph-based search algorithm never consumes a distance estimate on its own; it consumes comparisons, and a comparison fails only when quantization noise crosses the specific decision boundary that the comparison sits on. We develop a theory of low-bit vector search at this level. The first result is a distribution-free decomposition: the probability that a comparison flips is at most the probability mass of exact margins near zero plus the tail probability of the calibrated residual. Global fidelity metrics average over both quantities and therefore cannot separate them. The second result treats residual dependence induced by shared structure. In the inspected Cohere selected-pair population, residuals sharing a query have strong pooled correlation, and the measured variance of their difference is 7.4 times smaller than the sum of their marginal variances. The third result is a deterministic coupling theorem for the neighbour-selection call of Vamana: for a frozen candidate permutation, the approximate replay produces the same neighbour list exactly when every candidate-level pruning action agrees with the exact one, and the first disagreement identifies the edge at which the outputs diverge. We connect these decision-level results to representation geometry through an exact Gaussian oracle. Stein’s lemma gives a closed-form sign–linear covariance identity and shows how off-diagonal covariance enters the ranking signal; an aligned bilinear model yields a strict correlation gain from a deterministic magnitude bit; and a rare-contamination construction proves that marginal Gaussianity, thin-shell concentration, and regular spectra cannot by themselves imply the exponential tails the bounds require. For representations outside the analytical regime, a held-out block certificate bounds the selective failure risk of a frozen quantized rule from data alone. On learned, classical, and synthetic embeddings, standardized exact margins predict held-out flip rates with Spearman correlation 0.97 for ranking and 0.99 for pruning, against 0.74 and 0.05 for global rank correlation. The coupling identity holds in all 960 sampled selection calls. Direct-ratio selective certificates at 512 blocks average 16.7% for ranking and 18.7% for pruning; no selected empirical validation risk exceeds its certificate. A random rotation raises Cohere’s global rank fidelity from 0.58 to 0.93 while leaving one held-out flip rate unchanged and raising another by half, so fidelity does not determine the sign of the change in decision risk. The framework covers coordinate binary codes, RaBitQ, Lucene BBQ, and product quantizers through a common decision interface. 
+
+Keywords: vector search, binary quantization, decision stability, concentration inequal-ities, contrastive representations  
+
+> ©2026 Wenxuan Xiao and Xu Cao. License: CC-BY 4.0, see https://creativecommons.org/licenses/by/4.0/ .arXiv:2609.09854v1 [cs.DB] 9 Sep 2026 Xiao and Cao
+
+## 1 Introduction 
+
+Binary quantization compresses a 768-dimensional float vector to 96 bytes and replaces most floating-point distance arithmetic with packed integer operations. Two recent sys-tems exploit low-bit codes with opposite strategies. QuIVer (Xiao et al., 2026) keeps the coordinate axes of the encoder and builds and searches a proximity graph directly on two-bit scores; RaBitQ (Gao and Long, 2024) applies a random rotation before one-bit coding and corrects the estimate. Both reach competitive recall on their benchmarks. Yet the two-bit coordinate index of QuIVer reaches 95% recall at ten neighbours on Cohere-768 embeddings and 2% on GIST-960 descriptors (Xiao et al., 2026), and the classical analysis of sign codes does not predict either number: the SimHash collision law (Charikar, 2002) describes random projection directions, not the fixed coordinate axes of a trained encoder, and it says nothing about how the training objective shapes those axes. 
+
+The right level of analysis. Prior work measures score fidelity : how well approximate distances track exact ones, summarized by mean squared error, Spearman correlation, or end-to-end recall. A graph algorithm does not consume scores in this form. It executes a sequence of binary comparisons (sort these candidates, prune that edge, advance along this path), and a comparison has consequences only when it crosses its decision boundary. Two features of this setting are invisible to fidelity metrics. First, the comparisons that matter have small margins, because candidate sets are selected to be close to the query. Second, the two residuals entering a comparison can be dependent because the corresponding distances share a query or graph node, so the variance of their difference includes a covariance term. 
+
+Example 1 (Shared error cancels in a comparison) On Cohere embeddings with two-bit codes, the calibrated errors of the two distances in a nearest-neighbour comparison have standard deviations 0.024 and 0.027 in cosine-distance units. Their measured difference has standard deviation 0.013 , compared with 0.036 after omitting the empirical covariance term; the pooled residual correlation is 0.87 . A metric that averages individual distance errors does not expose this difference residual. 
+
+This paper develops the theory at the level of individual comparisons: their exact mar-gins, their correlated residuals, and the way they compose inside a graph algorithm. 
+
+Contributions. The results form four layers. 1. A decision-level risk decomposition (§3). For any comparison with exact value Ψ and calibrated residual R,
+
+P(flip) ≤ P(0 < |Ψ| ≤ τ )
+
+| {z }
+
+> boundary mass
+
++ P(|R| ≥ cτ )
+
+| {z }
+
+> residual tail
+
+for every τ > 0, with no distributional assumption. Instantiated for ranking and for Vamana pruning, the difference residual has an exact covariance-aware second-moment identity and admits a tail bound under a joint MGF proxy. On the inspected Cohere selected pairs, omitting empirical covariance overstates the measured difference variance by a factor of 7 .4. 
+
+> 2Low-Bit Decision Stability in Vector Search
+
+2. Frozen-trace composition (§4). A Vamana selection call is a deterministic state machine: a candidate ordering, a sequence of pruning actions, and a neighbour list. For a frozen ordering, the approximate replay returns the exact list if and only if every candidate-level action evaluated on the frozen exact state agrees, and the first disagreement is the exact point of divergence. Local bounds therefore compose into trace-, edge-, and path-level certificates. 3. The representation bridge and its limits (§5). Under an exact Gaussian or-acle, Stein’s lemma gives a sign–linear covariance identity, and an aligned bilinear model gives a strict correlation gain from a magnitude bit. A rare-contamination con-struction proves that fixed-dimensional Gaussianity, thin-shell concentration, and an isotropic spectrum are jointly insufficient for useful exponential tails; concentration needs one of three additional ingredients, which we supply. 4. Operational certificates and quantizer scope (§6, §7). A held-out block certifi-cate bounds the selective risk of a frozen quantized rule with finite-sample validity and no analytical assumption. RaBitQ, Lucene BBQ, and product quantizers enter the same decision interface through family-specific residual mechanisms. 
+
+Scope. The theory covers fixed candidate sets and frozen execution traces. End-to-end recall additionally depends on candidate coverage, which requires separate graph-expansion arguments and is outside this paper. 
+
+Notation. Throughout, d(·, ·) is an exact distance or dissimilarity and ˆdQ its quantized approximation; Ψ is a signed decision functional whose sign selects an action; Γ = |Ψ| is the exact margin; R is the calibrated residual; cQ > 0 is the calibration scale; and v is a residual-tail parameter. For G ∼ N (μ, Σ) we write σ2 
+
+> i
+
+= Σ ii , ρij = Σ ij /(σiσj ), and φ for the standard normal density. 
+
+## 2 Related Work 
+
+Binary codes and random projections. SimHash (Charikar, 2002) shows that random-hyperplane sign bits preserve angular similarity, with collision probability 1 − arccos ⟨x, y ⟩/π 
+
+for fixed vectors. The randomness lives in the projection directions; the result does not describe the fixed coordinate axes of a learned encoder, whose per-coordinate variances differ by an order of magnitude. RaBitQ (Gao and Long, 2024) gives a sharp pointwise error bound for a randomized ratio estimator of a single inner product. Product quantiza-tion (J´ egou et al., 2011; Ge et al., 2014) and ScaNN (Guo et al., 2020) operate with learned codebooks at 4 to 64 bits. These methods characterize individual distance estimates; our decision analysis studies differences of estimates with shared structure. 
+
+Graph-based nearest-neighbour search. HNSW (Malkov and Yashunin, 2020) and Vamana (Subramanya et al., 2019) build navigable graphs by iterated candidate sorting and diversity pruning, and QuIVer (Xiao et al., 2026) runs both operations on two-bit scores. Existing theory studies navigability under random-graph or geometric assumptions. We ask a different question, whether quantization preserves the local decisions made during construction and traversal, and answer it with a deterministic composition theorem for the selection state machine. 
+
+> 3Xiao and Cao
+
+Contrastive representation geometry. Betser et al. (2026) prove asymptotic Gaus-sianity of fixed-dimensional projections under stated alignment and concentration assump-tions, with a second regime that adds a vanishing regularizer. We use this result to motivate an exact Gaussian oracle; approximate Gaussian diagnostics alone do not transfer its iden-tities or tails without error control. 
+
+Concentration and margin conditions. The boundary-plus-tail split is the low-noise condition of Tsybakov (2004) transported to algorithmic comparisons. The residual side is supplied by sub-Gaussian and sub-gamma tail bounds (Vershynin, 2018; Boucheron et al., 2013), by Efron–Stein replacement bounds (Efron and Stein, 1981), and by empirical Bern-stein inequalities (Maurer and Pontil, 2009). The new element is the combination of role-specific quantization residuals, covariance-aware scales, and frozen algorithmic traces in one framework. 
+
+## 3 Decisions, Boundaries, and Residual Tails 
+
+Every step of graph-based vector search reduces to the question “is Ψ positive or negative?”, where Ψ is a difference of distances (ranking), a scaled comparison (pruning), or a threshold test (stopping). Quantization replaces Ψ by an approximation bΨQ, and the step fails when the two disagree in sign. Table 1 summarizes what each result in the paper assumes and what it delivers; the rest of the paper fills in the rows. Table 1: The results of the paper, the source of randomness each one conditions on, and the object each one controls.      
+
+> Result Randomness Key assumption Controls Does not control Boundary– residual split (Thm. 2) any common probability space positive calibration scale; exact ties handled separately flip probability of one comparison residual concentration Covariance-aware tails (Props. 5, 6) quantizer or data randomness with the compared objects fixed joint sub-Gaussian proxy and bias term one-sided ranking and pruning flip risk MGF control from sample covariance alone Trace coupling (Thm. 8) none: deterministic state machine shared permutation, append-only selection, one tie rule equality of neighbour lists; first divergence candidate generation, navigability, or recall Gaussian oracle (Thm. 11, Prop. 12) exact joint Gaussian representation stated target, scorer, threshold sign–linear covariance; aligned Pearson gain arbitrary scorers or decision risk Necessity (Thm. 13) explicit construction none impossibility of tails from low-order diagnostics behavior of every real embedding Selective certificate (Thm. 14) i.i.d. blocks given a frozen fit positive coverage; prespecified grid ratio of expected failure to expected coverage distribution shift or end-to-end recall 4Low-Bit Decision Stability in Vector Search
+
+3.1 Setup and the main decomposition Definition 1 (Decision residual and margin) Let Ψ and bΨQ be the exact and approxi-mate decision functionals on a common probability space. For a calibration constant cQ > 0
+
+define 
+
+R = bΨQ − cQΨ, Γ = |Ψ|. (1) 
+
+The conservative flip event is E = {Ψ bΨQ ≤ 0, Ψ̸ = 0 }: an approximate tie against a non-tied exact decision counts as a failure. 
+
+The constant cQ absorbs multiplicative distortion and is fitted by least squares on an independent sample. A through-origin fit makes R orthogonal to Ψ in the sample, but it does not make R mean zero; the risk bounds below therefore carry an explicit bias term, and in practice we use affine calibration. 
+
+Theorem 2 (Boundary–residual decomposition) For every τ > 0,
+
+P(E) ≤ P(0 < Γ ≤ τ )
+
+| {z }
+
+> boundary mass
+
++ P(|R| ≥ cQτ )
+
+| {z }
+
+> residual tail
+
+. (2) 
+
+No independence between R and Ψ is required. 
+
+Proof On E the residual opposes the sign of Ψ with magnitude at least cQΓ > 0. Split according to whether Γ ≤ τ or Γ > τ ; in the second case |R| ≥ cQΓ > c Qτ .The two terms are the two failure mechanisms that fidelity metrics merge. High average fidelity coexists with large boundary mass on a hard candidate set, and poor average fidelity is harmless when every margin of interest is large. Rank correlation and boundary crossings are different functionals of the same joint law, which is why a Spearman coefficient computed on random pairs does not determine the flip rate on selected pairs ( §8 gives an explicit construction in which the two are decoupled). 
+
+Corollary 3 (Sub-Gaussian instantiation) If P(0 < Γ ≤ τ ) ≤ Cτ β for 0 < τ ≤ τ0 and 
+
+P(|R| ≥ z) ≤ 2 exp( −z2/2v2), then 
+
+P(E) ≤ inf  
+
+> 0<τ ≤τ0
+
+"
+
+Cτ β + 2 exp − c2
+
+> Q
+
+τ 2
+
+2v2
+
+!# 
+
+, (3) 
+
+and the minimizing τ ⋆ scales as (v/c Q)[log(1 /v )] 1/2. The resulting rate is of order 
+
+(v/c Q)β [log( cQ/v )] β/ 2
+
+(Appendix A). 
+
+Remark 4 (The boundary exponent belongs to the embedding) Fitting the empir-ical margin distribution on logarithmic axes over the inspected quantile window gives β =1.526 on Cohere ( R2 = 0 .994 ), 1.500 on MiniLM ( R2 = 0 .979 ), and 1.595 on GIST (R2 = 0 .989 ), identical for one- and two-bit codes on the same data. The boundary-mass term can therefore be estimated from the embedding before any quantizer is chosen, and it tells a practitioner how much residual control a given decision population will demand. 
+
+> 5Xiao and Cao
+
+3.2 Ranking: the shared-query correlation 
+
+For a query q and candidates x, y with d(q, x ) < d (q, y ), the ranking functional and its residual are Ψrank = d(q, y ) − d(q, x ) > 0, Rrank = ξy − ξx, (4) where ξx = ˆdQ(q, x )−cQd(q, x ) is the calibrated error on the edge ( q, x ). Both errors involve the same quantized query, so they share a common component. 
+
+Proposition 5 (Covariance-aware ranking) Fix q, x, y before drawing the approxima-tion randomness, and let (ξx, ξ y) have mean m and joint sub-Gaussian proxy matrix K.The ranking residual is sub-Gaussian with scale 
+
+ν2rank = Kxx + Kyy − 2Kxy , (5) 
+
+and for exact margin γ > 0 and bias μR = E(ξy − ξx),
+
+PQ(rank flip ) ≤ exp 
+
+
+
+− (cQγ + μR)2+
+
+2ν2rank 
+
+
+
+. (6) The empirical cross term ( bΣξ)xy measures shared-query covariance in the selected-pair population, where bΣξ is the sample covariance of ( ξx, ξ y). It gives the exact second-moment identity 
+
+dVar( ξy − ξx) = ( bΣξ)xx + ( bΣξ)yy − 2( bΣξ)xy . (7) This empirical covariance is distinct from the joint MGF proxy K in Proposition 5. Table 2: Empirical residual correlation on fixed 32-neighbour candidate sets (top candidate against each competitor), pooled over queries and competitors. The independence ratio is ( dVar( ξx) + dVar( ξy)) /dVar( ξy − ξx). Dataset Quantizer Residual corr. ρxy Independence ratio Flip rate Cohere-768 1-bit 0.794 4.71 × 8.89% Cohere-768 2-bit 0.870 7.42 × 5.83% Cohere-768 rotated 2-bit 0.435 1.77 × 8.81% MiniLM-384 1-bit 0.047 1.05 × 11.21% MiniLM-384 2-bit 0.093 1.10 × 4.19% GIST-960 † 2-bit 0.832 5.70 × 35.83%   
+
+> †The eligibility gate of §6 rejects this configuration (calibration slope near zero, left tail 7 .8×Gaussian); the row is included for comparison.
+
+Two facts about this correlation matter. First, it belongs to the selected-pair population rather than the i.i.d. endpoint model. For i.i.d. endpoints and a single symmetric kernel, the Hoeffding decomposition bounds shared-endpoint correlation by 1 /2 and the independence ratio by 2 (Appendix B). Second, substituting empirical covariance into the Gaussian-tail expression gives an informative plug-in diagnostic on the inspected eligible configurations: 
+
+> 6Low-Bit Decision Stability in Vector Search
+
+it is below one and covers the observed flip rate in each case (0 .55 against an observed 5 .8% for Cohere two-bit codes), whereas omitting the cross term makes the expression equal one on every Cohere configuration. This substitution is not the analytical assumption itself; the concentration routes of §5 provide tail control under their stated conditions, and the held-out route of §6 provides an independent alternative. A six-bin margin-conditional scale changes predictive correlation by at most 0 .002, so we retain one global scale in the reported experiments. 
+
+3.3 Pruning: role-specific residuals 
+
+Vamana’s RobustPrune rule declares candidate c dominated by an already selected neigh-bour s of target t when Ψα(t, c, s ) = d(t, c ) − α d (s, c ) ≥ 0, α ≥ 1. (8) The residual combines two distances that share the node c rather than a query: 
+
+Zα = ξtc − α ξ sc , ν2 
+
+> α
+
+= Ktc,tc + α2Ksc,sc − 2αK tc,sc . (9) A shared additive intercept in the edge calibration cancels in the ranking difference but survives in Zα as (1 − α)b, so pruning needs its own bias term. 
+
+Proposition 6 (Fixed-triple pruning) Fix the triple (t, c, s ) before drawing the approx-imation randomness, and let Zα have joint sub-Gaussian scale να and mean μZ . For exact margin γ = |Ψα| > 0:
+
+• a false keep (missed prune, Ψα > 0) has probability at most exp[ −(cQγ +μZ )2+/(2 ν2
+
+> α
+
+)] ;
+
+• a false prune (Ψα < 0) has the same form with effective margin cQγ − μZ ;
+
+• at a structural tie (Ψα = 0 ) disagreement is the event Zα < 0, whose probability must be carried explicitly; a no-atom condition on Zα does not control it. 
+
+The two orientations behave very differently on real data: across all sampled configura-tions in §8.4, every observed pruning disagreement is a false keep. 
+
+3.4 Fixed top-K on a frozen candidate set 
+
+For a candidate set C frozen before approximate scoring, with exact top-K subset A ⊂ C,
+
+PQ( bA̸ = A) ≤ X
+
+> x∈A
+
+X
+
+> y∈C\A
+
+PQ(rank flip on ( x, y )) , (10) and any deterministic sufficient comparison set may replace the full cross product. 
+
+## 4 From Local Decisions to Algorithmic Traces 
+
+A Vamana selection call makes dozens of comparisons in sequence, each depending on the outcome of earlier ones. This section shows that local bounds compose into a statement about the whole call once the exact execution state is frozen. 
+
+> 7Xiao and Cao
+
+4.1 The selection call as a state machine 
+
+Fix a target t, a candidate permutation π = ( c(1) , . . . , c (N )) sorted by exact distance with deterministic tie-breaking, a degree budget M , and α ≥ 1. Starting from S = (), scan π
+
+until it is exhausted or |S| = M . At candidate c form the candidate-level action 
+
+D(c; S) = _
+
+> s∈S
+
+1{d(t, c ) − α d (s, c ) ≥ 0}, (11) and append c exactly when D(c; S) = 0. This is the standard non-saturated RobustPrune call. Any deterministic refill applied afterwards is a separate post-processing map. 
+
+Definition 7 (Semantic trace) The semantic trace T records the shared permutation, each visited candidate, its selected prefix, its candidate-level action, and the termination state. It does not record implementation-dependent short-circuit order among witnesses. 
+
+4.2 The coupling theorem Theorem 8 (Trace coupling) Let the approximate replay use the same candidate permu-tation, unique candidate labels, degree budget, and tie convention. For each exact visited candidate j, evaluate the approximate candidate-level action on the frozen exact prefix Sj
+
+and let Ej be the event that it differs from the exact action. Then, for the append-only non-saturated call, 
+
+{ bT̸ = T } = { bSout ̸ = Sout } = [
+
+> j∈V
+
+Ej , (12) 
+
+and consequently 
+
+P( bSout ̸ = Sout ) ≤ X
+
+> j∈V
+
+X
+
+> s∈Sj
+
+P(triple action disagreement at (j, s )) . (13) 
+
+The second inequality is generally strict, because several witnesses enter one candidate-level OR. 
+
+Proof If no Ej occurs, induction from the empty prefix makes states, actions, and termina-tion identical. Otherwise let j⋆ be the first occurring event. Both executions have the same prefix and visit the same candidate before j⋆, so Ej⋆ is an actual action disagreement; that candidate is appended in exactly one run and, since selection is append-only with unique labels, the final sets differ. The identity is deterministic for a shared permutation. When approximate scoring also changes the permutation, its disagreement event is added before applying the theorem conditionally on equal order. Probability enters only through the local action bounds; no independence across comparisons is used anywhere. 
+
+4.3 Dependency slicing, edge certificates, and what they show 
+
+Full-trace equality is often more than an application needs. For a single diversity-selected edge, a backward slice keeps only the sorting and pruning atoms sufficient for that edge’s survival. 
+
+> 8Low-Bit Decision Stability in Vector Search
+
+Corollary 9 (Edge and path certificates) For an exact output edge e selected at scan position je, agreement of all candidate actions in the exact prefix through je is sufficient for 
+
+e to survive. For a fixed path P composed of such edges, 
+
+P(some edge of P is lost ) ≤ X
+
+> e∈P
+
+X
+
+> j≤je
+
+X
+
+> s∈Sj
+
+P(triple action disagreement at (j, s )) . (14) 
+
+The condition M 2min > 2 log NP , with NP the number of listed terms and Mmin the smallest standardized margin among them, indicates when the additive bound can stay below one. 
+
+In the non-saturated experiments of §8.4, an edge’s prefix certificate contains 21 to 25 triple comparisons on average, and the plug-in additive bound saturates at one on 89 to 92% of tested edges. The certificate nevertheless carries information in two ways. Its logical half is exact: in every tested case a passing certificate implied edge survival. Its numerical half remains a useful ranking: the plug-in risk sum orders edges by observed failure with Spearman correlation 0 .81, 0 .69, and 0 .73 on Cohere, MiniLM, and GIST. 
+
+Remark 10 (Failure concentrates on few decisions) The union bound weights all de-cisions equally, but query-level failure is driven by a few of them. Ranking the 31 compar-isons of a candidate set by individual risk and summing only the r largest improves the correlation with observed query failure up to r = 3 to 5 (Cohere two-bit 0.471 → 0.480 ;MiniLM one-bit 0.460 → 0.500 ; MiniLM rotated two-bit reaches 0.589 ), after which further terms add noise. The full sum remains the valid upper bound; the top-r score is an empirical predictor, and we keep the two named separately. 
+
+## 5 From Representations to Residual Laws 
+
+Sections 3 and 4 are quantizer-agnostic: any source of residual control feeds them. This section develops the analytically richest instance, coordinate-preserving one- and two-bit codes on representations with Gaussian coordinate structure, and locates the boundary of that analysis. 
+
+5.1 The Gaussian model and its empirical support Assumption 1 (Coordinate Gaussianity) Let G ∈ RD be the encoder output before L2
+
+normalization. (a) For any fixed k coordinates I, dBL (L(GI ), L(ZI )) ≤ εD with Z ∼ N (μ, Σ) .(b) Thin shell: E ∥G∥ − rD /r D ≤ δD with δD → 0.
+
+Betser et al. (2026) prove asymptotic Gaussianity of fixed-dimensional projections under alignment and concentration assumptions on the InfoNCE objective. Empirically, all eleven learned representations we inspected, produced by eight different encoders, have coordinate-wise QQ-plot R2 ≥ 0.9959 and norm coefficient of variation at most 0 .09; the classical GIST and SIFT descriptors fail both diagnostics. The joint law is a stronger statement than these marginal checks, and §8.7 measures how far each dataset satisfies it. The identities below are exact for the Gaussian model and are used as an oracle; the held-out route of §6 covers representations for which the model is not credible. 
+
+> 9
+
+Xiao and Cao 
+
+5.2 The Stein covariance identity 
+
+Let G ∼ N (μ, Σ), S0 = P 
+
+> i
+
+sign( Gi), and T0 = P 
+
+> j
+
+dj Gj .
+
+Theorem 11 (Stein covariance identity) 
+
+Cov( S0, T 0) = X
+
+> i,j
+
+ai Σij dj , ai = 2φ(μi/σ i)
+
+σi
+
+. (15) 
+
+Proof By bilinearity Cov( S0, T 0) = P 
+
+> i,j
+
+dj Cov(sign( Gi), G j ). For jointly Gaussian ( Gi, G j )the conditional mean is E[Gj | Gi] = μj + (Σ ij /σ 2 
+
+> i
+
+)( Gi − μi), whence Cov(sign( Gi), G j ) = Σij 
+
+σ2
+
+> i
+
+· 2σiφ(μi/σ i) = aiΣij .
+
+The full matrix Σ enters, not only its diagonal, and the off-diagonal contribution is measured by the Frobenius energy Ioff = P 
+
+> i̸=j
+
+(aiΣij )2. Table 3 shows that this term carries 31 to 38% of the predicted ranking signal even though individual coordinate correlations are small (mean |ρij | between 0 .04 and 0 .11): with |ρij | ≍ κ/ √D the sum P 
+
+> i̸=j
+
+ρ2 
+
+> ij
+
+≍ κ2D
+
+is of constant order relative to the diagonal. Table 3: Spearman ranking fidelity F of the one-bit code, measured and predicted from the Gaussian model with the full covariance and with its diagonal only. Gap explained is ( Ffull −Σ − Fdiag )/(Factual − Fdiag ). Dataset Factual Ffull −Σ Fdiag Gap explained Cohere 0.681 0.688 0.474 103% Arxiv 0.897 0.886 0.546 97% CodeSearch 0.823 0.837 0.542 105% Random 0.907 0.899 0.560 98% 
+
+5.3 The magnitude bit under an aligned bilinear model 
+
+Let G, H be independent with independent coordinates Gi, H i ∼ N (0 , σ 2 
+
+> i
+
+), and for a deter-ministic threshold τ > 0 define 
+
+T = X
+
+> i
+
+GiHi, S1 = X
+
+> i
+
+sign( Gi) sign( Hi), S2 = X
+
+> i
+
+qi(G)qi(H), (16) with qi(g) = sign( gi)(1 + 1{| gi| > τ }). 
+
+Proposition 12 (Aligned magnitude-bit gain) For every D ≥ 1, every σi > 0, and every finite τ > 0, the Pearson correlations satisfy ρ(S2, T ) > ρ (S1, T ).
+
+10 Low-Bit Decision Stability in Vector Search 
+
+The closed forms and the proof are in Appendix E. The alignment between target and scorer is essential: in a linear-target model whose scorer weights do not match the target weights, the same second bit lowers the correlation (by 0 .163 in the eight-dimensional example of Appendix E). More code information improves the best readout, not every fixed readout. Empirically the second bit raises global ranking fidelity by +0 .071 to +0 .132 on the contrastive embeddings we inspected, and on Cohere it brings the 3 σ residual survival ratio from 2 .09 times Gaussian to 1 .05 and lowers pairwise flip rates by 34.5%. 
+
+5.4 Rotation duality 
+
+By L´ evy concentration and a union bound, a Haar-random orthogonal rotation equalizes the coordinate variances to tr(Σ) 
+
+D ± O ∥Σ∥op 
+
+r log DD
+
+!
+
+.
+
+This single fact has two opposite design consequences. It destroys the coordinate variance and sign-entropy structure that a coordinate code exploits, so its effect on a fixed two-bit scorer depends on the representation. It also creates exactly the coordinate uniformity that RaBitQ’s randomized codebook and corrected estimator rely on. The two strategies are dual uses of the same representation. Across 12 datasets the sign-entropy gap 1 − Hsign 
+
+predicts the global two-bit response to rotation with Spearman correlation 0 .909, against 0.657 for coordinate-variance heterogeneity alone, and the interaction (1 − Hsign ) × CV( σ)reaches 0 .930. Section 8.6 shows what rotation does to local decisions, which is a different question with a different answer. 
+
+5.5 Oracle decomposition of the residual 
+
+For a fixed ranking or pruning role, let R◦ 
+
+> a
+
+be the oracle residual computed with the popu-lation magnitude threshold and radius. Its Hoeffding decomposition has exact variance 
+
+V = κ1
+
+X
+
+> u
+
+d2 
+
+> u
+
++ κ2
+
+X
+
+> p
+
+A2
+
+> p
+
+, (17) where du are node incidences and Ap are unordered-pair edge coefficients (Appendix E). The replacement (Efron–Stein) proxy satisfies V ≤ VES ≤ 2V , with equality at two when the first-order Hoeffding component vanishes. The actual residual adds a threshold remainder and a shell remainder, 
+
+Ra = R◦ 
+
+> a
+
++ ∆ thr + ∆ shell , (18) and their sizes are measurable. On Cohere and MiniLM the threshold remainder is 1.3 to 4.7% of the role variance; on unrotated GIST it is essentially all of it, and it falls to 2.3% after rotation. The remainder is therefore itself a diagnostic of whether the oracle describes a representation. 
+
+5.6 Necessity: what weak Gaussianity cannot prove Theorem 13 (Counterexample) There is a sequence of distributions GD whose fixed-
+
+k standardized marginals converge to Gaussian in total variation at rate Ok(D−1), whose 
+
+> 11 Xiao and Cao
+
+relative shell mean-square error is O(D−1), whose covariance is isotropic, and whose average threshold-boundary occupancy vanishes, yet whose fixed-threshold oracle ranking residual satisfies 
+
+VD = Var( R◦
+
+> D
+
+) = Θ( D−1), κ4(R◦
+
+> D
+
+) = Ω( D2). (19) 
+
+Consequently a cumulant condition of Bernstein type, or a two-sided sub-gamma bound with variance proxy vD = O(VD), requires bD/√VD = Ω( D2).
+
+Proof [Construction] Take GD = (1 − JD)ZD + JDD3/2SD with JD ∼ Bernoulli( D−4), 
+
+ZD ∼ N (0 , I D), and SD Rademacher. The event that two of the three nodes in a ranking triple are contaminated and one is clean has probability Θ( D−8); after oracle normalization its bilinear term contributes Θ( D2) to the fourth moment. The bounded-code component has fourth moment O(D−2) and cannot cancel this in L4, while the total variance stays Θ( D−1). Appendix H verifies the diagnostic properties and derives the cumulant and MGF consequences. The theorem identifies what must be added to reach exponential concentration. Any route must control one of three things: individual-coordinate influence (bounded codes), conditional cumulants (Doob increments), or the range after truncation. 
+
+5.7 Three routes to concentration 
+
+1. Conditional MGF. If the three Doob increments of R◦ 
+
+> a
+
+satisfy deterministic sub-gamma bounds with parameters ( vj , b j ), then 
+
+P(|R◦ 
+
+> a
+
+− ER◦
+
+> a
+
+| ≥ z) ≤ 2 exp 
+
+
+
+− z2
+
+2( v⋆ + b⋆z)
+
+
+
+, v⋆ = X
+
+> j
+
+vj , b ⋆ = max  
+
+> j
+
+bj . (20) 2. Stable truncation. If a clipped functional RL agrees with R◦ 
+
+> a
+
+outside an event of probability εL, has bias |ER◦ 
+
+> a
+
+− ERL| ≤ dL, and is sub-gamma with ( vL, b L), then 
+
+P(|R◦ 
+
+> a
+
+− ER◦
+
+> a
+
+| ≥ z + dL) ≤ 2 exp 
+
+
+
+− z2
+
+2( vL + bLz)
+
+
+
++ εL. (21) 3. Held-out calibration (§6), which needs no analytical tail at all. Section 8.8 measures the parameters of the first two routes on real embeddings. 
+
+## 6 Selective Certificates from Held-Out Blocks 
+
+When the analytical route is not available, because Gaussian diagnostics fail, residual tails are heavy, or calibration is degenerate, the decision framework still applies; only the source of the residual tail changes. This section bounds decision risk from held-out data alone. The natural form is a selective guarantee: retain the decisions whose standardized margin exceeds a cutoff, route the rest to exact verification, and bound the failure rate on the retained set. This is how a deployed system would use the theory. 
+
+> 12 Low-Bit Decision Stability in Vector Search
+
+Theorem 14 (Direct selective block certificate) Condition on an independent fit split, so that nuisance parameters, selectors, thresholds, and tie rules are fixed. For i.i.d. blocks 
+
+Z1, . . . , Z n let Ci,s be the fraction of decisions in block i accepted by selector s, Ui,s,τ the accepted fraction that lies in the boundary-or-residual union event at threshold τ , and Fi,s 
+
+the accepted fraction that actually fails, so that 
+
+0 ≤ Fi,s ≤ Ui,s,τ ≤ Ci,s ≤ 1. (22) 
+
+For a prespecified grid G of (s, τ ) pairs set ϵn = plog( |G| /δ )/(2 n). With probability at least 
+
+1 − δ, simultaneously for every grid pair with bCs > 0,
+
+ps := EFi,s 
+
+ECi,s 
+
+≤ qs,τ := EUi,s,τ 
+
+ECi,s 
+
+≤ min 
+
+(
+
+1, bUs,τ + ϵn
+
+bCs
+
+)
+
+. (23) 
+
+The ratios are defined when ECi,s > 0; zero empirical coverage yields no certificate. 
+
+Proof Fix a grid pair and write q = qs,τ . Since 0 ≤ Ui ≤ Ci ≤ 1, the variable Wi = Ui −qC i
+
+has mean zero and lies in [ −q, 1 − q], an interval of length one. One-sided Hoeffding gives 
+
+bU − q bC ≥ − ϵn except with probability δ/ |G| ; a union bound over the grid and division by 
+
+bC > 0 finish the proof. Dependence among decisions inside a block is arbitrary. 
+
+Corollary 15 (Direct accepted-failure certificate) Replacing Ui by Fi and paying only for the selector family S gives, simultaneously over s ∈ S ,
+
+ps ≤ min 
+
+(
+
+1, bFs + plog( |S| /δ )/(2 n)
+
+bCs
+
+)
+
+. (24) The two certificates bound the same quantity ps but through different events. The union certificate keeps the boundary-plus-residual mechanism of Theorem 2 visible and is what one reports when the mechanism is the object of interest; the direct certificate targets the observed failure of the frozen rule and is tighter. A conservative alternative that controls numerator and denominator separately costs plog(2 |G| /δ )/(2 n) in both and is pointwise looser; Appendix F.1 also gives a variance-adaptive empirical-Bernstein version obtained by inverting a single-crossing function. 
+
+Protocol. We condition on an independent coefficient-fit split, then use prespecified pre-fixes of 128, 256, 512, and 1,024 i.i.d. certification blocks and 1,024 independent validation blocks; each block is one query or target with 32 sampled candidates. Every method and sample size is fixed in advance, so each reported point carries its own marginal 1 − δ guar-antee. Results are in §8.5. 
+
+## 7 Quantizer Instantiations 
+
+The decision shell is quantizer-agnostic; each family enters through its own residual mech-anism. 
+
+> 13 Xiao and Cao
+
+Coordinate binary codes. The analytical instance of §5: covariance structure, threshold effects, magnitude-bit gain, rotation duality, and the conditional-MGF route are all specific to this family. 
+
+RaBitQ. A randomized ratio estimator (Gao and Long, 2024) with a per-rotation error radius. For a fixed query q and data directions x, y sharing one random rotation P ,
+
+P{| εR(x, q ) − εR(y, q )| > ρ x + ρy} ≤ 4 exp( −c0ϵ20), (25) where ρx, ρ y are the random radii. The shared rotation couples the two edges, so ranking and pruning statements go through joint events and the triangle inequality rather than independence. For pruning on raw squared distances the distance rule squares to an α2 rule with edge-specific radial factors (Appendix G); a rule stated directly in squared distance or cosine dissimilarity keeps its own parameter. 
+
+Lucene BBQ. A role-asymmetric design (Trent, 2024): stored vectors are one-bit while query-role vectors are int4. During HNSW construction Lucene keeps temporary int4 query-role vectors, scores candidates against existing one-bit vectors, and uses the int4 representa-tions for diversity and reverse-link scoring; the temporary file is removed afterwards. Each scorer role therefore needs its own affine calibration, 
+
+bdA→B = bA→B + aA→B d + ξA→B . (26) Our reference scorer reproduces the role semantics, not Lucene’s metric-specific corrections. 
+
+Block estimators. Product quantization (J´ egou et al., 2011; Ge et al., 2014) decomposes the residual over codebook blocks and enters through bounded-block concentration or held-out survival laws; the coordinate-sign Stein identity does not transfer. Table 4: Cross-quantizer validation on the decision interface, averaged over Cohere, MiniLM, SIFT, and GIST with 60,000 held-out ranking and 60,000 pruning triples per dataset. “Hard” restricts to the 20% smallest exact margins. All calibration slopes are positive. The PQ reference stores 64 index bits per vector.                                        
+
+> Rank flip Prune flip Quantizer family Edge ρall hard all hard Sign (1-bit) .373 35.9% 47.1% 20.1% 36.5% Shared 2-bit .789 18.5% 41.5% 12.8% 33.9% RaBitQ reference .939 11.8% 37.2% 6.5% 27.1% BBQ-like .923 12.8% 37.3% 9.0% 30.7% Scalar int4 .997 2.1% 10.1% 1.2% 5.8% PQ (16 blocks ×4 bits) .801 22.4% 43.3% 11.0% 33.1%
+
+Table 4 makes one point that no bit budget removes. Scalar int4 has the best interface metrics of the inspected references, with edge correlation 0 .997 and 2 .1% ranking flips, yet on the hardest fifth of margins it still flips 10 .1% of ranking decisions. A larger budget changes the residual law and shrinks the boundary crossings; it does not move the boundary. 
+
+> 14 Low-Bit Decision Stability in Vector Search
+
+## 8 Experiments 
+
+The experiments test each link of the argument: boundary mass, residual covariance and its origin, trace composition, held-out certification, the analytical regime and its edge, and the decoupling of fidelity from decision risk. All protocols use disjoint data splits, and every experiment is a numbered, non-interactive Python module with fixed seeds. 
+
+8.1 Datasets and protocols 
+
+Table 5: Representation regimes. “Learned” means contrastive or self-supervised training; “classical” means hand-crafted or dimensionality-reduced features.              
+
+> Group Datasets DRole Contrastive text Cohere, MiniLM, BGE-M3, Jina, MSMARCO 384–1024 primary regimes Vision Wolt-CLIP, Landmark-DINO 512–768 modality transfer Classical SIFT, GIST, GloVe 100–960 negative controls Synthetic Gaussian, sphere, random, contaminated 64–2048 mechanism tests
+
+Each dataset contributes a fixed random sample of vectors (seed 42), L2-normalized. Local decision experiments use fixed 32-neighbour candidate sets with 80 calibration and 160 held-out queries per dataset; held-out certificate experiments use the block protocol of 
+
+§6; the cross-quantizer study uses 1,200 fit and 2,000 held-out vectors per dataset. Pruning uses the standard non-saturated RobustPrune rule with α = 1 .2 and M = 32 unless stated otherwise. 
+
+8.2 Standardized margins predict local failures 
+
+On Cohere two-bit decisions the flip rate falls monotonically with the standardized margin 
+
+M = cQΓ/v over more than two orders of magnitude (Table 6), and no flips are observed above M = 5. Table 6: Flip rate by standardized-margin bin on Cohere-768 two-bit codes, n = 4 ,960 held-out decisions. Margin bin M < 0.25 0.25–1 1–2 2–3 3–5 M > 5Flip rate 48.6% 25.7% 9.50% 2.54% 0.14% 0.00% Decisions 70 381 1210 1577 1413 309 Across 24 held-out dataset–quantizer configurations (12 datasets, two-bit codes with and without rotation), the calibrated boundary-plus-tail predictor tracks unseen ranking flip rates with Spearman correlation 0 .970 and unseen pruning flip rates with 0 .992. Using each configuration’s global distance Spearman correlation as the predictor instead gives 0.739 for ranking and 0 .053 for pruning; using its distance mean squared error gives 0 .184 
+
+> 15 Xiao and Cao
+
+and 0 .447. Fidelity is a weak predictor of ranking risk and no predictor of pruning risk; the standardized margin predicts both. 
+
+8.3 Where the shared-query covariance comes from 
+
+Table 2 reports correlations far above the 1 /2 bound that holds for i.i.d. endpoints and a symmetric kernel. To locate the source we keep one globally fitted affine edge scorer fixed and vary only how pairs are generated (Table 7). Table 7: Pooled shared-query residual correlation under different pair-generation regimes with one fixed edge scorer. “Anchor” pairs the exact top candidate with each remaining top-32 candidate. Dataset Scorer i.i.d. Random cand. Top-256 Top-32 / anchor Cohere 1-bit .361 .312 .524 .525 / .544 Cohere 2-bit .391 .346 .571 .599 / .613 Cohere rotated 2-bit .259 .212 .324 .340 / .364 MiniLM 2-bit .010 .020 .067 .111 / .118 GIST 1-bit .386 .370 .925 .934 / .870 GIST 2-bit .405 .422 .576 .640 / .616 Local selection, not identity collisions, drives the increase: an i.i.d. control with re-placement and a distinct-triple control differ by at most 0 .003, while moving from random candidates to the top-32 roughly doubles the correlation on Cohere and more than doubles it on GIST. The exact weighted within/between identity of Appendix B holds to floating-point precision in every regime, and most pooled covariance in this experiment comes from variation in query-specific residual means, while weighted within-query covariance is small on average. This describes the selected-pair population with a random query; conditioning on a fixed query removes the between-query term. Moreover, this experiment uses a global affine edge calibration, whereas Table 2 uses ranking-margin calibration. It therefore iden-tifies query-level heterogeneity under this protocol without quantitatively attributing the earlier independence ratios. 
+
+8.4 Trace coupling and its consequences 
+
+All 960 sampled selection calls (three datasets, two quantizers, 160 targets each) satisfy the identity of Theorem 8: the approximate output differs from the exact output exactly when some candidate-level action differs, and never otherwise. Table 8 shows what the identity implies for output agreement. Output disagreement is large even where local disagreement is modest, because each candidate action is an OR over its whole selected prefix, and the first action difference persists in an append-only output. Every one of the sampled triple disagreements is a false keep; no false prune occurs at α = 1 .2. When a saturating refill step is added after the standard call, it contributes 34 .1% of the final edges on Cohere, none on MiniLM, and 28 .8% 
+
+> 16 Low-Bit Decision Stability in Vector Search
+
+Table 8: Standard non-saturated RobustPrune replay with exact candidate pools, two-bit codes, α = 1 .2, M = 32. Fixed-order replay reuses the exact permutation; free replay also re-sorts candidates by quantized distance. Dataset Local prune flip Fixed-order Jaccard Free replay Jaccard Cohere-768 13.06% 0.322 0.395 MiniLM-384 1.92% 0.654 0.529 GIST-960 7.91% 0.458 0.260 on GIST; these shares belong to the refill variant, not to RobustPrune itself, and the local pruning analysis is unaffected by them. 
+
+8.5 Held-out selective certificates 
+
+Table 9 reports the certificates of §6 at 512 and 1,024 blocks, averaged over 24 dataset– quantizer configurations per role. Every method issued a certificate on every configuration, and on every one the empirical risk of the selected policy on 1,024 independent validation blocks was below its certificate. Table 9: Selective block certificates ( δ = 0 .05), averaged over 24 configurations per role. Coverage is the fraction of validation decisions retained by the selected policy and risk is their observed flip rate; each method optimizes its own policy, so coverages differ. Ranking / pruning.                                     
+
+> Blocks Method Certificate Validation coverage Validation risk 512 two-event Hoeffding 20.59% / 22.95% 67.0% / 67.6% 0.42% / 0.86% 512 direct union 16.74% / 18.65% 64.6% / 63.5% 0.33% / 0.75% 512 empirical-Bernstein union 9.49% / 10.91% 61.2% / 56.8% 0.26% / 0.72% 512 direct failure 9.07% / 10.45% 87.8% / 80.2% 1.34% / 2.01% 1,024 two-event Hoeffding 15.13% / 17.36% 63.7% / 61.0% 0.32% / 0.75% 1,024 direct union 12.74% / 14.65% 61.2% / 61.0% 0.26% / 0.75% 1,024 empirical-Bernstein union 6.13% / 7.27% 57.7% / 51.1% 0.22% / 0.44% 1,024 direct failure 6.75% / 7.99% 81.9% / 75.2% 0.94% / 1.44%
+
+For a fixed selector at the same confidence level, the direct ratio removes the denominator slack of the two-event bound without changing the accepted set. The policies in Table 9 are optimized separately by method, so their retained fractions differ. The empirical-Bernstein union certificate is tighter with lower coverage, while the direct-failure certificate retains about four fifths of decisions because it does not carry the structural gap between the union event and actual failure. Certificate values must therefore be read together with retained coverage. A cutoff targeting the highest-margin fifth is frozen on calibration data and then applied to a separate validation pool. Across the 24 configurations, the mean validation retention 
+
+> 17 Xiao and Cao
+
+is 19 .9% for ranking and 20 .9% for pruning; mean empirical flip rates fall from 8 .58% to 5.27% and from 3 .84% to 0 .12%, respectively. This is a held-out empirical reduction, while the population guarantee is provided separately by the block certificates above. 
+
+8.6 Rotation: global fidelity does not determine decision risk 
+
+A Haar-random rotation is the cleanest intervention on a coordinate code: it changes the representation’s coordinate structure and nothing else. On Cohere it raises the Spearman correlation between quantized and exact distances from 0 .576 to 0 .926 and lowers the dis-tance mean squared error by a factor of four. What happens to local decisions depends on which decisions are asked. Table 10: Rotation on Cohere codes under two decision protocols. The distance Spearman correlation is measured on the calibration pairs of the block protocol.                  
+
+> Protocol Quantity Unrotated Rotated 32-neighbour anchor pairs one-bit flip rate 8.89% 15.58% two-bit flip rate 5.83% 8.81% shared-query residual correlation 0.870 0.435 difference residual s.d. (cosine units) 0.0134 0.0148 48-candidate held-out blocks distance Spearman 0.576 0.926 ranking flip rate 4.43% 4.48% pruning flip rate 10.25% 6.93%
+
+On the anchor protocol, which compares the exact nearest neighbour against each of its 31 competitors, rotation raises the two-bit flip rate by half and nearly doubles the one-bit rate. The mechanism is visible in the residual structure. Rotation shrinks each edge’s error variance by a factor of three to four, which is why global fidelity improves, but it also cuts the shared-query correlation from 0 .870 to 0 .435. At fixed marginal variances a smaller positive correlation raises the variance of a difference, and here the two effects net out to an 11% larger standard deviation for the comparison residual together with a more negative bias relative to the margin (from −0.26 to −0.36 standard deviations). On the block protocol, whose candidate sets are larger and whose pairs are not anchored on the top candidate, the ranking flip rate is unchanged and the pruning flip rate falls. A fidelity statistic that moves by +0 .35 cannot predict an effect whose sign depends on the decision population; quantizer choices for graph search must be evaluated on the decisions the graph actually makes. 
+
+8.7 The analytical regime and its edge 
+
+Coordinate-wise diagnostics are broadly compatible with Gaussian marginals in the in-spected learned representations. The joint law is where datasets separate. Testing k = 8 coordinate subsets with a Kolmogorov–Smirnov test on the Mahalanobis radius at the 1% level (24 random subsets per dataset), BGE-M3 and GloVe reject none, Landmark-DINO rejects 8%, MiniLM 13%, Cohere 29%, and Wolt-CLIP 58%; SIFT and GIST reject every subset. The exact Gaussian oracle is therefore partially supported on the primary dataset, 
+
+> 18 Low-Bit Decision Stability in Vector Search
+
+which is the reason the analytical route is paired with the model-free one rather than offered alone. Where the oracle applies it is accurate. The incidence-covariance identity (17) repro-duces the measured ranking and pruning residual variances within 4 .6% across twelve role configurations, with median error 1 .2%. The variance route is also tight in a way the worst-case constant does not reveal. Over 28 dataset–coordinate–role configurations, a compo-nentwise Cauchy–Schwarz proxy exceeds the measured variance by a median factor of 40 .8, while the replacement proxy exceeds it by a median factor of 1 .67 (range 1 .21 to 2 .04), con-sistent with the analytical factor of at most two. The reason the combined kernel behaves so much better than the sum of its parts is that in all 28 configurations the bounded-code and bilinear components have negative covariance, with a median cancellation ratio of 0 .947. The GIST descriptors show the same machinery diagnosing and repairing a failure. Unrotated GIST has calibration slope near zero, zero margin correlation, residual kurtosis 26, a left tail 7 .7 times Gaussian, and a threshold remainder equal to the whole role variance; every one of these is observable without a search run. A random rotation raises the margin correlation to 0 .510 and 0 .669 for one- and two-bit codes, brings the kurtosis to 3 .5 and 2 .8, the left tail to 1 .88 and 0 .76 times Gaussian, and the threshold remainder to 2 .3%, and the flip rates fall from 100% to 14 .80% (one-bit) and from 35 .83% to 9 .33% (two-bit). 
+
+8.8 Conditional-MGF and truncation parameters 
+
+Across 24 role configurations (six datasets, two quantizers, two roles) the untruncated in-crement parameter b⋆/sd has minimum 0 .133, median 0 .158, and maximum 0 .324; the Doob variance sum exceeds the total variance by 5 to 10%; and the calibration-to-validation vari-ance transfer ratio lies between 0 .945 and 1 .075. Clipping at the 1% exceptional-mass cutoff brings b⋆/sd to a median of 0 .147 and a maximum of 0 .258. Every configuration admits a clipped-functional bound below one, and no held-out tail exceeded its reported bound. These are the measured inputs to the two analytical routes of §5; a uniform conditional-MGF assumption over the population is a hypothesis these measurements are consistent with, not one they establish. 
+
+8.9 Necessity and falsifiability 
+
+Two constructions show that the framework’s ingredients are necessary. At exact margin zero, residuals of arbitrarily small norm select opposite decisions, so the boundary-mass term cannot be dropped. And two perturbations of the same exact scores, one light-tailed and one coupled to the decision boundary, have Spearman correlation 0 .9860282 with the exact scores to seven digits, yet flip 5 .09% against 10 .00% of all decisions and 23 .91% against 50 .00% of the hardest fifth. Mean squared error does not rescue the comparison: it is lower 
+
+for the boundary-coupled perturbation (0 .0170 against 0 .0251), so a practitioner selecting by either global metric would pick the quantizer with twice the failure rate. Standardized margins separate the two immediately. The framework also abstains where it should: on nonpositive calibration, heavy tails, failed Gaussian diagnostics, and saturated certificates it reports an uncertified decision rather than a number. 
+
+> 19 Xiao and Cao
+
+## 9 Discussion: Practical Guidance 
+
+A per-decision reliability score. Given an embedding and a quantizer, fit the affine calibration and residual scale on independent blocks and evaluate M = cQΓ/v wherever the exact margin is available. In Table 6, M > 5 has no observed flips in 309 decisions and 
+
+M < 1 flips more than a quarter of the time. Because Γ is the exact margin, this is an offline audit; an online router additionally needs an observable lower bound on the margin or a residual envelope. 
+
+Select quantizers on decisions, not on fidelity. Section 8.6 shows a rotation that raises global fidelity by +0 .35 while raising one local flip rate by half and leaving another unchanged, and §8.9 shows two quantizers with identical rank fidelity, opposite ordering by mean squared error, and a factor of two in failure rate. Pilot the candidate quantizers on the decision population of the intended index, measure standardized margins and flip rates there, and choose on those. 
+
+Two diagnostics, not one. Sign entropy is the natural single routing statistic and it is insufficient. Cohere ( Hsign = 0 .747) and SIFT (0 .746) are indistinguishable by it, and their global rotation responses are nearly identical (+0 .170 and +0 .200), yet coordinate binary quantization is usable on Cohere and useless on SIFT. The entropy gap 1 − Hsign predicts how much rotation changes a code ( ρ = 0 .909 over 12 datasets). Whether the unrotated code is usable at all is answered by the eligibility gate (calibration slope, margin correlation, residual tail), which passes Cohere and rejects SIFT. Run the gate first; if it passes, rotation is an optimization to be evaluated on decision metrics, and if it fails, rotation is a repair whose size the entropy gap predicts. 
+
+Two levels of assurance. Union-event certificates keep the boundary-plus-residual mech-anism visible; direct-failure certificates bound the frozen rule’s observed failure and are tighter at higher coverage. Both are population statements for the block distribution they were calibrated on, and neither transfers across a distribution shift without recalibration. 
+
+Open directions. Whether the trace-length saturation boundary can be characterized from representation geometry alone; whether adaptive candidate sets (beam search) admit a martingale extension of the coupling argument; and whether a pilot selector choosing rotation, bit width, and verification cutoff from covariance statistics alone recovers exact-score topology. 
+
+## 10 Conclusion 
+
+Low-bit vector search cannot be understood through a single fidelity number. The decisions that flip are concentrated at the boundary, and their noise depends on shared structure that global metrics erase. A distribution-free boundary–residual decomposition localizes the risk, covariance-aware role analysis captures the shared structure, and a determinis-tic frozen-trace coupling connects local decisions to the neighbour lists a graph algorithm produces. Under an exact Gaussian model of contrastive representations the residual covari-ance is explicit and a magnitude bit provably helps an aligned scorer; a rare-contamination construction shows exactly why low-order Gaussian diagnostics cannot by themselves de-
+
+> 20 Low-Bit Decision Stability in Vector Search
+
+liver exponential tails; and held-out block certificates bound selective risk for any quantizer whose analytical description is out of reach. 
+
+Limitations. The trace certificates saturate on long paths and say nothing about can-didate generation or graph navigability. The Gaussian identities are oracle results, and approximate Gaussian diagnostics do not come with a transfer theorem. The held-out cer-tificates require representative independent blocks, use exact margins in the selector, and do not transfer under distribution shift. End-to-end recall additionally depends on candidate coverage, which is outside this analysis. 
+
+## Reproducibility 
+
+All experiments are implemented as numbered, non-interactive Python modules with fixed seeds, disjoint data pools, and machine-readable JSON or NPZ outputs. Negative and vacuous results are preserved in the result files. Appendix I lists the protocol of each experiment. 
+
+## Acknowledgments and Disclosure of Funding 
+
+No external funding was received for this work. 
+
+## Appendix A. The Decision Shell: Proofs and Rates 
+
+A.1 Conservative ties and event inclusion 
+
+Write bΨQ = cQΨ + RΨ,Q with cQ > 0. If Ψ > 0 and the conservative failure event occurs, then bΨQ ≤ 0 and 
+
+RΨ,Q ≤ − cQΨ = −cQΓΨ. (27) If Ψ < 0, failure gives RΨ,Q ≥ cQΓΨ. Hence 
+
+EΨ ⊆ { ΓΨ > 0, |RΨ,Q | ≥ cQΓΨ}, (28) and splitting the right-hand side according to 0 < ΓΨ ≤ τ or Γ Ψ > τ proves Theorem 2. If only strict sign reversal counts as failure, the residual event may use a strict inequality. If exact ties are part of the target risk, one adds P(Ψ = 0) together with the exact and approximate tie actions. 
+
+A.2 Explicit small-ball rate 
+
+Under Corollary 3 write r = v/c Q and A = Cr β . When 0 < A < 2, let L = log(2 /A ) and 
+
+τr = r√2L. If τr ≤ τ0, substitution into (3) gives 
+
+P(EΨ) ≤ Cr β (2 L)β/ 2 + Cr β , (29) so the worst-case consequence of marginal small-ball and residual-tail assumptions is 
+
+O
+
+
+
+rβ [log(1 /r )] β/ 2
+
+. (30) 
+
+> 21 Xiao and Cao
+
+The logarithm is a feature of the worst case over the assumed class, not a lower bound for each fixed distribution: a margin-conditional residual tail removes it and yields O(rβ ) by direct integration. 
+
+A.3 Necessity at the boundary 
+
+At Ψ = 0, the approximations bΨ+ = ϵ and bΨ− = −ϵ have residual magnitudes tending to zero with ϵ yet select opposite actions. Every orientation theorem therefore needs a positive margin, a boundary-mass term, or an explicit tie policy. 
+
+## Appendix B. Covariance-Aware Ranking 
+
+B.1 Difference residual and bias 
+
+Let X = ( ξx, ξ y)⊤, m = EX, and u = ( −1, 1) ⊤. The joint MGF proxy gives 
+
+E exp {λu ⊤(X − m)} ≤ exp {λ2u⊤KQu/ 2}, (31) so Rrank − μR is sub-Gaussian with 
+
+μR = u⊤m, ν2rank = u⊤KQu = Kxx + Kyy − 2Kxy . (32) For a fixed positive exact margin γ the failure event is Rrank ≤ − cQγ, and Chernoff’s method gives Proposition 5. For the negative orientation the relevant right tail has effective margin cQγ − μR. If νrank = 0, Jensen’s inequality and the MGF bound give Rrank = μR
+
+almost surely and the decision is deterministic. 
+
+B.2 Shared-endpoint covariance for i.i.d. and selected populations 
+
+Let X, Y, Z be i.i.d. and h ∈ L2(P ⊗ P ) symmetric, with Hoeffding decomposition 
+
+h(x, y ) − μ = h1(x) + h1(y) + h2(x, y ), (33) where h2 is degenerate in each argument. Put a = Var( h1(X)) and b = Var( h2(X, Y )). Orthogonality gives Var( h(X, Y )) = 2 a + b, Cov( h(X, Y ), h (X, Z )) = a, (34) so that, when the marginal variance is positive, 0 ≤ Corr( h(X, Y ), h (X, Z )) = a
+
+2a + b ≤ 12 , 1 ≤ Var( R1) + Var( R2)Var( R1 − R2) = 2a + ba + b ≤ 2.
+
+(35) The lower bounds are attained at a = 0 , b > 0 and the upper bounds at b = 0 , a > 0; if 
+
+a = b = 0 both ratios are undefined. For query-conditioned roles let ma(Q) = E[Ra | Q], va(Q) = Var( Ra | Q), and c(Q) = Cov( RL, R R | Q). The laws of total covariance and total variance give Cov( RL, R R) = Ec(Q) + Cov( mL(Q), m R(Q)) , (36) Var( RL − RR) = E[vL(Q) + vR(Q) − 2c(Q)] + Var( mL(Q) − mR(Q)) . (37) 
+
+> 22 Low-Bit Decision Stability in Vector Search
+
+When candidates are conditionally independent draws from a frozen selection kernel KQ,
+
+c(Q) = 0, and the pooled correlation is driven entirely by the second term; it can approach one when query-specific means dominate the conditional variance. Selection changes the candidate law, hence conditional means and variances; it changes the query mixture weights only if query sampling, retention, or row weighting also changes. For uniform sampling without replacement from a pool of size M ,Cov( fI , g J | Q) = − cf g (Q)
+
+M − 1 . (38) A fixed anchor has zero conditional covariance because its residual is constant given the frozen state, so its within-query correlation is undefined. These identities describe second moments; the MGF proxy K is a separate input. 
+
+B.3 Exact empirical within/between identity 
+
+For query group g with ng observed pairs ( ℓgi , r gi ), let N = P 
+
+> g
+
+ng, let ¯ℓg, ¯rg be group means, and ¯ℓ, ¯r row-weighted grand means. Expanding each centered product gives the deterministic identity 
+
+X
+
+> g,i
+
+(ℓgi − ¯ℓ)( rgi − ¯r) = X
+
+> g,i
+
+(ℓgi − ¯ℓg)( rgi − ¯rg) + X
+
+> g
+
+ng(¯ℓg − ¯ℓ)(¯ rg − ¯r), (39) so that, with the pooled N − 1 denominator, 
+
+spool = X 
+
+> g:ng≥2
+
+ng − 1
+
+N − 1 sg + 1
+
+N − 1
+
+X
+
+> g
+
+ng(¯ℓg − ¯ℓ)(¯ rg − ¯r). (40) The same matrix identity decomposes both marginal variances and therefore Var( RL −
+
+RR). It holds for any row dependence; reading its two pieces as unbiased estimators of the population terms in (37) requires a sampling model. 
+
+B.4 Fixed top-K
+
+Let C be fixed before the approximation randomness, let A be the exact top-K subset, and suppose no exact tie crosses the boundary. Exact top-K preservation follows if every x ∈ A
+
+stays ahead of every y ∈ C \ A, so 
+
+PQ( bA̸ = A) ≤ X
+
+> x∈A
+
+X
+
+> y / ∈A
+
+PQ{ bdQ(q, y ) ≤ bdQ(q, x )}, (41) and any deterministic sufficient comparison set may replace the full cross product. 
+
+## Appendix C. Standard Vamana Pruning 
+
+The RobustPrune rule declares candidate c dominated by selected neighbour s when αd (s, c ) ≤
+
+d(t, c ) with α ≥ 1. Define Ψα = d(t, c ) − αd (s, c ), bΨα,Q = cQΨα + Zα,Q , Zα,Q = ξtc − αξ sc , (42) 
+
+> 23 Xiao and Cao
+
+with action D = 1{Ψα ≥ 0}. For nonzero margins the false-keep and false-prune events are 
+
+{Ψα > 0, bΨα,Q < 0}, {Ψα < 0, bΨα,Q ≥ 0}, (43) and at an exact structural tie disagreement is {Ψα = 0 , Z α,Q < 0}. A no-atom property of 
+
+Zα,Q rules out exact approximate ties but says nothing about this directional probability, which must be carried as its own term. With w = (1 , −α)⊤ a joint MGF proxy gives 
+
+ν2 
+
+> α,Q
+
+= w⊤K(3)  
+
+> Q
+
+w = Ktc,tc + α2Ksc,sc − 2αK tc,sc . (44) Writing μZ = EZα,Q , the two orientations have effective one-sided margins cQγ + μZ and 
+
+cQγ−μZ . A through-origin calibration does not make μZ vanish, and a shared edge intercept 
+
+b enters Zα,Q as (1 − α)b. If both edge residual magnitudes are deterministically at most ϵ,then |Zα,Q | ≤ (1 + α)ϵ.
+
+## Appendix D. Frozen Semantic Trace Coupling 
+
+D.1 Candidate-level state machine 
+
+Fix unique candidate labels in an exact-distance-sorted permutation π = ( c(1) , . . . , c (N ))with deterministic tie-breaking, a target t, a degree budget M , and α ≥ 1. Starting from 
+
+S1 = (), define at each visited position 
+
+Di = _
+
+> s∈Si
+
+1{d(t, c (i)) − αd (s, c (i)) ≥ 0}. (45) Append c(i) exactly when Di = 0 and stop when the permutation is exhausted or the degree cap is reached. The call is append-only and has no refill; for a fixed sorted permutation it is equivalent to repeatedly selecting the nearest remaining candidate and deleting the candidates dominated by a selected point. For each exact visited state evaluate the approximate counterfactual action bD∗ 
+
+> i
+
+on the exact prefix Si and write Ei = { bD∗
+
+> i
+
+̸ = Di}. A first-divergence induction gives the determin-istic identity 
+
+{ bTsem ̸ = Tsem } = { bSout ̸ = Sout } = [
+
+> i∈V
+
+Ei. (46) The implication from output difference back to some Ei uses unique labels, append-only selection, and the absence of refill: the first action-disagreement candidate belongs to exactly one final set. 
+
+D.2 Witness and conservative-event inclusions 
+
+For s ∈ Si let 
+
+Ai,s = 1{Ψi,s ≥ 0}̸ = 1{ bΨi,s ≥ 0} . (47) Then Ei ⊆ S 
+
+> s∈Si
+
+Ai,s , and the inclusion can be strict because another witness may preserve the OR. If bΨ = γΨ + R with γ > 0, then for nonzero margins 
+
+A ∩ { Ψ̸ = 0 } ⊆ { Ψ̸ = 0 , Ψ bΨ ≤ 0} ⊆ { Ψ̸ = 0 , |R| ≥ γ|Ψ|} , (48) 
+
+> 24 Low-Bit Decision Stability in Vector Search
+
+where the first inclusion can be strict when Ψ > 0 and bΨ = 0. For exact ties, actual disagreement is R < 0 and is added separately. Consequently, after fixing the data and the exact trace, 
+
+P( bSout ̸ = Sout ) ≤ X
+
+> i∈V
+
+X
+
+> s∈Si
+
+1{Ψi,s > 0}P(−Ri,s ≥ γΨi,s )+1{Ψi,s < 0}P(Ri,s ≥ γ|Ψi,s |)+1{Ψi,s = 0 }P(Ri,s < 0) , (49) with no independence between comparisons. 
+
+D.3 Edge, path, sorting, and saturation 
+
+If the exact output edge ( t, c ) is selected at position jc, agreement of all candidate actions in the exact prefix through jc is sufficient for its survival. Source-scoped prefix certificates for a fixed path may be union-bounded without cross-source independence; the resulting statement is about retention of the listed edges. If approximate scoring changes the permutation, the ordering event is added: 
+
+P(output divergence) ≤ P(bπ̸ = π) + X
+
+> i∈V
+
+P(Ei). (50) A deterministic saturation map that appends unselected candidates after RobustPrune satisfies 
+
+{saturated-output divergence } ⊆ { standard-trace divergence }, (51) and the reverse inclusion fails in general, because distinct diversity traces can saturate to the same list. Saturation is therefore analysed as a post-processing map applied to the standard call. 
+
+## Appendix E. Gaussian Residual Transfer 
+
+E.1 Oracle decomposition 
+
+Let Gu i.i.d.
+
+∼ N (μD, ΣD) and Xu = Gu/∥Gu∥. Define 
+
+T (g) = D−1 X
+
+> i
+
+|gi|, qi(g) = sign( gi)[1 + 1{| gi| > T (g)}]. (52) Positive scale invariance gives qi(X) = qi(G). Replacing T (G) by T D = ET (G) and ∥G∥ by 
+
+rD = E∥G∥ defines the oracle kernel, and for every fixed edge combination 
+
+Ra = R◦ 
+
+> a
+
++ ∆ a, thr + ∆ a, shell . (53) The threshold remainder is supported on threshold deviation or coordinate boundary oc-cupancy; the shell remainder is the difference between exact cosine normalization and the fixed-radius bilinear surrogate. 
+
+> 25 Xiao and Cao
+
+E.2 Aligned magnitude-bit theorem 
+
+Let G, H be independent with independent coordinates Gi, H i ∼ N (0 , σ 2 
+
+> i
+
+). Put m = p2/π ,
+
+zi = τ /σ i, pi = 2[1 − Φ( zi)], ki = m + 2 φ(zi), and vi = 1 + 3 pi. Coordinate independence gives Var( T ) = X
+
+> i
+
+σ4 
+
+> i
+
+, Cov( S1, T ) = m2 X
+
+> i
+
+σ2 
+
+> i
+
+, Var( S1) = D, (54) Cov( S2, T ) = X
+
+> i
+
+σ2 
+
+> i
+
+k2 
+
+> i
+
+, Var( S2) = X
+
+> i
+
+v2 
+
+> i
+
+. (55) For every finite z > 0, 
+
+k(z)2 > m 2v(z). (56) To see this write a = e−z2/2 and h(z) = k(z)2/m 2 − v(z) = 2 a + a2 − 6[1 − Φ( z)]. Then 
+
+h(0) = lim z→∞ h(z) = 0 and h′(z) = a{3m−2z(1+ a)}; since 2 z(1+ a) is strictly increasing, 
+
+h rises and then falls and stays strictly positive on (0 , ∞). Now set ti = σ2 
+
+> i
+
+and regard vi = v(ti). Both v(t) and t/v (t) increase because tv ′(t) = 3zφ (z) < 1 ≤ v(t). Pairwise expansion and Cauchy–Schwarz give 
+
+P 
+
+> i
+
+tivi
+
+P 
+
+> i
+
+ti
+
+≥
+
+P 
+
+> i
+
+v2
+
+> i
+
+P 
+
+> i
+
+vi
+
+≥
+
+s 1
+
+D
+
+X
+
+> i
+
+v2 
+
+> i
+
+, (57) and combining this with (56) proves ρ(S2, T ) > ρ (S1, T ). The alignment between target and scorer is what makes the inequality hold. In the linear-target model T = P 
+
+> i
+
+wiGi with a fixed equally weighted scorer, take D = 8, w =(1 , 1, 1, 1, 0, 0, 0, 0), coordinate standard deviations (1 , 1, 1, 1, L, L, L, L ), and τ = m(1 + 
+
+L)/2. For L = 8 the two-bit minus one-bit Pearson correlation is −0.162687 . . . : the second bit amplifies four coordinates the target ignores, and a fixed readout loses. For equal-variance independent coordinates and the random threshold D−1 P 
+
+> i
+
+|Gi|, the strong law and dominated convergence recover the deterministic-threshold correlation as D → ∞ .
+
+E.3 Oracle covariance 
+
+For the symmetric oracle kernel HD let 
+
+h1,D (u) = E[HD(u, V )] − θD, h2,D (u, v ) = HD(u, v ) − θD − h1,D (u) − h1,D (v), (58) and κj = Eh2 
+
+> j
+
+. Aggregate directed or repeated edges into unordered-pair coefficients Ap
+
+and node incidences du = P 
+
+> p∋u
+
+Ap. Hoeffding orthogonality gives Var( R◦
+
+> a
+
+) = κ1
+
+X
+
+> u
+
+d2 
+
+> u
+
++ κ2
+
+X
+
+> p
+
+A2
+
+> p
+
+. (59) Disjoint edges have zero covariance, edges sharing exactly one node have covariance κ1, and identical or reversed edges have variance 2 κ1 + κ2.
+
+> 26 Low-Bit Decision Stability in Vector Search
+
+E.4 Three analytical routes 
+
+The coarse route combines a Gaussian quadratic-form MGF with a bounded score range; it needs no coordinate independence and is loose by four orders of magnitude on real em-beddings (Appendix I). The exact-covariance route keeps (59) and adds a cumulant or conditional-MGF condition. The empirical route calibrates the fitted role residual on inde-pendent blocks. The three routes bound the same residual tail with different inputs; the decision shell of Theorem 2 accepts any of them. 
+
+## Appendix F. Held-Out Certificates 
+
+Condition on nuisance parameters fitted on an independent split. Let Z1, . . . , Z n be inde-pendent blocks with arbitrary dependence among decisions inside a block. For threshold 
+
+τ let u(Z, τ ) be the block-average indicator that a decision lies in the boundary event or the residual event, so that pointwise 0 ≤ f (Z) ≤ u(Z, τ ) ≤ 1 with f (Z) the block-average failure. For fixed τ , one-sided Hoeffding gives 
+
+pblk  
+
+> F
+
+≤ bUn(τ ) + 
+
+r log(1 /δ )2n (60) with probability at least 1 − δ. For a prespecified grid T of size M , a union bound replaces 
+
+δ by δ/M and licenses any calibration-measurable minimizer bτ ∈ T .
+
+F.1 Selective ratio certificates 
+
+Condition on the fit split. For selector s and threshold τ let Ci,s , Ui,s,τ , and Fi,s be the block fractions accepted, accepted and in the union event, and accepted and failed; empty blocks contribute zero, and pointwise 0 ≤ Fi,s ≤ Ui,s,τ ≤ Ci,s ≤ 1. The target is the ratio of expectations 
+
+ps = EFi,s 
+
+ECi,s 
+
+, qs,τ = EUi,s,τ 
+
+ECi,s 
+
+, (61) which is the block-uniform selective risk, not the average of within-block ratios; it requires positive population coverage. The proof of Theorem 14 fixes q = qs,τ and uses Wi(q) = Ui,s,τ − qC i,s ∈ [−q, 1 − q]with EWi(q) = 0. The interval has length one, so a one-sided Hoeffding bound and a union bound over G = |G| pairs give 
+
+qs,τ ≤ bUs,τ + plog( G/δ )/(2 n)
+
+bCs
+
+(62) simultaneously whenever bCs > 0. Replacing U by F and paying only for the selector family proves Corollary 15. No comparison-level independence is assumed. The two-event baseline controls EU from above and EC from below separately. With 
+
+ϵ2 = plog(2 G/δ )/(2 n) it yields 
+
+qs,τ ≤ bUs,τ + ϵ2
+
+bCs − ϵ2
+
+(63) 
+
+> 27 Xiao and Cao
+
+when the denominator is positive; if only S0 distinct selectors occur, 2 G may be replaced by G + S0. Using log( G/δ ) for both separate events would only establish failure probability 2δ. The direct-ratio event dominates: whenever its denominator is positive, the two-event expression is a looser consequence of (23). 
+
+F.2 Empirical-Bernstein ratio inversion 
+
+Let n ≥ 2, let bVW (t) be the unbiased sample variance of Wi(t) = Ui − tC i, and define 
+
+L = log(2 G/δ ), a = p2L/n, b = 7L
+
+3( n − 1) , (64) 
+
+H(t) = bU − t bC + a
+
+qbVW (t) + b, t ∈ [0 , 1] . (65) Set 
+
+BEB =
+
+(
+
+inf {t ∈ [0 , 1] : H(t) ≤ 0}, if the set is nonempty ,
+
+1, otherwise . (66) Then qs,τ ≤ BEB ,s,τ simultaneously over the grid with probability at least 1 − δ.At the population truth q, the range-one empirical Bernstein inequality gives P{H(q) <
+
+0} ≤ δ/G . The function H need not be monotone, but it has a single-crossing property. Write sU =
+
+qbVU and η = b + bU − as U . Since 0 ≤ Ui ≤ 1, 
+
+s2 
+
+> U
+
+≤ nn − 1 bU , as U − bU ≤ L
+
+2( n − 1) , (67) so η ≥ 11 L/ [6( n − 1)] > 0. For 0 < r < t ≤ 1 put λ = t/r . From W (t) = λW (r) − (λ − 1) U
+
+and the triangle inequality for sample standard deviations, 
+
+H(t) ≤ λH (r) − (λ − 1) η, (68) so H(r) ≤ 0 implies H(t) < 0 for every t > r . Since H(0) > 0 and H is continuous, the first crossing in (66) is a valid upper confidence endpoint and no grid over t is needed. Numerically, if H(1) ≥ 0 the implementation returns one; otherwise bisection returns the upper bracket endpoint. 
+
+F.3 Independent selection and multiplicity 
+
+If the block budget is split before observation into selection and certification blocks, a grid pair and certificate family may be chosen on the first part and, conditionally on that choice, certified on the second part with the single-policy width plog(1 /δ )/(2 ncert ) and no grid factor. Choosing again after viewing several certification results requires a common simul-taneous guarantee. Likewise each prespecified method and sample size carries a marginal guarantee, and selecting the smallest certificate across a curve requires a confidence alloca-tion across the points eligible for selection. 
+
+> 28 Low-Bit Decision Stability in Vector Search
+
+## Appendix G. Cross-Quantizer Instantiations 
+
+G.1 RaBitQ 
+
+For a fixed unit data direction o and query direction q, RaBitQ uses 
+
+bsR(o, q ) = ⟨¯o(P ), q ⟩⟨¯o(P ), o ⟩ , (69) whose denominator is positive for every orthogonal P because ⟨¯o(P ), o ⟩ = ∥P ⊤o∥1/√D ≥
+
+1/√D. The random-radius event is measurable under a fixed tie rule. A shared rotation couples the edges, so ranking and pruning statements go through the triangle inequality and a union bound over the joint event rather than through independence, and observing the realized radius does not create conditional coverage. For raw squared distance, 
+
+ξd2 
+
+> R
+
+(ur, v r) = −2rurv εR(u, v ), (70) and a pruning rule stated in Euclidean distance becomes an α2 rule after squaring, with the two edges keeping distinct radial factors. A rule stated directly in squared distance or cosine dissimilarity keeps its own parameter. 
+
+G.2 BBQ and block estimators 
+
+Lucene BBQ defines asymmetric scorer roles that determine graph topology: stored vectors are one-bit, temporary int4 query-role vectors support graph construction, and candidate collection as well as diversity and reverse-link scoring each need role-specific residual calibra-tion. Our reference scorer implements the role semantics. Product quantizers and related block estimators enter through block residual sums, whose survival laws come from bounded blocks, block covariance, or held-out calibration. Native binary embeddings without a float teacher metric fall outside the latent-float residual formulation. 
+
+## Appendix H. Necessity and Replacement Concentration 
+
+H.1 Rare-contamination counterexample 
+
+Let εD = D−4, AD = D3/2, and 
+
+GD = (1 − JD)ZD + JDADSD, (71) where JD ∼ Bernoulli( εD), ZD ∼ N (0 , I D), and SD has independent Rademacher coordi-nates; independent nodes use independent copies. Then Cov( GD) = (1 + D−1 − D−4)ID.For every fixed coordinate block of size k, mixture decomposition and Gaussian scale com-parison give total-variation distance Ok(D−1) from the standardized Gaussian law. With 
+
+rD = E∥GD∥ ∼ √D,
+
+E
+
+ ∥GD∥
+
+rD
+
+− 1
+
+2
+
+= O(D−1), (72) a relative mean-square statement whose L2 norm is O(D−1/2). At the population magnitude threshold the expected fraction of coordinates in a shrinking boundary band tends to zero. 
+
+> 29
+
+Xiao and Cao 
+
+Fix 0 < η ≤ 1/8, βD = η/D , and define the fixed-threshold oracle residual 
+
+RD = QD + BD, (73) 
+
+QD = G⊤ 
+
+> 1
+
+(G3 − G2)
+
+r2
+
+> D
+
+, (74) 
+
+BD = − ηD
+
+X
+
+> i
+
+q◦ 
+
+> i
+
+(G1){q◦ 
+
+> i
+
+(G3) − q◦ 
+
+> i
+
+(G2)}. (75) Conditioning on the three contamination indicators and combining the two shared-endpoint edges coordinatewise gives independent centred coordinate summands, whence 
+
+EB2 
+
+> D
+
+≤ 32 η2/D, EB4 
+
+> D
+
+≤ 3072 η4/D 2, (76) while Var( QD) = 2Dσ 4
+
+> D
+
+/r 4 
+
+> D
+
+∼ 2/D . The L2 reverse triangle inequality gives VD =Var( RD) = Θ( D−1). On AD = {J1 = J2 = 1 , J 3 = 0 }, whose probability is ε2
+
+> D
+
+(1 − εD) = Θ( D−8), 
+
+QD = ADS⊤ 
+
+> 1
+
+Z3 − A2
+
+> D
+
+S⊤ 
+
+> 1
+
+S2
+
+r2
+
+> D
+
+. (77) Since E(S⊤ 
+
+> 1
+
+S2)4 = 3 D2 − 2D,
+
+E[Q4
+
+> D
+
+; AD] ≥ ε2
+
+> D
+
+(1 − εD)A8
+
+> D
+
+(3 D2 − 2D)
+
+r8
+
+> D
+
+= (3 + o(1)) D2. (78) The L4 reverse triangle inequality and the bound on BD give ER4 
+
+> D
+
+= Ω( D2), hence 
+
+κ4(RD) = Ω( D2), κ4(RD)/V 2 
+
+> D
+
+= Ω( D4). (79) For a cumulant condition |κm(RD)| ≤ (m!/2) VDbm−2 
+
+> D
+
+, the case m = 4 forces bD/√VD =Ω( D2). For a two-sided MGF bound log EeλX ≤ λ2v
+
+2(1 − b|λ|) , |λ| < 1/b, (80) evaluating both signs at λ = [2 max {√v, b }]−1 and using cosh y − 1 ≥ y4/24 gives EX4 ≤
+
+192 v max {v, b 2}, so vD = O(VD) again forces bD/√VD = Ω( D2). The construction uses a fixed threshold, fixed normalization, and the oracle slope; it is a logical obstruction, and 
+
+§8.7 measures how far real embeddings sit from it. 
+
+H.2 Replacement variance 
+
+For the Hoeffding decomposition of Fa, independent replacement of node u gives  
+
+> 12
+
+E(Fa − F (u) 
+
+> a
+
+)2 = E Var( Fa | G−u). (81) Summing over nodes counts every first-order component once and every degenerate pair component twice, 
+
+VES = κ1
+
+X
+
+> u
+
+d2 
+
+> u
+
++ 2 κ2
+
+X
+
+> p
+
+A2
+
+> p
+
+, (82) hence V ≤ VES ≤ 2V with equality at two when h1 = 0 and h2̸ = 0. 
+
+30 Low-Bit Decision Stability in Vector Search 
+
+Table 11: Representation regimes. Each result file records the subset of datasets it uses.              
+
+> Group Datasets DRole Contrastive text Cohere, MiniLM, BGE-M3, Jina, MSMARCO 384–1024 primary regimes Vision Wolt-CLIP, Landmark-DINO 512–768 modality transfer Classical GloVe, SIFT, GIST 100–960 negative controls Synthetic Gaussian, sphere, random, contaminated 64–2048 mechanism and stress
+
+H.3 Conditional MGF and stable truncation 
+
+Let Dj be the three Doob increments. If deterministic vj , b j satisfy log E[eλD j | F j−1] ≤ λ2vj
+
+2(1 − bj |λ|) , (83) iterated conditioning gives the tail (20) with v⋆ = P 
+
+> j
+
+vj and b⋆ = max j bj . The expectation of a replacement proxy alone cannot be inserted into Freedman’s inequality; the conditional bounds must hold almost surely. A truncation route constructs a functional FL on the full input space with 
+
+P(FL̸ = Fa) ≤ εL, |EFa − EFL| ≤ dL. (84) If FL has a sub-gamma tail with ( vL, b L), then 
+
+P(|Fa − EFa| ≥ z + dL) ≤ 2 exp 
+
+
+
+− z2
+
+2( vL + bLz)
+
+
+
++ εL. (85) Bounding replacements only on a good event suffices only when that event is stable under every single-node replacement, which is what the construction of FL on the full space provides. 
+
+H.4 Negative component covariance 
+
+For zero-mean Gaussian nodes of arbitrary covariance define Mij = E[q◦ 
+
+> i
+
+(G)Gj ]. Endpoint independence gives Cov( Ba, Q a) = − β1
+
+r2
+
+> D
+
+X 
+
+> p
+
+A2
+
+> p
+
+
+
+∥M ∥2 
+
+> F
+
+≤ 0, (86) with no symmetry or positive-semidefiniteness of M required. At nonzero mean, first-order projections reappear and the sign depends on separate cross-Hoeffding conditions. 
+
+## Appendix I. Datasets, Protocols, and Experiment Inventory 
+
+Every experiment draws a bounded sample from a memory-mapped source artifact rather than loading a full million-vector file. Calibration, validation, reference-integration, and stress pools are disjoint whenever the estimand requires it. Table 12 maps each experiment in the paper to its script and result file; script numbers refer to the numbered modules of the code release, and result files are named by experiment number with a suffix identifying the standard non-saturated RobustPrune rule where it is involved. 
+
+> 31
+
+Xiao and Cao 
+
+Table 12: Experiment inventory. 
+
+Section Object Scripts Results 
+
+§8.2 margin bins, boundary exponent, held-out predictor 07, 08, 16 24, 25, 33 
+
+§8.3 shared-query covariance, selection regimes 09, 29 26, 46 
+
+§8.4 pruning replay, trace, edge, path, refill variant 10–14 27–31 
+
+§8.5 selective certificates, sample-size curves 17, 28 34, 45 
+
+§8.7 joint Gaussianity, oracle remainders, variance proxies 15, 19, 21, 22 32, 36, 38, 39 
+
+§8.8 conditional-MGF and truncation parameters 23 40 
+
+§8.9 margin-zero and matched-Spearman constructions 18 35 
+
+§7 cross-quantizer interface 20 37 
+
+§5 representation diagnostics, magnitude bit, rotation 01–06 1–23 
+
+Table 13: Geometry diagnostics. d90 is the PCA dimension explaining 90% of the variance; ∆θNN is a representative nearest-neighbour angular gap. 
+
+Dataset D d90 /D Mean angle NN angle ∆θNN 
+
+Cohere 768 .309 45 .8◦ 35 .4◦ .125 ◦
+
+BGE-M3 1024 .091 55 .4◦ 34 .5◦ .248 ◦
+
+MiniLM 384 .497 88 .8◦ 65 .6◦ .277 ◦
+
+GIST 960 .181 40 .7◦ 28 .9◦ .091 ◦
+
+Random 768 .268 87 .6◦ 67 .9◦ .117 ◦
+
+## Appendix J. Representation Diagnostics 
+
+The diagnostics in this section motivated the Gaussian model of §5 and the eligibility gate. Intrinsic dimension and average angle do not separate the regimes: GIST has the most concentrated geometry and the smallest local angular gap yet is the worst coordinate-sign regime, while random vectors have regular high-dimensional geometry and no usable neighbour structure. The final theory conditions on decision margins and residual placement instead. The GIST row is the key negative control: almost all coordinate signs agree regardless of angular relation, whereas random hyperplanes keep an angular collision law. This is the origin of both the rotation mechanism and the eligibility gate. In the same-dimensional survey of nine 768-dimensional regimes, eight had R2 ≥ .9965; the near-isotropic RoBERTa regime had low R2 because its entropy variance is close to 
+
+32 Low-Bit Decision Stability in Vector Search 
+
+Table 14: Coordinate-sign versus random-hyperplane diagnostics. GW is the angular colli-sion prediction and Hsign the normalized sign entropy.                               
+
+> Dataset Coord. sign Random HP GW KL(coord ∥HP) Hsign
+> Cohere .650 .744 .746 .0229 .747 BGE-M3 .677 .701 .692 .0022 .700 MiniLM .508 .506 .506 .0021 .987 GIST .9999 .768 .774 .2648 .0004 Random .513 .513 .513 .0010 .981
+
+Table 15: Anisotropic Gaussian sign-entropy model. Sign entropy is predicted from coordi-nate SNR; R2 is unstable when entropy has almost no variance across coordinates, so MAE is reported alongside.                                     
+
+> Dataset DR2MAE Mean |SNR |Measured / predicted entropy Cohere 768 .9996 .004 .884 .747 / .748 BGE-M3 1024 .9989 .007 .908 .700 / .699 MiniLM 384 .9222 .002 .127 .987 / .988 Random 768 .9967 .001 .164 .981 / .982 GIST 960 failure .240 1.763 .000 / .240 MSMARCO-Cohere 1024 .9995 .0019 .370 .910 / .910
+
+zero, with MAE .00166. These are coordinate-wise checks; the joint Gaussianity audit of 
+
+§8.7 is the stronger test. 
+
+## Appendix K. Representation Mechanisms 
+
+Tables 16 to 19 collect the representation-level measurements behind §5: the fidelity and recall gain of the magnitude bit, a controlled intervention on coordinate heterogeneity, the rotation response of the two-bit code, and the predictors of that response. In Table 19, excluding the one non-Gaussian outlier (Landmark-Nomic) raises the entropy-gap correlation to .964 and the heterogeneity correlation to .746; the response is independent of dimension. In the intervention study of Table 17, the correlation between heterogeneity and magnitude gain was +1 .0 in four of five datasets. 
+
+Rotation response and eligibility are different questions. Cohere ( Hsign = .747, ∆Frot = + .170) and SIFT ( Hsign = .746, ∆ Frot = + .200) are nearly identical on both statistics, yet coordinate binary quantization is usable on Cohere and not on SIFT. The entropy gap predicts how much rotation changes a code; the eligibility gate (calibration slope, margin correlation, residual tail) decides whether the unrotated code was usable at all. This pair of datasets is why the paper reports two diagnostics rather than one routing statistic. 
+
+> 33 Xiao and Cao
+
+Table 16: Magnitude-bit gain in global ranking fidelity and simulated recall across repre-sentations.                      
+
+> Dataset CV( σ)∆F∆ Recall MiniLM .118 +.132 +.174 Cohere .182 +.091 +.144 CodeSearch .098 +.088 +.143 Landmark .110 +.088 +.110 Arxiv .108 +.071 +.159 Random .070 +.049 +.210
+
+Table 17: Controlled coordinate-heterogeneity intervention on Cohere. Absolute fidelity and the magnitude-bit gain move in opposite directions.                              
+
+> Intervention CV( σ)F1bit F2bit ∆Fmag
+> Amplify γ= 2 .316 .682 .719 .036 Amplify γ= 1 .5.252 .694 .728 .034 Original .182 .706 .738 .032 Whiten .50 .091 .720 .746 .026 Flatten .002 .736 .757 .022
+
+## Appendix L. Local Ranking and Boundary Diagnostics 
+
+The last two rows are the operational summary: on eligible two-bit configurations, two thirds to three quarters of decisions lie in the low-risk region M ≥ 2 and 7 to 9% fall below 
+
+M = 1. 
+
+## Appendix M. Pruning and Trace Composition 
+
+Every observed triple disagreement is a false keep. Fixed-order output divergence occurs on 99.4 to 100% of sampled calls although local triple disagreement rates are 1.9 to 13.1%, as the first-divergence theorem permits: one candidate-level action disagreement changes an append-only output. In this experiment rotation leaves the fixed-order pruning statistics nearly unchanged, while the free-order replay also reflects candidate re-sorting. The implication “certificate passes ⇒ edge survives” held in every tested case. The numerical saturation reflects the conservativeness of witness-level additive probabilities, while the risk sum still orders edges by their observed failure. Path certificates saturate within two hops, and the observed path failure rate grows with length as the union of its edge failures. The certificate sufficiency implication held on every path. 
+
+> 34 Low-Bit Decision Stability in Vector Search
+
+Table 18: Rotation responses of the two-bit code. Recall changes follow the original exper-iment reports.                        
+
+> Dataset Sign entropy before →after Recall response Regime GIST .000 →.511 +307% degenerate signs Wolt-CLIP .836 →.616 +3.2 pp over-spread Cohere .747 →.563 −0.5 pp coordinate signal MiniLM approximately unchanged approximately zero near-isotropic
+
+Table 19: Predictors of the global two-bit rotation response ∆ Frot over 12 datasets.                     
+
+> Predictor Spearman ρp
+> CV( σ)+.657 .020
+> Hsign −.909 < . 001 1−Hsign +.909 < . 001 (1 −Hsign )×CV( σ)+.930 < . 001 log D−.080 .805
+
+## Appendix N. Analytical Eligibility and Variance Proxies 
+
+The MiniLM and GIST source artifacts are stored unit-normalized, so their pre-normalization shell is not identifiable; Cohere retains radial information, with norm coefficient of variation 4.4% and 2 .03% of vectors beyond a 10% relative shell. All 28 component cross-covariances are negative, with median cancellation ratio .947. In dimension stress tests from D = 64 to 2048, clean, equicorrelated, and block-correlated Gaussian regimes keep the oracle b⋆/sd near .19 to .25; a dense global shock raises it towards 
+
+.88 and is detected at the same time by the Gaussian, shell, and spectrum diagnostics. The rare-contamination construction of Theorem 13 is designed to pass those diagnostics, which is what makes it the relevant obstruction. 
+
+## Appendix O. Held-Out Certificates 
+
+This protocol uses 128 coefficient-fit, 512 risk-calibration, 512 validation, 256 stress-cutoff, and 512 stress-evaluation blocks per configuration. The prespecified grid has five selector cutoffs and seven thresholds plus the accept-all case, so |G| = 40; with n = 512 the width is ϵn = .0808. The certificate is the two-event form ( bU + ϵn)/( bC − ϵn), which Appendix F.1 shows to be a looser consequence of the direct-ratio event whenever its denominator is positive. Ranking certificates range from 11.23 to 58.25% and pruning certificates from 11.17 to 46.46%. The stress columns evaluate the frozen cutoff on the hardest fifth of margins from a separate pool. All 48 role configurations satisfy the block-level invariant 0 ≤ Fi ≤ Ui ≤ Ci ≤ 1, and every prespecified method and sample size showed validation risk below its certificate on all configurations. Certificate values decrease as the number of certification blocks grows; validation risks change little, while each method may select a different policy at each sam-
+
+> 35 Xiao and Cao
+
+Table 20: Fixed-local-set decision study on 32-neighbour candidate sets. The eligibility column is the empirical gate of §6.                                    
+
+> Dataset Quantizer Eligible Flip Query failure Boundary exponent Cohere 1-bit yes 8.89% 63.12% 1.526 Cohere 2-bit yes 5.83% 47.50% 1.526 MiniLM 1-bit yes 11.21% 59.38% 1.500 MiniLM 2-bit yes 4.19% 43.75% 1.500 GIST 1-bit no 100.00% 100.00% 1.595 GIST 2-bit no 35.83% 91.88% 1.595
+
+Table 21: Standardized-margin bins, n = 4 ,960 decisions per configuration, with counts in parentheses; Table 6 pools these into six bins. On the ineligible GIST configu-ration the flip rate is flat in the margin, so no cutoff separates safe from unsafe decisions.                                                                        
+
+> Bin Cohere 1-bit Cohere 2-bit MiniLM 1-bit MiniLM 2-bit GIST 2-bit [0 , . 25) 33.3% (93) 48.6% (70) 48.1% (104) 50.0% (72) 41.1% (158) [.25 , . 5) 31.3% (150) 35.3% (102) 36.0% (125) 39.6% (53) 37.5% (301) [.5, . 75) 30.2% (182) 24.8% (121) 37.4% (227) 29.5% (78) 39.2% (551) [.75 ,1) 21.3% (286) 20.3% (158) 24.7% (312) 23.9% (138) 35.7% (762) [1 ,1.5) 13.2% (832) 11.9% (520) 15.8% (991) 11.5% (355) 28.2% (1389) [1 .5,2) 8.49% (1083) 7.68% (690) 10.2% (1064) 5.95% (571) 34.2% (803) [2 ,3) 3.02% (1458) 2.54% (1577) 2.53% (1227) 1.29% (1393) 40.8% (622) [3 ,5) 0.12% (804) 0.14% (1413) 0.28% (718) 0.13% (1531) 42.9% (231) [5 ,∞)0.00% (72) 0.00% (309) 0.00% (192) 0.00% (769) 63.6% (143) Share M≥247.1% 66.5% 43.1% 74.5% 20.1% Share M < 114.3% 9.1% 15.5% 6.9% 35.7%
+
+ple size. The ranking failure label uses the same lexicographic tie-breaking as candidate ordering, and pruning uses the nonnegative-is-dominated convention. 
+
+## Appendix P. Candidate-Selection Covariance 
+
+This experiment holds one global affine edge scorer fixed and varies the pair-generation law, using 6,000 sampled vectors, 60,000 independent fit pairs, 160 query blocks, and 128 candi-date pairs per query. The i.i.d. control samples all three endpoint identities independently with replacement; a distinct-triple control rejects identity collisions. In every regime the weighted within/between identity (39) reproduces the pooled covari-ance and the difference variance to floating-point precision. Query-block bootstrap intervals accompany the grouped regimes, and the 5th, 50th, and 95th percentiles of query-specific within covariance are retained because a small weighted average need not describe every query. The anchor’s left residual is constant within a query, so its within-query correlation is reported as undefined. 
+
+> 36 Low-Bit Decision Stability in Vector Search
+
+Table 22: Shared-query covariance audit on 32-neighbour anchor pairs. “Ind./true” is the independence variance divided by the observed difference variance.                                                        
+
+> Dataset Quantizer Flip Residual corr. Ind./true Tail gate Cohere 1-bit 8.89% .794 4.71 pass Cohere 2-bit 5.83% .870 7.42 pass Cohere rotated 1-bit 15.58% .465 1.87 pass Cohere rotated 2-bit 8.81% .435 1.77 pass MiniLM 1-bit 11.21% .047 1.05 pass MiniLM 2-bit 4.19% .093 1.10 pass GIST 1-bit 100.00% .902 8.89 abstain GIST 2-bit 35.83% .832 5.70 abstain GIST rotated 1-bit 14.80% .585 2.34 pass GIST rotated 2-bit 9.33% .529 2.09 pass
+
+Table 23: Standard non-saturated RobustPrune replay with exact candidate pools ( α = 1 .2, 
+
+M = 32, 64 candidates, 160 targets). Free-order divergence includes the sorting change.                                    
+
+> Dataset Quantizer Local flip Fixed-order divergence Fixed Jaccard Free Jaccard Cohere 2-bit 13.06% 100.0% .322 .395 Cohere rotated 2-bit 13.07% 100.0% .322 .289 MiniLM 2-bit 1.92% 100.0% .654 .529 MiniLM rotated 2-bit 1.92% 100.0% .656 .529 GIST 2-bit 7.91% 99.4% .458 .260 GIST rotated 2-bit 7.90% 99.4% .458 .359
+
+## Appendix Q. Cross-Quantizer and Conditional-MGF Audits 
+
+Table 4 averages over Cohere, MiniLM, SIFT, and GIST. Each family uses 1,200 fit vectors and 2,000 held-out vectors per dataset, generating 60,000 ranking and 60,000 pruning triples. The RaBitQ reference uses a seeded signed-DCT orthogonal transform without query scalar quantization; the BBQ-like reference implements centroid-centred one-bit storage with an int4 query role and omits Lucene’s metric-specific corrections; the PQ reference uses 16 subspaces with 16 centroids each, for 64 index bits per vector excluding codebooks. The four disjoint pools contain 900 fit, 1,200 reference, 1,200 calibration, and 1,200 validation vectors. Nested integration uses 160 first-node groups, 16 second nodes, 12 observed third nodes, and separate reference completions; clipping cutoffs are the .95, .975, and .99 calibration quantiles. No held-out tail exceeded its hybrid bound. 
+
+## Appendix R. Negative Controls 
+
+The framework’s failure modes are distinct and each is observable: nonpositive calibration, heavy residual tails, high boundary mass, a saturated trace or path certificate, a post-processing map that merges distinct traces, an unidentifiable shell, and deployment blocks 
+
+> 37 Xiao and Cao
+
+Table 24: Exact-prefix edge certificates under standard RobustPrune (two-bit codes). “Sat-uration” is the fraction of plug-in additive bounds at least one; the last column is the Spearman correlation between the plug-in risk sum and observed edge failure.                      
+
+> Dataset Edges Mean prefix terms Fixed-order failure Saturation Risk–failure ρ
+> Cohere 3,054 24.7 34.3% 89.0% .81 MiniLM 5,118 21.0 21.5% 89.4% .69 GIST 3,701 21.7 24.7% 91.6% .73
+
+Table 25: Saturating refill applied after the standard call ( α = 1 .2, M = 32). The refill is a post-processing variant and not part of RobustPrune.             
+
+> Dataset Diversity-selected Refill-added Refill share Cohere 21.07 10.93 34.14% MiniLM 32.00 0.00 0.00% GIST 22.80 9.20 28.75%
+
+that differ from calibration blocks. Each produces either an empirically high risk or an uncertified decision. 
+
+## Appendix S. Code Release 
+
+The release consists of numbered, non-interactive Python modules with fixed seeds and machine-readable outputs: modules 01–06 compute the representation diagnostics of Appen-dices J and K; 07–09 the decision-stability and covariance experiments; 10–14 the pruning replay, trace, edge, refill, and path experiments; 15, 19, 21, and 22 the Gaussian eligibil-ity audits; 16, 17, and 28 the held-out certificates; 18 the necessity constructions; 20 the cross-quantizer interface; 23 the conditional-MGF parameters; 24–27 the semantic and nu-merical audits of the pruning rule, calibration, Stein identity, and contamination formulas; and 29 the candidate-selection covariance experiment. Samples are drawn without loading complete artifacts, no validation outcome is used to retune a frozen certificate, and negative results, ineligible configurations, and saturated bounds remain in the result files. 
+
+## References 
+
+Roy Betser, Eyal Gofer, Meir Yossef Levi, and Guy Gilboa. Infonce induces gaussian distribution. In International Conference on Learning Representations , 2026. URL 
+
+https://openreview.net/forum?id=BlSH7gNQSq . Oral presentation. St´ ephane Boucheron, G´ abor Lugosi, and Pascal Massart. Concentration Inequalities: ANonasymptotic Theory of Independence . Oxford University Press, 2013. Moses S Charikar. Similarity estimation techniques from rounding algorithms. In Pro-ceedings of the 34th Annual ACM Symposium on Theory of Computing , pages 380–388, 
+
+> 38 Low-Bit Decision Stability in Vector Search
+
+Table 26: Fixed-order diversity-path composition for the unrotated two-bit scorer, 600 paths per length. “Fail” is the observed path failure rate and “sat.” the fraction of saturated plug-in certificates, both in percent.                                    
+
+> 1 hop 2 hops 3 hops 4 hops Dataset fail sat. fail sat. fail sat. fail sat. Cohere 33.8 88.2 50.0 98.8 68.2 99.8 78.7 100.0 MiniLM 17.7 89.5 35.5 98.3 46.3 99.8 58.7 100.0 GIST 24.0 84.7 46.0 98.7 60.8 99.8 72.3 100.0
+
+Table 27: Oracle remainder and covariance audit (two-bit codes). “Oracle error” is the relative error of the incidence-covariance prediction against the measured role variance for ranking / pruning; coarse looseness is the coarse proxy divided by the empirical oracle role variance.                                    
+
+> Dataset Coordinates Mag. flips Remainder share Oracle error (R / P) Coarse loose. Cohere original 1.834% 4.66% 3.1% / 4.6% 11,420 Cohere rotated .313% 2.09% 0.7% / 2.1% 51,130 MiniLM original .509% 1.31% 0.3% / 1.0% 13,876 MiniLM rotated .516% 1.37% 0.9% / 1.5% 13,969 GIST original 3.446% 100.73% 0.0% / 0.7% 19,016 GIST rotated .267% 2.30% 2.3% / 1.4% 77,414
+
+2002. Bradley Efron and Charles Stein. The jackknife estimate of variance. The Annals of Statis-tics , 9(3):586–596, 1981. Jianyang Gao and Cheng Long. Rabitq: Quantizing high-dimensional vectors with a theo-retical error bound for approximate nearest neighbor search. Proceedings of the ACM on Management of Data , 2(3):1–27, 2024. doi: 10.1145/3654970. Tiezheng Ge, Kaiming He, Qifa Ke, and Jian Sun. Optimized product quantization. IEEE Transactions on Pattern Analysis and Machine Intelligence , 36(4):744–755, 2014. Ruiqi Guo, Philip Sun, Erik Lindgren, Quan Geng, David Simcha, Felix Chern, and San-jiv Kumar. Accelerating large-scale inference with anisotropic vector quantization. In 
+
+International Conference on Machine Learning , pages 3887–3896, 2020. Herv´ e J´ egou, Matthijs Douze, and Cordelia Schmid. Product quantization for nearest neighbor search. IEEE Transactions on Pattern Analysis and Machine Intelligence , 33 (1):117–128, 2011. Yu A Malkov and D A Yashunin. Efficient and robust approximate nearest neighbor search using hierarchical navigable small world graphs. IEEE Transactions on Pattern Analysis and Machine Intelligence , 42(4):824–836, 2020. 
+
+> 39 Xiao and Cao
+
+Table 28: Looseness of the variance proxies over 28 dataset–coordinate–role configurations (seven datasets, two coordinate systems, two roles).                 
+
+> Proxy Minimum Median Mean Maximum Coarse range 403 22,044 27,109 73,572 Componentwise Cauchy–Schwarz 5.91 40.84 47.59 93.13 Replacement (Efron–Stein) 1.21 1.67 1.72 2.04
+
+Table 29: Five-pool selective certificate protocol at 512 certification blocks ( δ = .05). “No exceedance” counts configurations whose validation risk stayed below the frozen certificate.                   
+
+> Role Issued No exceedance Retained Validation risk Certificate Stress risk Ranking 24 24 66.54% .370% 19.76% 13.02% Pruning 24 24 67.26% .848% 22.75% 21.47%
+
+Andreas Maurer and Massimiliano Pontil. Empirical bernstein bounds and sample variance penalization. In Conference on Learning Theory , pages 115–124, 2009. Suhas Jayaram Subramanya, Fnu Devvrit, Harsha Vardhan Simhadri, Ravishankar Krish-naswamy, and Rohan Kadekodi. Diskann: Fast accurate billion-point nearest neighbor search on a single node. In Advances in Neural Information Processing Systems , vol-ume 32, 2019. Benjamin Trent. Better binary quantization (BBQ) in Lucene and Elasticsearch. Elastic Search Labs, 2024. URL https://www.elastic.co/search-labs/blog/ better-binary-quantization-lucene-elasticsearch . Accessed 2026-09-08. Alexandre B. Tsybakov. Optimal aggregation of classifiers in statistical learning. The Annals of Statistics , 32(1):135–166, 2004. Roman Vershynin. High-Dimensional Probability: An Introduction with Applications in Data Science . Cambridge University Press, 2018. Wenxuan Xiao, Zhiyou Wang, and Chengcheng Li. Quiver: Rethinking ann graph topology via training-free binary quantization, 2026. URL https://arxiv.org/abs/2605.02171 .
+
+> 40
+
+Low-Bit Decision Stability in Vector Search 
+
+Table 30: Selective certificate comparison over prespecified sample sizes ( δ = .05). Each entry averages 24 dataset–quantizer configurations; each method optimizes its own policy. Validation coverage and risk are measured on 1,024 independent blocks. Entries are ranking / pruning. 
+
+Blocks Method Certificate Validation coverage Validation risk 128 two-event Hoeffding 40.22% / 43.96% 76.8% / 73.4% 0.99% / 1.91% 128 direct union 29.08% / 31.32% 70.4% / 68.4% 0.45% / 0.94% 128 empirical-Bernstein union 28.60% / 29.52% 67.9% / 68.4% 0.37% / 0.94% 128 direct failure 16.29% / 18.62% 95.1% / 88.5% 2.18% / 3.31% 256 two-event Hoeffding 28.58% / 31.39% 70.4% / 70.1% 0.45% / 1.26% 256 direct union 22.26% / 24.07% 66.2% / 67.6% 0.35% / 0.86% 256 empirical-Bernstein union 16.44% / 17.64% 62.0% / 61.0% 0.26% / 0.75% 256 direct failure 12.18% / 13.96% 93.5% / 82.7% 1.95% / 2.32% 512 two-event Hoeffding 20.59% / 22.95% 67.0% / 67.6% 0.42% / 0.86% 512 direct union 16.74% / 18.65% 64.6% / 63.5% 0.33% / 0.75% 512 empirical-Bernstein union 9.49% / 10.91% 61.2% / 56.8% 0.26% / 0.72% 512 direct failure 9.07% / 10.45% 87.8% / 80.2% 1.34% / 2.01% 1,024 two-event Hoeffding 15.13% / 17.36% 63.7% / 61.0% 0.32% / 0.75% 1,024 direct union 12.74% / 14.65% 61.2% / 61.0% 0.26% / 0.75% 1,024 empirical-Bernstein union 6.13% / 7.27% 57.7% / 51.1% 0.22% / 0.44% 1,024 direct failure 6.75% / 7.99% 81.9% / 75.2% 0.94% / 1.44% 
+
+Table 31: Pooled residual correlation across candidate-selection regimes. 
+
+Dataset Scorer i.i.d. Distinct Random Top-256 Top-32 Anchor Cohere 1-bit .361 .364 .312 .524 .525 .544 Cohere 2-bit .391 .393 .346 .571 .599 .613 Cohere rotated 2-bit .259 .259 .212 .324 .340 .364 MiniLM 2-bit .010 .010 .020 .067 .111 .118 GIST 1-bit .386 .387 .370 .925 .934 .870 GIST 2-bit .405 .405 .422 .576 .640 .616 
+
+Table 32: Conditional-MGF and stable-clipping parameters over 24 role configurations (six datasets, two quantizers, two roles). 
+
+Quantity Minimum Median Maximum Untruncated b⋆/sd .133 .158 .324 Doob variance sum / total variance 1.047 1.086 1.102 Validation / calibration variance .945 .994 1.075 Clipped b⋆/sd (1% exceptional mass) .130 .147 .258 41 Xiao and Cao 
+
+Table 33: Matched-Spearman construction ( n = 500 ,000). The two perturbations share the exact scores and the same rank fidelity; mean squared error orders them the wrong way.

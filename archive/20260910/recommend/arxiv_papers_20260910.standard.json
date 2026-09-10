@@ -1,0 +1,337 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-10T21:16:16.207265+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 3,
+    "deep_cap": 7,
+    "deep_selected": 3,
+    "quick_candidates": 5,
+    "quick_skim_target": 12,
+    "quick_selected": 5
+  },
+  "deep_dive": [
+    {
+      "id": "2609.02107v1",
+      "source": "arxiv",
+      "title": "A Unified Rate-Distortion Perspective on Vector, Product, and Scalar Quantization",
+      "abstract": "Discrete visual tokenization, predominantly driven by vector, scalar, and product quantization, lacks a unified conceptual framework for understanding quantization tradeoffs. In this paper, we propose a unified rate--distortion perspective on modern discrete visual tokenization. By viewing quantization as lossy compression, we characterize the nominal fixed-length coding rate through token count and codebook size, and quantization error as the distortion. Within this framework, we resolve three central questions. First, we theoretically and empirically show that minimizing distortion, rather than maximizing codebook utilization, is the primary intrinsic objective for reconstruction fidelity, with a direct connection to the STE-induced gradient discrepancy. Second, we establish two critical fairness conditions for intrinsic quantization comparison: controlling latent feature statistics and enforcing identical coding rates. Third, under these conditions, we recover the VQ--PQ--SQ distortion hierarchy in modern visual tokenization and show empirically that modern VQ methods achieve the lowest distortion. This work provides a foundational rate--distortion reframing of modern discrete visual tokenization, resolves ambiguities in quantizer evaluation, and provides a controlled framework for isolating intrinsic quantization effectiveness under fixed-rate constraints.",
+      "authors": [
+        "Xianghong Fang",
+        "Wenlong Mou",
+        "Yuan Yuan",
+        "Dehan Kong",
+        "Tim G. J. Rudner"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CV"
+      ],
+      "published": "2026-09-02T04:50:51+00:00",
+      "link": "https://arxiv.org/pdf/2609.02107v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "unified rate-distortion view on vector, product and scalar quantization",
+      "llm_evidence_cn": "向量、乘积与标量量化的统一率失真视角",
+      "llm_evidence": "向量、乘积与标量量化的统一率失真视角",
+      "canonical_evidence": "向量、乘积与标量量化的统一率失真视角",
+      "llm_tldr_en": "Discrete visual tokenization via vector, product, and scalar quantization lacks a unified view; this paper proposes a rate-distortion framework showing distortion minimization, not codebook utilization, drives reconstruction fidelity.",
+      "llm_tldr_cn": "离散视觉标记化常依赖向量量化、乘积量化与标量量化，但缺乏统一框架来理解其权衡。本文提出统一的率失真视角，将量化视为有损压缩，以标记数与码本大小刻画编码率、以量化误差刻画失真，并回答三个核心问题，理论上证明最小化失真而非最大化码本利用率才是重建保真的主要目标，且与STE梯度相关。该框架为极低比特向量与标量量化的设计提供了原则性指导。",
+      "llm_tldr": "离散视觉标记化常依赖向量量化、乘积量化与标量量化，但缺乏统一框架来理解其权衡。本文提出统一的率失真视角，将量化视为有损压缩，以标记数与码本大小刻画编码率、以量化误差刻画失真，并回答三个核心问题，理论上证明最小化失真而非最大化码本利用率才是重建保真的主要目标，且与STE梯度相关。该框架为极低比特向量与标量量化的设计提供了原则性指导。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.06161v1",
+      "source": "arxiv",
+      "title": "All for 1-Bit: Towards Genuine 1-Bit Post-Training Quantization for LLMs",
+      "abstract": "Large language models (LLMs) have achieved remarkable progress, yet their massive storage and memory-bandwidth demands still hinder efficient deployment. Weight binarization is a promising solution, but existing binarization-based post-training quantization (PTQ) methods usually far exceed the nominal 1-bit storage target due to hidden overhead. To address this gap, we propose All for 1-Bit (AF1), a genuine 1-bit PTQ framework for LLMs. AF1 comprises two complementary components: (1) Null-space-Aware Binary Factorization (NABF) for improving binary reconstruction through Hessian-aware surrogate reparameterization, null-space-aware binary factorization, and scale-only global reconstruction; and (2) Hierarchical Shapley Allocation (HiSA) for assigning structural capacity using hierarchical Shapley sensitivity. Together, they preserve model accuracy under a strict 1.0-BPW budget in the PTQ setting. Experiments on LLaMA, Qwen, and Gemma families show that AF1 consistently outperforms existing binarization-based PTQ methods in perplexity and zero-shot accuracy. Compared with BF16, AF1 achieves an average 2.5 times inference speedup and over 90% memory reduction across evaluated models, providing a practical path toward deployable genuine 1-bit compression for LLMs. The code for reproducibility is available at https://github.com/Kishon-zzx/AF1.",
+      "authors": [
+        "Zhixiong Zhao",
+        "Zukang Xu",
+        "Guangyu Sun",
+        "Lifeng Liu",
+        "Dawei Yang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-05T16:03:41+00:00",
+      "link": "https://arxiv.org/pdf/2609.06161v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "genuine 1-bit post-training quantization for LLMs via binary factorization",
+      "llm_evidence_cn": "面向大模型真正1比特训练后量化的二值分解框架",
+      "llm_evidence": "面向大模型真正1比特训练后量化的二值分解框架",
+      "canonical_evidence": "面向大模型真正1比特训练后量化的二值分解框架",
+      "llm_tldr_en": "Existing binarization PTQ methods exceed the nominal 1-bit storage target due to hidden overhead; AF1 introduces null-space-aware binary factorization and hierarchical Shapley allocation for genuine 1-bit LLM quantization.",
+      "llm_tldr_cn": "现有基于二值化的训练后量化方法因隐藏开销往往远超名义1比特存储目标，难以真正实现极低比特压缩。本文提出All for 1-Bit框架，包含零空间感知的二值分解与Hessian感知代理重参数化，以及分层Shapley分配策略，用于优化尺度与重建。该方法在保持重建精度的同时逼近真实1比特存储，为极低比特VQ方向提供了新的量化范式。",
+      "llm_tldr": "现有基于二值化的训练后量化方法因隐藏开销往往远超名义1比特存储目标，难以真正实现极低比特压缩。本文提出All for 1-Bit框架，包含零空间感知的二值分解与Hessian感知代理重参数化，以及分层Shapley分配策略，用于优化尺度与重建。该方法在保持重建精度的同时逼近真实1比特存储，为极低比特VQ方向提供了新的量化范式。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.09854v1",
+      "source": "arxiv",
+      "title": "When Does Low-Bit Quantization Preserve the Decisions of Vector Search?",
+      "abstract": "Low-bit quantization can achieve high recall on some vector representations and fail sharply on others, while average distortion and global rank correlation do not explain the difference. We study quantized vector search at the level of the comparisons consumed by ranking and graph-pruning algorithms. Our first result is a distribution-free decomposition: the probability that a comparison flips is bounded by the probability mass of exact margins near zero plus the tail probability of the calibrated residual. We then account for dependence between residuals that share a query or graph node, and derive covariance-aware second-moment identities and tail bounds under a joint MGF proxy. For a frozen candidate permutation, we prove a deterministic coupling theorem for Vamana neighbour selection: the approximate replay returns the exact neighbour list exactly when all candidate-level pruning actions agree on the frozen exact states. We connect these results to representation geometry through an exact Gaussian oracle, establish a strict correlation gain from a deterministic magnitude bit in an aligned bilinear model, and give a rare-contamination construction showing why marginal Gaussian diagnostics do not imply the required residual tails. When analytical assumptions are unavailable, a held-out block certificate bounds the selective failure risk of a frozen quantized rule. Across learned, classical, and synthetic embeddings, standardized exact margins predict held-out ranking and pruning flip rates substantially better than global rank correlation. The framework applies to coordinate binary codes, RaBitQ, Lucene BBQ, and product quantizers through a common decision interface.",
+      "authors": [
+        "Wenxuan Xiao",
+        "Xu Cao"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB",
+        "cs.IR",
+        "cs.LG"
+      ],
+      "published": "2026-09-09T08:06:50+00:00",
+      "link": "https://arxiv.org/pdf/2609.09854v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "analyzes when low-bit quantization preserves vector search ranking decisions",
+      "llm_evidence_cn": "分析低比特量化何时保持向量检索排序决策",
+      "llm_evidence": "分析低比特量化何时保持向量检索排序决策",
+      "canonical_evidence": "分析低比特量化何时保持向量检索排序决策",
+      "llm_tldr_en": "Low-bit quantization recall varies sharply across vector representations unexplained by distortion; this work analyzes comparison flips in ranking, deriving distribution-free decompositions and covariance-aware tail bounds to explain when quantized vector search preserves decisions.",
+      "llm_tldr_cn": "低比特量化在部分向量表示上召回很高，在另一些上却急剧失败，而平均失真与全局秩相关无法解释这种差异。本文将量化向量检索分析到排序与图剪枝算法所依赖的比较层面，给出比较翻转概率的无分布分解，并考虑共享查询或图节点的残差相关性，推导协方差感知的二阶矩与尾界。该结果为判断极低比特VQ何时保持检索决策提供了理论依据。",
+      "llm_tldr": "低比特量化在部分向量表示上召回很高，在另一些上却急剧失败，而平均失真与全局秩相关无法解释这种差异。本文将量化向量检索分析到排序与图剪枝算法所依赖的比较层面，给出比较翻转概率的无分布分解，并考虑共享查询或图节点的残差相关性，推导协方差感知的二阶矩与尾界。该结果为判断极低比特VQ何时保持检索决策提供了理论依据。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "2 bit VQ",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.04724v1",
+      "source": "arxiv",
+      "title": "FlexPosit: Tunable Fractional Precision for LLM Inference Accelerators",
+      "abstract": "Large language models (LLMs) offer remarkable capabilities but impose prohibitive compute and energy costs. Quantization governs the trade-offs between accuracy and hardware efficiency across granularity and bit-width. Finer granularity (e.g., group-wise) provides high accuracy but incurs scaling and control overhead, while coarser granularity (e.g., channel-wise) has lower overhead but loses accuracy at low precision. Meanwhile, mixed-precision quantization exposes rich accuracy-efficiency trade-offs algorithmically, but existing LLM accelerators remain limited to discrete precision modes, leaving the fractional design space between them unexplored.   FlexPosit bridges these gaps through co-design of Posit-based quantization and a precision-tunable bit-serial architecture. Algorithmically, FlexPosit employs distribution-aware quantization with hardware-aligned, sensitivity-guided mixed-precision allocation, leveraging the Posit format's tapered precision to achieve group-wise-like accuracy with channel-wise-like regularity. Architecturally, FlexPosit is a unified bit-serial systolic array with lightweight per-column decoders, unified Processing Elements (PEs), and a global precision controller, enabling tunable fractional precision while preserving fully regular systolic dataflow. Across diverse LLMs, FlexPosit achieves near-FP16 accuracy with sub-5-bit fractional weights. It achieves up to 1.8x higher throughput and 1.2x lower energy than BitMoD (group-wise quantization), and 1.5x higher throughput and 2.0x lower energy than OliVe (channel-wise quantization), establishing a new Pareto frontier for precision-tunable LLM acceleration.",
+      "authors": [
+        "Yimin Gao",
+        "Liangtao Dai",
+        "Jun Yin",
+        "Xinfei Guo",
+        "Mircea Stan"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-04T04:48:35+00:00",
+      "link": "https://arxiv.org/pdf/2609.04724v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Posit-based low-bit quantization with mixed-precision tradeoffs for LLM inference",
+      "llm_evidence_cn": "面向LLM推理的Posit低位量化与混合精度权衡",
+      "llm_evidence": "面向LLM推理的Posit低位量化与混合精度权衡",
+      "canonical_evidence": "面向LLM推理的Posit低位量化与混合精度权衡",
+      "llm_tldr_en": "FlexPosit co-designs Posit-based quantization with a precision-tunable accelerator, exploring fractional bit-widths between discrete modes to balance LLM accuracy and hardware efficiency.",
+      "llm_tldr_cn": "大语言模型推理的计算与能耗开销巨大，量化需要在精度与硬件效率之间权衡。现有加速器仅支持离散精度模式，分数精度设计空间尚未被探索。作者提出FlexPosit，将基于Posit的量化与精度可调硬件协同设计，支持细粒度位宽调节。该工作填补了离散模式之间的分数精度空白，为混合精度量化提供了更细粒度的精度-效率折中方案。",
+      "llm_tldr": "大语言模型推理的计算与能耗开销巨大，量化需要在精度与硬件效率之间权衡。现有加速器仅支持离散精度模式，分数精度设计空间尚未被探索。作者提出FlexPosit，将基于Posit的量化与精度可调硬件协同设计，支持细粒度位宽调节。该工作填补了离散模式之间的分数精度空白，为混合精度量化提供了更细粒度的精度-效率折中方案。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "papers provide SoTA/advanced results",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.05764v1",
+      "source": "arxiv",
+      "title": "Interface-Aware KV Cache Quantization for Dense On-Chip NVM in Long-Context LLM Decoding",
+      "abstract": "The key-value (KV) cache is the dominant memory bottleneck in long-context large language model (LLM) decoding: every step reads it entirely, so decoding is memory-bandwidth bound. Holding a quantized KV cache in dense on-chip non-volatile memory (NVM) removes the off-chip transfer. Existing KV quantization methods, however, were designed for GPU-style memory systems: KIVI attaches per-group metadata, adding about 25% to the stored KV cache; KVQuant keeps sparse full-precision outliers that a dense array cannot hold in place. This paper examines what these structures cost when the KV cache resides in NVM behind fixed-range converters, and designs a quantization scheme matched to that interface. The architecture stores the quantized KV cache in dense on-chip NVM, uses a small static analog crossbar only for the fixed rotation, and keeps attention in on-chip digital logic. A randomized rotation and per-vector normalization give every coordinate the same range, so one fixed codebook for keys and one for values, each shared across all tokens of the corresponding tensor type, serve the entire KV cache. The codebook thresholds are programmed once as the read converter's reference levels, enabling fixed-range digitization with no per-token converter reconfiguration. Dequantization is a sixteen-entry lookup and one norm multiply; the only per-vector metadata is one scalar, about 3%. Across models from 3B to 14B and contexts to 32k tokens, the four-bit KV cache maintains accuracy under storage and crossbar noise simulated at realistic device levels. KIVI and KVQuant remain more accurate in software; the advantage of our format lies at the memory interface: 3.1-3.6x lower KV read energy than both mapped to the same NVM, and 8x lower metadata overhead than KIVI. The contribution is a KV quantization co-designed with the NVM memory interface rather than a new accuracy record.",
+      "authors": [
+        "Jiahao Zheng",
+        "Yifan Qin",
+        "Xiaobo Sharon Hu",
+        "Yiyu Shi"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.AI"
+      ],
+      "published": "2026-09-04T22:58:21+00:00",
+      "link": "https://arxiv.org/pdf/2609.05764v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "low-bit KV cache quantization scheme",
+      "llm_evidence_cn": "低比特KV缓存量化方案",
+      "llm_evidence": "低比特KV缓存量化方案",
+      "canonical_evidence": "低比特KV缓存量化方案",
+      "llm_tldr_en": "Existing KV quantization schemes assume GPU memory; this work designs an interface-aware quantization matched to dense on-chip NVM, removing off-chip transfer for long-context decoding.",
+      "llm_tldr_cn": "长上下文LLM解码中，KV缓存是主要内存瓶颈，每步都要完整读取，导致带宽受限。已有KV量化方法（如KIVI、KVQuant）面向GPU内存设计，其分组元数据或稀疏异常值无法适配片上NVM的定范围转换器。本文分析这些结构在NVM中的代价，并提出与接口匹配的量化方案，将量化KV缓存存入密集片上非易失存储，从而消除片外传输。该工作为低比特量化的存储接口协同设计提供了思路。",
+      "llm_tldr": "长上下文LLM解码中，KV缓存是主要内存瓶颈，每步都要完整读取，导致带宽受限。已有KV量化方法（如KIVI、KVQuant）面向GPU内存设计，其分组元数据或稀疏异常值无法适配片上NVM的定范围转换器。本文分析这些结构在NVM中的代价，并提出与接口匹配的量化方案，将量化KV缓存存入密集片上非易失存储，从而消除片外传输。该工作为低比特量化的存储接口协同设计提供了思路。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.07276v1",
+      "source": "arxiv",
+      "title": "Matryoshka Hash Representations for Model-Aware Compact Semantic Retrieval",
+      "abstract": "Retrieval-augmented generation (RAG) depends on dense retrieval: each document is stored as a learned vector, and a query is answered by finding its nearest neighbors in that vector space. Keeping one full-precision vector per document is the dominant index cost at corpus scale, so retrieval systems replace each vector with a short code of a few bytes---a step called quantization. Standard quantizers such as product quantization (PQ) pick the code that reconstructs the original vector most closely.   A single code is even more useful if it serves several byte budgets at once: when its short prefixes are each directly searchable, a deployment can set its efficiency--quality operating point without re-encoding the corpus. But training all prefixes under one objective makes the early bits a compromise across budgets---short codes improve while the full-width code degrades. Quantization to low-bit representation, such as binary codes, further sharpens the conflict. We introduce Matryoshka Hash Representations (MHR), a two-stage procedure that separates full-width training from prefix organization. MHR first learns a longer binary code, then freezes the model and trains additional zero-initialized residual code adaptors for directly searchable prefixes. Documents are stored at one bit per coordinate, while queries keep continuous logits like PQ to attain sufficient expressivity. We implement the search process with FAISS FastScan. Trained on MS MARCO and zero-shot transferred to seven BEIR datasets, MHR reaches .5561 NDCG@10 and .6535 Recall@100 at 32 bytes, surpassing the best baseline of the same budget. The advantage is more pronounced in lower budgets. The same code also strengthens two common pipelines: shortlisting candidates for full-precision reranking, and pruning a low-storage graph index such as LEANN.",
+      "authors": [
+        "Peichun Hua",
+        "Yunming Xiao"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-07T09:38:28+00:00",
+      "link": "https://arxiv.org/pdf/2609.07276v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "quantization of dense retrieval vectors into short codes, product quantization and multi-byte budgets",
+      "llm_evidence_cn": "将稠密检索向量量化为短码，涉及乘积量化与多字节预算",
+      "llm_evidence": "将稠密检索向量量化为短码，涉及乘积量化与多字节预算",
+      "canonical_evidence": "将稠密检索向量量化为短码，涉及乘积量化与多字节预算",
+      "llm_tldr_en": "Dense retrieval stores a full-precision vector per document, so systems quantize vectors into short codes. Matryoshka hash representations make each prefix of a single code directly searchable, letting one encoding serve several byte budgets without re-encoding.",
+      "llm_tldr_cn": "检索增强生成的稠密检索需为每篇文档存储全精度向量，大规模语料下索引开销巨大，常用乘积量化将其压缩为短码。本文提出套娃式哈希表示，使同一编码的多个短前缀均可直接检索，从而在无需重新编码语料的情况下适配多种字节预算。方法实现了模型感知的紧凑语义检索，在检索效率与质量之间提供灵活可调的折中方案。",
+      "llm_tldr": "检索增强生成的稠密检索需为每篇文档存储全精度向量，大规模语料下索引开销巨大，常用乘积量化将其压缩为短码。本文提出套娃式哈希表示，使同一编码的多个短前缀均可直接检索，从而在无需重新编码语料的情况下适配多种字节预算。方法实现了模型感知的紧凑语义检索，在检索效率与质量之间提供灵活可调的折中方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.09208v1",
+      "source": "arxiv",
+      "title": "Shift-Accumulate Attention: Multiplier-Free Query--Key Products for Transformer Decoding",
+      "abstract": "Power-of-two (PoT) quantisation turns a multiplication into a bit shift, so far only for the post-softmax attention--value product. The earlier and larger product, S=QK^T, has not been reformulated the same way. We quantise the key cache to a signed power-of-two fixed-point code, so that every scalar multiplication in QK^T becomes a sign flip, a bit shift and an integer accumulation. A fixed-point head-room F>= e_max turns every shift index r=F-e into a non-negative left shift, making the accumulation exact in integer arithmetic. We add a sub-power mantissa extension that halves the score error for one extra shift-add, a shift-exact online softmax whose running maximum lives in an integer log2 domain so that every rescaling is itself an exact shift, and a log-quantised AV product.   Fused CUDA kernels in a 1.1B Llama decoder on an RTX 4090: at B=8, T=32k the 4-bit kernel is 4.60x faster than FP16 scaled dot-product attention with a 2.5x smaller KV cache, and batched decoding crosses over at B=64 to 1.22x FP16 throughput at 11.02 against 13.77 GB peak memory. A matched INT8 multiply--accumulate kernel on the same tiling reaches 5.29x: on a GPU with a hardware 4-way INT8 dot product, shift-accumulate is not faster than the MAC it replaces. An iso-storage control--an 8-bit shift code of exactly one byte per key, run through the identical kernel--prices the arithmetic substitution alone at 2.02x at comparable accuracy. The advantage of the PoT representation is therefore its density and the removal of the multiplier, not raw GPU throughput. A sweep over exponent width, mantissa levels, granularity and rounding gives the design lesson: nearest-PoT relative error is scale-free, so extra exponent bits buy nothing (eps_S=0.1302 at 3, 4 and 5 bits) and accuracy must come from mantissa terms.",
+      "authors": [
+        "Khubaib Ahmed",
+        "Amna Noor",
+        "Ahsan Ul haq"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-05T21:14:28+00:00",
+      "link": "https://arxiv.org/pdf/2609.09208v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "power-of-two low-bit quantization for QK products",
+      "llm_evidence_cn": "面向QK乘积的幂次二低比特量化",
+      "llm_evidence": "面向QK乘积的幂次二低比特量化",
+      "canonical_evidence": "面向QK乘积的幂次二低比特量化",
+      "llm_tldr_en": "Power-of-two quantization replaces multiplication with bit shifts but was only applied to post-softmax PV products. This paper quantizes the key cache to signed power-of-two fixed point so every QK scalar multiply becomes a sign flip, shift, and integer accumulation.",
+      "llm_tldr_cn": "幂次二量化能把乘法变为位移，但此前仅用于softmax后的注意力-值乘积，更早且更大的QK乘积未被同样重构。本文将键缓存量化为带符号幂次二定点码，使QK中的每次标量乘法变成符号翻转、位移与整数累加，并借助定点余量使累加在整数运算中精确完成，同时加入子幂尾数扩展与整数log2域在线softmax。该方法以极低比特实现了无乘法器的QK计算并将分数误差减半。",
+      "llm_tldr": "幂次二量化能把乘法变为位移，但此前仅用于softmax后的注意力-值乘积，更早且更大的QK乘积未被同样重构。本文将键缓存量化为带符号幂次二定点码，使QK中的每次标量乘法变成符号翻转、位移与整数累加，并借助定点余量使累加在整数运算中精确完成，同时加入子幂尾数扩展与整数log2域在线softmax。该方法以极低比特实现了无乘法器的QK计算并将分数误差减半。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.09721v1",
+      "source": "arxiv",
+      "title": "EFQ-Softmax: Exp-Free Quantization for Softmax",
+      "abstract": "Low-bit attention accelerates Transformer inference by moving the $QK^\\top$ and $PV$ matrix multiplications to FP8 or FP4 matrix engines. However, the softmax path often evaluates shifted-score exponentials in higher precision, forms a temporary probability block, and quantizes it before low-bit $PV$ multiplication. This exp-then-quantize path creates a mismatch between a high-precision probability producer and a low-bit matrix consumer. We propose EFQ-Softmax (Exp-Free Quantization for Softmax), a low-bit probability-generation method that directly maps shifted attention scores to block-scaled E2M1 operands. For each microscaling block, EFQ-Softmax selects an exponent-only scale from the local maximum, maps the shifted scores to a normalized residual domain, and generates nonnegative E2M1 probability codes using a single affine rule. The resulting operand is used consistently in both the $\\widetilde{P}V$ numerator update and the $\\widetilde{P}\\mathbf{1}$ denominator update. The FlashAttention-style row-maximum update, historical rescaling, high-precision accumulation, and final normalization remain unchanged. We evaluate end-to-end quality on Qwen3-8B, Qwen3-VL-8B-Instruct, and WAN2.2-TI2V-5B, and separately measure kernel-level performance on the A5 vector unit. EFQ-Softmax improves the Qwen3-8B seven-task mean from 0.6749 with MXFP4 to 0.6773 and the Qwen3-VL nine-task mean from 0.7826 to 0.8000. On WAN2.2, it maintains temporal consistency and visual quality comparable to the FP16 and MXFP4 baselines under VBench. On the A5 vector unit, EFQ-Softmax reduces the vector-stage latency of the fused probability-generation kernel by 40.33% on average across sequence lengths from 16K to 128K. These results show that direct low-bit probability generation can replace the conventional exp-then-quantize path while preserving end-to-end model quality.",
+      "authors": [
+        "Haohui Han",
+        "Yuming Wan",
+        "Hongni Wang",
+        "Pengcheng Xie",
+        "Xiaodong Yan",
+        "Runqi You",
+        "Wencong Zhang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-09T05:04:33+00:00",
+      "link": "https://arxiv.org/pdf/2609.09721v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "low-bit block-scaled E2M1 softmax quantization",
+      "llm_evidence_cn": "低比特块缩放E2M1的softmax量化",
+      "llm_evidence": "低比特块缩放E2M1的softmax量化",
+      "canonical_evidence": "低比特块缩放E2M1的softmax量化",
+      "llm_tldr_en": "Low-bit attention quantizes QK and PV products but the softmax path still computes exponentials in high precision then quantizes, creating a producer-consumer mismatch. EFQ-Softmax maps shifted scores directly to block-scaled E2M1 operands without exponentials.",
+      "llm_tldr_cn": "低比特注意力把QK与PV乘法下放到FP8/FP4引擎，但softmax路径仍以高精度计算指数、生成临时概率块再量化，导致高精度概率生产者与低比特矩阵消费者之间的精度错配。本文提出EFQ-Softmax，按微缩放块从局部最大值选取仅含指数的缩放，把偏移分数映射到归一化残差域，直接生成块缩放的E2M1操作数，从而无需指数运算即可生成低比特概率。该方案为低比特注意力提供了端到端一致的量化路径。",
+      "llm_tldr": "低比特注意力把QK与PV乘法下放到FP8/FP4引擎，但softmax路径仍以高精度计算指数、生成临时概率块再量化，导致高精度概率生产者与低比特矩阵消费者之间的精度错配。本文提出EFQ-Softmax，按微缩放块从局部最大值选取仅含指数的缩放，把偏移分数映射到归一化残差域，直接生成块缩放的E2M1操作数，从而无需指数运算即可生成低比特概率。该方案为低比特注意力提供了端到端一致的量化路径。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
