@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-10</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-11</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 8 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 4 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>5</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>2</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-10 21:21:06 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-11 21:47:57 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日日报从8篇中筛出量化与推理加速方向，精读3篇、速读5篇，两篇9分工作聚焦量化理论统一与LLM 1-bit后训练量化。</p>
-<p>最值得看的是“率失真视角统一向量/乘积/标量量化”和“面向LLM的真正1-bit PTQ”，前者帮理解量化边界，后者直指极低比特落地。</p>
-<p>普通读者可先读这两篇9分精读，再按需扫速读中的FlexPosit、KV Cache量化和Matryoshka哈希检索。</p>
+<p>今天扫了 4 篇 LLM 效率相关论文，精读 2 篇、速读 2 篇，全部集中在量化与检索压缩方向。</p>
+<p>最值得看的是两篇 8.0 分的量化工作：《All for 1-Bit》探索真正落地的 1-bit 后训练量化，《Structured Transforms》则用结构化变换压低量化开销，二者都在解决&quot;低比特但别掉点&quot;的老难题。</p>
+<p>普通读者可先挑其中一篇读摘要和实验表格，重点看低比特下的精度损失与推理加速比，再决定是否跟进代码。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -73,12 +73,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">3 篇</strong>
+    <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="A Unified Rate-Distortion Perspective on Vector, Product, and Scalar Quantization">A Unified Rate-Distortion Perspective on Vector, Product, and Scalar Quantization</span></li><li><span class="dpr-home-dashboard-paper-title" title="All for 1-Bit: Towards Genuine 1-Bit Post-Training Quantization for LLMs">All for 1-Bit: Towards Genuine 1-Bit Post-Training Quantization for LLMs</span></li><li><span class="dpr-home-dashboard-paper-title" title="When Does Low-Bit Quantization Preserve the Decisions of Vector Search?">When Does Low-Bit Quantization Preserve the Decisions of Vector Search?</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="All for 1-Bit: Towards Genuine 1-Bit Post-Training Quantization for LLMs">All for 1-Bit: Towards Genuine 1-Bit Post-Training Quantization for LLMs</span></li><li><span class="dpr-home-dashboard-paper-title" title="Structured Transforms for Low-Overhead Quantization of Language Models">Structured Transforms for Low-Overhead Quantization of Language Models</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>3</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -86,12 +86,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">5 篇</strong>
+    <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="FlexPosit: Tunable Fractional Precision for LLM Inference Accelerators">FlexPosit: Tunable Fractional Precision for LLM Inference Accelerators</span></li><li><span class="dpr-home-dashboard-paper-title" title="Interface-Aware KV Cache Quantization for Dense On-Chip NVM in Long-Context LLM Decoding">Interface-Aware KV Cache Quantization for Dense On-Chip NVM in Long-Context LLM Decoding</span></li><li><span class="dpr-home-dashboard-paper-title" title="Matryoshka Hash Representations for Model-Aware Compact Semantic Retrieval">Matryoshka Hash Representations for Model-Aware Compact Semantic Retrieval</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Matryoshka Hash Representations for Model-Aware Compact Semantic Retrieval">Matryoshka Hash Representations for Model-Aware Compact Semantic Retrieval</span></li><li><span class="dpr-home-dashboard-paper-title" title="EFQ-Softmax: Exp-Free Quantization for Softmax">EFQ-Softmax: Exp-Free Quantization for Softmax</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>5</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span></div>
 </section>
 </div>
 

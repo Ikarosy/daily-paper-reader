@@ -1,0 +1,179 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-11T21:45:50.054650+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 2,
+    "deep_cap": 7,
+    "deep_selected": 2,
+    "quick_candidates": 2,
+    "quick_skim_target": 12,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2609.11687v1",
+      "source": "arxiv",
+      "title": "Structured Transforms for Low-Overhead Quantization of Language Models",
+      "abstract": "We revisit Kashin-decomposition-based weight quantization for large language models and propose an improved algorithm with stronger convergence properties and structured, efficient orthogonal transforms. The method retains the core factorization of each weight into two components -- one with bounded infinity norm and the other with bounded infinity norm after an orthogonal transformation -- but replaces the dense random orthogonal matrix with a sign-randomized Discrete Cosine Transform (DCT), reducing the per-iteration cost from $\\mathcal{O}(N^2)$ to $\\mathcal{O}(N \\log N)$. The proposed greedy algorithm with alternating updates guarantees the four-peak distribution required for stable 2-bit clustering of each factor and admits closed-form initialization of cluster centers, removing the multi-restart k-means bottleneck of prior work. Composed with OPTQ-style sequential error compensation and QuIP-style incoherence preprocessing, the resulting JAX pipeline is competitive with OPTQ, QuIP, QuIP-RG and a fine-tuning- and vector-quantization-free variant of QuIP# at 4-bit per channel on OPT, Llama-2 and Pythia, with favorable wall-clock scaling. The bounded-$\\ell_\\infty$ factorization is also notably robust: on stress configurations where QuIP variants diverge to four-digit perplexity (Pythia-6.9B) or abort with NaNs in LDL back-substitution (Mistral-7B), Kashin-DCT remains numerically stable and stays close to FP16 baseline. At inference time, each weight decomposes into two 2-bit factor codes per channel that are structurally suited to native-2-bit hardware.",
+      "authors": [
+        "Daria Cherniuk",
+        "Alexander Rudikov",
+        "Boris Kashin",
+        "Ivan Oseledets"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-09-10T15:15:50+00:00",
+      "link": "https://arxiv.org/pdf/2609.11687v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "2-bit clustering weight quantization for LLMs with structured transforms",
+      "llm_evidence_cn": "面向大模型的结构化变换2比特聚类权重量化",
+      "llm_evidence": "面向大模型的结构化变换2比特聚类权重量化",
+      "canonical_evidence": "面向大模型的结构化变换2比特聚类权重量化",
+      "llm_tldr_en": "Revisits Kashin-decomposition weight quantization for LLMs, replacing dense random orthogonal matrices with sign-randomized DCT to cut per-iteration cost from O(N^2) to O(N log N) while guaranteeing stable 2-bit clustering.",
+      "llm_tldr_cn": "论文针对大语言模型权重量化中 Kashin 分解方法收敛性弱、密集正交变换开销高的问题，提出结构化高效的正交变换量化算法。方法以符号随机化离散余弦变换替代密集随机正交矩阵，并用带交替更新的贪心算法保证四峰分布，从而实现每个因子稳定的 2 比特聚类与闭式初始化。每轮迭代代价由 O(N^2) 降至 O(N log N)，在保持低比特量化精度的同时显著降低开销，为极低比特权重量化提供了可扩展的结构化方案。",
+      "llm_tldr": "论文针对大语言模型权重量化中 Kashin 分解方法收敛性弱、密集正交变换开销高的问题，提出结构化高效的正交变换量化算法。方法以符号随机化离散余弦变换替代密集随机正交矩阵，并用带交替更新的贪心算法保证四峰分布，从而实现每个因子稳定的 2 比特聚类与闭式初始化。每轮迭代代价由 O(N^2) 降至 O(N log N)，在保持低比特量化精度的同时显著降低开销，为极低比特权重量化提供了可扩展的结构化方案。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "2 bit VQ",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.06161v1",
+      "source": "arxiv",
+      "title": "All for 1-Bit: Towards Genuine 1-Bit Post-Training Quantization for LLMs",
+      "abstract": "Large language models (LLMs) have achieved remarkable progress, yet their massive storage and memory-bandwidth demands still hinder efficient deployment. Weight binarization is a promising solution, but existing binarization-based post-training quantization (PTQ) methods usually far exceed the nominal 1-bit storage target due to hidden overhead. To address this gap, we propose All for 1-Bit (AF1), a genuine 1-bit PTQ framework for LLMs. AF1 comprises two complementary components: (1) Null-space-Aware Binary Factorization (NABF) for improving binary reconstruction through Hessian-aware surrogate reparameterization, null-space-aware binary factorization, and scale-only global reconstruction; and (2) Hierarchical Shapley Allocation (HiSA) for assigning structural capacity using hierarchical Shapley sensitivity. Together, they preserve model accuracy under a strict 1.0-BPW budget in the PTQ setting. Experiments on LLaMA, Qwen, and Gemma families show that AF1 consistently outperforms existing binarization-based PTQ methods in perplexity and zero-shot accuracy. Compared with BF16, AF1 achieves an average 2.5 times inference speedup and over 90% memory reduction across evaluated models, providing a practical path toward deployable genuine 1-bit compression for LLMs. The code for reproducibility is available at https://github.com/Kishon-zzx/AF1.",
+      "authors": [
+        "Zhixiong Zhao",
+        "Zukang Xu",
+        "Guangyu Sun",
+        "Lifeng Liu",
+        "Dawei Yang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-05T16:03:41+00:00",
+      "link": "https://arxiv.org/pdf/2609.06161v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "1-bit post-training quantization for LLMs; extreme low-bit weight binarization",
+      "llm_evidence_cn": "大语言模型1比特训练后量化，极低比特权重量化",
+      "llm_evidence": "大语言模型1比特训练后量化，极低比特权重量化",
+      "canonical_evidence": "大语言模型1比特训练后量化，极低比特权重量化",
+      "llm_tldr_en": "AF1 introduces a genuine 1-bit post-training quantization framework for LLMs with null-space-aware binary factorization and hierarchical Shapley allocation, achieving true 1-bit storage while maintaining model performance.",
+      "llm_tldr_cn": "大语言模型部署受存储和内存带宽限制，现有二值化训练后量化常因隐藏开销远超1比特存储目标。本文提出All for 1-Bit框架，包含零空间感知二值分解与分层Shapley分配，分别改进二值重建和比特分配。在多个LLM上的实验表明该方法实现真正1比特存储，同时保持模型性能。该工作为极低比特LLM量化提供了可行路径。",
+      "llm_tldr": "大语言模型部署受存储和内存带宽限制，现有二值化训练后量化常因隐藏开销远超1比特存储目标。本文提出All for 1-Bit框架，包含零空间感知二值分解与分层Shapley分配，分别改进二值重建和比特分配。在多个LLM上的实验表明该方法实现真正1比特存储，同时保持模型性能。该工作为极低比特LLM量化提供了可行路径。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.07276v1",
+      "source": "arxiv",
+      "title": "Matryoshka Hash Representations for Model-Aware Compact Semantic Retrieval",
+      "abstract": "Retrieval-augmented generation (RAG) depends on dense retrieval: each document is stored as a learned vector, and a query is answered by finding its nearest neighbors in that vector space. Keeping one full-precision vector per document is the dominant index cost at corpus scale, so retrieval systems replace each vector with a short code of a few bytes---a step called quantization. Standard quantizers such as product quantization (PQ) pick the code that reconstructs the original vector most closely.   A single code is even more useful if it serves several byte budgets at once: when its short prefixes are each directly searchable, a deployment can set its efficiency--quality operating point without re-encoding the corpus. But training all prefixes under one objective makes the early bits a compromise across budgets---short codes improve while the full-width code degrades. Quantization to low-bit representation, such as binary codes, further sharpens the conflict. We introduce Matryoshka Hash Representations (MHR), a two-stage procedure that separates full-width training from prefix organization. MHR first learns a longer binary code, then freezes the model and trains additional zero-initialized residual code adaptors for directly searchable prefixes. Documents are stored at one bit per coordinate, while queries keep continuous logits like PQ to attain sufficient expressivity. We implement the search process with FAISS FastScan. Trained on MS MARCO and zero-shot transferred to seven BEIR datasets, MHR reaches .5561 NDCG@10 and .6535 Recall@100 at 32 bytes, surpassing the best baseline of the same budget. The advantage is more pronounced in lower budgets. The same code also strengthens two common pipelines: shortlisting candidates for full-precision reranking, and pruning a low-storage graph index such as LEANN.",
+      "authors": [
+        "Peichun Hua",
+        "Yunming Xiao"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-07T09:38:28+00:00",
+      "link": "https://arxiv.org/pdf/2609.07276v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Matryoshka hash codes with directly searchable short prefixes for multi-byte-budget quantization",
+      "llm_evidence_cn": "套娃哈希短码前缀可直接检索，支持多字节预算量化",
+      "llm_evidence": "套娃哈希短码前缀可直接检索，支持多字节预算量化",
+      "canonical_evidence": "套娃哈希短码前缀可直接检索，支持多字节预算量化",
+      "llm_tldr_en": "RAG dense retrieval stores one full-precision vector per document, an index cost solved by quantization. Matryoshka hash representations make short prefixes directly searchable so one code serves several byte budgets.",
+      "llm_tldr_cn": "检索增强生成依赖稠密检索，而为每篇文档保存全精度向量在语料规模下索引开销巨大，通常需用量化压缩为短码。标准乘积量化只追求重构最接近原向量，难以用同一码同时服务多个字节预算。本文提出套娃哈希表示，使短前缀本身可直接检索，从而无需重新编码即可调整效率与质量。该模型感知的紧凑编码在多个字节预算下取得良好检索质量，为可扩展语义检索提供了高效索引方案。",
+      "llm_tldr": "检索增强生成依赖稠密检索，而为每篇文档保存全精度向量在语料规模下索引开销巨大，通常需用量化压缩为短码。标准乘积量化只追求重构最接近原向量，难以用同一码同时服务多个字节预算。本文提出套娃哈希表示，使短前缀本身可直接检索，从而无需重新编码即可调整效率与质量。该模型感知的紧凑编码在多个字节预算下取得良好检索质量，为可扩展语义检索提供了高效索引方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.09721v1",
+      "source": "arxiv",
+      "title": "EFQ-Softmax: Exp-Free Quantization for Softmax",
+      "abstract": "Low-bit attention accelerates Transformer inference by moving the $QK^\\top$ and $PV$ matrix multiplications to FP8 or FP4 matrix engines. However, the softmax path often evaluates shifted-score exponentials in higher precision, forms a temporary probability block, and quantizes it before low-bit $PV$ multiplication. This exp-then-quantize path creates a mismatch between a high-precision probability producer and a low-bit matrix consumer. We propose EFQ-Softmax (Exp-Free Quantization for Softmax), a low-bit probability-generation method that directly maps shifted attention scores to block-scaled E2M1 operands. For each microscaling block, EFQ-Softmax selects an exponent-only scale from the local maximum, maps the shifted scores to a normalized residual domain, and generates nonnegative E2M1 probability codes using a single affine rule. The resulting operand is used consistently in both the $\\widetilde{P}V$ numerator update and the $\\widetilde{P}\\mathbf{1}$ denominator update. The FlashAttention-style row-maximum update, historical rescaling, high-precision accumulation, and final normalization remain unchanged. We evaluate end-to-end quality on Qwen3-8B, Qwen3-VL-8B-Instruct, and WAN2.2-TI2V-5B, and separately measure kernel-level performance on the A5 vector unit. EFQ-Softmax improves the Qwen3-8B seven-task mean from 0.6749 with MXFP4 to 0.6773 and the Qwen3-VL nine-task mean from 0.7826 to 0.8000. On WAN2.2, it maintains temporal consistency and visual quality comparable to the FP16 and MXFP4 baselines under VBench. On the A5 vector unit, EFQ-Softmax reduces the vector-stage latency of the fused probability-generation kernel by 40.33% on average across sequence lengths from 16K to 128K. These results show that direct low-bit probability generation can replace the conventional exp-then-quantize path while preserving end-to-end model quality.",
+      "authors": [
+        "Haohui Han",
+        "Yuming Wan",
+        "Hongni Wang",
+        "Pengcheng Xie",
+        "Xiaodong Yan",
+        "Runqi You",
+        "Wencong Zhang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-09T05:04:33+00:00",
+      "link": "https://arxiv.org/pdf/2609.09721v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "low-bit (FP8/FP4) quantization for attention softmax, block-scaled E2M1",
+      "llm_evidence_cn": "面向注意力softmax的低比特量化，块缩放E2M1",
+      "llm_evidence": "面向注意力softmax的低比特量化，块缩放E2M1",
+      "canonical_evidence": "面向注意力softmax的低比特量化，块缩放E2M1",
+      "llm_tldr_en": "Low-bit attention moves QK and PV matmuls to FP8/FP4 engines, but softmax still computes exponentials in high precision and quantizes a temporary probability block, mismatching producer and consumer. EFQ-Softmax directly maps shifted scores to block-scaled E2M1 operands via exponent-only scaling, yielding low-bit probabilities for efficient Transformer inference.",
+      "llm_tldr_cn": "低比特注意力将QK与PV矩阵乘移到FP8或FP4矩阵引擎，但softmax路径仍以高精度计算平移后的指数、生成临时概率块再量化，造成高精度概率产生端与低比特矩阵消费端的不匹配。本文提出EFQ-Softmax，一种免指数的低比特概率生成方法，直接将平移后的注意力分数映射为块缩放的E2M1操作数：对每个微缩放块从局部最大值选取仅含指数的缩放因子，将分数映射到归一化残差域并生成低比特概率。该设计省去指数运算并直接产出可被低比特矩阵引擎消费的概率，简化并加速Transformer推理。",
+      "llm_tldr": "低比特注意力将QK与PV矩阵乘移到FP8或FP4矩阵引擎，但softmax路径仍以高精度计算平移后的指数、生成临时概率块再量化，造成高精度概率产生端与低比特矩阵消费端的不匹配。本文提出EFQ-Softmax，一种免指数的低比特概率生成方法，直接将平移后的注意力分数映射为块缩放的E2M1操作数：对每个微缩放块从局部最大值选取仅含指数的缩放因子，将分数映射到归一化残差域并生成低比特概率。该设计省去指数运算并直接产出可被低比特矩阵引擎消费的概率，简化并加速Transformer推理。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
