@@ -41,7 +41,7 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-11</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-12</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 4 篇</strong>
@@ -51,7 +51,7 @@
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>2</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-11 21:47:57 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-12 21:46:23 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今天扫了 4 篇 LLM 效率相关论文，精读 2 篇、速读 2 篇，全部集中在量化与检索压缩方向。</p>
-<p>最值得看的是两篇 8.0 分的量化工作：《All for 1-Bit》探索真正落地的 1-bit 后训练量化，《Structured Transforms》则用结构化变换压低量化开销，二者都在解决&quot;低比特但别掉点&quot;的老难题。</p>
-<p>普通读者可先挑其中一篇读摘要和实验表格，重点看低比特下的精度损失与推理加速比，再决定是否跟进代码。</p>
+<p>今日精选4篇量化相关论文，精读2篇、速读2篇。最值得看的是LLM真正的1-Bit后训练量化与48kHz因果流式音频编码，两篇均获9.0分。普通读者可先读这两篇精读，再按兴趣浏览手语生成与Softmax无指数量化两篇速读。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -76,7 +74,7 @@
     <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="All for 1-Bit: Towards Genuine 1-Bit Post-Training Quantization for LLMs">All for 1-Bit: Towards Genuine 1-Bit Post-Training Quantization for LLMs</span></li><li><span class="dpr-home-dashboard-paper-title" title="Structured Transforms for Low-Overhead Quantization of Language Models">Structured Transforms for Low-Overhead Quantization of Language Models</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="All for 1-Bit: Towards Genuine 1-Bit Post-Training Quantization for LLMs">All for 1-Bit: Towards Genuine 1-Bit Post-Training Quantization for LLMs</span></li><li><span class="dpr-home-dashboard-paper-title" title="UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding">UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span></div>
 </section>
@@ -89,7 +87,7 @@
     <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Matryoshka Hash Representations for Model-Aware Compact Semantic Retrieval">Matryoshka Hash Representations for Model-Aware Compact Semantic Retrieval</span></li><li><span class="dpr-home-dashboard-paper-title" title="EFQ-Softmax: Exp-Free Quantization for Softmax">EFQ-Softmax: Exp-Free Quantization for Softmax</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="SeRV: Semantic-Aligned Residual Vector Quantization for American Sign Language Generation">SeRV: Semantic-Aligned Residual Vector Quantization for American Sign Language Generation</span></li><li><span class="dpr-home-dashboard-paper-title" title="EFQ-Softmax: Exp-Free Quantization for Softmax">EFQ-Softmax: Exp-Free Quantization for Softmax</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span></div>
 </section>

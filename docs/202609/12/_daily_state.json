@@ -1,0 +1,73 @@
+{
+  "date": "20260912",
+  "date_label": "",
+  "generated_at": "2026-09-12 21:46:23 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.06161v1",
+      "route": "202609/12/2609.06161v1-all-for-1-bit-towards-genuine-1-bit-post-training-quantization-for-llms",
+      "title": "All for 1-Bit: Towards Genuine 1-Bit Post-Training Quantization for LLMs",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向大语言模型的真正1比特训练后量化与权值二值化",
+      "first_seen_at": "2026-09-12 21:46:23 UTC",
+      "updated_at": "2026-09-12 21:46:23 UTC"
+    },
+    {
+      "paper_id": "2609.09866v1",
+      "route": "202609/12/2609.09866v1-unistream-multi-expert-residual-vector-quantization-for-48-khz-causal-streaming-audio-coding",
+      "title": "UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "多专家残差向量量化与Top-K路由专家码本",
+      "first_seen_at": "2026-09-12 21:46:23 UTC",
+      "updated_at": "2026-09-12 21:46:23 UTC"
+    },
+    {
+      "paper_id": "2609.05742v1",
+      "route": "202609/12/2609.05742v1-serv-semantic-aligned-residual-vector-quantization-for-american-sign-language-generation",
+      "title": "SeRV: Semantic-Aligned Residual Vector Quantization for American Sign Language Generation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "语义对齐的残差向量量化分词器",
+      "first_seen_at": "2026-09-12 21:46:23 UTC",
+      "updated_at": "2026-09-12 21:46:23 UTC"
+    },
+    {
+      "paper_id": "2609.09721v1",
+      "route": "202609/12/2609.09721v1-efq-softmax-exp-free-quantization-for-softmax",
+      "title": "EFQ-Softmax: Exp-Free Quantization for Softmax",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "将softmax概率低比特量化为块缩放FP4操作数",
+      "first_seen_at": "2026-09-12 21:46:23 UTC",
+      "updated_at": "2026-09-12 21:46:23 UTC"
+    }
+  ]
+}
