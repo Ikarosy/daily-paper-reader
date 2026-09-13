@@ -1,0 +1,408 @@
+Title: Matryoshka Hash Representations for Model-Aware Compact Semantic Retrieval
+
+URL Source: https://arxiv.org/pdf/2609.07276v1
+
+Published Time: Wed, 09 Sep 2026 02:06:18 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# Matryoshka Hash Representations for Model-Aware Compact Semantic Retrieval 
+
+# Peichun Hua, Yunming Xiao 
+
+The Chinese University of Hong Kong, Shenzhen peichunhua@link.cuhk.edu.cn, yunmingxiao@cuhk.edu.cn 
+
+Abstract 
+
+Retrieval-augmented generation (RAG) depends on dense re-trieval: each document is stored as a learned vector, and a query is answered by finding its nearest neighbors in that vec-tor space. Keeping one full-precision vector per document is the dominant index cost at corpus scale, so retrieval systems replace each vector with a short code of a few bytes—a step called quantization. Standard quantizers such as product quan-tization (PQ) pick the code that reconstructs the original vector most closely. Reconstruction is only a proxy for what retrieval needs: at a few bytes per document, a code trained directly on the retriever’s ranking signal—a model-aware code—uses the budget better. A single code is even more useful if it serves several byte budgets at once: when its short prefixes are each directly searchable, a deployment can set its efficiency–quality op-erating point without re-encoding the corpus. But training all prefixes under one objective makes the early bits a com-promise across budgets—short codes improve while the full-width code degrades. Quantization to low-bit representation, such as binary codes, further sharpens the conflict, making optimization hard to reach an optimum. We introduce Ma-tryoshka Hash Representations (MHR), a two-stage procedure that separates full-width training from prefix organization. MHR first learns a longer binary code, then freezes the model and trains additional zero-initialized residual code adaptors for directly searchable prefixes. Documents are stored at one bit per coordinate, while queries keep continuous logits like PQ to attain sufficient expressivity. We implement the search process with FAISS FastScan. Trained on MS MARCO and zero-shot transferred to seven BEIR datasets, MHR reaches .5561 NDCG@10 and .6535 Recall@100 at 32 bytes, against .5239 / .6426 for the best baseline of the same budget. The ad-vantage is more pronounced in lower budgets. The same code also strengthens two common pipelines: shortlisting candi-dates for full-precision reranking, and pruning a low-storage graph index such as LEANN. 
+
+# 1 Introduction 
+
+Dense retrieval is the first stage of many text systems. It grounds retrieval-augmented generation (RAG), which an-swers a query by retrieving relevant documents and con-ditioning a language model on them rather than on its pa-rameters alone (Lewis et al. 2020), and it also drives open-domain question answering (Karpukhin et al. 2020), large-scale semantic search (Douze et al. 2026), candidate genera-tion in recommender systems (Covington, Adams, and Sargin 2016; Yi et al. 2019), and evidence retrieval for fact verifi-cation (Wadden et al. 2020). Each of these maps queries and documents into a shared vector space and reduces retrieval to nearest-neighbor search. Storing one full-precision vector per document then becomes the dominant index cost as the corpus grows. Vector compression techniques such as prod-uct quantization (PQ) and optimized product quantization (OPQ) reduce this cost by compressing vectors after encoder training (Jégou, Douze, and Schmid 2011; Ge et al. 2013). These quantizers are model-agnostic : they fit a code by min-imizing reconstruction error and preserving the geometry of the original embeddings. The capacity is therefore mainly spent on variation that may not change the top retrieved docu-ments. A model-aware code is instead trained on the retrieval model’s own ranking signal through relevance ordering and anchoring on signals from the full-precision embeddings. Model-awareness is a property of the objective, not of which parameters move: a code learned on top of a frozen encoder still qualifies when its target is ranking rather than recon-struction. The distinction matters most at very small byte budgets, where every bit must be placed well, and it sep-arates PQ/OPQ, ITQ (Gong and Lazebnik 2011; Gao and Long 2024), and LSH-style codes (Charikar 2002; Ji et al. 2012) from ranking-trained discrete retrievers. Nested coding, introduced as Matryoshka representation learning (Kusupati et al. 2022), lets one stored representation serve every prefix, so a deployment can select its byte budget without maintaining an index per width. Nested codes also enable adaptive retrieval: a short prefix filters candidates be-fore a longer one refines the shortlist (Rege et al. 2023). This is especially useful for binary hashing, where re-encoding requires model access and storage already approaches tens of bytes per document. Yet nesting comes with a cost. Because each prefix must rank well on its own, the training objective places a ranking loss at every width, and the early bits fall under all of these losses at once. The short prefixes then improve at the full-width code’s expense: a full-width–prefix trade-off . In real-valued MRL, this is softened by fitting the prefixes after training or one width at a time (Yoon et al. 2024; Zhang et al. 2025). Binary codes sharpen this trade-off. A continuous coordinate moves a little under each gradient step, but a stored bit is that coordinate’s sign: a step either flips the bit arXiv:2609.07276v1 [cs.IR] 7 Sep 2026 or leaves it untouched, so the competing widths flip early bits back and forth instead of settling. In this paper, we propose Matryoshka Hash Representa-tions (MHR), which separates the two goals that direct nest-ing entangles. We specifically target the low-storage regime of 64–256 bits per document, as sought by recent index-ing systems such as LEANN (Wang et al. 2025). MHR first adapts a pretrained dual encoder and learns a 256-bit hash code on MS MARCO with LoRA (Hu et al. 2022), com-pressing 768-dimensional floats by 96 ×. It then freezes the encoder and trains two additional residual adaptors over the fixed logits. We adopt a full-width rank distillation that an-chors the 256-bit code, while prefix ranking losses organize the adapted logits into nested 64-, 128-, and 256-bit codes that do not entangle with one another. For practical deployment, documents are binarized while queries keep the continuous logits to enhance expressivity. The indexing of our MHR does not require a complex ANN topology like graphs (Subramanya et al. 2019; Malkov and Yashunin 2020). A flat index scores every code; IVF selects coarse lists and then ranks their MHR-coded postings. We further show that the same code supports graph indexes that prune neighbor expansions (Wang et al. 2025) and coarse-to-fine pipelines that shortlist candidates before reranking them with full-precision embeddings. This scoping lets us ask one core research question and test it across index types: can a binary code be trained to produce short, searchable prefixes without sacrificing full-width quality? Our contributions are: 
+
+• We identify a full-width–prefix trade-off in direct nested binary training and introduce a two-stage procedure that decouples the two goals. Our MHR framework first learns a strong full-width source code, then trains a residual adaptor cascade over the frozen code with prefix super-vision, raw-query scoring matched to deployment, and a full-width rank anchor to obtain a series of code widths. 
+
+• We align the compact score with deployment require-ments, using hard document codes and continuous queries. We implement the search process with opti-mized FAISS-native kernels that outperform previous in-dex types in efficiency. 
+
+• In our extensive evaluation of seven BEIR datasets, MHR leads every compact baseline in macro NDCG@10 and Recall@100 at all budgets. We conduct detailed ablation studies that justify our design choices, and we show that MHR is a stronger drop-in replacement for PQ across common deployment settings. 
+
+# 2 Related Work 
+
+Matryoshka text embedding. MRL jointly supervises real-valued prefixes (Kusupati et al. 2022), and AdANNS selects among them within an ANN pipeline (Rege et al. 2023). Matryoshka-Adaptor adds truncatability without re-training the encoder (Yoon et al. 2024), while SMEC sequen-tializes compression to mitigate width-dependent gradient variance (Zhang et al. 2025). These methods use real-valued vectors; MHR instead allocates hard one-bit coordinates to nested, searchable low-bit prefixes. 
+
+Multi-length supervised hashing. JMH (Liu et al. 2019) jointly learns several code lengths, MAH (Luo et al. 2021) transfers information among predefined low-bit codes, and the Nested Hash Layer (He et al. 2024) distills longer codes into nested prefixes. These methods target supervised image retrieval, where class or pair labels define semantic neigh-borhoods. MHR instead learns fine-grained query–document ordering and transfers one nested text code to corpora without 
+
+target relevance labels. 
+
+In-memory compact semantic retrieval. Post-hoc meth-ods include PQ and OPQ (Jégou, Douze, and Schmid 2011; Ge et al. 2013), the bounded binary estimator and per-vector corrections of RaBitQ (Gao and Long 2024), and the data-dependent isolation partitions of IKE (Zhang et al. 2026). Learned alternatives include mutual-information document hashing (Ou et al. 2021), binary passage indexes (Yamada, Asai, and Hajishirzi 2021; Gan et al. 2023), and jointly op-timized discrete PQ retrievers such as JPQ and RepCONC (Zhan et al. 2021, 2022); target-specific synthetic data have also been used to adapt discrete codes under domain shift (Thakur, Reimers, and Lin 2023). MHR learns a discrete representation once on source data and retrieves on unseen corpora at low storage and scan cost. 
+
+# 3 Matryoshka Hash Representations 
+
+3.1 Problem and Nested Binary Codes 
+
+Let S = {(qi, d + 
+
+> i
+
+, Ni)} be a labeled source collection and 
+
+Dt a target corpus that is unavailable during training. We learn one source model whose document representation can be stored and searched at several byte budgets without fitting a target-dependent projection, centroid, or checkpoint. This matches deployments where the target corpus is unavailable at training time or drifts from the training distribution, the regime that BEIR-style zero-shot evaluation is designed to probe (Thakur et al. 2021) and in which compression itself has been reported to aid domain transfer (Zuo and Khashabi 2026). Let fθ0 be a pretrained dual encoder. Stage I parameterizes 
+
+fθ as θ = θ0 + ∆ θ, where only the LoRA update ∆θ is trainable and adds a linear hash head W ∈ RL×d. It produces the base logits 
+
+z0(x) = W f θ (x), hβ, 0(x) = tanh( βz 0(x)) . (1) We focus on the 8–32–byte severe-compression regime; L =256 yields a 32-byte code versus 3072 bytes for 768 float dimensions. Stage II transforms z0 into adapted logits zϕ.For each m ∈ M = {64 , 128 , 256 }, the stored document code is the ordered prefix 
+
+bm(d) = sign( zϕ(d)1: m) . (2) Prefix closure makes the operating points structurally consis-tent: b64 (d) is the first half of b128 (d) and the first quarter of 
+
+b256 (d). One forward pass, therefore, produces every budget, and an index may store only the desired prefix or retain the longest code and truncate it at query time. Stage I · Single-Width Endpoint Stage II · Endpoint-Preserving Prefix Adaptation Stage III · Asymmetric Search MS MARCO 
+
+(𝒒, 𝒅 !, 𝓝) 
+
+query document 
+
+# × cont. logits 𝒛 𝟎 𝒛 𝟎 Adapted logits 𝒛 𝝓   
+
+> 64 128 256
+> >
+> Ranking Objective Source KD MiniLM Relevance Ordering
+> m=64 m=128 m=256
+> DOCUMENTS
+
+Offline Corpus Encoding        
+
+> 𝒛 𝝓 𝒅 𝟏:𝒎
+> Hard Sign
+> ±1
+> Packed prefix 𝒃 𝒎 (𝒅)
+> 𝒎 = 𝟔𝟒, 𝟏𝟐𝟖, 𝟐𝟓𝟔 → 𝒎 𝟖 𝒃𝒚𝒕𝒆𝒔 Per Document
+> QUERY
+
+Online Continuous Query          
+
+> 𝒛 𝝓 𝒒 𝟏:𝒎
+> 4-D groups ⋯
+> 16 scores per group Analytic LUT: ℓ𝒈 𝒌 = 𝒛 𝝓 𝒒 𝒈 $𝒄 𝒌
+> 𝒌 ∈ {𝟎, … , 𝟏𝟓}
+> FastScan / Routed IVF Top-k Retrieval
+
+Same Encoder 
+
+LoRA Training 
+
+Trainable Head    
+
+> 𝒛 𝟎
+> 𝒛 𝝓 Lightweight Adaptors
+> (𝟐𝟓𝟔 → 𝟏𝟐𝟖, 𝟔𝟒, … )
+> s𝒎 (𝒅 &)4𝒔 𝒊,𝒎 )KL CE MiniLM Scores Frozen Encoder
+> 256-d
+
+Figure 1: MHR separates full-width training from prefix organization. Stage I learns a strong single-width 256-bit source code. Stage II freezes it and trains only a two-block, zero-initialized residual adaptor cascade; a full-width rank anchor resists drift in the 256-bit code while prefix losses create 8/16/32-byte operating points. Deployment stores one nested hard code. 
+
+Why direct multi-width training is limited. The direct construction trains fθ and W with a sum of prefix losses, 
+
+Ldirect = P 
+
+> m∈M
+
+αmLm (Kusupati et al. 2022). It produces valid nested codes but underperforms a model trained only at the largest width: it improves the shortest code while weak-ening the 256-bit code. For a parameter tied to coordinate j,the update is 
+
+∇wj Ldirect = X
+
+> m∈M :j≤m
+
+αm∇wj Lm, (3) so early coordinates are optimized for every width, while later coordinates see only the wider ones. This exposure asymme-try is what Stage II targets: per-width Stage-II gradients stay positively aligned throughout training (Section 4.3). The ef-fect is sharper in binary codes, where moving a coordinate across zero flips a stored bit at every width that contains it. Real-valued MRL shows an analogous width-dependent imbalance (Zhang et al. 2025). 
+
+3.2 Stage I: Single-Width Model Training 
+
+We first optimize only the L = 256 code. The source ob-jective combines hard-document relevance ranking, frozen-BGE distillation over local and cached candidates, MiniLM ordering, and code-balance regularization, so every train-able encoder and hash-head parameter serves the full-width code that Stage II holds fixed. Following continuation-based deep hashing (Cao et al. 2017), the encoder retains the bounded relaxation hβ, 0 during optimization. In rele-vance and dual-encoder distillation, the document operand is 
+
+STE(sign( hβ, 0(d))) : the forward pass uses a hard sign and the backward pass uses the identity derivative, a straight-through estimator (Bengio, Léonard, and Courville 2013). The query operand stays continuous, so Stage I already trains under the asymmetric hard-document scoring it will face at deployment. The local teacher ranks each query’s positive and mined negatives with the frozen BGE initialization. We retrieve the top 128 documents from 516,472 unique MS MARCO train positives and sample four cached candidates per query, three of them from the top of that ranking. This source-only cache broadens the ranking signal without exposing evaluation corpora. 
+
+3.3 Stage II: Prefix Adaptation 
+
+After Stage I, we freeze the encoder, its LoRA update, and 
+
+W . A cascade of R = 2 residual adaptors operates only on the fixed logits. Let z(0) (x) = z0(x) and 
+
+u(r)(x) = GELU 
+
+
+
+V (r)1 LN( z(r−1) (x)) 
+
+
+
+,z(r)(x) = z(r−1) (x) + V (r)2 u(r)(x),zϕ(x) = z(R)(x).
+
+(4) Both the input and hidden width are 256. We initialize every 
+
+V (r)2 to zero, making Equation 4 an exact identity at the start of Stage II. Thus, initial 256-bit query scores and document signs equal the Stage-I solution. The cascade redistributes capacity across coordinates without changing the encoder or replacing the source hash space. It produces one vector with nested prefixes, no per-document metadata, and no width-specific parameters. 
+
+3.4 Source-Only Prefix Objective 
+
+Training uses one positive and a set of mined negatives Ni for each source query. Let hβ,ϕ (x) = tanh( βz ϕ(x)) . For pre-fix m, define the deployment-matched asymmetric training score ¯si,m (d) = m−1zϕ(qi)⊤ 
+
+> 1: m
+
+STE(sign( hβ,ϕ (d)1: m)) .Following cross-encoder denoising in dense retrieval (Qu et al. 2021), we use MiniLM cross-encoder (Wang et al. 2020) as the denoiser and exclude a negative when its score lies within a margin of the positive. Let Vi ⊆ N i contain the remaining valid negatives. We smooth the hardest-negative maximum with log-sum-exp and apply a RankNet-style soft-plus ranking loss (Burges et al. 2005): 
+
+˜s− 
+
+> i,m
+
+= τr log X
+
+> d∈V i
+
+exp(¯ si,m (d)/τ r ) ,
+
+Lm 
+
+> rel
+
+= 1
+
+B
+
+X
+
+> i
+
+softplus  (˜ s− 
+
+> i,m
+
+− ¯si,m (d+ 
+
+> i
+
+)) /τ r
+
+ .
+
+(5) The frozen Stage-I code supplies the full-width anchor. Over candidate set Ci, let p0(d | qi, Ci) be the softmax distribution induced by the full-width deployment score 
+
+L−1z0(qi)⊤ sign( z0(d)) , and let pϕ,m use the adapted pre-fix score. We distill the same source distribution into every adapted prefix (Hinton, Vinyals, and Dean 2015): 
+
+Lm 
+
+> src
+
+= 1
+
+B
+
+X
+
+> i
+
+KL[ p0(· | qi, Ci) ∥ pϕ,m (· | qi, Ci)] . (6) The full-width ( m = L) term penalizes drift in the 256-bit code, while the shorter terms transfer the source ranking into lower capacity. A MiniLM listwise term Lm 
+
+> ce
+
+complements this self-distillation with fine-grained source relevance and supplies the false-negative mask used only by Equation 5. The Stage-II objective is 
+
+Ladapt = 1
+
+|M| 
+
+X
+
+> m∈M
+
+αm (λrel Lm 
+
+> rel
+
++ λsrc Lm 
+
+> src
+
++ λce Lm
+
+> ce
+
+)+ λbal Lbal + λgor Lgor .
+
+(7) Here αm controls the allocation of supervision across widths. Following the balanced-bit principle in learning to hash (Weiss, Torralba, and Fergus 2008), the balance loss pe-nalizes a nonzero batch mean for query, positive, and neg-ative codes, discouraging constant bits. For a code ma-trix H, define G(H) as the mean squared off-diagonal co-sine similarity between rows. Inspired by hyperspherical uniformity (Wang and Isola 2020), the prefix regularizer 
+
+Lgor = |M| −1 P 
+
+> m
+
+ρm{G(Hmq ) + G(Hm 
+
+> +
+
+)}/2 spreads ex-amples by penalizing pairwise row similarity rather than coordinate-wise correlation. 
+
+3.5 Asymmetric Search and FastScan 
+
+Hard-signing a query discards information for no storage benefit, since queries are never persisted. MHR therefore uses the same raw continuous query logits during training and inference and scores them against hard document bits: 
+
+sm(q, d ) = 1
+
+m zϕ(q)⊤
+
+> 1: m
+
+bm(d). (8) This asymmetric score stores exactly m/ 8 code bytes per document before index metadata. Model parameters and the query lookup table do not scale with the corpus. Equation 8 admits an analytic lookup decomposition. Par-tition a prefix into G = m/ 4 groups, let cg (d) ∈ {− 1, +1 }4
+
+be the sign pattern stored for group g, and construct the table 
+
+ℓg (k) = zϕ(q)⊤ 
+
+> g
+
+ck for each of the 16 possible patterns. Then 
+
+sm(q, d ) = 1
+
+m
+
+> G
+
+X
+
+> g=1
+
+ℓg (cg (d)) . (9) We install the 16 fixed sign patterns as an analytic PQ code-book and pass packed MHR bits to IndexPQFastScan .Scanning uses analytic lookup tables without reconstructing target vectors or fitting centroids. FAISS (Douze et al. 2026) quantizes the query lookup table for SIMD scanning, produc-ing a measured approximation to exact asymmetric scoring. We additionally use an eight-bit-group IndexPQ variant, whose 256 fixed sign patterns reproduce Equation 8 exactly, to validate packing and score orientation before benchmark-ing FastScan. Index routing reuses the same payload and score. A flat index scans every code with Equation 9. For IVF, a source-trained coarse quantizer routes target document floats once during offline list assignment, after which the floats are dis-carded. Each posting stores only its document ID and packed MHR code. We install the fixed 256 sign patterns for ev-ery eight-bit group as a non-residual analytic codebook in 
+
+IndexIVFPQ ; search_preassigned receives routed cell IDs and scans their MHR payloads in FAISS C++ using continuous adapted logits. Graph pruning (Wang et al. 2025) and coarse-to-fine reranking reuse the payload the same way: the packed code selects a small candidate set that is then rescored with full-precision vectors, obtained either by re-computation or from a separate float store. 
+
+# 4 Experiments 
+
+4.1 Protocol 
+
+Training and transfer. We initialize Stage I from 
+
+BAAI/bge-base-en-v1.5 (Xiao et al. 2024) and use CLS pooling. We train both stages on the MS MARCO passage-ranking training split (Bajaj et al. 2016). LoRA (Hu et al. 2022) has rank 16, scale 16, and dropout .05. The hash head uses a learning rate 2 × 10 −4 and the en-coder adapters use 10 −5. Stage I runs for 24 epochs of 600 steps. Stage II loads its final 256-bit checkpoint, freezes ev-ery Stage-I parameter, and trains two sequential 256-hidden-unit residual adaptors for eight epochs of 600 steps with a learning rate 2 × 10 −4. Both stages use a batch size of 64, EMA decay of 0.999, and three negatives mined by BM25 (Robertson and Zaragoza 2009) and reranked by the MiniLM cross-encoder (Wang et al. 2020) released through Sentence-Transformers (Reimers and Gurevych 2019) as cross-encoder/ms-marco-MiniLM-L6-v2 . The final Stage-II BGE cascade supplies the MHR codes in all quality and systems comparisons. No target corpus is used to fit a codebook, adapt the model, mine negatives, or select a checkpoint. Training and evaluation used one NVIDIA A100 80GB GPU; latency experiments used one CPU thread. Stage I takes about 29 GPU-hours and Stage II about 2 GPU-hours. 
+
+Objective details. Stage I sets the relevance and local frozen-BGE coefficients to 3, the cached global-BGE co-efficient to 1, the MiniLM coefficient to .5, and the bal-ance coefficient to .01. Its relaxation sharpness increases linearly from 1 to 2.5 over the first 33% of training. In the Stage-II objective of Equation 7, we set λrel = λsrc = 3 ,
+
+λce = .5, λbal = .01 , and λgor = 1 . The prefix weights are (α64 , α 128 , α 256 ) = (1 , . 75 , 1.25) . We use τr = .1,source-code distillation temperature .1, MiniLM tempera-ture 1, false-negative margin .5, fixed β = 2 .5, and GOR weights proportional to 1: .5:0 .
+
+Datasets and metrics. We evaluate on seven datasets dis-tributed through BEIR (Thakur et al. 2021): Quora, Nat-ural Questions (NQ), HotpotQA, DBpedia-Entity, FEVER, TREC-COVID, and Climate-FEVER (Iyer, Dandekar, and Csernai 2017; Kwiatkowski et al. 2019; Yang et al. 2018; Hasibi et al. 2017; Thorne et al. 2018; Voorhees et al. 2020; Diggelmann et al. 2020). They span duplicate detec-tion, question answering, entity retrieval, and fact verifica-tion, providing heterogeneous tests of source-only transfer. NDCG@10 (Järvelin and Kekäläinen 2002) measures graded top-rank utility with logarithmic position discount, while qrel Recall@100 measures the fraction of judged relevant docu-ments recovered in the first 100 ranks and, therefore, the coverage of a downstream shortlist. We also report the un-weighted macro across datasets. 
+
+Baselines and storage. PQ (Jégou, Douze, and Schmid 2011) and OPQ (Ge et al. 2013) use 8-bit subquantizers and codebooks fitted to MS MARCO embeddings. RaBitQ (Gao and Long 2024) uses source-fitted PCA, a fixed random ro-tation, sign bits, and 8 persisted factor bytes per document; hence its minimum payload is 16 bytes. Our JPQ-FT repro-duction (Zhan et al. 2021) uses the same BGE initialization and MS MARCO training data, 32 eight-bit subquantizers, 50K optimization steps, and full encoder fine-tuning. JPQ-Nested is our controlled extension that jointly optimizes the hierarchical centroid codes for the same budgets. ITQ (Gong and Lazebnik 2011) applies PCA, a learned Procrustes rota-tion, and sign binarization to frozen BGE embeddings. PCA-RR replaces the learned ITQ rotation with a fixed random orthogonal rotation after source-fitted centering and PCA, with each budget constructed independently. Signed random projection LSH (Charikar 2002) (SRP-LSH) signs a fixed Gaussian projection, yielding a data-independent angular-LSH baseline. Super-Bit LSH (Ji et al. 2012) orthogonal-izes the maximum-width random frame to reduce angular-estimation variance while retaining the same nested binary payloads. We report the information-theoretic payload ( m/ 8
+
+bytes) separately from serialized bytes per document, which additionally include the 64-bit document ID and any routing metadata; any full-precision vectors used by graph pruning or float reranking are accounted for separately. 
+
+4.2 Zero-Shot Quality 
+
+Figure 2 isolates the full-width–prefix trade-off. Single-width training gives a strong 32-byte code but weak truncated pre-fixes, while direct nesting improves the shortest prefix at the cost of full-width quality. MHR removes the trade-off: its 32-byte NDCG is .556, just above the single-width model, and its 8- and 16-byte prefixes are the strongest of any method. Table 1 adds ITQ, PCA-RR, SRP-LSH, and Super-Bit; the figure plots the strongest external curves alongside the vari-ants that expose the optimization effect. Table 1 shows that the advantage holds across the storage curve. MHR has the best macro NDCG and Recall among compact baselines at every budget: at 16 bytes, it reaches .502 8 16 32 0.00.10.20.30.40.50.60.7Macro NDCG@10   
+
+> Float ceiling: .637
+> .376 .502 .556
+> 3072 Document payload (bytes) MHR Direct nested Single-width JPQ-FT JPQ-Nested PQ OPQ RaBitQ Float BGE
+> 96 ×compression
+
+Figure 2: Storage–quality Pareto frontier using seven-dataset macro NDCG@10. The broken axis separates compact pay-loads from the 3072-byte float reference. NDCG versus .404 for JPQ-FT. At 32 bytes, where JPQ-FT is trained directly rather than truncated, MHR improves macro NDCG / Recall from .524 / .638 to .556 / .653. All MHR points come from one prefix-closed code.                                   
+
+> Method 8 B 16 B 32 B PQ .045 / .156 .217 / .395 .429 / .593 OPQ .090 / .226 .232 / .423 .430 / .597 RaBitQ –.099 / .193 .433 / .567 SRP-LSH .097 / .169 .212 / .316 .366 / .491 Super-Bit .099 / .176 .217 / .331 .383 / .507 PCA-RR .083 / .154 .239 / .340 .415 / .541 ITQ .085 / .150 .224 / .335 .417 / .540 JPQ-FT .217 / .342 .404 / .537 .524 / .638 JPQ-Nested .188 / .324 .355 / .516 .524 / .643
+> MHR .376 / .518 .502 / .616 .556 / .653
+> Float BGE .637 / .720
+
+Table 1: Seven-dataset macro quality. Each cell is NDCG@10 / Recall@100. A dash is structurally unavailable. JPQ-FT at 8/16B is literal truncation of its 32B model; ITQ and PCA-RR are source-fitted, while SRP-LSH and Super-Bit are data-independent. Table 2 shows that the macro gains are not driven by one corpus. At 16 bytes, MHR leads every compact baseline on all seven datasets in both metrics. At 32 bytes, it is best on five datasets in NDCG, with the largest gains on the fact-verification tasks and TREC-COVID. MHR remains 12.7% below float BGE in macro NDCG, the headroom left after the 96 × payload reduction. We note that longer codes can trade storage/retrieval efficiency for better quality, which is left for future work. (a) 32 B, NDCG@10                                                                                                                                                                                                                                                                                                                                                                 
+
+> Method QNQ HP DB FV TC CF Avg.
+> Float .888 .536 .710 .405 .852 .780 .289 .637 PQ .810 .323 .422 .252 .592 .437 .168 .429 OPQ .822 .333 .403 .268 .573 .449 .165 .430 LSH .814 .267 .299 .173 .478 .450 .084 .366 S-Bit .819 .281 .327 .188 .515 .466 .086 .383 PCA-RR .828 .326 .328 .230 .529 .538 .128 .415 ITQ .829 .329 .321 .240 .514 .549 .137 .417 JPQ-FT .839 .433 .545 .338 .661 .686 .166 .524 JPQ-N .835 .436 .538 .344 .662 .678 .174 .524
+> MHR .850 .431 .544 .355 .762 .704 .246 .556
+> (b) 32 B, Recall@100
+> Method QNQ HP DB FV TC CF Avg.
+> Float .997 .939 .852 .524 .969 .141 .616 .720 PQ .987 .755 .649 .339 .886 .072 .463 .593 OPQ .990 .777 .653 .349 .884 .077 .451 .597 LSH .979 .642 .505 .221 .788 .060 .237 .491 S-Bit .981 .673 .541 .249 .816 .065 .222 .507 PCA-RR .988 .727 .549 .281 .830 .084 .327 .541 ITQ .987 .719 .536 .280 .820 .090 .345 .540 JPQ-FT .992 .883 .704 .434 .929 .119 .405 .638 JPQ-N .990 .885 .704 .437 .928 .119 .435 .643
+> MHR .990 .868 .695 .427 .940 .121 .532 .653
+> (c) 16 B, NDCG@10
+> Method QNQ HP DB FV TC CF Avg.
+> Float .888 .536 .710 .405 .852 .780 .289 .637 PQ .600 .121 .130 .099 .255 .261 .055 .217 OPQ .696 .141 .128 .115 .245 .181 .114 .232 LSH .703 .123 .103 .068 .184 .276 .025 .212 S-Bit .714 .133 .121 .070 .203 .256 .021 .217 PCA-RR .722 .148 .082 .078 .193 .396 .050 .239 ITQ .727 .138 .073 .080 .180 .325 .048 .224 JPQ-FT .788 .329 .360 .259 .480 .502 .111 .404 JPQ-N .740 .297 .270 .225 .379 .456 .118 .355
+> MHR .827 .377 .449 .315 .690 .642 .214 .502
+> (d) 16 B, Recall@100
+> Method QNQ HP DB FV TC CF Avg.
+> Float .997 .939 .852 .524 .969 .141 .616 .720 PQ .918 .417 .333 .153 .628 .041 .276 .395 OPQ .967 .499 .336 .185 .595 .032 .348 .423 LSH .928 .381 .245 .093 .449 .031 .085 .316 S-Bit .936 .405 .270 .103 .478 .033 .089 .331 PCA-RR .953 .426 .215 .110 .458 .052 .166 .340 ITQ .952 .409 .204 .113 .451 .048 .167 .335 JPQ-FT .981 .738 .537 .305 .815 .078 .306 .537 JPQ-N .976 .709 .474 .287 .757 .073 .339 .517
+> MHR .986 .821 .617 .379 .921 .108 .481 .616
+
+Table 2: Zero-shot quality by dataset at 16 and 32 bytes. All fitted or learned components use MS MARCO only. Bold and underline marks the best and second best compact method. Dataset abbreviations: Quora (Q), Natural Questions (NQ), HotpotQA (HP), DBpedia-Entity (DB), FEVER (FV), TREC-COVID (TC), Climate-FEVER (CF). JPQ-N denotes JPQ-Nested; PCA-RR denotes PCA with a fixed random rotation; LSH and S-Bit denote SRP-LSH and Super-Bit. Values are rounded to three decimals. 
+
+4.3 Ablation by Component 
+
+Table 3 isolates key ingredients from the selected recipe. Re-moving Lsrc degrades the .133 mean NDCG and .125 mean Recall, below the direct-nested and single-width-truncated references (.488/.484). This shows that without the full-width anchor, the adaptor drifts off the source solution. Lrel con-tributes .013; a second block and raw-logit training each add .007 but neither alone reaches .498, and a third block does not help the quality. Lce , Lgor , and tuned α each add only a seed-noise level of .002–.004. We also show that distilling every width reaches .472 mean NDCG, versus .466 for the full-width term alone, .458 for the two shorter widths alone, and .438 for no distillation. An inference-only control on the direct-nested checkpoint tests the query representation from the other side: replacing raw query logits with hard query signs lowers macro NDCG by .033 to .088 across widths, most at 8 bytes. Continuous query scoring recovers most of this quality at no storage cost. We also measured the pairwise cosine similarity between per-width Stage-II gradients. The 64–128, 64–256, and 128– 256 cosines are .630/.422/.666 at identity initialization and .658/.455/.682 after one-block adaptation, and no sampled batch shows a negative cosine. Direct nesting therefore does 
+
+not fail due to opposing gradient directions. The remaining explanation is the exposure asymmetry of Equation 3 with sign-boundary sensitivity: early coordinates are pulled to-ward three ranking solutions at once, and each compromise can flip a stored bit. Stage II removes the exposure asymme-try by giving every width its own residual capacity over the frozen 256-bit code. 
+
+4.4 Scan Efficiency 
+
+Table 4(a) shows single-thread MHR FastScan at .54/.20 ms per query on Quora/TREC-COVID, 8.7 ×/7.5 × faster than source-fitted PQ flat. Scoring the same document bits by exact Hamming distance not only degrade performance (shown in Section 4.3) but also efficiency (1.46 ×/1.43 ×
+
+slower). The slowdown is counterintuitive (a per-document XOR–popcount is cheaper than a table lookup). We found that this is because the asymmetric score maps onto FAISS 
+
+IndexPQFastScan , a register-blocked SIMD lookup ker-nel that scans 32 codes at once, whereas exact Hamming uses the less vectorized popcount loop of IndexBinaryFlat .We next integrate MHR in IVF (Jégou, Douze, and Schmid 2011), a routing-based index, to replace PQ. IVF-MHR car-ries the MHR code as the posting-list payload of a FAISS 
+
+IndexIVFPQ , scored in-list with the analytic asymmetric lookup of Equation 8; IVF-PQ is the standard FAISS in-dex. Both use an identical source-trained coarse quantizer (nlist = 256 , trained on MS MARCO). Both methods use a 32-byte payload. With 64-bit IDs and routing metadata, serialized MHR/PQ storage is 42.5/43.0 B/doc on Quora and 47.7/49.2 B/doc on TREC-COVID. Table 4(b) reports quality and end-to-end latency at four probe counts. PQ saturates as nprobe grows: from 4 to 64 probes, its NDCG gains only .030 on Quora and nothing (a) Adaptor design                         
+
+> Variant 8 B 16 B 32 B Mean
+> MHR (selected) .396/.489 .522/.582 .577/.620 .498
+> one block .387/.487 .516/.584 .569/.622 .491 tanh query .388/.486 .516/.580 .568/.620 .491 uniform α.386/.488 .519/.583 .577/.621 .494
+> (b) Objective terms
+> Removed 8 B 16 B 32 B Mean
+> Lsrc .295/.389 .379/.449 .423/.480 .365
+> Lrel .380/.476 .507/.575 .567/.619 .485
+> Lce .393/.486 .522/.581 .573/.622 .496
+> Lgor .389/.489 .520/.582 .576/.620 .495
+
+Table 3: Stage-II component ablation on five datasets (Quora, NQ, HotpotQA, DBpedia-Entity, TREC-COVID). Cells report NDCG@10/Recall@100; Mean averages NDCG across widths. Each row changes one factor of the selected recipe in (a); (b) removes one loss term from the boldfaced baseline.                                                                        
+
+> (a) Flat scan
+> Quora TREC-C Method B/doc NDCG p50 B/doc NDCG p50 FastScan 32.0 .8501 .538 32.1 .7075 .202
+> Hamming 32.0 .8349 .785 32.0 .6583 .288 PQ flat 33.5 .8095 4.704 36.6 .4373 1.504 Float flat 3072 .8876 7.866 3072 .7802 3.676
+> (b) Routed IVF scan
+> Quora TREC-C NDCG ms/q NDCG ms/q
+> nprobe MHR PQ MHR PQ MHR PQ MHR PQ 1.559 .494 .178 .202 .663 .402 1.117 1.119 4.785 .659 .500 .500 .705 .416 1.729 1.692
+> 16 .841 .687 1.358 1.378 .710 .416 2.074 2.143 64 .850 .689 3.591 3.602 .703 .416 2.345 2.431
+
+Table 4: Search efficiency with MHR. (a) Single-thread flat CPU search; storage is serialized B/doc and latency is median batched-search wall time per query over five trials after one warm-up. (b) FAISS-native IVF-MHR vs. IVF-PQ; latency is single-thread median ms/query over three batched trials after one warm-up and includes routing plus fine scanning. on TREC-COVID, against .064 for MHR on Quora. MHR at one probe on TREC-COVID already exceeds PQ’s best result (.663 vs. .416), stronger within-list discrimination un-der identical routing and payload. Across all eight operating points (four probe counts × two datasets), IVF-MHR has higher NDCG than IVF-PQ at the same serialized storage and being at most 11.9% faster. 
+
+4.5 Graph-Guided Selective Recomputation 
+
+LEANN keeps a compact code at each HNSW node (Malkov and Yashunin 2020) to prune neighbor expansions and re-computes full embeddings only for selected nodes (Wang et al. 2025). We replace its 8-byte PQ code with the 8-byte raw-query MHR prefix. All methods share the graph (M = 32 , efConstruction = 200 ), BGE exact distances, 
+
+efSearch = 128 , and the official global pruning policy. At 25% retention, MHR preserves 99.6–100.0% of un-pruned NDCG@10 and 97.4–99.8% of Recall@100 while reducing exact distance evaluations by 66.6–68.6% (Table 5). It outperforms both PQ controls on Quora and NQ, by wide margins on NQ (.529 vs .444 NDCG against target-fitted 
+
+PQ), and ties target-fitted PQ on TREC-COVID despite 
+
+never seeing the target corpus. On Quora and NQ it also needs fewer exact evaluations than either PQ code. Because LEANN recomputes each embedding for lower storage over-head, the search cost is dominated by this evaluation count. A neighbor-selection code that maintains the unpruned qual-ity ceiling in ranking the neighbors, as MHR does, is what makes the aggressive pruning safe. 
+
+4.6 Compact Coarse Filtering with Reranking 
+
+Nested MHR codes can also serve as a first-stage filter: scan all documents at a narrow bit width, keep the top K candi-             
+
+> NDCG@10 / Recall@100 Data Unpr. PQ-T PQ-S MHR Exact TREC-C .780/.142 .779 /.129 .757/.126 .777/ .139 689/811/737 Quora .887/.996 .867/.962 .882/.983 .887/.994 837/866/834 NQ .531/.929 .444/.702 .496/.800 .529/.909 1180/1185/1105
+
+Table 5: LEANN-HNSW pruning with 8-byte codes. PQ-T is 
+
+target-fitted as in LEANN; PQ-S and MHR are source-fixed .Unpruned HNSW gives the quality ceiling. Exact counts full-vector distance evaluations per query in PQ-T/PQ-S/MHR. dates, and rerank them with full-precision embeddings. Table 6 reports seven-dataset macro NDCG. At K = 100 ,8-byte MHR reaches .561 versus .185 for PQ, exceeding its 32-byte compact score (.552); at 32 bytes, it reaches .629, near the .637 float ceiling. The adaptor improves the 32-byte 
+
+K = 100 macro over direct nesting from .6240 to .6289, while both converge as K grows.                                 
+
+> Method K= 100 K= 500 K= 1000 Compact only MHR 8B .561 .596 .608 .363 PQ 8B .185 .303 .354 .045 MHR 16B .616 .628 .630 .500 PQ 16B .461 .546 .577 .217 MHR 32B .629 .633 .634 .552 PQ 32B .606 .628 .632 .429 Float BGE .637
+
+Table 6: MHR codes as a coarse filter with K float-reranked documents. Macro NDCG@10 over seven datasets. 5 Concluding Remarks 
+
+MHR replaces target codebook fitting and corpus re-encoding with one source-trained nested code. At 32 bytes it improves macro NDCG by .032 and Recall by .016 over JPQ-FT at a 96 × payload reduction. A two-block residual adaptor cascade over the frozen source code preserves the 256-bit code while organizing one 8/16/32-byte prefix. Across seven zero-shot datasets MHR outperforms compact baselines at every budget; FastScan and IVF keep these gains at compact-index latency, 8-byte codes improve LEANN-HNSW graph pruning over source-fitted PQ while staying near the un-pruned ceiling, and an 8-byte coarse filter recovers near-float quality after reranking a short candidate list. This study focuses on in-memory CPU search. Extending MHR to FAISS-style GPU flat and IVF kernels (Johnson, Douze, and Jégou 2021) and disk-resident graph search, such as DiskANN (Subramanya et al. 2019), is a natural next step. Recent works on privacy computing (Hua et al. 2026; Cui et al. 2026; Hua and Xiao 2026) also demonstrate that hashing has potential in reducing cryptographic operations in private RAG systems due to its filtering capabilities and low-bit structure. MHR can possibly serve as a flexible solution for adapting such systems to different operating points for quality-privacy-efficiency trade-offs. 
+
+# References 
+
+Bajaj, P.; Campos, D.; Craswell, N.; Deng, L.; Gao, J.; Liu, X.; Majumder, R.; McNamara, A.; Mitra, B.; Nguyen, T.; Rosenberg, M.; Song, X.; Stoica, A.; Tiwary, S.; and Wang, T. 2016. MS MARCO: A Human Generated Machine Reading Comprehension Dataset. CoRR , abs/1611.09268. Bengio, Y.; Léonard, N.; and Courville, A. C. 2013. Estimat-ing or Propagating Gradients Through Stochastic Neurons for Conditional Computation. CoRR , abs/1308.3432. Burges, C. J. C.; Shaked, T.; Renshaw, E.; Lazier, A.; Deeds, M.; Hamilton, N.; and Hullender, G. N. 2005. Learning to Rank Using Gradient Descent. In Proceedings of the Twenty-Second International Conference on Machine Learning , 89– 96. Association for Computing Machinery. Cao, Z.; Long, M.; Wang, J.; and Yu, P. S. 2017. HashNet: Deep Learning to Hash by Continuation. In Proceedings of the IEEE International Conference on Computer Vision ,5609–5618. IEEE Computer Society. Charikar, M. 2002. Similarity Estimation Techniques from Rounding Algorithms. In Proceedings of the Thirty-Fourth Annual ACM Symposium on Theory of Computing , 380–388. Covington, P.; Adams, J.; and Sargin, E. 2016. Deep Neural Networks for YouTube Recommendations. In Proceedings of the 10th ACM Conference on Recommender Systems, RecSys 2016, Boston, MA, USA, September 15-19, 2016 , 191–198. ACM. Cui, H.; Li, Z.; Dinh, T. T. A.; and Wang, M. 2026. MESS: Fast and Private Semantic Search on Multi-Graph HNSW. 
+
+CoRR , abs/2607.28999. Diggelmann, T.; Boyd-Graber, J. L.; Bulian, J.; Ciaramita, M.; and Leippold, M. 2020. CLIMATE-FEVER: A Dataset for Verification of Real-World Climate Claims. CoRR ,abs/2012.00614. Douze, M.; Guzhva, A.; Deng, C.; Johnson, J.; Szilvasy, G.; Mazaré, P.-E.; Lomeli, M.; Hosseini, L.; and Jégou, H. 2026. The Faiss Library. IEEE Transactions on Big Data , 12(2): 346–361. Gan, Y.; Ge, Y.; Zhou, C.; Su, S.; Xu, Z.; Xu, X.; Hui, Q.; Chen, X.; Wang, Y.; and Shan, Y. 2023. Binary Embedding-based Retrieval at Tencent. In Proceedings of the 29th ACM SIGKDD Conference on Knowledge Discovery and Data Mining , 4056–4067. Association for Computing Machinery. Gao, J.; and Long, C. 2024. RaBitQ: Quantizing High-Dimensional Vectors with a Theoretical Error Bound for Approximate Nearest Neighbor Search. Proceedings of the ACM on Management of Data , 2(3): 167. Ge, T.; He, K.; Ke, Q.; and Sun, J. 2013. Optimized Product Quantization for Approximate Nearest Neighbor Search. In 
+
+Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition , 2946–2953. Gong, Y.; and Lazebnik, S. 2011. Iterative Quantization: A Procrustean Approach to Learning Binary Codes. In Pro-ceedings of the IEEE Conference on Computer Vision and Pattern Recognition , 817–824. Hasibi, F.; Nikolaev, F.; Xiong, C.; Balog, K.; Bratsberg, S. E.; Kotov, A.; and Callan, J. 2017. DBpedia-Entity v2: A Test Collection for Entity Search. In Proceedings of the 40th International ACM SIGIR Conference on Research and Development in Information Retrieval , 1265–1268. He, L.; Zhang, Y.; Li, R.; Huang, Z.; Wu, R.; and Chen, E. 2024. Nested Hash Layer: A Plug-and-play Mod-ule for Multiple-length Hash Code Learning. CoRR ,abs/2412.08922. Hinton, G. E.; Vinyals, O.; and Dean, J. 2015. Distilling the Knowledge in a Neural Network. CoRR , abs/1503.02531. Hu, E. J.; Shen, Y.; Wallis, P.; Allen-Zhu, Z.; Li, Y.; Wang, S.; Wang, L.; and Chen, W. 2022. LoRA: Low-Rank Adaptation of Large Language Models. In International Conference on Learning Representations .Hua, P.; Chen, D.; Zhang, J.; Sun, H.; Wang, J.; Xue, D.; Li, M.; and Xiao, Y. 2026. Pointing the Way, Hiding the Des-tination: Practical Private Dense Retrieval at Scale. CoRR ,abs/2608.25735. Hua, P.; and Xiao, Y. 2026. Spruce: Scalable Pri-vate Outsourced Retrieval Using Compact Embeddings. arXiv:2609.03376. Iyer, S.; Dandekar, N.; and Csernai, K. 2017. First Quora Dataset Release: Question Pairs. https://data.quora.com/ First-Quora-Dataset-Release-Question-Pairs. Järvelin, K.; and Kekäläinen, J. 2002. Cumulated Gain-based Evaluation of IR Techniques. ACM Transactions on Information Systems , 20(4): 422–446. Jégou, H.; Douze, M.; and Schmid, C. 2011. Product Quan-tization for Nearest Neighbor Search. IEEE Transactions on Pattern Analysis and Machine Intelligence , 33(1): 117–128. Ji, J.; Li, J.; Yan, S.; Zhang, B.; and Tian, Q. 2012. Super-Bit Locality-Sensitive Hashing. In Advances in Neural Informa-tion Processing Systems , volume 25. Johnson, J.; Douze, M.; and Jégou, H. 2021. Billion-Scale Similarity Search with GPUs. IEEE Transactions on Big Data , 7(3): 535–547. Karpukhin, V.; Oguz, B.; Min, S.; Lewis, P.; Wu, L.; Edunov, S.; Chen, D.; and Yih, W.-t. 2020. Dense Passage Retrieval for Open-Domain Question Answering. In Proceedings of the 2020 Conference on Empirical Methods in Natural Lan-guage Processing , 6769–6781. Kusupati, A.; Bhatt, G.; Rege, A.; Wallingford, M.; Sinha, A.; Ramanujan, V.; Howard-Snyder, W.; Chen, K.; Kakade, S. M.; Jain, P.; and Farhadi, A. 2022. Matryoshka Rep-resentation Learning. In Advances in Neural Information Processing Systems , volume 35. Kwiatkowski, T.; Palomaki, J.; Redfield, O.; Collins, M.; Parikh, A. P.; Alberti, C.; Epstein, D.; Polosukhin, I.; Devlin, J.; Lee, K.; Toutanova, K.; Jones, L.; Kelcey, M.; Chang, M.-W.; Dai, A. M.; Uszkoreit, J.; Le, Q.; and Petrov, S. 2019. Natural Questions: A Benchmark for Question Answering Research. Transactions of the Association for Computational Linguistics , 7: 452–466. Lewis, P.; Perez, E.; Piktus, A.; Petroni, F.; Karpukhin, V.; Goyal, N.; Küttler, H.; Lewis, M.; Yih, W.; Rocktäschel, T.; Riedel, S.; and Kiela, D. 2020. Retrieval-Augmented Gen-eration for Knowledge-Intensive NLP Tasks. In Advances in Neural Information Processing Systems , volume 33. Liu, X.; Nie, X.; Wang, Y.; and Yin, Y. 2019. Jointly Multiple Hash Learning. In Proceedings of the Thirty-Third AAAI Conference on Artificial Intelligence , volume 33, 9981–9982. Luo, Y.; Huang, Z.; Li, Y.; Shen, F.; Yang, Y.; and Cui, P. 2021. Collaborative Learning for Extremely Low Bit Asym-metric Hashing. IEEE Transactions on Knowledge and Data Engineering , 33(12): 3675–3685. Malkov, Y. A.; and Yashunin, D. A. 2020. Efficient and Robust Approximate Nearest Neighbor Search Using Hier-archical Navigable Small World Graphs. IEEE Transactions on Pattern Analysis and Machine Intelligence , 42(4): 824– 836. Ou, Z.; Su, Q.; Yu, J.; Zhao, R.; Zheng, Y.; and Liu, B. 2021. Refining BERT Embeddings for Document Hashing via Mutual Information Maximization. In Findings of the Association for Computational Linguistics: EMNLP 2021 ,2360–2369. Qu, Y.; Ding, Y.; Liu, J.; Liu, K.; Ren, R.; Zhao, W. X.; Dong, D.; Wu, H.; and Wang, H. 2021. RocketQA: An Optimized Training Approach to Dense Passage Retrieval for Open-Domain Question Answering. In Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technolo-gies , 5835–5847. Association for Computational Linguistics. Rege, A.; Kusupati, A.; S, S. R.; Fan, A.; Cao, Q.; Kakade, S.; Jain, P.; and Farhadi, A. 2023. AdANNS: A Framework for Adaptive Semantic Search. In Advances in Neural Infor-mation Processing Systems , volume 36. Reimers, N.; and Gurevych, I. 2019. Sentence-BERT: Sen-tence Embeddings using Siamese BERT-Networks. In Pro-ceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing, EMNLP-IJCNLP 2019, Hong Kong, China, November 3-7, 2019 ,3982–3992. Association for Computational Linguistics. Robertson, S. E.; and Zaragoza, H. 2009. The Probabilistic Relevance Framework: BM25 and Beyond. Foundations and Trends in Information Retrieval , 3(4): 333–389. Subramanya, S. J.; Devvrit, F.; Simhadri, H. V.; Krish-nawamy, R.; and Kadekodi, R. 2019. DiskANN: Fast Ac-curate Billion-point Nearest Neighbor Search on a Single Node. In Advances in Neural Information Processing Sys-tems , volume 32. Thakur, N.; Reimers, N.; and Lin, J. 2023. Injecting Do-main Adaptation with Learning-to-Hash for Effective and Efficient Zero-Shot Dense Retrieval. In Proceedings of the Workshop on Reaching Efficiency in Neural Information Re-trieval . ReNeuIR at SIGIR 2023. Thakur, N.; Reimers, N.; Rücklé, A.; Srivastava, A.; and Gurevych, I. 2021. BEIR: A Heterogeneous Benchmark for Zero-shot Evaluation of Information Retrieval Models. In 
+
+Proceedings of the Neural Information Processing Systems Track on Datasets and Benchmarks , volume 1. Thorne, J.; Vlachos, A.; Christodoulopoulos, C.; and Mittal, A. 2018. FEVER: A Large-scale Dataset for Fact Extraction and Verification. In Proceedings of the 2018 Conference of the North American Chapter of the Association for Compu-tational Linguistics , 809–819. Voorhees, E. M.; Alam, T.; Bedrick, S.; Demner-Fushman, D.; Hersh, W. R.; Lo, K.; Roberts, K.; Soboroff, I.; and Wang, L. L. 2020. TREC-COVID: Constructing a Pandemic Information Retrieval Test Collection. SIGIR Forum , 54(1): 1:1–1:12. Wadden, D.; Lin, S.; Lo, K.; Wang, L. L.; van Zuylen, M.; Cohan, A.; and Hajishirzi, H. 2020. Fact or Fiction: Verify-ing Scientific Claims. In Proceedings of the 2020 Confer-ence on Empirical Methods in Natural Language Processing, EMNLP 2020, Online, November 16-20, 2020 , 7534–7550. Association for Computational Linguistics. Wang, T.; and Isola, P. 2020. Understanding Contrastive Representation Learning through Alignment and Uniformity on the Hypersphere. In Proceedings of the 37th International Conference on Machine Learning , 9929–9939. Wang, W.; Wei, F.; Dong, L.; Bao, H.; Yang, N.; and Zhou, M. 2020. MiniLM: Deep Self-Attention Distillation for Task-Agnostic Compression of Pre-Trained Transformers. In 
+
+Advances in Neural Information Processing Systems , vol-ume 33. Wang, Y.; Li, Z.; Liu, S.; Wu, Y.; Mao, Z.; Zhao, Y.; Yan, X.; Xu, Z.; Zhou, Y.; Stoica, I.; Min, S.; Zaharia, M.; and Gonzalez, J. E. 2025. LEANN: A Low-Storage Vector Index. 
+
+CoRR , abs/2506.08276. Weiss, Y.; Torralba, A.; and Fergus, R. 2008. Spectral Hash-ing. In Advances in Neural Information Processing Systems ,volume 21, 1753–1760. Xiao, S.; Liu, Z.; Zhang, P.; Muennighoff, N.; Lian, D.; and Nie, J. 2024. C-Pack: Packed Resources for General Chi-nese Embeddings. In Proceedings of the 47th International ACM SIGIR Conference on Research and Development in Information Retrieval , 641–649. ACM. Yamada, I.; Asai, A.; and Hajishirzi, H. 2021. Efficient Passage Retrieval with Hashing for Open-domain Question Answering. In Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing , 979–986. Yang, Z.; Qi, P.; Zhang, S.; Bengio, Y.; Cohen, W. W.; Salakhutdinov, R.; and Manning, C. D. 2018. HotpotQA: A Dataset for Diverse, Explainable Multi-hop Question An-swering. In Proceedings of the 2018 Conference on Empiri-cal Methods in Natural Language Processing , 2369–2380. Yi, X.; Yang, J.; Hong, L.; Cheng, D. Z.; Heldt, L.; Kumthekar, A.; Zhao, Z.; Wei, L.; and Chi, E. H. 2019. Sampling-bias-corrected neural modeling for large corpus item recommendations. In Proceedings of the 13th ACM Conference on Recommender Systems, RecSys 2019, Copen-hagen, Denmark, September 16-20, 2019 , 269–277. ACM. Yoon, J.; Sinha, R.; Arik, S. O.; and Pfister, T. 2024. Matryoshka-Adaptor: Unsupervised and Supervised Tuning for Smaller Embedding Dimensions. In Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing , 10318–10336. Association for Computational Linguistics. Zhan, J.; Mao, J.; Liu, Y.; Guo, J.; Zhang, M.; and Ma, S. 2021. Jointly Optimizing Query Encoder and Product Quan-tization to Improve Retrieval Performance. In Proceedings of the 30th ACM International Conference on Information and Knowledge Management , 2487–2496. Association for Computing Machinery. Zhan, J.; Mao, J.; Liu, Y.; Guo, J.; Zhang, M.; and Ma, S. 2022. Learning Discrete Representations via Constrained Clustering for Effective and Efficient Dense Retrieval. In 
+
+Proceedings of the Fifteenth ACM International Conference on Web Search and Data Mining , 1328–1336. Association for Computing Machinery. Zhang, B.; Chen, L.; Liu, T.; and Zheng, B. 2025. SMEC: Re-thinking Matryoshka Representation Learning for Retrieval Embedding Compression. In Proceedings of the 2025 Con-ference on Empirical Methods in Natural Language Process-ing , 26209–26222. Association for Computational Linguis-tics. Zhang, Z.; Xu, Y.; Ting, K. M.; and Nguyen, C.-T. 2026. LLMs Meet Isolation Kernel: Lightweight, Learning-free Binary Embeddings for Fast Retrieval. In Findings of the As-sociation for Computational Linguistics: ACL 2026 , 13601– 13623. Association for Computational Linguistics. Zuo, C.; and Khashabi, D. 2026. More Than Efficiency: Embedding Compression Improves Domain Adaptation in Dense Retrieval. In Proceedings of the First Workshop on Structured Understanding, Retrieval, and Generation in the LLM Era , 361–377.

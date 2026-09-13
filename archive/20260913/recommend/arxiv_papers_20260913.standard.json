@@ -1,0 +1,216 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-13T21:41:17.075088+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 2,
+    "deep_cap": 7,
+    "deep_selected": 2,
+    "quick_candidates": 3,
+    "quick_skim_target": 12,
+    "quick_selected": 3
+  },
+  "deep_dive": [
+    {
+      "id": "2609.06161v1",
+      "source": "arxiv",
+      "title": "All for 1-Bit: Towards Genuine 1-Bit Post-Training Quantization for LLMs",
+      "abstract": "Large language models (LLMs) have achieved remarkable progress, yet their massive storage and memory-bandwidth demands still hinder efficient deployment. Weight binarization is a promising solution, but existing binarization-based post-training quantization (PTQ) methods usually far exceed the nominal 1-bit storage target due to hidden overhead. To address this gap, we propose All for 1-Bit (AF1), a genuine 1-bit PTQ framework for LLMs. AF1 comprises two complementary components: (1) Null-space-Aware Binary Factorization (NABF) for improving binary reconstruction through Hessian-aware surrogate reparameterization, null-space-aware binary factorization, and scale-only global reconstruction; and (2) Hierarchical Shapley Allocation (HiSA) for assigning structural capacity using hierarchical Shapley sensitivity. Together, they preserve model accuracy under a strict 1.0-BPW budget in the PTQ setting. Experiments on LLaMA, Qwen, and Gemma families show that AF1 consistently outperforms existing binarization-based PTQ methods in perplexity and zero-shot accuracy. Compared with BF16, AF1 achieves an average 2.5 times inference speedup and over 90% memory reduction across evaluated models, providing a practical path toward deployable genuine 1-bit compression for LLMs. The code for reproducibility is available at https://github.com/Kishon-zzx/AF1.",
+      "authors": [
+        "Zhixiong Zhao",
+        "Zukang Xu",
+        "Guangyu Sun",
+        "Lifeng Liu",
+        "Dawei Yang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-05T16:03:41+00:00",
+      "link": "https://arxiv.org/pdf/2609.06161v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "genuine 1-bit post-training quantization framework for LLMs",
+      "llm_evidence_cn": "面向大语言模型的真正1比特训练后量化框架",
+      "llm_evidence": "面向大语言模型的真正1比特训练后量化框架",
+      "canonical_evidence": "面向大语言模型的真正1比特训练后量化框架",
+      "llm_tldr_en": "Existing binarization-based post-training quantization for LLMs exceeds the nominal 1-bit storage target due to hidden overhead. This paper proposes AF1, a genuine 1-bit PTQ framework combining null-space-aware binary factorization and hierarchical Shapley allocation, achieving true 1-bit storage.",
+      "llm_tldr_cn": "大语言模型部署受存储与显存带宽限制，权重二值化虽具潜力，但现有训练后量化方法因隐藏开销而远超名义1比特存储目标。本文提出AF1框架，包含零空间感知二值分解NABF与分层Shapley分配HiSA两个组件，前者通过Hessian感知代理重参数化提升二值重构质量，后者用于误差分配。实验表明该方法实现了真正的1比特存储并保持竞争力，为极端低比特LLM量化提供了可行方案。",
+      "llm_tldr": "大语言模型部署受存储与显存带宽限制，权重二值化虽具潜力，但现有训练后量化方法因隐藏开销而远超名义1比特存储目标。本文提出AF1框架，包含零空间感知二值分解NABF与分层Shapley分配HiSA两个组件，前者通过Hessian感知代理重参数化提升二值重构质量，后者用于误差分配。实验表明该方法实现了真正的1比特存储并保持竞争力，为极端低比特LLM量化提供了可行方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.09866v1",
+      "source": "arxiv",
+      "title": "UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding",
+      "abstract": "We present UniStream, a fully causal 48 kHz neural audio codec for streaming speech, music, and environmental sounds. At its core is Multi-Expert Residual Vector Quantization (ME-RVQ), which replaces the single shared codebook in each residual quantization layer with four expert codebooks controlled by a deterministic Top-K router. Because routing decisions are derived solely from previously decoded quantized states, the decoder can reproduce the selected experts without transmitting expert identifiers, thereby expanding quantization capacity while adding 5.5M parameters. We further introduce an auxiliary Optimal Transport Conditional Flow Matching (OT-CFM) objective to regularize the quantized latent space during training. The flow module is removed entirely at inference and therefore incurs no runtime overhead. UniStream supports a 12 kbps Top-1 mode and a 22.5 kbps Top-2 mode within a causal 48 kHz encoder-decoder framework, while achieving real-time GPU inference. To complement narrow-band speech metrics, we report 48 kHz ViSQOL audio mode, ViSQOL speech mode, standard VGGish-FAD, DNSMOS P.835, and higher-rate reference comparisons with Opus and EnCodec. At 12 kbps, UniStream-Top1 achieves PESQ and UTMOS scores comparable to EnCodec while reducing speech Mel-D from 13.07 to 8.21. At 22.5 kbps, UniStream-Top2 achieves a ViSQOL speech-mode score of 4.67 and an environmental audio-mode score of 3.96, exceeding all evaluated systems operating at 12 kbps or below in the latter setting. It also comes within 0.03 MOS-LQO of Opus at 24 kbps on speech in ViSQOL audio mode. Ablation studies confirm that ME-RVQ is the primary source of quality improvement, whereas OT-CFM provides perceptual gains on speech with a mild trade-off in spectral distortion.",
+      "authors": [
+        "Mingyu Zhao",
+        "Zhiyong Wu"
+      ],
+      "primary_category": "eess.AS",
+      "categories": [
+        "eess.AS"
+      ],
+      "published": "2026-09-09T08:16:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.09866v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "multi-expert residual vector quantization with Top-K routed codebooks",
+      "llm_evidence_cn": "多专家残差矢量量化与Top-K路由码本",
+      "llm_evidence": "多专家残差矢量量化与Top-K路由码本",
+      "canonical_evidence": "多专家残差矢量量化与Top-K路由码本",
+      "llm_tldr_en": "UniStream is a causal 48 kHz neural audio codec whose Multi-Expert Residual Vector Quantization replaces each shared codebook with four Top-K routed expert codebooks, expanding quantization capacity without transmitting expert IDs.",
+      "llm_tldr_cn": "现有神经音频编解码器在每层残差量化中仅使用单一共享码本，量化容量受限。该文提出UniStream，以多专家残差矢量量化ME-RVQ将每层码本替换为由Top-K路由器控制的四个专家码本，路由仅依赖已解码的量化状态，解码端无需传输专家标识即可复现。配合最优传输条件流匹配正则化量化潜空间，模型在48kHz因果流式语音、音乐与环境音上扩展了量化容量。该工作为高容量矢量量化与多专家路由结合提供了新范式。",
+      "llm_tldr": "现有神经音频编解码器在每层残差量化中仅使用单一共享码本，量化容量受限。该文提出UniStream，以多专家残差矢量量化ME-RVQ将每层码本替换为由Top-K路由器控制的四个专家码本，路由仅依赖已解码的量化状态，解码端无需传输专家标识即可复现。配合最优传输条件流匹配正则化量化潜空间，模型在48kHz因果流式语音、音乐与环境音上扩展了量化容量。该工作为高容量矢量量化与多专家路由结合提供了新范式。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.05742v1",
+      "source": "arxiv",
+      "title": "SeRV: Semantic-Aligned Residual Vector Quantization for American Sign Language Generation",
+      "abstract": "American Sign Language (ASL) generation remains challenging due to limited paired text-ASL motion data and the difficulty of learning motion representations both precise for reconstruction and predictable from linguistic input. Existing methods rely on motion tokenizers optimized for reconstruction, without explicit semantic supervision from paired text. As a result, the learned tokens remain limited in supporting semantically consistent and fine-grained ASL motion generation. To address this limitation, we propose SeRV (Semantic-Aligned Residual Vector Quantization), a semantic-aligned RVQ tokenizer for ASL generation. SeRV learns a semantically structured residual token space by combining sentence-level motion-text alignment with token-level text-conditioned supervision. Building on this tokenizer, a Hierarchical GPT predicts residual motion tokens in a coarse-to-fine manner, generating structurally coherent and semantically aligned 3D ASL motion. We further construct a large-scale reconstructed 3D ASL motion-text benchmark by recovering paired 3D motion from YouTube-ASL videos. Experiments across 375 hours of ASL video show that SeRV achieves state-of-the-art pose accuracy on both How2Sign and YouTube-ASL datasets, while producing semantically consistent 3D ASL motion directly from text.",
+      "authors": [
+        "Hongyu Wu",
+        "Xu Wu",
+        "Tianhao Wu",
+        "Jiawei Yu",
+        "Phuc Nguyen",
+        "Jian Liu",
+        "Yi Wu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-09-04T21:41:17+00:00",
+      "link": "https://arxiv.org/pdf/2609.05742v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "residual vector quantization tokenizer for generation",
+      "llm_evidence_cn": "残差向量量化分词器",
+      "llm_evidence": "残差向量量化分词器",
+      "canonical_evidence": "残差向量量化分词器",
+      "llm_tldr_en": "SeRV proposes a semantic-aligned residual vector quantization tokenizer for ASL generation, injecting sentence-level motion-text alignment to learn a structured residual token space that improves semantically consistent, fine-grained sign motion generation.",
+      "llm_tldr_cn": "美国手语生成面临配对文本-动作数据稀缺、动作表示既要精确重建又需可预测的双重难题，现有动作分词器仅面向重建而缺乏文本语义监督。本文提出SeRV，一种语义对齐的残差向量量化分词器，通过句级动作-文本对齐与细粒度监督构建语义结构化的残差token空间。实验表明该表示在支持语义一致且细粒度的动作生成上优于仅优化重建的基线。该工作将极低比特向量量化思想引入跨模态动作生成，提升了生成质量与语义可解释性。",
+      "llm_tldr": "美国手语生成面临配对文本-动作数据稀缺、动作表示既要精确重建又需可预测的双重难题，现有动作分词器仅面向重建而缺乏文本语义监督。本文提出SeRV，一种语义对齐的残差向量量化分词器，通过句级动作-文本对齐与细粒度监督构建语义结构化的残差token空间。实验表明该表示在支持语义一致且细粒度的动作生成上优于仅优化重建的基线。该工作将极低比特向量量化思想引入跨模态动作生成，提升了生成质量与语义可解释性。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.07276v1",
+      "source": "arxiv",
+      "title": "Matryoshka Hash Representations for Model-Aware Compact Semantic Retrieval",
+      "abstract": "Retrieval-augmented generation (RAG) depends on dense retrieval: each document is stored as a learned vector, and a query is answered by finding its nearest neighbors in that vector space. Keeping one full-precision vector per document is the dominant index cost at corpus scale, so retrieval systems replace each vector with a short code of a few bytes---a step called quantization. Standard quantizers such as product quantization (PQ) pick the code that reconstructs the original vector most closely.   A single code is even more useful if it serves several byte budgets at once: when its short prefixes are each directly searchable, a deployment can set its efficiency--quality operating point without re-encoding the corpus. But training all prefixes under one objective makes the early bits a compromise across budgets---short codes improve while the full-width code degrades. Quantization to low-bit representation, such as binary codes, further sharpens the conflict. We introduce Matryoshka Hash Representations (MHR), a two-stage procedure that separates full-width training from prefix organization. MHR first learns a longer binary code, then freezes the model and trains additional zero-initialized residual code adaptors for directly searchable prefixes. Documents are stored at one bit per coordinate, while queries keep continuous logits like PQ to attain sufficient expressivity. We implement the search process with FAISS FastScan. Trained on MS MARCO and zero-shot transferred to seven BEIR datasets, MHR reaches .5561 NDCG@10 and .6535 Recall@100 at 32 bytes, surpassing the best baseline of the same budget. The advantage is more pronounced in lower budgets. The same code also strengthens two common pipelines: shortlisting candidates for full-precision reranking, and pruning a low-storage graph index such as LEANN.",
+      "authors": [
+        "Peichun Hua",
+        "Yunming Xiao"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-07T09:38:28+00:00",
+      "link": "https://arxiv.org/pdf/2609.07276v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Multi-budget vector quantization codes with short searchable prefixes for compact retrieval",
+      "llm_evidence_cn": "面向紧凑检索的多字节预算向量量化编码，短前缀可直接检索",
+      "llm_evidence": "面向紧凑检索的多字节预算向量量化编码，短前缀可直接检索",
+      "canonical_evidence": "面向紧凑检索的多字节预算向量量化编码，短前缀可直接检索",
+      "llm_tldr_en": "Addresses high index cost of full-precision dense retrieval vectors by proposing Matryoshka hash representations, a quantization scheme whose short prefixes are each directly searchable, letting one code serve several byte budgets without re-encoding the corpus.",
+      "llm_tldr_cn": "针对RAG稠密检索中全精度向量存储成本高、标准量化器只服务单一字节预算的问题，本文提出套娃哈希表示，训练一种可让短前缀直接检索的编码，使同一码本同时支持多个字节预算，无需重新编码语料即可调节效率与质量。该模型感知的紧凑检索方案兼顾了索引效率与检索精度，为低比特向量量化在语义检索中的部署提供了新思路。",
+      "llm_tldr": "针对RAG稠密检索中全精度向量存储成本高、标准量化器只服务单一字节预算的问题，本文提出套娃哈希表示，训练一种可让短前缀直接检索的编码，使同一码本同时支持多个字节预算，无需重新编码语料即可调节效率与质量。该模型感知的紧凑检索方案兼顾了索引效率与检索精度，为低比特向量量化在语义检索中的部署提供了新思路。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "2 bit VQ",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.09208v1",
+      "source": "arxiv",
+      "title": "Shift-Accumulate Attention: Multiplier-Free Query--Key Products for Transformer Decoding",
+      "abstract": "Power-of-two (PoT) quantisation turns a multiplication into a bit shift, so far only for the post-softmax attention--value product. The earlier and larger product, S=QK^T, has not been reformulated the same way. We quantise the key cache to a signed power-of-two fixed-point code, so that every scalar multiplication in QK^T becomes a sign flip, a bit shift and an integer accumulation. A fixed-point head-room F>= e_max turns every shift index r=F-e into a non-negative left shift, making the accumulation exact in integer arithmetic. We add a sub-power mantissa extension that halves the score error for one extra shift-add, a shift-exact online softmax whose running maximum lives in an integer log2 domain so that every rescaling is itself an exact shift, and a log-quantised AV product.   Fused CUDA kernels in a 1.1B Llama decoder on an RTX 4090: at B=8, T=32k the 4-bit kernel is 4.60x faster than FP16 scaled dot-product attention with a 2.5x smaller KV cache, and batched decoding crosses over at B=64 to 1.22x FP16 throughput at 11.02 against 13.77 GB peak memory. A matched INT8 multiply--accumulate kernel on the same tiling reaches 5.29x: on a GPU with a hardware 4-way INT8 dot product, shift-accumulate is not faster than the MAC it replaces. An iso-storage control--an 8-bit shift code of exactly one byte per key, run through the identical kernel--prices the arithmetic substitution alone at 2.02x at comparable accuracy. The advantage of the PoT representation is therefore its density and the removal of the multiplier, not raw GPU throughput. A sweep over exponent width, mantissa levels, granularity and rounding gives the design lesson: nearest-PoT relative error is scale-free, so extra exponent bits buy nothing (eps_S=0.1302 at 3, 4 and 5 bits) and accuracy must come from mantissa terms.",
+      "authors": [
+        "Khubaib Ahmed",
+        "Amna Noor",
+        "Ahsan Ul haq"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-05T21:14:28+00:00",
+      "link": "https://arxiv.org/pdf/2609.09208v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "power-of-two quantization for multiplier-free attention",
+      "llm_evidence_cn": "二的幂量化实现无乘法注意力",
+      "llm_evidence": "二的幂量化实现无乘法注意力",
+      "canonical_evidence": "二的幂量化实现无乘法注意力",
+      "llm_tldr_en": "The paper reformulates the QK^T product in Transformer decoding using power-of-two quantization, turning scalar multiplications into sign flips, bit shifts and integer accumulation, with a sub-power mantissa extension and shift-exact online softmax.",
+      "llm_tldr_cn": "此前二的幂量化只用于softmax后的注意力-值乘积，而规模更大的QK^T乘积尚未被同样重构，制约了解码效率。本文把键缓存量化为有符号的二的幂定点码，使QK^T的每次标量乘法退化为符号翻转、位移与整数累加，并用定点头部余量保证整数运算精确。作者进一步加入亚幂尾数扩展以半化分数误差，并设计运行最大值处于整数log2域的位移精确在线softmax。该工作为极低比特量化在注意力计算中的落地提供了无乘法的高效实现路径。",
+      "llm_tldr": "此前二的幂量化只用于softmax后的注意力-值乘积，而规模更大的QK^T乘积尚未被同样重构，制约了解码效率。本文把键缓存量化为有符号的二的幂定点码，使QK^T的每次标量乘法退化为符号翻转、位移与整数累加，并用定点头部余量保证整数运算精确。作者进一步加入亚幂尾数扩展以半化分数误差，并设计运行最大值处于整数log2域的位移精确在线softmax。该工作为极低比特量化在注意力计算中的落地提供了无乘法的高效实现路径。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "papers provide SoTA/advanced results",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

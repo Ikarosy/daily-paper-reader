@@ -1,0 +1,89 @@
+{
+  "date": "20260913",
+  "date_label": "",
+  "generated_at": "2026-09-13 21:43:35 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.06161v1",
+      "route": "202609/13/2609.06161v1-all-for-1-bit-towards-genuine-1-bit-post-training-quantization-for-llms",
+      "title": "All for 1-Bit: Towards Genuine 1-Bit Post-Training Quantization for LLMs",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向大语言模型的真正1比特训练后量化框架",
+      "first_seen_at": "2026-09-13 21:43:35 UTC",
+      "updated_at": "2026-09-13 21:43:35 UTC"
+    },
+    {
+      "paper_id": "2609.09866v1",
+      "route": "202609/13/2609.09866v1-unistream-multi-expert-residual-vector-quantization-for-48-khz-causal-streaming-audio-coding",
+      "title": "UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "多专家残差矢量量化与Top-K路由码本",
+      "first_seen_at": "2026-09-13 21:43:35 UTC",
+      "updated_at": "2026-09-13 21:43:35 UTC"
+    },
+    {
+      "paper_id": "2609.05742v1",
+      "route": "202609/13/2609.05742v1-serv-semantic-aligned-residual-vector-quantization-for-american-sign-language-generation",
+      "title": "SeRV: Semantic-Aligned Residual Vector Quantization for American Sign Language Generation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "残差向量量化分词器",
+      "first_seen_at": "2026-09-13 21:43:35 UTC",
+      "updated_at": "2026-09-13 21:43:35 UTC"
+    },
+    {
+      "paper_id": "2609.07276v1",
+      "route": "202609/13/2609.07276v1-matryoshka-hash-representations-for-model-aware-compact-semantic-retrieval",
+      "title": "Matryoshka Hash Representations for Model-Aware Compact Semantic Retrieval",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向紧凑检索的多字节预算向量量化编码，短前缀可直接检索",
+      "first_seen_at": "2026-09-13 21:43:35 UTC",
+      "updated_at": "2026-09-13 21:43:35 UTC"
+    },
+    {
+      "paper_id": "2609.09208v1",
+      "route": "202609/13/2609.09208v1-shift-accumulate-attention-multiplier-free-query--key-products-for-transformer-decoding",
+      "title": "Shift-Accumulate Attention: Multiplier-Free Query--Key Products for Transformer Decoding",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "二的幂量化实现无乘法注意力",
+      "first_seen_at": "2026-09-13 21:43:35 UTC",
+      "updated_at": "2026-09-13 21:43:35 UTC"
+    }
+  ]
+}
