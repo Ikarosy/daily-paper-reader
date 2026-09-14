@@ -1,0 +1,89 @@
+{
+  "date": "20260914",
+  "date_label": "",
+  "generated_at": "2026-09-14 22:10:04 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.12208v1",
+      "route": "202609/14/2609.12208v1-vortex-bridging-extreme-compression-and-efficient-llm-inference",
+      "title": "Vortex: Bridging Extreme Compression and Efficient LLM Inference",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "向量量化与输入相关稀疏实现大模型极端压缩与高效推理",
+      "first_seen_at": "2026-09-14 22:10:04 UTC",
+      "updated_at": "2026-09-14 22:10:04 UTC"
+    },
+    {
+      "paper_id": "2609.12550v1",
+      "route": "202609/14/2609.12550v1-quality-constrained-routing-over-a-fixed-pool-of-quantized-mixture-of-experts-instances",
+      "title": "Quality-Constrained Routing over a Fixed Pool of Quantized Mixture-of-Experts Instances",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "量化MoE实例池上的质量约束路由",
+      "first_seen_at": "2026-09-14 22:10:04 UTC",
+      "updated_at": "2026-09-14 22:10:04 UTC"
+    },
+    {
+      "paper_id": "2609.09866v1",
+      "route": "202609/14/2609.09866v1-unistream-multi-expert-residual-vector-quantization-for-48-khz-causal-streaming-audio-coding",
+      "title": "UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "采用确定性Top-K路由的多专家残差向量量化",
+      "first_seen_at": "2026-09-14 22:10:04 UTC",
+      "updated_at": "2026-09-14 22:10:04 UTC"
+    },
+    {
+      "paper_id": "2609.11642v1",
+      "route": "202609/14/2609.11642v1-zipcodec-ultra-low-frame-rate-streaming-speech-coding",
+      "title": "ZipCodec: Ultra-Low-Frame-Rate Streaming Speech Coding",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "采用标量球面量化器的超低比特率流式语音编码",
+      "first_seen_at": "2026-09-14 22:10:04 UTC",
+      "updated_at": "2026-09-14 22:10:04 UTC"
+    },
+    {
+      "paper_id": "2609.11716v1",
+      "route": "202609/14/2609.11716v1-why-does-post-training-quantization-work",
+      "title": "Why Does Post-Training Quantization Work?",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "后训练量化鲁棒性机理",
+      "first_seen_at": "2026-09-14 22:10:04 UTC",
+      "updated_at": "2026-09-14 22:10:04 UTC"
+    }
+  ]
+}

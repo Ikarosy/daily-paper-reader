@@ -1,0 +1,278 @@
+Title: UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding
+
+URL Source: https://arxiv.org/pdf/2609.09866v1
+
+Published Time: Thu, 10 Sep 2026 00:44:02 GMT
+
+Number of Pages: 15
+
+Markdown Content:
+# UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding 
+
+Mingyu Zhao and Zhiyong Wu ⋆
+
+Tsinghua Shenzhen International Graduate School, Tsinghua University, Shenzhen, China 
+
+zmy24@mails.tsinghua.edu.cn, zywu@sz.tsinghua.edu.cn 
+
+Abstract. We present UniStream, a fully causal 48 kHz neural audio codec for streaming speech, music, and environmental sounds. At its core is Multi-Expert Residual Vector Quantization (ME-RVQ), which replaces the single shared codebook in each residual quantization layer with four expert codebooks controlled by a deterministic Top-K router. Because routing decisions are derived solely from previously decoded quantized states, the decoder can reproduce the selected experts without transmitting expert identifiers, thereby expanding quantization capacity while adding 5.5M parameters. We further introduce an auxiliary Optimal Transport Conditional Flow Matching (OT-CFM) objective to regularize the quantized latent space during training. The flow module is removed entirely at inference and therefore incurs no runtime overhead. UniStream supports a 12 kbps Top-1 mode and a 22.5 kbps Top-2 mode within a causal 48 kHz encoder–decoder framework, while achieving real-time GPU inference. To complement narrow-band speech metrics, we report 48 kHz ViSQOL audio mode, ViSQOL speech mode, standard VGGish-FAD, DNSMOS P.835, and higher-rate reference comparisons with Opus and EnCodec. At 12 kbps, UniStream-Top1 achieves PESQ and UTMOS scores comparable to EnCodec while reducing speech Mel-D from 13.07 to 8.21. At 22.5 kbps, UniStream-Top2 achieves a ViSQOL speech-mode score of 4.67 and an environmental audio-mode score of 3.96, exceeding all evaluated systems operating at 12 kbps or below in the latter setting. It also comes within 0.03 MOS-LQO of Opus at 24 kbps on speech in ViSQOL audio mode. Ablation studies confirm that ME-RVQ is the primary source of quality improvement, whereas OT-CFM provides perceptual gains on speech with a mild trade-off in spectral distortion. 
+
+Keywords: neural audio codec · multi-expert quantization · residual vector quantization · causal streaming · full-band audio evaluation 
+
+## 1 Introduction 
+
+Neural audio codecs have become a fundamental component of modern speech and audio systems, enabling downstream applications such as speech language  
+
+> ⋆
+
+Corresponding author: zywu@sz.tsinghua.edu.cn. arXiv:2609.09866v1 [eess.AS] 9 Sep 2026 2 M. Zhao and Z. Wu 
+
+modeling, real-time communication, and generative audio modeling [2, 28]. Sound-Stream [31] established the residual vector quantization (RVQ)-based encoder– quantizer–decoder paradigm, which was subsequently extended toward high-fidelity and more general audio coding by systems such as EnCodec [4], DAC [15], SNAC [24], Mimi [5], WavTokenizer [11], and Gull [16]. Despite these advances, designing a codec that is simultaneously causal, efficient, and robust across speech, music, and environmental audio remains challenging. A central challenge lies in the quantization bottleneck. Most existing RVQ-based codecs assign a single shared codebook to each quantization layer, requiring the same representation space to model heterogeneous acoustic structures across multiple domains. Although effective for general reconstruction, this design limits domain-adaptive specialization, particularly because speech formants, musical harmonics, and environmental textures exhibit substantially different temporal and spectral characteristics. Mixture-of-experts (MoE) models offer a natural way to expand representational capacity with limited computational overhead [6, 34]. However, existing MoE-based codec designs either place experts outside the quantization bottleneck or require additional routing information to be transmitted, increasing signaling overhead and complicating streaming deployment [29, 10]. Flow-based codecs such as FlowMAC [19] and FlowDec [30] improve perceptual reconstruction through conditional flow matching, but require iterative inference. This motivates using flow matching solely as a training-time regularizer for streaming codecs. In this paper, we present UniStream , a fully causal 48 kHz neural audio codec for streaming speech, music, and environmental audio. Its core component, 
+
+Multi-Expert Residual Vector Quantization (ME-RVQ) , replaces the single shared codebook in each acoustic RVQ layer with multiple expert codebooks controlled by a learned Top-K router. Because routing decisions depend only on previously decoded quantized states, the decoder can deterministically reproduce the selected experts without transmitting expert identifiers. This design expands quantization capacity while adding 5.5M parameters. We further introduce an auxiliary Optimal Transport Conditional Flow Matching (OT-CFM) objective to regularize the quantized latent space during training. Unlike flow-based decoders that require iterative inference, the OT-CFM module is removed entirely after training and therefore incurs no runtime overhead. The resulting codec supports a 12 kbps Top-1 mode for bandwidth-constrained streaming and a 22.5 kbps Top-2 mode for higher-fidelity reconstruction. We evaluate UniStream using conventional and full-band perceptual metrics across speech, music, and environmental audio. The results show that ME-RVQ is the primary source of improvement: UniStream-Top1 provides a competitive 12 kbps operating point, while UniStream-Top2 approaches higher-rate references under full-band perceptual evaluation. The main contributions of this work are summarized as follows: 
+
+– We propose ME-RVQ, a multi-expert quantization mechanism that expands RVQ capacity by adding 5.5M parameters and requires no expert-ID signaling. UniStream: Causal Streaming Audio Coding 3
+
+– We introduce a training-only OT-CFM objective that provides an additional latent-space training signal without increasing inference-time cost. 
+
+– We develop a fully causal 48 kHz streaming codec supporting both 12 kbps and 22.5 kbps operating modes. 
+
+– We conduct a comprehensive evaluation using full-band ViSQOL, VGGish-FAD, DNSMOS P.835, and 24 kbps Opus/EnCodec reference comparisons, addressing the limitations of narrow-band speech-only evaluation. 
+
+## 2 Related Work 
+
+2.1 Neural Audio Codecs 
+
+SoundStream [31] established the RVQ-based encoder–quantizer–decoder frame-work for low-latency neural audio compression, while EnCodec [4] and DAC [15] advanced high-fidelity reconstruction through adversarial and improved RVQGAN training. More recent systems, including SNAC [24], Mimi [5], WavTokenizer [11], and Gull [16], explore multi-scale quantization, semantic–acoustic representations, compact tokenization, and flexible sample-rate coding. However, many existing systems either rely on non-causal components, focus primarily on speech, or employ shared quantization structures that may not fully capture the hetero-geneity of speech, music, and environmental audio. Recent studies have explored complementary forms of codec adaptation. SPG-Codec [33] investigates frozen semantic priors and bitrate-aware regulation for ultra-low-bitrate neural speech coding, while BAMU [32] performs post-hoc frame-wise RVQ depth allocation under an exact serialized-bitstream budget. In contrast, UniStream modifies the quantization architecture itself for causal 48 kHz general-audio coding and enables the decoder to reproduce expert routing without transmitting expert identifiers. 
+
+2.2 Quantization and Mixture-of-Experts Modeling 
+
+Mixture-of-experts (MoE) architectures offer a natural way to increase represen-tational capacity while activating only a subset of parameters for each input [6, 34]. Recent audio coding studies have begun to incorporate domain-adaptive or expert-based mechanisms. SwitchCodec [29] explores residual-expert sparse quantization, while UniCodec [12] introduces domain-adaptive modeling for uni-fied audio coding. Language-Codec [10] modifies codec representations to better support speech language modeling. These studies demonstrate the potential of expert specialization for discrete audio representation. Nevertheless, prior residual-expert quantization methods may require explicit routing information in the bitstream. Unlike SwitchCodec, ME-RVQ derives routing solely from the cumulative quantized reconstruction available identically at the encoder and decoder. The decoder can therefore reproduce the selected experts and routing weights without transmitting expert identifiers. Unlike post-hoc bitrate allocation methods such as BAMU [32], which operate on a frozen codec after training, UniStream integrates adaptive routing directly into the causal quantization architecture. 4 M. Zhao and Z. Wu  
+
+> Fig. 1. Overview of the UniStream architecture. Dashed boxes denote training-only components; only the causal encoder, ME-RVQ quantizer, and causal decoder are retained at inference.
+
+2.3 Flow-Based Audio Coding and Training Regularization 
+
+Generative flow models have recently been introduced into audio coding to im-prove perceptual reconstruction. FlowMAC [19] applies conditional flow matching to low-bitrate audio coding, while FlowDec [30] extends flow-based reconstruction to full-band general audio. These methods demonstrate that flow models can improve perceptual quality by modeling complex reconstruction distributions beyond those captured by deterministic decoders. However, when a flow model is integrated into the inference-time decoder, it typically requires iterative sampling or multiple neural function evaluations, increasing computational cost and making real-time streaming more challenging. UniStream adopts flow matching in a different manner. Rather than using a flow model as an inference-time decoder, we employ an auxiliary Optimal Transport Conditional Flow Matching (OT-CFM) objective only during training. The flow module provides an additional learning signal that encourages the quan-tized latent representation to retain information about the continuous encoder output. After training, the module is removed entirely, leaving the deployed codec as a fully causal encoder–quantizer–decoder system. This design preserves the regularization benefits of flow matching without introducing runtime overhead. 
+
+## 3 Proposed Method 
+
+3.1 System Overview 
+
+As shown in Fig. 1, UniStream consists of a causal convolutional encoder E,a Multi-Expert Residual Vector Quantization (ME-RVQ) module Q, a causal convolutional decoder D, and an auxiliary Optimal Transport Conditional Flow Matching (OT-CFM) module F used only during training. Given an input UniStream: Causal Streaming Audio Coding 5
+
+waveform x ∈ R1×T sampled at 48 kHz, the encoder first maps the waveform to a continuous latent representation, which is subsequently quantized and decoded to reconstruct the waveform: 
+
+z = E(x), ˆz = Q(z), ˆx = D(ˆ z). (1) Here, z and ˆz denote the continuous and quantized latent sequences, respectively. The encoder and decoder adopt a symmetric causal CNN architecture inspired by SEANet [26]. Four strided convolutional blocks with strides [2 , 4, 5, 8] yield a total downsampling factor of 320 , corresponding to a latent frame rate of 150 Hz for 48 kHz audio. Each block employs dilated causal convolutions with dilation factors 
+
+[1 , 3, 9] , GELU activations, and weight normalization [23], following common practice in neural waveform generation [14]. The latent dimension is set to 
+
+D = 256 , and all modules used at inference are fully causal. 
+
+3.2 Multi-Expert Residual Vector Quantization 
+
+Standard residual vector quantization assigns a single shared codebook to each quantization layer. Although compact and efficient, this design requires one repre-sentation space to model heterogeneous acoustic structures across domains such as speech, music, and environmental audio. UniStream addresses this limitation through ME-RVQ, which equips each acoustic RVQ layer with multiple expert codebooks and a learned routing mechanism. 
+
+Split RVQ Structure ME-RVQ comprises L = 8 quantization layers. The first layer, Q0, is a shared base vector quantization layer with 1024 entries. The remaining layers, Q1 through Q7, are multi-expert residual quantization layers. These layers progressively refine the reconstruction residual using expert-specific codebooks, thereby increasing quantization capacity without altering the overall causal encoder–decoder architecture. 
+
+MoE Quantizer Layer For each MoE quantization layer Qℓ, where ℓ = 1 , . . . , 7,we employ E = 4 expert codebooks, {C(e) 
+
+> ℓ
+
+}Ee=1 , each containing 1024 entries. The router Rℓ takes the running reconstruction ˜zℓ as input and predicts frame-level expert weights: 
+
+gℓ = Softmax (GELU (˜ zℓW1) W2) , gℓ ∈ RT ′×E , (2) where W1 ∈ RD×H , W2 ∈ RH×E , and H = 128 . The softmax operation is applied along the expert dimension. For each frame, the router selects the Top-K experts. The default high-quality mode uses K = 2 . Let Sℓ,t denote the set of selected experts for frame t. The corresponding routing weights are renormalized as 
+
+¯g(e) 
+
+> ℓ,t
+
+= g(e)
+
+> ℓ,t
+
+P 
+
+> e′∈S ℓ,t
+
+g(e′)
+
+> ℓ,t
+
+, e ∈ S ℓ,t . (3) 6 M. Zhao and Z. Wu 
+
+Each selected expert independently quantizes the residual 
+
+rℓ = z − ˜zℓ, (4) and the output at frame t is obtained as a weighted combination of the selected expert quantization results: 
+
+ˆrℓ,t = X
+
+> e∈S ℓ,t
+
+¯g(e) 
+
+> ℓ,t
+
+· VQ C(e)
+
+> ℓ
+
+(rℓ,t ) . (5) Gradients are propagated through the discrete codebook lookup using the straight-through estimator [17]. The running reconstruction is then updated as 
+
+˜zℓ+1 = ˜ zℓ + sg (ˆ rℓ) , (6) where sg( ·) denotes the stop-gradient operation. All codebooks are updated using exponential moving average (EMA) statistics with a decay factor of 0.99 and Laplace smoothing. The average entry utilization across all expert codebooks is 87.3%, indicating broad usage of the available codebook entries. 
+
+Routing Regularization To mitigate expert collapse, we employ the load-balancing loss introduced in sparse MoE models [6]: 
+
+Lbal = E
+
+> E
+
+X
+
+> e=1
+
+fePe, (7) where fe denotes the fraction of tokens routed to expert e, and Pe is the mean routing probability assigned to that expert. We further apply the router z-loss [34] to stabilize the scale of the routing logits: 
+
+Lz = 1
+
+BT ′
+
+X
+
+> b,t
+
+log X
+
+> e
+
+exp 
+
+
+
+l(e)
+
+> b,t
+
+!2
+
+, (8) where l(e) 
+
+> b,t
+
+denotes the pre-softmax routing logit for expert e at batch index b and frame index t. Both routing losses are computed in float32 for numerical stability. 
+
+Operating Modes and Deterministic Decoding ME-RVQ supports two operating modes. In Top-1 mode , only the highest-ranked expert is selected in each MoE layer. The first shared layer transmits one 10-bit code index, while each of the seven MoE layers transmits one additional 10-bit code index. The resulting bitrate is 
+
+(1 × 10 + 7 × 10) × 150 = 12 kbps . (9) This mode targets bandwidth-constrained real-time communication. UniStream: Causal Streaming Audio Coding 7
+
+In Top-2 mode , each MoE layer transmits two 10-bit code indices, resulting in 
+
+(1 × 10 + 7 × 20) × 150 = 22 .5 kbps . (10) This mode provides higher reconstruction quality while preserving causal stream-ing. A key property of ME-RVQ is deterministic decoding. At layer ℓ, the router input is the running reconstruction 
+
+˜zℓ = X
+
+> j<ℓ
+
+qj , (11) which depends only on previously decoded code indices already available from the bitstream. The decoder can therefore reproduce the same expert selections and routing weights as the encoder without transmitting expert identifiers. This eliminates the expert-ID signaling overhead required by prior residual-expert quantization designs [29]. In our implementation, the router is evaluated in strict float32 precision, and bit-exact encoder–decoder agreement is verified on both an A100 GPU and a Xeon 8358 CPU. 
+
+3.3 OT-CFM Training Regularizer 
+
+Vector quantization inevitably discards fine-grained information when the contin-uous encoder output z is replaced by its discrete codebook reconstruction ˆz. To provide an additional learning signal for the quantized latent space, we introduce an auxiliary Optimal Transport Conditional Flow Matching (OT-CFM) objective during training. Unlike flow-based audio codecs that employ conditional flow models as iterative inference-time decoders [19, 30], our flow module is used exclusively during training and removed entirely at inference. Consequently, the regularizer introduces no runtime overhead or additional streaming latency. During training, we sample t ∼ U (0 , 1) and z0 ∼ N (0 , I ), and construct the optimal-transport straight-line interpolant 
+
+zt = (1 − t)z0 + tz. (12) A velocity network vθ , implemented as a 6-layer causal Transformer with a hidden dimension of 256 , 4 attention heads, and sinusoidal time embeddings, predicts the velocity field conditioned on the quantized latent ˆz. The flow-matching loss is defined as 
+
+LFM = Et, z0
+
+h
+
+∥vθ (zt, t, ˆz) − (z − z0)∥22
+
+i
+
+. (13) Here, z − z0 is the target velocity along the straight-line path from Gaussian noise to the encoder latent. Conditioning the velocity prediction on ˆz encourages the quantized representation to retain information about the original continuous latent. In this way, OT-CFM regularizes the latent space without introducing inference-time cost. 8 M. Zhao and Z. Wu 
+
+3.4 Training Objective 
+
+The generator is optimized using a combination of reconstruction, adversarial, quantization, routing, and flow-regularization losses: 
+
+LG = λmel Lmel + λstft Lstft + λℓ1 Lℓ1 + λadv Ladv 
+
++ λfeat Lfeat + LQ + λFM LFM . (14) The reconstruction objective comprises a multi-scale mel-spectrogram loss Lmel [4], a single-resolution STFT magnitude loss Lstft [14], and a time-domain ℓ1 waveform loss Lℓ1 . The adversarial and feature-matching losses are computed using MPD and MSD discriminators [14]. Adversarial training is activated after 10k steps, allowing the generator to first learn a stable reconstruction mapping. The quantizer loss is defined as 
+
+LQ = Lcommit + λbal Lbal + λz Lz , (15) where the commitment loss is 
+
+Lcommit = ∥z − sg (ˆ z)∥22 . (16) The flow-matching loss is activated after 5k steps, once the codebooks have stabilized, to avoid disrupting early-stage quantizer learning. Based on validation performance, we set λmel = 45 , λadv = 1 , λfeat = 2 , λbal = 0 .01 , λz = 0 .001 ,
+
+λFM = 1 , λℓ1 = 0 .1, and λstft = 1 .
+
+## 4 Experiments 
+
+4.1 Experimental Setup Datasets and training. UniStream is trained on three audio domains: Lib-riSpeech [18] for speech, MTG-Jamendo [1] for music, and FSD50K [7] for environmental audio. During training, the three datasets are sampled with proba-bilities of 0.5, 0.3, and 0.2, respectively. All audio is converted to 48 kHz mono and loudness-normalized to −23 LUFS. The model is trained for 200k steps on 8 A100 GPUs with a batch size of 128 using 1-second audio segments. We use the Adam optimizer with an initial learning rate of 3 × 10 −4, a 1k-step warmup, and cosine learning-rate decay. For evaluation, we use fixed subsets of 200 utterances from LibriSpeech test-clean, 100 clips from the MTG-Jamendo test set, and 94 clips from the FSD50K evaluation set. The same evaluation files and preprocessing settings are used for all compared systems. LibriSpeech waveforms are resampled from 16 kHz to 48 kHz before codec evaluation. 
+
+Baselines. We compare UniStream with representative conventional and neural audio codecs, including Opus [27], EnCodec [4], DAC [15], SNAC [24], and Mimi in Moshi [5]. Opus and EnCodec are evaluated at both 12 kbps and 24 kbps. The 12 kbps configurations serve as matched-rate baselines for UniStream-Top1, UniStream: Causal Streaming Audio Coding 9
+
+whereas the 24 kbps configurations provide higher-rate references for UniStream-Top2, which operates at 22.5 kbps. DAC, SNAC, and Mimi are evaluated using their official checkpoints or recommended configurations, and their actual operat-ing bitrates are reported in the tables. The neural baselines are evaluated using their official checkpoints and recommended configurations rather than being re-trained on our mixed-domain corpus. Therefore, these comparisons are intended as practical reference comparisons under their standard settings. Non-causal systems are included as reference systems rather than direct streaming baselines. For EnCodec, we use the official non-causal 48 kHz stereo checkpoint. The 24 kbps setting denotes the total stereo bitrate, corresponding to 12 kbps per channel. Mono inputs are duplicated across the two channels, and the left reconstructed channel is used for evaluation. 
+
+Evaluation metrics. We report both conventional speech-codec metrics and full-band perceptual measures to evaluate 48 kHz audio reconstruction. For speech, we include PESQ [21], STOI [25], UTMOS [22], and DNSMOS P.835 [20]. We also report mel-spectral distortion (Mel-D) for speech, music, and environmental audio. Because PESQ and STOI are computed after resampling to 16 kHz, they primarily characterize speech reconstruction and do not fully evaluate full-band 48 kHz audio. We therefore report ViSQOL v3 [3] in two modes: 48 kHz audio mode for speech, music, and environmental audio, and 16 kHz speech mode for speech-only evaluation. For distributional audio quality, we compute standard VGGish-FAD using AudioSet-pretrained VGGish embeddings [9, 8, 13], where lower values indicate greater similarity to the reference distribution. VGGish-FAD is computed after resampling the audio to 16 kHz and is used as a standard distributional complement to, rather than a replacement for, the 48 kHz ViSQOL evaluation. 
+
+4.2 Conventional Objective Metrics 
+
+Table 1 reports the conventional objective results. UniStream-Top1 is rate-matched to the 12 kbps Opus and EnCodec configurations; Opus is causal, whereas the 48 kHz EnCodec checkpoint is non-causal. Relative to EnCodec at the same nominal bitrate, it achieves comparable PESQ and UTMOS scores while substantially reducing mel-spectral distortion, although its STOI score is lower. UniStream-Top2 operates at 22.5 kbps and represents a higher-quality operating point; therefore, it is not directly ranked against the 12 kbps baselines. At 12 kbps, UniStream-Top1 obtains a PESQ score of 2.81 and a UTMOS score of 3.34, both close to those of EnCodec at the same nominal bitrate. Its main advantage lies in spectral reconstruction: compared with EnCodec, speech Mel-D decreases from 13.07 to 8.21, while environmental Mel-D decreases from 13.18 to 10.16. However, UniStream-Top1 yields a lower STOI score of 0.826. This discrepancy highlights the importance of considering complementary perceptual and full-band metrics rather than relying on a single evaluation criterion. 10 M. Zhao and Z. Wu 
+
+Table 1. Conventional objective results. Non-causal systems are included as reference systems. UniStream-Top2 operates at 22.5 kbps and is not directly comparable to the 12 kbps baselines.                                                         
+
+> System Rate Causal PESQ UTMOS STOI Sp. Mel-D Mus. Mel-D / Env. Mel-D Opus 12k Yes 3.99 3.81 0.936 13.76 22.51 / 28.52 EnCodec 12k No 2.88 3.35 0.878 13.07 9.20 / 13.18 DAC 8k No 2.95 3.41 0.883 6.94 7.81 / 8.12 SNAC 2.6k No 2.62 3.39 0.881 7.69 8.42 / 8.74 Mimi 1.1k Yes 2.71 3.12 0.854 9.43 11.37 / 12.05 UniStream-T1 12k Yes 2.81 3.34 0.826 8.21 10.72 / 10.16 UniStream-T2 22.5k Yes 3.41 3.87 0.864 7.25 9.54 / 7.91
+
+Table 2. ViSQOL MOS-LQO results. Audio mode is evaluated at 48 kHz on speech, music, and environmental audio, while speech mode is evaluated on speech only. Higher is better.                                                   
+
+> System Rate Audio-Sp. Audio-Mus. Audio-Env. Speech Mode Opus 12k 4.32 2.43 2.43 4.63 EnCodec 12k 4.03 4.13 3.91 4.15 DAC 8k 4.46 4.10 3.94 4.63 SNAC 2.6k 4.35 3.98 3.83 4.17 Mimi 1.1k 4.03 2.93 2.88 4.43 UniStream-T1 12k 4.35 3.82 3.70 4.43 UniStream-T2 22.5k 4.42 4.06 3.96 4.67 Opus 24k 4.45 4.23 4.07 4.77 EnCodec 24k 4.10 4.22 4.02 4.31
+
+4.3 Full-Band ViSQOL Evaluation 
+
+Table 2 reports the ViSQOL results. Audio-mode scores are computed at 48 kHz for speech, music, and environmental audio, whereas speech-mode scores are computed on speech using the 16 kHz speech model. This evaluation complements conventional speech metrics with a perceptually motivated assessment of full-band reconstruction. UniStream-Top1 achieves a speech audio-mode score of 4.35, matching SNAC while operating as a causal 12 kbps codec. UniStream-Top2 further improves the speech audio-mode score to 4.42 and achieves 4.67 in ViSQOL speech mode, the highest score among the evaluated neural codecs operating at 22.5 kbps or below. On environmental audio, UniStream-Top2 achieves 3.96, outperforming all listed systems operating at 12 kbps or below. Compared with Opus at 24 kbps, UniStream-Top2 is within 0.03 MOS-LQO on speech in ViSQOL audio mode while operating at a slightly lower bitrate of 22.5 kbps. These results demonstrate that UniStream-Top2 is competitive with higher-rate reference codecs under full-band perceptual evaluation. 
+
+4.4 VGGish-FAD Evaluation 
+
+Because FAD depends on the choice of embedding encoder, we report standard VGGish-FAD using AudioSet-pretrained VGGish embeddings. The results are shown in Table 3. VGGish-FAD measures the distributional similarity between reconstructed and reference audio, with lower values indicating closer alignment with the reference distribution. UniStream: Causal Streaming Audio Coding 11 
+
+Table 3. VGGish-FAD results on speech, music, and environmental audio. Lower is better.                         
+
+> System Speech Music Environmental Opus 0.60 1.71 0.95 EnCodec 1.68 0.37 0.55 DAC 0.18 0.32 0.43 SNAC 0.43 0.40 0.86 Mimi 0.24 1.28 0.77 UniStream-T1 0.72 1.48 0.95 UniStream-T2 0.27 0.68 0.44
+
+Table 4. DNSMOS P.835 results on speech. SIG, BAK, and OVR estimate speech-signal quality, background-noise quality, and overall quality, respectively. Higher is better.                                         
+
+> System Rate SIG BAK OVR Opus 12k 3.56 3.97 3.24 EnCodec 12k 3.46 3.78 3.06 DAC 8k 3.63 4.01 3.33 SNAC 2.6k 3.56 3.97 3.25 Mimi 1.1k 3.58 4.03 3.29 UniStream-T1 12k 3.43 3.84 3.07 UniStream-T2 22.5k 3.55 3.89 3.20 Opus 24k 3.60 4.03 3.31 EnCodec 24k 3.55 3.90 3.21
+
+UniStream-Top2 achieves a speech FAD of 0.27, outperforming Opus, En-Codec, SNAC, and UniStream-Top1, while approaching the strongest reference systems. On environmental audio, UniStream-Top2 obtains 0.44, close to DAC at 0.43 and lower than SNAC, Mimi, and Opus. Its music FAD of 0.68 remains higher than those of EnCodec, DAC, and SNAC, indicating that further improvement is needed in music-domain modeling and harmonic reconstruction. 
+
+4.5 DNSMOS P.835 Speech Evaluation 
+
+Table 4 reports DNSMOS P.835 scores on LibriSpeech test-clean. We report SIG, BAK, and OVR, which estimate speech-signal quality, background-noise quality, and overall quality, respectively. These non-intrusive scores provide a complementary estimate of perceived speech quality. UniStream-Top2 obtains SIG, BAK, and OVR scores of 3.55, 3.89, and 3.20, respectively, closely matching EnCodec at 24 kbps, which achieves 3.55, 3.90, and 3.21. Although DAC and Mimi achieve slightly higher DNSMOS scores, they operate under different model configurations and bitrates and are therefore included as reference systems. Overall, the DNSMOS results place UniStream-Top2 in a similar perceptual speech-quality range to the higher-rate reference codecs. 
+
+4.6 Ablation Study 
+
+Table 5 examines the contributions of ME-RVQ and OT-CFM. Removing ME-RVQ decreases PESQ from 3.41 to 3.20 and UTMOS from 3.87 to 3.80, while 12 M. Zhao and Z. Wu 
+
+Table 5. Ablation study at 22.5 kbps. Lower Mel-D is better; higher PESQ, UTMOS, and STOI are better.                         
+
+> Configuration PESQ UTMOS STOI Sp. Mel-D Mus. Mel-D Env. Mel-D Full model 3.41 3.87 0.864 7.25 9.54 7.91 w/o ME-RVQ 3.20 3.80 0.856 7.72 10.19 8.36 w/o OT-CFM 3.37 3.86 0.865 7.07 9.34 7.87
+
+consistently increasing mel-spectral distortion across speech, music, and environ-mental audio. These results confirm that ME-RVQ is the primary contributor to the overall quality improvement. The effect of OT-CFM is more nuanced. Removing OT-CFM slightly de-creases PESQ from 3.41 to 3.37 and UTMOS from 3.87 to 3.86, while marginally improving Mel-D across all three domains. We therefore interpret OT-CFM as an auxiliary speech-perceptual regularizer rather than the primary driver of general audio reconstruction quality. This complementary behavior is desirable for the proposed system: ME-RVQ provides the main capacity and reconstruction improvement, whereas OT-CFM supplies an additional training signal for percep-tual speech quality without increasing inference-time complexity. This behavior is consistent with its role as an additional latent-space training objective, which is not explicitly optimized to minimize mel-spectral distortion. 
+
+4.7 Efficiency 
+
+UniStream contains 75.6M parameters during training. Because the OT-CFM module is discarded at inference, the deployed codec contains 47.9M parameters. ME-RVQ introduces 5.5M additional parameters. On an A100 GPU, UniStream achieves an end-to-end RTF of 0.144, comprising encoder and decoder RTFs of 0.134 and 0.010, respectively. On a Xeon 8358 CPU, the model achieves an RTF of 1.05, corresponding to near-real-time inference. With a total downsampling factor of 320 , the latent frame interval is 
+
+320 48000 ≈ 6.7 ms . (17) This value denotes the latent-frame interval rather than the complete end-to-end algorithmic latency. Since all inference-time modules are causal and use no look-ahead, it provides a lower bound on the streaming latency. The GPU RTF of 0.144 supports real-time deployment, while the CPU RTF of 1.05 indicates approximately real-time operation. 
+
+## 5 Conclusion 
+
+We presented UniStream, a fully causal 48 kHz neural audio codec for speech, music, and environmental audio. Its core ME-RVQ module expands RVQ capacity through expert codebooks while enabling deterministic decoder-side routing without expert-ID signaling. A training-only OT-CFM objective provides modest UniStream: Causal Streaming Audio Coding 13 
+
+perceptual gains on speech without inference-time overhead. Experiments show that ME-RVQ is the primary source of improvement: UniStream-Top1 provides a competitive 12 kbps operating point with improved spectral reconstruction, while UniStream-Top2 approaches higher-rate references under full-band perceptual evaluation and performs strongly on environmental audio. Future work will investigate subjective listening tests, entropy coding, and deployment on mobile and edge hardware. 
+
+## References 
+
+1. Bogdanov, D., Won, M., Tovstogan, P., Porter, A., Serra, X.: The MTG-Jamendo dataset for automatic music tagging. In: Proc. Machine Learning for Music Discovery Workshop at the International Conference on Machine Learning (ICML) (2019) 2. Borsos, Z., Marinier, R., Vincent, D., Kharitonov, E., Pietquin, O., Sharifi, M., Roblek, D., Teboul, O., Grangier, D., Tagliasacchi, M., Zeghidour, N.: AudioLM: A language modeling approach to audio generation. IEEE/ACM Transactions on Audio, Speech, and Language Processing 31 , 2523–2533 (2023) 3. Chinen, M., Lim, F.S.C., Skoglund, J., Gureev, N., O’Gorman, F., Hines, A.: ViSQOL v3: An open source production ready objective speech and audio metric. In: Proc. Twelfth International Conference on Quality of Multimedia Experience (QoMEX). pp. 1–6. IEEE (2020) 4. Défossez, A., Copet, J., Synnaeve, G., Adi, Y.: High fidelity neural audio compression. Transactions on Machine Learning Research (2023) 5. Défossez, A., Mazaré, L., Orsini, M., Royer, A., Pérez, P., Jégou, H., Grave, E., Zeghidour, N.: Moshi: A speech-text foundation model for real-time dialogue. arXiv preprint arXiv:2410.00037 (2024) 6. Fedus, W., Zoph, B., Shazeer, N.: Switch Transformers: Scaling to trillion parameter models with simple and efficient sparsity. Journal of Machine Learning Research 
+
+23 (120), 1–39 (2022) 7. Fonseca, E., Favory, X., Pons, J., Font, F., Serra, X.: FSD50K: An open dataset of human-labeled sound events. IEEE/ACM Transactions on Audio, Speech, and Language Processing 30 , 829–852 (2022) 8. Gemmeke, J.F., Ellis, D.P.W., Freedman, D., Jansen, A., Lawrence, W., Moore, R.C., Plakal, M., Ritter, M.: Audio Set: An ontology and human-labeled dataset for audio events. In: Proc. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). pp. 776–780. IEEE (2017) 9. Hershey, S., Chaudhuri, S., Ellis, D.P.W., Gemmeke, J.F., Jansen, A., Moore, R.C., Plakal, M., Platt, D., Saurous, R.A., Seybold, B., Slaney, M., Weiss, R.J., Wilson, K.: CNN architectures for large-scale audio classification. In: Proc. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). pp. 131–135. IEEE (2017) 10. Ji, S., Fang, M., Zuo, J., Jiang, Z., Wang, D., Wang, H., Huang, H., Zhao, Z.: Language-Codec: Bridging discrete codec representations and speech language models. In: Proc. Annual Meeting of the Association for Computational Linguistics (ACL). pp. 13332–13345 (2025) 11. Ji, S., Jiang, Z., Wang, W., Chen, Y., Fang, M., Zuo, J., Yang, Q., Cheng, X., Wang, Z., Li, R., Zhang, Z., Yang, X., Huang, R., Jiang, Y., Chen, Q., Zheng, S., Wang, W., Zhao, Z.: WavTokenizer: An efficient acoustic discrete codec tokenizer for audio 14 M. Zhao and Z. Wu language modeling. In: Proc. International Conference on Learning Representations (ICLR) (2025) 12. Jiang, Y., Chen, Q., Ji, S., Xi, Y., Wang, W., Zhang, C., Yue, X., Zhang, S., Li, H.: UniCodec: Unified audio codec with single domain-adaptive codebook. In: Proc. Annual Meeting of the Association for Computational Linguistics (ACL). pp. 19112–19124 (2025) 13. Kilgour, K., Zuluaga, M., Roblek, D., Sharifi, M.: Fréchet audio distance: A reference-free metric for evaluating music enhancement algorithms. In: Proc. Annual Confer-ence of the International Speech Communication Association (INTERSPEECH). pp. 2350–2354. ISCA (2019) 14. Kong, J., Kim, J., Bae, J.: HiFi-GAN: Generative adversarial networks for effi-cient and high fidelity speech synthesis. In: Proc. Advances in Neural Information Processing Systems (NeurIPS) (2020) 15. Kumar, R., Seetharaman, P., Luebs, A., Kumar, I., Kumar, K.: High-fidelity audio compression with improved RVQGAN. In: Proc. Advances in Neural Information Processing Systems (NeurIPS) (2023) 16. Luo, Y., Yu, J., Chen, H., Gu, R., Weng, C.: Gull: A generative multifunctional audio codec. arXiv preprint arXiv:2404.04947 (2024) 17. van den Oord, A., Vinyals, O., Kavukcuoglu, K.: Neural discrete representation learning. In: Proc. Advances in Neural Information Processing Systems (NeurIPS) (2017) 18. Panayotov, V., Chen, G., Povey, D., Khudanpur, S.: LibriSpeech: An ASR corpus based on public domain audio books. In: Proc. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). pp. 5206–5210. IEEE (2015) 19. Pia, N., Strauss, M., Multrus, M., Edler, B.: FlowMAC: Conditional flow matching for audio coding at low bit rates. In: Proc. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). pp. 1–5. IEEE (2025) 20. Reddy, C.K.A., Gopal, V., Cutler, R.: DNSMOS P.835: A non-intrusive perceptual objective speech quality metric to evaluate noise suppressors. In: Proc. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). pp. 886–890. IEEE (2022) 21. Rix, A.W., Beerends, J.G., Hollier, M.P., Hekstra, A.P.: Perceptual evaluation of speech quality (PESQ): A new method for speech quality assessment of telephone networks and codecs. In: Proc. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). pp. 749–752. IEEE (2001) 22. Saeki, T., Xin, D., Nakata, W., Takamichi, S., Saruwatari, H.: UTMOS: UTokyo-SaruLab system for VoiceMOS challenge 2022. In: Proc. Annual Conference of the International Speech Communication Association (INTERSPEECH). pp. 4521–4525. ISCA (2022) 23. Salimans, T., Kingma, D.P.: Weight normalization: A simple reparameterization to accelerate training of deep neural networks. In: Proc. Advances in Neural Information Processing Systems (NeurIPS) (2016) 24. Siuzdak, H., Grötschla, F., Lanzendörfer, L.A.: SNAC: Multi-scale neural audio codec. In: Proc. Audio Imagination: NeurIPS 2024 Workshop on AI-Driven Speech, Music, and Sound Generation (2024) 25. Taal, C.H., Hendriks, R.C., Heusdens, R., Jensen, J.: An algorithm for intelligibility prediction of time–frequency weighted noisy speech. IEEE Transactions on Audio, Speech, and Language Processing 19 (7), 2125–2136 (2011) 26. Tagliasacchi, M., Li, Y., Misiunas, K., Roblek, D.: SEANet: A multi-modal speech enhancement network. In: Proc. Annual Conference of the International Speech Communication Association (INTERSPEECH). pp. 1126–1130. ISCA (2020) UniStream: Causal Streaming Audio Coding 15 27. Valin, J.M., Vos, K., Terriberry, T.B.: Definition of the Opus audio codec. RFC 6716 (Sep 2012). https://doi.org/10.17487/RFC6716 28. Wang, C., Chen, S., Wu, Y., Zhang, Z., Zhou, L., Liu, S., Chen, Z., Liu, Y., Wang, H., Li, J., He, L., Zhao, S., Wei, F.: Neural codec language models are zero-shot text to speech synthesizers. IEEE Transactions on Audio, Speech and Language Processing 33 , 705–718 (2025) 29. Wang, X., Jiang, W., Wang, J., You, Y., Fang, S., Wen, F.: SwitchCodec: Adap-tive residual-expert sparse quantization for high-fidelity neural audio coding. In: Proc. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). IEEE (2026) 30. Welker, S., Le, M., Chen, R.T.Q., Hsu, W.N., Gerkmann, T., Richard, A., Wu, Y.C.: FlowDec: A flow-based full-band general audio codec with high perceptual quality. In: Proc. International Conference on Learning Representations (ICLR) (2025) 31. Zeghidour, N., Luebs, A., Omran, A., Skoglund, J., Tagliasacchi, M.: SoundStream: An end-to-end neural audio codec. IEEE/ACM Transactions on Audio, Speech, and Language Processing 30 , 495–507 (2022) 32. Zhao, M., Lin, Z., Feng, Y., Chen, J., Wang, F., Luo, J., Ding, Y., Zhang, J., Wu, Z.: BAMU: Bitstream-aware marginal-utility allocation for frozen pretrained neural speech codecs. arXiv preprint arXiv:2608.08432 (2026) 33. Zhao, M., Lin, Z., Wei, K., Wu, Z.: SPG-Codec: Exploring the role and bound-aries of semantic priors in ultra-low-bitrate neural speech coding. arXiv preprint arXiv:2604.26296 (2026) 34. Zoph, B., Bello, I., Kumar, S., Du, N., Huang, Y., Dean, J., Shazeer, N., Fedus, W.: ST-MoE: Designing stable and transferable sparse expert models. arXiv preprint arXiv:2202.08906 (2022)

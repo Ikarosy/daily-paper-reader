@@ -1,0 +1,214 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-14T22:05:06.887585+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 3,
+    "deep_cap": 7,
+    "deep_selected": 3,
+    "quick_candidates": 2,
+    "quick_skim_target": 12,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2609.12208v1",
+      "source": "arxiv",
+      "title": "Vortex: Bridging Extreme Compression and Efficient LLM Inference",
+      "abstract": "Extreme compression techniques, including vector quantization (VQ) and input-dependent sparsity, can significantly reduce the memory footprint of large language models (LLMs). However, a key challenge remains in translating such compression into practical efficiency. On conventional systolic-array-based accelerators, VQ incurs high dequantization overhead, while the irregular patterns of input-dependent sparsity are difficult to exploit. In this study, we address these challenges with Vortex, an architecture compatible with systolic-array-based accelerators with minimal hardware overhead, bridging the gap between extreme compression and efficient inference. Vortex adopts a bi-flow execution strategy that efficiently supports vector-quantized models across both prefill and decoding workloads, and we further optimize it through systematic design space exploration. On the algorithm side, we propose codebook-wise contextual sparsity to align with VQ execution. Across end-to-end workloads, Vortex achieves $8.03\\times$--$23.7\\times$ speedup and $5.68\\times$--$12.5\\times$ energy reduction over state-of-the-art accelerators.",
+      "authors": [
+        "Haoxuan Shan",
+        "Cong Guo",
+        "Bowen Duan",
+        "Chiyue Wei",
+        "Feng Cheng",
+        "Yuzhe Fu",
+        "Yintao He",
+        "Hai \"Helen\" Li",
+        "Yiran Chen"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-10T21:04:15+00:00",
+      "link": "https://arxiv.org/pdf/2609.12208v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "extreme compression via vector quantization and input-dependent sparsity for LLM inference",
+      "llm_evidence_cn": "向量量化与输入相关稀疏实现大模型极端压缩与高效推理",
+      "llm_evidence": "向量量化与输入相关稀疏实现大模型极端压缩与高效推理",
+      "canonical_evidence": "向量量化与输入相关稀疏实现大模型极端压缩与高效推理",
+      "llm_tldr_en": "Vortex addresses the gap between extreme compression (vector quantization, input-dependent sparsity) and practical LLM inference efficiency, where dequantization overhead and irregular sparsity hurt systolic-array accelerators. Its bi-flow execution strategy supports vector-quantized models with minimal hardware overhead.",
+      "llm_tldr_cn": "极低比特向量量化（VQ）虽能大幅压缩大模型内存占用，但在传统脉动阵列加速器上解量化开销高、输入相关稀疏难以被有效利用，压缩难以转化为实际推理效率。为此，作者提出Vortex架构，以双流执行策略在极小硬件开销下支持向量量化模型的高效执行。该工作弥合了极端压缩与高效推理之间的鸿沟，为极低比特VQ的落地提供了硬件与执行层面的支撑。",
+      "llm_tldr": "极低比特向量量化（VQ）虽能大幅压缩大模型内存占用，但在传统脉动阵列加速器上解量化开销高、输入相关稀疏难以被有效利用，压缩难以转化为实际推理效率。为此，作者提出Vortex架构，以双流执行策略在极小硬件开销下支持向量量化模型的高效执行。该工作弥合了极端压缩与高效推理之间的鸿沟，为极低比特VQ的落地提供了硬件与执行层面的支撑。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.12550v1",
+      "source": "arxiv",
+      "title": "Quality-Constrained Routing over a Fixed Pool of Quantized Mixture-of-Experts Instances",
+      "abstract": "Quantized Mixture-of-Experts (MoE) services can hold several pre-materialized instances of one base model, but quantization damage varies sharply across requests and bitwidths. Because instance materialization and replica counts consume memory and require slow reconfiguration, we treat them as upstream provisioning decisions and study routing within a fixed resident pool. Within this fixed-pool boundary, we route each request to maximize modeled throughput under a class-level expected quality-degradation budget and measured instance capacities. To predict this request-specific risk, we introduce FWP (Fragility-Weighted Perplexity), computed from prompt tokens on a reference-instance prefill and calibrated to candidate-instance degradation. Underlying FWP is an exact two-expert affinity--fragility decomposition and a conditional multi-layer top-$k$ expansion whose bias, interaction, route-change, separability, and higher-order terms remain explicit. Using these calibrated risks, a window-level linear program yields a signed reduced-reward score that is KKT-consistent with the LP optimum under optimal prices and primal-feasible tie allocation. On 88 extended Qwen prompts, complete W2, W3, and W4 instances quantizing all 6,144 expert blocks incur mean $Δ$NLL of $0.9437$, $0.1832$, and $0.0513$. Under the same population and $τ=0.1513$, FWP allocation reaches a $1.284\\times$ offline model-based multiplier versus $1.253\\times$ for request-agnostic mixing and $1.000\\times$ for static W4, an incremental $2.5\\%$ relative FWP gain.",
+      "authors": [
+        "Zhenghong Huang",
+        "Hongfan Wu",
+        "Jiheng Zhang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-11T07:57:25+00:00",
+      "link": "https://arxiv.org/pdf/2609.12550v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "routing over quantized MoE instances with quality budget",
+      "llm_evidence_cn": "量化MoE实例池上的质量约束路由",
+      "llm_evidence": "量化MoE实例池上的质量约束路由",
+      "canonical_evidence": "量化MoE实例池上的质量约束路由",
+      "llm_tldr_en": "Quantized MoE services hold several instances whose quantization damage varies by request; this paper routes requests within a fixed resident pool to maximize throughput under a quality-degradation budget, using Fragility-Weighted Perplexity to predict request-specific risk.",
+      "llm_tldr_cn": "量化后的专家混合（MoE）服务往往预置多个实例，但不同请求与位宽下的量化损伤差异很大，且实例物化与副本数受内存和重配置限制。本文将实例供给视为上游决策，研究在固定常驻实例池内进行路由，目标是在类级别质量退化预算与实测容量约束下最大化吞吐。作者提出脆弱性加权困惑度（FWP），通过参考实例预填充的提示词元预测请求特定的量化风险并校准到候选实例。该工作把MoE量化损伤与在线调度统一建模，为低比特MoE服务的质量可控部署提供了可复用框架。",
+      "llm_tldr": "量化后的专家混合（MoE）服务往往预置多个实例，但不同请求与位宽下的量化损伤差异很大，且实例物化与副本数受内存和重配置限制。本文将实例供给视为上游决策，研究在固定常驻实例池内进行路由，目标是在类级别质量退化预算与实测容量约束下最大化吞吐。作者提出脆弱性加权困惑度（FWP），通过参考实例预填充的提示词元预测请求特定的量化风险并校准到候选实例。该工作把MoE量化损伤与在线调度统一建模，为低比特MoE服务的质量可控部署提供了可复用框架。",
+      "llm_tags": [
+        "query:moe-quant:composite"
+      ],
+      "matched_query_tag": "query:moe-quant:composite",
+      "matched_query_text": "Papers central to MoE 量化, especially work that connects or combines: P; M; MoE Quantization.",
+      "matched_requirement_id": "req-composite-moe-quant",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.09866v1",
+      "source": "arxiv",
+      "title": "UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding",
+      "abstract": "We present UniStream, a fully causal 48 kHz neural audio codec for streaming speech, music, and environmental sounds. At its core is Multi-Expert Residual Vector Quantization (ME-RVQ), which replaces the single shared codebook in each residual quantization layer with four expert codebooks controlled by a deterministic Top-K router. Because routing decisions are derived solely from previously decoded quantized states, the decoder can reproduce the selected experts without transmitting expert identifiers, thereby expanding quantization capacity while adding 5.5M parameters. We further introduce an auxiliary Optimal Transport Conditional Flow Matching (OT-CFM) objective to regularize the quantized latent space during training. The flow module is removed entirely at inference and therefore incurs no runtime overhead. UniStream supports a 12 kbps Top-1 mode and a 22.5 kbps Top-2 mode within a causal 48 kHz encoder-decoder framework, while achieving real-time GPU inference. To complement narrow-band speech metrics, we report 48 kHz ViSQOL audio mode, ViSQOL speech mode, standard VGGish-FAD, DNSMOS P.835, and higher-rate reference comparisons with Opus and EnCodec. At 12 kbps, UniStream-Top1 achieves PESQ and UTMOS scores comparable to EnCodec while reducing speech Mel-D from 13.07 to 8.21. At 22.5 kbps, UniStream-Top2 achieves a ViSQOL speech-mode score of 4.67 and an environmental audio-mode score of 3.96, exceeding all evaluated systems operating at 12 kbps or below in the latter setting. It also comes within 0.03 MOS-LQO of Opus at 24 kbps on speech in ViSQOL audio mode. Ablation studies confirm that ME-RVQ is the primary source of quality improvement, whereas OT-CFM provides perceptual gains on speech with a mild trade-off in spectral distortion.",
+      "authors": [
+        "Mingyu Zhao",
+        "Zhiyong Wu"
+      ],
+      "primary_category": "eess.AS",
+      "categories": [
+        "eess.AS"
+      ],
+      "published": "2026-09-09T08:16:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.09866v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "multi-expert residual vector quantization with deterministic Top-K router",
+      "llm_evidence_cn": "采用确定性Top-K路由的多专家残差向量量化",
+      "llm_evidence": "采用确定性Top-K路由的多专家残差向量量化",
+      "canonical_evidence": "采用确定性Top-K路由的多专家残差向量量化",
+      "llm_tldr_en": "UniStream is a causal 48 kHz neural audio codec built on Multi-Expert Residual Vector Quantization, replacing each layer shared codebook with four expert codebooks selected by a deterministic Top-K router, expanding quantization capacity without transmitting expert identifiers.",
+      "llm_tldr_cn": "现有神经音频编解码器在每层残差量化中仅共享单一码本，量化容量受限。UniStream提出多专家残差向量量化ME-RVQ，用四个专家码本替代共享码本，并由确定性Top-K路由器选择，解码器可据已解码量化状态复现专家而无需传输标识，从而扩展量化容量。配合最优传输条件流匹配目标正则化量化潜空间，实现48kHz全因果流式语音、音乐与环境声编码。",
+      "llm_tldr": "现有神经音频编解码器在每层残差量化中仅共享单一码本，量化容量受限。UniStream提出多专家残差向量量化ME-RVQ，用四个专家码本替代共享码本，并由确定性Top-K路由器选择，解码器可据已解码量化状态复现专家而无需传输标识，从而扩展量化容量。配合最优传输条件流匹配目标正则化量化潜空间，实现48kHz全因果流式语音、音乐与环境声编码。",
+      "llm_tags": [
+        "query:moe-quant:composite"
+      ],
+      "matched_query_tag": "query:moe-quant:composite",
+      "matched_query_text": "Papers central to MoE 量化, especially work that connects or combines: P; M; MoE Quantization.",
+      "matched_requirement_id": "req-composite-moe-quant",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.11642v1",
+      "source": "arxiv",
+      "title": "ZipCodec: Ultra-Low-Frame-Rate Streaming Speech Coding",
+      "abstract": "Neural audio codecs are a fundamental component of modern speech generation systems. While recent codecs achieve increasingly low bitrates, reducing frame rate remains challenging, as each token must preserve more information while maintaining reconstruction quality. We present ZipCodec, a streaming neural speech codec operating at 6.25 Hz and 0.80 kbps with a theoretical latency of 160 ms. Our approach combines large-scale WavLM distillation with a redesigned transformer-based architecture, a scalar spherical quantizer, and a latency-aware streaming decoder. Experiments show that ZipCodec substantially outperforms existing streaming codecs at comparable bitrates in both reconstruction and downstream tasks, while operating at a significantly lower frame rate. Despite its 842M parameters, ZipCodec achieves real-time single-stream inference on a consumer-grade CPU. Demo samples, code and checkpoints are available at https://lucadellalib.github.io/zipcodec-web/.",
+      "authors": [
+        "Luca Della Libera",
+        "Cem Subakan",
+        "Mirco Ravanelli"
+      ],
+      "primary_category": "cs.SD",
+      "categories": [
+        "cs.SD",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-10T14:49:54+00:00",
+      "link": "https://arxiv.org/pdf/2609.11642v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "ultra-low-bitrate streaming speech codec with scalar spherical quantizer",
+      "llm_evidence_cn": "采用标量球面量化器的超低比特率流式语音编码",
+      "llm_evidence": "采用标量球面量化器的超低比特率流式语音编码",
+      "canonical_evidence": "采用标量球面量化器的超低比特率流式语音编码",
+      "llm_tldr_en": "Neural audio codecs struggle to lower frame rate while keeping quality. ZipCodec combines WavLM distillation, a transformer architecture, and a scalar spherical quantizer to stream at 6.25 Hz and 0.80 kbps, outperforming existing streaming codecs.",
+      "llm_tldr_cn": "神经音频编解码器在降低帧率时难以兼顾重建质量，因为每个token需承载更多信息。ZipCodec结合大规模WavLM蒸馏、改进的Transformer架构、标量球面量化器与低延迟流式解码器，实现6.25Hz帧率、0.80kbps的超低码率流式编码。实验表明其在重建与下游任务上显著优于同码率的现有流式编解码器，为极低比特语音编码提供了新方案。",
+      "llm_tldr": "神经音频编解码器在降低帧率时难以兼顾重建质量，因为每个token需承载更多信息。ZipCodec结合大规模WavLM蒸馏、改进的Transformer架构、标量球面量化器与低延迟流式解码器，实现6.25Hz帧率、0.80kbps的超低码率流式编码。实验表明其在重建与下游任务上显著优于同码率的现有流式编解码器，为极低比特语音编码提供了新方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.11716v1",
+      "source": "arxiv",
+      "title": "Why Does Post-Training Quantization Work?",
+      "abstract": "Post-training quantization compresses large language models (LLMs) by storing their weights at reduced precision, and each quantized weight introduces an error into the hidden states. Naively, these errors should accumulate with depth and corrupt next-token prediction; randomly initialized models accumulate these discrepancies rapidly, whereas quantized pretrained models accumulate much less hidden-state error and largely maintain downstream task performance, even though they were never trained with quantization noise. This raises the question we address: why does post-training quantization work? Comparing full-precision and quantized forward passes, we identify two mechanisms that characterize pretrained quantization robustness. First, the error a layer newly introduces tends to oppose the error it inherits from the layer's input. The two cancel partially such that the discrepancy between full-precision and quantized passes grows slowly. This counteracting residual interaction develops during pretraining. Our quantitative analysis identifies it as a major factor slowing hidden-error growth. Second, LM-head geometry preferentially preserves the scores and probabilities of high-ranked tokens, which typically represent the model's most confident predictions. Together, these mechanisms explain why quantization error that passes through numerous layers can still produce only small output changes, and we verify the findings across models and quantization settings.",
+      "authors": [
+        "Yuxiang Chen",
+        "Michael Beyer",
+        "Jun Zhu",
+        "Jianfei Chen"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-09-10T15:32:32+00:00",
+      "link": "https://arxiv.org/pdf/2609.11716v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "mechanism of post-training weight quantization robustness",
+      "llm_evidence_cn": "后训练量化鲁棒性机理",
+      "llm_evidence": "后训练量化鲁棒性机理",
+      "canonical_evidence": "后训练量化鲁棒性机理",
+      "llm_tldr_en": "Studies why post-training quantization of LLM weights preserves accuracy despite injected errors, comparing full-precision and quantized forward passes to identify two mechanisms of robustness.",
+      "llm_tldr_cn": "论文针对后训练量化在权重引入误差后仍能保持性能这一疑问展开研究。作者通过对比全精度与量化前向传播，分析各层新增误差在预训练模型与随机初始化模型中的累积差异。结果显示预训练模型的隐藏状态误差显著更小，并归纳出两种刻画量化鲁棒性的机制。该工作为理解低比特量化的可行性提供了机理性解释。",
+      "llm_tldr": "论文针对后训练量化在权重引入误差后仍能保持性能这一疑问展开研究。作者通过对比全精度与量化前向传播，分析各层新增误差在预训练模型与随机初始化模型中的累积差异。结果显示预训练模型的隐藏状态误差显著更小，并归纳出两种刻画量化鲁棒性的机制。该工作为理解低比特量化的可行性提供了机理性解释。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
