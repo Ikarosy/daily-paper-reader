@@ -41,7 +41,7 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-14</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-15</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 5 篇</strong>
@@ -51,7 +51,7 @@
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>2</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-14 22:10:04 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-15 22:16:12 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,10 +62,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日共生成 5 篇推荐（精读 3 篇，速读 2 篇）</p>
-<p>精读：《Vortex: Bridging Extreme Compression and Efficient LLM Inference》（9.0/10）, 《Quality-Constrained Routing over a Fixed Pool of Quantized Mixture-of-Experts Instances》（9.0/10）</p>
-<p>速读：《ZipCodec: Ultra-Low-Frame-Rate Streaming Speech Coding》（7.0/10）, 《Why Does Post-Training Quantization Work?》（6.0/10）</p>
-<p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
+<p>今日共筛出 5 篇论文，精读 3 篇，重点落在 LLM 极致压缩推理与量化 MoE 路由两条主线上。</p>
+<p>最值得看的是两篇 9.0 精读：《Vortex》讲极端压缩与高效推理如何兼得，《Quality-Constrained Routing over a Fixed Pool of Quantized Mixture-of-Experts Instances》则给出固定量化专家池下的质量约束路由思路。</p>
+<p>普通读者可先读这两篇精读抓大方向，把两篇 6.0 的《Why Does Post-Training Quantization Work?》和《MorphoStyle》当背景速览即可。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -79,7 +78,7 @@
   <div class="dpr-home-dashboard-body">
 <ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Vortex: Bridging Extreme Compression and Efficient LLM Inference">Vortex: Bridging Extreme Compression and Efficient LLM Inference</span></li><li><span class="dpr-home-dashboard-paper-title" title="Quality-Constrained Routing over a Fixed Pool of Quantized Mixture-of-Experts Instances">Quality-Constrained Routing over a Fixed Pool of Quantized Mixture-of-Experts Instances</span></li><li><span class="dpr-home-dashboard-paper-title" title="UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding">UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">moe-quant <strong>2</strong></span><span class="dpr-home-dashboard-tag">wbv <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span><span class="dpr-home-dashboard-tag">moe-quant <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -90,7 +89,7 @@
     <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="ZipCodec: Ultra-Low-Frame-Rate Streaming Speech Coding">ZipCodec: Ultra-Low-Frame-Rate Streaming Speech Coding</span></li><li><span class="dpr-home-dashboard-paper-title" title="Why Does Post-Training Quantization Work?">Why Does Post-Training Quantization Work?</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Why Does Post-Training Quantization Work?">Why Does Post-Training Quantization Work?</span></li><li><span class="dpr-home-dashboard-paper-title" title="MorphoStyle: Motion Style Transfer with Morphology Control">MorphoStyle: Motion Style Transfer with Morphology Control</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span></div>
 </section>

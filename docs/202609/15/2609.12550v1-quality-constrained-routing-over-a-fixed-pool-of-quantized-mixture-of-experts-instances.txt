@@ -1,0 +1,1879 @@
+Quality-Constrained Routing over a Fixed Pool of
+Quantized Mixture-of-Experts Instances
+Zhenghong Huang,
+Hongfan Wu∗,
+Jiheng Zhang
+The Hong Kong University of Science and Technology
+Clear Water Bay, Kowloon, Hong Kong
+{zhuangdr, hwucn}@connect.ust.hk,
+jiheng@ust.hk
+Abstract
+Quantized Mixture-of-Experts (MoE) services can hold several pre-materialized
+instances of one base model, but quantization damage varies sharply across re-
+quests and bitwidths. Because instance materialization and replica counts consume
+memory and require slow reconfiguration, we treat them as upstream provisioning
+decisions and study routing within a fixed resident pool. Within this fixed-pool
+boundary, we route each request to maximize modeled throughput under a class-
+level expected quality-degradation budget and measured instance capacities. To
+predict this request-specific risk, we introduce FWP (Fragility-Weighted Perplex-
+ity), computed from prompt tokens on a reference-instance prefill and calibrated to
+candidate-instance degradation. Underlying FWP is an exact two-expert affinity–
+fragility decomposition and a conditional multi-layer top-k expansion whose bias,
+interaction, route-change, separability, and higher-order terms remain explicit. Us-
+ing these calibrated risks, a window-level linear program yields a signed reduced-
+reward score that is KKT-consistent with the LP optimum under optimal prices
+and primal-feasible tie allocation. On 88 extended Qwen prompts, complete W2,
+W3, and W4 instances quantizing all 6,144 expert blocks incur mean ∆NLL of
+0.9437, 0.1832, and 0.0513. Under the same population and τ = 0.1513, FWP
+allocation reaches a 1.284× offline model-based multiplier versus 1.253× for
+request-agnostic mixing and 1.000× for static W4, an incremental 2.5% relative
+FWP gain.
+1
+Introduction
+Sparse MoE models provide high parameter capacity while activating only a subset of experts per
+token [46, 28, 17, 25, 8, 41]. Yet serving still pays to keep expert weights resident, which makes
+post-training expert quantization an important memory and throughput tool [20, 33, 4, 19, 26].
+Complete-instance measurements in this paper show that the resulting quality cost is heterogeneous:
+on the same 88 Qwen requests, mean ∆NLL is 0.9437, 0.1832, and 0.0513 for W2, W3, and W4,
+while the W3 median is only 0.1387. This gap between population means and request-level outcomes
+creates an allocation opportunity once several pre-materialized instances are already resident.
+This paper studies the conditional routing problem opened up by this heterogeneity. At serving
+time, a fixed pool A of pre-materialized quantized model copies is held resident, each frozen at a
+quantization configuration of the same MoE base; we call these copies instances. This raises the
+central question of this paper:
+How should a serving system route each incoming request among the pool’s instances to maximize
+throughput under a per-class quality-degradation budget?
+Preprint.
+arXiv:2609.12550v1  [cs.LG]  11 Sep 2026
+
+
+The instance configurations and replica counts are upstream provisioning decisions: they determine
+parameter residence, consume memory, and may require weight loading or placement changes.
+During a routing epoch they are immutable, so adding replicas changes the input pool rather than
+supplying another per-request action. We formalize this two-timescale boundary in Section 2: an
+outer memory-feasible provisioning problem may choose any replica vector and pay reconfiguration
+cost, while the contribution of this paper is the inner quality-constrained routing problem conditional
+on that vector. This scope does not assert that the evaluated W2/W3/W4 pool is the globally best use
+of a fixed fleet budget. It is consistent with production MoE practice: DeepSeek-V3 reports adjusting
+redundant high-load experts from online statistics periodically, for example every ten minutes, while
+request dispatch occurs at a much faster timescale [9, 10].
+Adaptive routing requires a prompt-time signal correlated with candidate-instance quality loss. We
+use expert fragility for the request-independent sensitivity of an expert to quantization [7] and
+expert affinity for how strongly a request activates that expert [46, 17]. The exact two-expert model
+factors population loss into affinity and intrinsic degradation; the realistic multi-layer top-k bridge is
+instead a conditional blockwise Taylor expansion with explicit bias, interaction, separability, route-
+change, and remainder terms. We operationalize the mechanism through FWP (Fragility-Weighted
+Perplexity), a request-local weighted prompt NLL computed on a designated reference instance.
+Offline calibration maps this raw prompt-time statistic, together with declared request features such
+as prefix length, to candidate-instance degradation; it does not use an unavailable full-precision score
+for the unseen request. If the selected target differs from the reference instance, the execution path
+performs and charges a second prefill because KV state is generally not transferable across differently
+quantized instances.
+We convert calibrated risk into allocation through a window-level linear program over the fixed
+pool. The LP maximizes served tokens subject to per-instance capacity and per-class expected
+quality-degradation constraints. Its dual yields a signed reduced-reward score with one capacity price
+and one class-quality price. At optimal dual prices, every route used by a primal optimum maximizes
+this score; resolving ties according to a primal-optimal allocation makes the score KKT-consistent
+with the LP optimum. An arbitrary greedy tie rule guarantees stationarity only, so feasibility and
+price convergence remain explicit conditions rather than deployment guarantees.
+The empirical evidence is intentionally separated by protocol (Section 4). Complete Qwen measure-
+ments quantize all 6,144 expert blocks and supply the quality backbone; DeepSeek-V2-Lite remains
+sampled diagnostic evidence and therefore does not support a complete-instance cross-architecture
+claim. On the complete Qwen population at τ = 0.1513, static W4 reaches a 1.000× offline model-
+based multiplier, request-agnostic budget-aware mixing reaches 1.253×, FWP reaches 1.284×, and
+a restricted true-loss ordering reaches 1.303×. Thus heterogeneous budget allocation explains 0.253
+of the 0.284 improvement over static W4, while FWP contributes 0.031 multiplier points, or 2.5%
+relative to request-agnostic mixing. Prompt-only cross-instance FWP evidence is moderate (Spear-
+man 0.586, AUROC 0.747), and prefix correlation ranges from 0.238 at 64 tokens to 0.999 at 1,024
+tokens; these results motivate length-aware abstention rather than a universal deployment guarantee.
+Our contributions are:
+1. A fixed-pool problem formulation with an explicit provisioning boundary. We formalize
+memory-feasible replica selection and reconfiguration cost at a slow timescale, then define quality-
+constrained request routing over the resulting immutable pool as the paper’s decision problem.
+2. A claim-controlled theory and request-risk signal. We separate the exact two-expert affinity–
+fragility identity, the centered 2−2b reduced form, the conditional multi-layer top-k extension, and
+the within-request covariance condition under which FWP amplifies degradation. The LP result
+applies to the signed risk formulation and is KKT-consistent with the LP optimum only under its
+stated price, tie-allocation, and feasibility conditions.
+3. Complete-instance evidence with gain attribution. For 88 extended Qwen requests and complete
+W2/W3/W4 instances, we report the corrected 1.284× offline model-based allocation multiplier
+and show that FWP adds 2.5% relative over the 1.253× request-agnostic feasible mixture. We
+separately report prompt-length, calibration, memory, endpoint, and controller evidence without
+merging them into a live equal-resource throughput claim.
+2
+
+
+2
+Background and Problem Setting
+2.1
+Fixed-Pool Routing and the Provisioning Boundary
+Notation.
+We consider an autoregressive MoE model with L sparse layers. At token t, layer ℓ
+routes the hidden state ht through a top-k router with gate weights gt,e to an expert subset Kt ⊆Eℓ,
+producing yt = P
+e∈Kt gt,efe(ht). Only the expert weights (W1,e, W2,e) are quantized; the router
+stays at reference precision, and a quantization configuration assigns bitwidth be to each expert e.
+This asymmetry is the architectural lever: routing is observable in real time, while quantization
+damage concentrates on a small, request-dependent subset of experts. For a request x with token set
+T (x), per-expert affinity is
+ρe(x) =
+1
+|T (x)|
+X
+t∈T (x)
+gt,e,
+(1)
+turning a per-expert quantization choice into a per-request quality risk.
+Two decision timescales.
+Let A be a catalog of quantization configurations that could be ma-
+terialized, and let provisioning epoch q last Hq routing windows. The integer y(q)
+a
+≥0 records
+how many resident replicas of catalog configuration a are available during epoch q. If ma is its
+parameter-memory footprint, Msh is memory shared across the service, and M is the provisioning
+budget, the feasible replica vectors satisfy
+Y =
+
+
+y ∈Z|A|
++
+: Msh +
+X
+a∈A
+maya ≤M
+
+
+.
+(2)
+The resident endpoint pool is
+A
+
+y(q)
+=
+n
+(a, r) : a ∈A, r = 1, . . . , y(q)
+a
+o
+,
+(3)
+so identical replicas are distinct capacity endpoints even though they share a quantization configura-
+tion.
+Reconfiguration cost.
+Changing the resident vector may require loading, evicting, or relocating
+weights. We represent this slower cost as
+Creconf
+
+y(q), y(q−1)
+=
+X
+a∈A
+h
+con
+a
+ y(q)
+a
+−y(q−1)
+a
+
++ + coff
+a
+ y(q−1)
+a
+−y(q)
+a
+
++
+i
+.
+(4)
+An upstream provisioner could therefore compare replica fleets through the outer problem
+max
+y(q)∈Y
+
+V ⋆
+q
+
+A(y(q))
+
+−Creconf(y(q), y(q−1))
+Hq
+
+,
+(5)
+where V ⋆
+q (·) is the optimal value of the inner routing problem. Equation (5) defines the boundary
+but is not optimized by our algorithm: throughout a routing epoch, y(q) and hence A = A(y(q)) are
+fixed.
+Routing problem.
+Requests arrive with class gt, expected output-token count Lgt, profiled service
+cost, and quality tolerance τgt. A policy maps each complete request to one resident endpoint
+at ∈A; it does not quantize, load, evict, or create replicas online. The objective is to maximize
+served tokens subject to per-instance capacity and per-class expected quality degradation, formalized
+by the window-level LP in Section 3.3. This contract makes the replica comparison precise: a
+different replica vector changes the outer input, whereas the contribution evaluated here is allocation
+conditional on the same fixed pool.
+Operational precedent and limitation.
+DeepSeek-V3 provides public evidence that MoE place-
+ment can run at a slower cadence than request dispatch: its deployment duplicates high-load experts,
+detects them from online statistics, and adjusts the redundant set periodically, for example every ten
+minutes [9]. The official EPLB implementation computes expert replication and GPU-placement
+plans from estimated loads [10]. This evidence supports a two-timescale abstraction for expert
+placement; it does not measure whole-instance loading cost, prove that ten minutes is optimal, or
+establish the memory feasibility of our W2/W3/W4 pool.
+3
+
+
+2.2
+Related Work
+Our work sits at the junction of four lines, with one ancillary connection. First, sparse MoE models—
+from gated experts [46] through GShard and Switch Transformers [28, 17] to Mixtral, DeepSeekMoE,
+and Qwen MoE [25, 8, 40, 41]—supply the architectural substrate. Second, post-training quantization
+[20, 33, 50, 4] and MoE-specific compressors [19, 26, 7] produce candidate instances; the per-expert
+router-norm fragility indicator of Chowdhury et al. [7] motivates the request-level FWP signal. Third,
+serving and placement systems [52, 27, 54, 48, 9] optimize batching, capacity, or expert placement.
+We take their provisioned endpoints as input and add a request-level quantization-risk term, so
+replica selection and routing are complementary rather than competing claims. Fourth, cost-aware
+routing across heterogeneous models [6, 37, 23, 14] selects different models rather than quantization
+instances of one base. Selective prediction [22, 21] is an ancillary connection because the calibrated
+object is request-level degradation. Appendix A expands this positioning.
+3
+Theoretical Framework
+This section separates three theoretical objects that the earlier presentation conflated. First, the
+two-expert sparse-MoE model gives an exact affinity–fragility identity and a centered-noise 2−2b
+expansion. Second, a within-request covariance identity states exactly when the deployed FWP
+weighting amplifies token degradation; the two-expert top-1 model alone cannot prove that property
+because its within-request weights collapse. Third, the fixed-pool LP yields a signed reduced-reward
+score whose KKT interpretation requires optimal prices and primal-feasible tie allocation. Appendix B
+gives the local derivations and a conditional multi-layer top-k bridge with explicit correction terms.
+3.1
+Expert Fragility and the Reduced-Form Surrogate
+We begin with an explicit model that isolates the structure we want to exploit. The full derivation, with
+all intermediate steps, appears in Appendix B; here we present the key objects and their theoretical
+guarantees.
+Two-expert sparse-MoE model.
+Consider a sparse top-1 MoE classifier with two experts, er and
+ec. Each request belongs to a rare population (mass α < 1
+4) routed to er, or a common population
+(mass 1−α) routed to ec. The router is deterministic: g(x) = er if X = r, else ec. Let mj > 0 be the
+full-precision signed classification margin for population j ∈{r, c}, and assume 0 < mr < mc: the
+rare expert has a weaker activation margin, reflecting the fragility mechanism in the literature [7]. The
+prediction loss is logistic, ℓ(z) = log(1 + e−z), and full-precision quality is Qfull := −E[ℓ(mX)].
+When each expert ej is quantized to bj bits, the margin is perturbed by a zero-mean random variable
+ξj(bj) with variance scaling vj2−2bj (the standard uniform-quantization scaling). The quantized
+quality is Q(b) := −E[ℓ(mX + ξX(bX))], and the quality loss is ∆Q(b) := Qfull −Q(b).
+Exact affinity–fragility decomposition.
+Conditioning on the request type gives the exact decom-
+position
+∆Q(b) = α ∆r(br) + (1 −α) ∆c(bc),
+(6)
+where ∆j(bj) := E[ℓ(mj + ξj(bj)) −ℓ(mj)]. This cleanly factors the loss into two objects: the
+coefficients α and 1 −α are affinity weights (how often each expert is used), while ∆r and ∆c
+are intrinsic fragility functions (how much damage quantization does to each expert). These two
+quantities should not be combined, and the routing score we derive in Section 3.3 inherits both.
+Small-noise expansion and reduced form.
+To obtain a practical parameterization, we expand each
+∆j(bj) around the full-precision margin. Under centered noise with variance proportional to 2−2bj,
+the first-order term vanishes and the leading term is second order (Appendix B, Lemma B.1). Biased
+deterministic quantization instead has a separate signed first-order coefficient multiplying 2−bj; it is
+not the same positive fragility coefficient.
+Theorem 3.1 (Centered-noise reduced form). Under the two-expert model, zero-mean perturbations,
+and the moment bounds in Appendix B,
+∆Q(b) = α cr 2−2br + (1 −α) cc 2−2bc + r(b),
+(7)
+4
+
+
+where cj = 1
+2ℓ′′(mj)vj > 0 is an expert-specific fragility coefficient and the remainder satisfies
+|r(b)| ≤κ P
+j 2−3bj for a constant κ depending on local curvature and third moments.
+Theorem 3.1 justifies the 2−2b empirical family under its stated stochastic assumptions. Appendix
+Lemma B.2 separately gives the biased 2−b branch with a signed coefficient. The fragility coefficient
+in the centered branch is controlled by a monotone decreasing upper bound in the expert’s router-
+derived margin proxy eΛj (Appendix Proposition B.3); deterministic HQQ or RTN checkpoints are
+empirical tests, not automatic instances of the centered-noise theorem.
+Empirical surrogate and request-level lift.
+Guided by the two separate expansions, the
+configuration-level models fitted to real perturbation data are
+d
+∆Qcfg(b) =
+X
+e∈E
+bcfree
+e
+ϕ(be),
+(8)
+where bcfree
+e
+is calibrated by leave-one-expert-out perturbations and the 2−b and 2−2b families are
+fitted and reported as distinct empirical specifications. A restricted structured family uses router norm
+and MaxVar (Appendix B). These sampled-expert regressions diagnose ranking structure; they are
+not the complete-instance quality evidence used for the headline allocation result.
+The configuration-level form motivates the following request-level surrogate:
+d
+∆Qreq(x, b) =
+X
+e∈E
+ρe(x) bce ϕ(be),
+(9)
+Here affinity is observable from gates and the fitted fragility coefficient is request-independent. In a
+realistic multi-layer top-k network, Eq. (9) requires an additional separability approximation between
+exact block sensitivity and mean-gate affinity; the conditional extension in Appendix B retains its
+residual together with bias, interaction, route-change, and Taylor terms. Affine transfer is therefore
+an empirical calibration for the fixed evaluated instances, not a theorem for arbitrary expert-wise
+configurations.
+3.2
+FWP: Fragility-Weighted Perplexity
+The lifted surrogate in Eq. (9) is a metric-agnostic predictor. The routing gain, however, depends on
+how strongly the quality observable separates fragile-expert degradation from bulk-token noise. We
+now construct a concrete observable—FWP—and prove that it amplifies the signal of interest.
+Design.
+We design FWP from the router-norm fragility signal in prior work [7]. For the non-
+padding prompt-token index set Ip(x), let ¯Λi(x) be the mean router norm of experts activated by
+token i. Define weights normalized within the request,
+wi(x) =
+(¯Λi(x) + ϵw)−1
+1
+|Ip(x)|
+P
+j∈Ip(x)(¯Λj(x) + ϵw)−1 ,
+(10)
+with ϵw > 0, and the log-FWP observable
+ℓFWP(x; b) =
+1
+|Ip(x)|
+X
+i∈Ip(x)
+wi(x)
+ −log pb(xi | x<i)
+
+.
+(11)
+The statistic is request-local: tokens from other requests and padding positions do not enter either
+sum. For an unseen request, a reference-instance prefill produces the raw value in Eq. (11); an offline
+calibration map uses that value, prompt length, and declared class features to predict candidate-
+instance degradation. No full-precision score for the same unseen request is available online.
+Within-request amplification identity.
+For an offline matched pair of a quantized and reference
+checkpoint, define token degradation di(x; b) = −log pb(xi | x<i) + log pfull(xi | x<i). The
+audit-only FWP increment is
+∆ℓaudit
+FWP(x; b) =
+1
+|Ip(x)|
+X
+i∈Ip(x)
+wi(x)di(x; b),
+(12)
+while ∆ℓ(x; b) = |Ip(x)|−1 P
+i di(x; b) is ordinary prompt-average ∆NLL.
+5
+
+
+Proposition 3.1 (Within-request FWP amplification). For every request with finite token degradation
+and the normalized weights in Eq. (10),
+∆ℓaudit
+FWP(x; b) −∆ℓ(x; b) = Covi∈Ip(x)(wi(x), di(x; b)) .
+(13)
+Consequently, FWP amplifies average degradation exactly when inverse-router-norm weights have
+positive within-request covariance with token degradation.
+The identity follows from Ei[wi] = 1 and is proved in Appendix B. It matches the deployed within-
+request normalization, unlike a population-reweighted construction. In the two-expert top-1 model, if
+every token in a request uses the same expert, wi is constant and the covariance is zero; that model
+motivates fragility but does not prove deployed FWP amplification. The empirical prompt-only signal
+tests whether the covariance mechanism remains informative in realistic top-k requests.
+3.3
+LP-Based Adaptive Routing
+We now use the quality estimates from Sections 3.1–3.2 to derive a routing policy. We formulate
+adaptive routing as a window-level linear program and obtain the per-request score from its dual.
+Window-level LP.
+The serving pool A is fixed and heterogeneous. Requests may be grouped into
+classes g ∈G by prompt length, task type, or affinity pattern. Let Lg be the expected output-token
+count, sga(t) the profiled service cost (from TTFT/TPOT), Bg(t) the class demand in window t,
+Ca(t) the capacity of instance a, and τg the per-class quality tolerance. The LP selects class-instance
+flows xga(t) ≥0 to maximize served tokens subject to demand, capacity, and quality-risk constraints:
+max
+x≥0
+X
+g,a
+Lgxga(t) s.t.
+X
+a
+xga ≤Bg,
+X
+g
+sgaxga ≤Ca,
+X
+a
+(bℓga −τg)xga ≤0,
+(14)
+where bℓga(t) is a calibrated estimate of mean ∆NLL for class g on instance a. The signed coefficient
+bℓga −τg allows below-budget assignments to offset above-budget assignments because the constraint
+controls the class average. Replacing it by a positive-part hinge would define a different optimization
+problem and is not used in the KKT claim.
+Dual structure and per-request score.
+Let πa ≥0 be the price of capacity on instance a, and
+νg ≥0 the price of class-average quality risk. Define qga(t) = bℓga(t) −τg. The Lagrangian of
+Eq. (14) yields the one-step reduced reward
+Rga(t) = Lg −πa(t)sga(t) −νg(t)qga(t),
+(15)
+up to a class-specific demand price. A practical quota-deficit term dga(t) may be added to track a
+precomputed target allocation,
+Sga(t) = βdga(t) + Lg −πa(t)sga(t) −νg(t)qga(t),
+(16)
+where β ≥0 controls tracking. The exact LP reduced reward is the β = 0 case; the tracking term is
+an implementation regularizer rather than a new LP constraint.
+Theorem 3.2 (KKT consistency with the LP optimum). Let x∗be a primal optimum and (λ∗, π∗, ν∗)
+a dual optimum of Eq. (14). For β = 0, every pair with x∗
+ga > 0 maximizes Rga over a at prices
+(π∗, ν∗). If ties are allocated according to the positive-flow proportions of x∗, the resulting allocation
+is KKT-consistent with the LP optimum. An arbitrary argmax at the same prices satisfies the
+stationarity condition but need not satisfy primal capacity or quality feasibility.
+Theorem 3.2 identifies the exact guarantee and its boundary. The score inherits throughput, capacity,
+and signed quality terms from the LP, but price convergence and primal-feasible tie handling are
+separate requirements. For a fixed price snapshot the data-plane decision is
+a∗
+t (g) = arg max
+a∈A Sga(t),
+(17)
+which requires O(|A|) score evaluations per request, plus the reference prefill and a target prefill
+whenever KV state cannot be reused. Prices update once per control window. The current experiments
+evaluate offline population allocation and component timings; they do not claim that the complete
+online dual-price controller has been deployed (Algorithm 1, Appendix D).
+6
+
+
+Table 1: Complete-instance Qwen quality degradation on the same 88 extended prompts. Every
+row quantizes all 6,144 expert blocks; values are request-level average-NLL increases relative to the
+reference checkpoint.
+W2
+W3
+W4
+Mean
+0.9437
+0.1832
+0.0513
+Median
+0.8514
+0.1387
+0.0241
+90th percentile
+1.4517
+0.4081
+0.1800
+4
+Results and Discussion
+The evaluation isolates fixed-pool routing value without fusing incompatible protocols. We therefore
+present a strict ladder: complete-instance quality, fixed-population allocation, prompt-only signal
+validity, and resource accounting. Numbers from different quantizers, checkpoints, capacity models,
+or live topologies are not fused.
+Setup.
+The complete-instance backbone uses Qwen3-30B-A3B with every one of its 6,144 expert
+blocks quantized by HQQ in each W2, W3, and W4 instance. The extended population contains 88
+prompts from short QA, code, and long-context tasks. DeepSeek-V2-Lite results in the earlier study
+change sampled experts in four layers; we retain them only as architecture diagnostics and make no
+complete-instance cross-model claim. Appendix D records the protocol and evidence boundaries.
+Evaluation metric.
+For request t routed to instance a,
+Ut(a) = αsLgt −αq d
+∆Qt(a) −β Latencyt(a) −λSLO 1
+n
+d
+∆Qt(a) > τgt
+o
+,
+(18)
+and a policy π is scored by its cumulative gap to the per-step quality-optimal comparator,
+RegretT (π) =
+T
+X
+t=1
+
+Ut(a⋆
+t ) −Ut(aπ
+t )
+
+,
+(19)
+with a⋆
+t chosen per request given perfect quality information.1
+4.1
+Complete-Instance Quality and Request Heterogeneity
+Table 1 reports complete-instance distributions rather than sampled-block profiles. W3 is infeasible
+at the headline mean budget introduced below, but its median is below that budget, establishing
+request heterogeneity without inferring causality from sampled-expert probes. In a separate matched-
+3.0-average-bit experiment, all-expert W3 has mean ∆NLL 0.109, while tested router-norm-guided,
+activation-frequency-guided, and random 2/4-bit allocations yield 0.315, 0.318, and 0.334. This sep-
+arate protocol does not establish that all-expert W3 dominates every possible non-uniform allocation;
+it only identifies the strongest tested arm.
+4.2
+Fixed-Population Allocation and Gain Attribution
+The cleanest comparison fixes the complete W2/W3/W4 pool, all 88 requests, one quality budget
+τ = mean(∆NLLW4) + 0.10 = 0.1513, and analytical per-request multipliers 2, 4/3, and 1. The
+multiplier is a model-based population allocation quantity; it is not measured routed-pool throughput.
+Table 2 isolates the source of the headline multiplier. Request-agnostic budget allocation contributes
+0.253 of the 0.284 multiplier increase over static W4. FWP adds 0.031 multiplier points, or 2.5%
+relative to the request-agnostic mixture, and closes approximately 62% of the remaining gap to
+the restricted true-loss ordering. Thus, the 1.284× multiplier should not be interpreted as a 28.4%
+FWP throughput gain: within this fixed complete-instance population, allocation yields most of the
+modeled gain and FWP supplies a smaller request-specific increment.
+1The per-step quality-optimal comparator is a regret normalization, not a globally optimal scheduler; it ignores queue state
+and can be beaten on aggregate utility by load-aware policies that trade small, controlled quality losses for queue stability.
+This appears symmetrically on Qwen and DeepSeek and is consistent with the LP objective being request-local.
+7
+
+
+Table 2: Offline fixed-population allocation with complete Qwen W2/W3/W4 losses. Parenthesized
+multipliers violate the common mean-∆NLL budget. The true-loss row orders requests using
+measured W3 loss and is a restricted analysis reference, not a deployable global oracle.
+Policy
+W2%
+W3%
+W4%
+Mean ∆NLL
+Multiplier
+Static W4
+0
+0
+100
+0.051
+1.000×
+Static W3
+0
+100
+0
+0.183
+(1.333×)
+Static W2
+100
+0
+0
+0.944
+(2.000×)
+Capacity-proportional mixture
+46
+31
+23
+0.504
+(1.564×)
+Request-agnostic budget-aware mixture
+0
+76
+24
+0.151
+1.253×
+Sequence length
+0
+56
+44
+0.147
+1.186×
+Activation frequency
+0
+59
+41
+0.150
+1.197×
+FWP
+0
+85
+15
+0.151
+1.284×
+Restricted true-loss ordering
+0
+91
+9
+0.149
+1.303×
+Table 3: Correlation between prefix FWP and full-prompt quality loss on 64 extended prompts.
+Prefix tokens
+Spearman
+64
+0.238
+128
+0.505
+256
+0.593
+512
+0.765
+1024
+0.999
+4.3
+Prompt-Only FWP Validity and Abstention
+Same-instance FWP correlations of 0.999/0.998 on complete W2 Qwen are measurement sanity
+checks because the weighted NLL and target loss share the same forward pass. The deployable
+question is whether a prompt-time statistic on one reference instance predicts risk on another instance.
+In that harder setting, the prompt-only W2 score predicts W3 risk with Spearman 0.586 and AUROC
+0.747. We therefore describe FWP as a calibrated feature, not a direct quality measurement.
+Table 3 makes prompt length a material operating condition. A production policy must calibrate
+by length and route requests below a validated prefix threshold to a conservative higher-bitwidth
+fallback. Moreover, the small held-out 50/50 calibration splits achieve only approximately 35–50%
+budget-compliant splits. Population frontiers satisfy the budget by construction, but they do not
+establish held-out risk control. We consequently make no deployment-level quality guarantee; such a
+claim requires disjoint task-family splits, confidence bounds, and a predeclared compliance target.
+4.4
+Memory, Endpoint Capacity, and the Replica Boundary
+The fixed heterogeneous pool costs 25.99 GiB more parameter memory than one W4 instance but less
+than three W4 replicas or one BF16 instance under this accounting. This does not make it the optimal
+fleet: KV capacity, batching, tensor parallelism, and endpoint kernels can reverse a parameter-only
+comparison. Equation (5) therefore leaves replica counts to the upstream provisioner, and the routing
+layer can operate over heterogeneous instances, identical replicas, or both.
+In a separate same-two-A100 endpoint experiment with prefix caching disabled, 216 requests are
+repeated five times; 128 prompts contain 1,023 input tokens followed by 128 decoded tokens. W2
+with two data-parallel replicas reaches 3270±33 output tokens/s, W3 with two-way tensor parallelism
+reaches 2591 ± 11, and W4 with two-way tensor parallelism reaches 2334 ± 17. These measured
+endpoint rates establish a capacity ordering for that backend and protocol. They are not the 1.284×
+allocation multiplier and are not combined with HQQ quality measurements as though they came
+from identical checkpoints.
+Component overheads are likewise reported separately: FWP instrumentation adds 3.1% and 4.9%
+to one 512- and 1,024-token reference prefill; a four-class CPU LP takes 1.47/1.52/1.57 ms at
+p50/p95/p99 once per window; and a three-instance score comparison takes 1.63 µs per request.
+These measurements do not include reference-queue delay, target re-prefill, RPC dispatch, or end-to-
+end concurrent serving.
+8
+
+
+Table 4: Qwen parameter-memory estimates on one accounting basis. These numbers exclude KV
+cache, runtime buffers, allocator fragmentation, and any separate scorer.
+Resident set
+GiB
+One W4 instance
+18.06
+W2/W3/W4 pool
+44.05
+Three W4 replicas
+54.17
+One BF16 instance
+56.87
+Finally, the live routed prototype is not an equal-total-resource replica comparison: it uses three
+serving GPUs plus a separate INT3 scorer GPU, and an optimized same-resource replica fleet
+was not measured. We therefore omit its ratios from the headline and do not claim that adaptive
+routing dominates adding replicas. The paper’s validated conclusion is conditional: given a fixed
+resident pool, request-specific risk can improve allocation over request-agnostic mixing in the offline
+complete-instance population.
+5
+Conclusion
+This paper solves a conditional control problem: route complete requests over a fixed, pre-materialized
+pool of quantized MoE instances. Replica counts, instance composition, memory residence, and
+reconfiguration occur at a slower provisioning timescale. A provisioner may choose additional
+identical replicas, a heterogeneous pool, or a mixture of both; the routing layer consumes that choice
+and does not claim global fleet optimality.
+The corrected complete-Qwen study shows why the inner problem remains meaningful. At τ =
+0.1513, static W3 is infeasible in mean, request-agnostic mixing reaches a 1.253× offline model-
+based multiplier, and FWP reaches 1.284×. The incremental request-specific value is therefore 2.5%
+relative, not the full 28.4% difference from static W4. Prompt-only prediction, short-prefix behavior,
+held-out compliance, second-prefill cost, and the missing equal-resource replica experiment remain
+explicit limitations. The evidence supports fixed-pool allocation research; it does not yet support an
+end-to-end deployment guarantee.
+References
+[1] P. Aggarwal, A. Madaan, A. Anand, S. P. Potharaju, S. Mishra, P. Zhou, A. Gupta, D. Rajagopal, K. Kap-
+paganthu, Y. Yang, S. Upadhyay, M. Faruqui, and Mausam. AutoMix: Automatically mixing language
+models. In Advances in Neural Information Processing Systems, volume 37, pages 131000–131034, 2024.
+doi: 10.52202/079017-4164.
+[2] A. Agrawal, N. Kedia, A. Panwar, J. Mohan, N. Kwatra, B. S. Gulavani, A. Tumanov, and R. Ramjee.
+Taming throughput-latency tradeoff in LLM inference with Sarathi-Serve. In 18th USENIX Symposium on
+Operating Systems Design and Implementation (OSDI 24), pages 117–134, 2024.
+[3] A. N. Angelopoulos and S. Bates. A gentle introduction to conformal prediction and distribution-free
+uncertainty quantification. arXiv preprint arXiv:2107.07511, 2021. doi: 10.48550/arXiv.2107.07511.
+[4] H. Badri and A. Shaji. Half-quadratic quantization of large machine learning models. Mobius Labs
+Technical Report, 2023.
+[5] S. Bates, A. Angelopoulos, L. Lei, J. Malik, and M. I. Jordan. Distribution-free, risk-controlling prediction
+sets. Journal of the ACM, 68(6):1–34, 2021. doi: 10.1145/3478535.
+[6] L. Chen, M. Zaharia, and J. Zou. FrugalGPT: How to use large language models while reducing cost and
+improving performance. Transactions on Machine Learning Research, 2024.
+[7] M. N. R. Chowdhury, K. El Maghraoui, H. Tsai, N. Wang, G. W. Burr, L. Liu, and M. Wang. Efficient
+quantization of mixture-of-experts with theoretical generalization guarantees. In International Conference
+on Learning Representations, 2026.
+[8] D. Dai, C. Deng, C. Zhao, R. Xu, H. Gao, D. Chen, J. Li, W. Zeng, X. Yu, Y. Wu, Z. Xie, Y. Li, P. Huang,
+F. Luo, C. Ruan, Z. Sui, and W. Liang. DeepSeekMoE: Towards ultimate expert specialization in mixture-of-
+experts language models. In Proceedings of the 62nd Annual Meeting of the Association for Computational
+Linguistics (Volume 1: Long Papers), pages 1280–1297, 2024. doi: 10.18653/v1/2024.acl-long.70.
+9
+
+
+[9] DeepSeek-AI. DeepSeek-V3 technical report. arXiv preprint arXiv:2412.19437, 2024. doi: 10.48550/
+arXiv.2412.19437. URL https://arxiv.org/abs/2412.19437.
+[10] DeepSeek-AI. Expert parallelism load balancer. GitHub repository, 2025. URL https://github.com/
+deepseek-ai/eplb. Accessed 2026-08-11.
+[11] DeepSeek-AI et al. DeepSeek-V2: A strong, economical, and efficient mixture-of-experts language model.
+arXiv preprint arXiv:2405.04434, 2024. doi: 10.48550/arXiv.2405.04434.
+[12] T. Dettmers, M. Lewis, Y. Belkada, and L. Zettlemoyer. LLM.int8(): 8-bit matrix multiplication for
+transformers at scale. In Advances in Neural Information Processing Systems, volume 35, pages 30318–
+30332, 2022. doi: 10.52202/068431-2198.
+[13] T. Dettmers, A. Pagnoni, A. Holtzman, and L. Zettlemoyer. QLoRA: Efficient finetuning of quantized
+LLMs. In Advances in Neural Information Processing Systems, volume 36, pages 10088–10115, 2023.
+doi: 10.52202/075280-0441.
+[14] D. Ding, A. Mallick, C. Wang, R. Sim, S. Mukherjee, V. Rühle, L. V. S. Lakshmanan, and A. H. Awadallah.
+Hybrid LLM: Cost-efficient and quality-aware query routing. In International Conference on Learning
+Representations, 2024.
+[15] Z. Dong, Z. Yao, A. Gholami, M. W. Mahoney, and K. Keutzer. HAWQ: Hessian AWare quantization
+of neural networks with mixed-precision. In Proceedings of the IEEE/CVF International Conference on
+Computer Vision (ICCV), pages 293–302, 2019. doi: 10.1109/ICCV.2019.00038.
+[16] N. Du, Y. Huang, A. M. Dai, S. Tong, D. Lepikhin, Y. Xu, M. Krikun, Y. Zhou, A. W. Yu, O. Firat,
+B. Zoph, L. Fedus, M. P. Bosma, Z. Zhou, T. Wang, E. Wang, K. Webster, M. Pellat, K. Robinson,
+K. Meier-Hellstern, T. Duke, L. Dixon, K. Zhang, Q. Le, Y. Wu, Z. Chen, and C. Cui. GLaM: Efficient
+scaling of language models with mixture-of-experts. In Proceedings of the 39th International Conference
+on Machine Learning, volume 162 of Proceedings of Machine Learning Research, pages 5547–5569, 2022.
+[17] W. Fedus, B. Zoph, and N. Shazeer. Switch transformers: Scaling to trillion parameter models with simple
+and efficient sparsity. Journal of Machine Learning Research, 23(120):1–39, 2022.
+[18] E. Frantar and D. Alistarh. SparseGPT: Massive language models can be accurately pruned in one-shot. In
+Proceedings of the 40th International Conference on Machine Learning, volume 202 of Proceedings of
+Machine Learning Research, pages 10323–10337, 2023.
+[19] E. Frantar and D. Alistarh. QMoE: Sub-1-bit compression of trillion parameter models. In Proceedings of
+Machine Learning and Systems (MLSys), volume 6, pages 439–451, 2024.
+[20] E. Frantar, S. Ashkboos, T. Hoefler, and D. Alistarh. OPTQ: Accurate quantization for generative pre-
+trained transformers. In International Conference on Learning Representations, 2023.
+[21] Y. Geifman and R. El-Yaniv. Selective classification for deep neural networks. In Advances in Neural
+Information Processing Systems, volume 30, pages 4878–4887, 2017.
+[22] C. Guo, G. Pleiss, Y. Sun, and K. Q. Weinberger. On calibration of modern neural networks. In Proceedings
+of the 34th International Conference on Machine Learning, volume 70 of Proceedings of Machine Learning
+Research, pages 1321–1330, 2017.
+[23] Q. J. Hu, J. Bieker, X. Li, N. Jiang, B. Keigwin, G. Ranganath, K. Keutzer, and S. K. Upadhyay. Router-
+Bench: A benchmark for multi-LLM routing system. arXiv preprint arXiv:2403.12031, 2024. doi:
+10.48550/arXiv.2403.12031.
+[24] W. Huang, Y. Liao, J. Liu, R. He, H. Tan, S. Zhang, H. Li, S. Liu, and X. Qi. Mixture compressor for
+mixture-of-experts LLMs gains more. In International Conference on Learning Representations, 2025.
+[25] A. Q. Jiang et al. Mixtral of experts. arXiv preprint arXiv:2401.04088, 2024. doi: 10.48550/arXiv.2401.
+04088.
+[26] Y. J. Kim, R. Fahim, and H. H. Awadalla. Mixture of quantized experts (MoQE): Complementary effect of
+low-bit quantization and robustness. arXiv preprint arXiv:2310.02410, 2023. doi: 10.48550/arXiv.2310.
+02410.
+[27] W. Kwon, Z. Li, S. Zhuang, Y. Sheng, L. Zheng, C. H. Yu, J. E. Gonzalez, H. Zhang, and I. Stoica. Efficient
+memory management for large language model serving with pagedattention. In Proceedings of the 29th
+Symposium on Operating Systems Principles, pages 611–626, 2023. doi: 10.1145/3600006.3613165.
+10
+
+
+[28] D. Lepikhin, H. Lee, Y. Xu, D. Chen, O. Firat, Y. Huang, M. Krikun, N. Shazeer, and Z. Chen. Gshard:
+Scaling giant models with conditional computation and automatic sharding. In International Conference
+on Learning Representations, 2021.
+[29] Y. Leviathan, M. Kalman, and Y. Matias. Fast inference from transformers via speculative decoding. In
+Proceedings of the 40th International Conference on Machine Learning, volume 202 of Proceedings of
+Machine Learning Research, pages 19274–19286, 2023.
+[30] M. Lewis, S. Bhosale, T. Dettmers, N. Goyal, and L. Zettlemoyer. BASE layers: Simplifying training of
+large, sparse models. In Proceedings of the 38th International Conference on Machine Learning, volume
+139 of Proceedings of Machine Learning Research, pages 6265–6274, 2021.
+[31] Y. Li, R. Gong, X. Tan, Y. Yang, P. Hu, Q. Zhang, F. Yu, W. Wang, and S. Gu. BRECQ: Pushing the
+limit of post-training quantization by block reconstruction. In International Conference on Learning
+Representations, 2021.
+[32] Z. Li, L. Zheng, Y. Zhong, V. Liu, Y. Sheng, X. Jin, Y. Huang, Z. Chen, H. Zhang, J. E. Gonzalez, and
+I. Stoica. AlpaServe: Statistical multiplexing with model parallelism for deep learning serving. In 17th
+USENIX Symposium on Operating Systems Design and Implementation (OSDI 23), pages 663–679, 2023.
+[33] J. Lin, J. Tang, H. Tang, S. Yang, W.-M. Chen, W.-C. Wang, G. Xiao, X. Dang, C. Gan, and S. Han. AWQ:
+Activation-aware weight quantization for on-device LLM compression and acceleration. In Proceedings of
+Machine Learning and Systems (MLSys), volume 6, pages 87–100, 2024.
+[34] Z. Liu, C. Zhao, I. Fedorov, B. Soran, D. Choudhary, R. Krishnamoorthi, V. Chandra, Y. Tian, and
+T. Blankevoort. SpinQuant: LLM quantization with learned rotations. In International Conference on
+Learning Representations, 2025.
+[35] X. Miao, G. Oliaro, Z. Zhang, X. Cheng, Z. Wang, Z. Zhang, R. Y. Y. Wong, A. Zhu, L. Yang, X. Shi, C. Shi,
+Z. Chen, D. Arfeen, R. Abhyankar, and Z. Jia. SpecInfer: Accelerating large language model serving with
+tree-based speculative inference and verification. In Proceedings of the 29th ACM International Conference
+on Architectural Support for Programming Languages and Operating Systems, Volume 3, pages 932–949,
+2024. doi: 10.1145/3620666.3651335.
+[36] C. Mohri and T. Hashimoto. Language models with conformal factuality guarantees. In Proceedings of the
+41st International Conference on Machine Learning, volume 235 of Proceedings of Machine Learning
+Research, pages 36029–36047, 2024.
+[37] I. Ong, A. Almahairi, V. Wu, W.-L. Chiang, T. Wu, J. E. Gonzalez, M. W. Kadous, and I. Stoica. RouteLLM:
+Learning to route LLMs from preference data. In International Conference on Learning Representations,
+2025.
+[38] P. Patel, E. Choukse, C. Zhang, A. Shah, Í. Goiri, S. Maleki, and R. Bianchini. Splitwise: Efficient
+generative LLM inference using phase splitting. In ACM/IEEE 51st Annual International Symposium on
+Computer Architecture (ISCA), pages 118–132, 2024. doi: 10.1109/ISCA59077.2024.00019.
+[39] V. Quach, A. Fisch, T. Schuster, A. Yala, J. H. Sohn, T. S. Jaakkola, and R. Barzilay. Conformal language
+modeling. In International Conference on Learning Representations, 2024.
+[40] Qwen Team. Qwen2 technical report. arXiv preprint arXiv:2407.10671, 2024. doi: 10.48550/arXiv.2407.
+10671.
+[41] Qwen Team. Qwen3 technical report. arXiv preprint arXiv:2505.09388, 2025. doi: 10.48550/arXiv.2505.
+09388.
+[42] D. Raposo, S. Ritter, B. Richards, T. Lillicrap, P. C. Humphreys, and A. Santoro. Mixture-of-depths:
+Dynamically allocating compute in transformer-based language models. arXiv preprint arXiv:2404.02258,
+2024. doi: 10.48550/arXiv.2404.02258.
+[43] S. Roller, S. Sukhbaatar, A. Szlam, and J. Weston. Hash layers for large sparse models. In Advances in
+Neural Information Processing Systems, volume 34, pages 17555–17566, 2021.
+[44] T. Schuster, A. Fisch, J. Gupta, M. Dehghani, D. Bahri, V. Q. Tran, Y. Tay, and D. Metzler. Confident
+adaptive language modeling. In Advances in Neural Information Processing Systems, volume 35, pages
+17456–17472, 2022. doi: 10.52202/068431-1269.
+[45] W. Shao, M. Chen, Z. Zhang, P. Xu, L. Zhao, Z. Li, K. Zhang, P. Gao, Y. Qiao, and P. Luo. OmniQuant:
+Omnidirectionally calibrated quantization for large language models. In International Conference on
+Learning Representations, 2024.
+11
+
+
+[46] N. Shazeer, A. Mirhoseini, K. Maziarz, A. Davis, Q. Le, G. Hinton, and J. Dean. Outrageously large
+neural networks: The sparsely-gated mixture-of-experts layer. In International Conference on Learning
+Representations, 2017.
+[47] Y. Sheng, L. Zheng, B. Yuan, Z. Li, M. Ryabinin, B. Chen, P. Liang, C. Re, I. Stoica, and C. Zhang. FlexGen:
+High-throughput generative inference of large language models with a single GPU. In Proceedings of the
+40th International Conference on Machine Learning, volume 202 of Proceedings of Machine Learning
+Research, pages 31094–31116, 2023.
+[48] B. Sun, Z. Huang, H. Zhao, W. Xiao, X. Zhang, Y. Li, and W. Lin. Llumnix: Dynamic scheduling for large
+language model serving. In 18th USENIX Symposium on Operating Systems Design and Implementation
+(OSDI 24), pages 173–191, 2024.
+[49] K. Wang, Z. Liu, Y. Lin, J. Lin, and S. Han. HAQ: Hardware-aware automated quantization with mixed
+precision. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition
+(CVPR), pages 8604–8612, 2019. doi: 10.1109/CVPR.2019.00881.
+[50] G. Xiao, J. Lin, M. Seznec, H. Wu, J. Demouth, and S. Han. SmoothQuant: Accurate and efficient
+post-training quantization for large language models. In Proceedings of the 40th International Conference
+on Machine Learning, volume 202 of Proceedings of Machine Learning Research, pages 38087–38099,
+2023.
+[51] Z. Yao, R. Yazdani Aminabadi, M. Zhang, X. Wu, C. Li, and Y. He. ZeroQuant: Efficient and affordable
+post-training quantization for large-scale transformers. In Advances in Neural Information Processing
+Systems, volume 35, pages 27168–27183, 2022. doi: 10.52202/068431-1970.
+[52] G.-I. Yu, J. S. Jeong, G.-W. Kim, S. Kim, and B.-G. Chun. Orca: A distributed serving system for
+transformer-based generative models. In 16th USENIX Symposium on Operating Systems Design and
+Implementation (OSDI 22), pages 521–538, 2022.
+[53] L. Zheng, L. Yin, Z. Xie, C. Sun, J. Huang, C. H. Yu, S. Cao, C. Kozyrakis, I. Stoica, J. E. Gonzalez,
+C. Barrett, and Y. Sheng. SGLang: Efficient execution of structured language model programs. In
+Advances in Neural Information Processing Systems, volume 37, pages 62557–62583, 2024. doi: 10.
+52202/079017-2000.
+[54] Y. Zhong, S. Liu, J. Chen, J. Hu, Y. Zhu, X. Liu, X. Jin, and H. Zhang. DistServe: Disaggregating
+prefill and decoding for goodput-optimized large language model serving. In 18th USENIX Symposium on
+Operating Systems Design and Implementation (OSDI 24), pages 193–210, 2024.
+[55] Y. Zhou, T. Lei, H. Liu, N. Du, Y. Huang, V. Zhao, A. M. Dai, Z. Chen, Q. V. Le, and J. Laudon. Mixture-
+of-experts with expert choice routing. In Advances in Neural Information Processing Systems, volume 35,
+pages 7103–7114, 2022. doi: 10.52202/068431-0515.
+[56] B. Zoph, I. Bello, S. Kumar, N. Du, Y. Huang, J. Dean, N. Shazeer, and W. Fedus. ST-MoE: Designing
+stable and transferable sparse expert models. arXiv preprint arXiv:2202.08906, 2022. doi: 10.48550/arXiv.
+2202.08906.
+A
+Extended Related Work and Positioning
+This appendix expands the compact discussion in Section 2.2 along the four lines of work that frame
+our contribution.
+Sparse MoE architectures and routing.
+The conditional-computation idea behind sparsely ac-
+tivated experts [46] was scaled and stabilized through GShard, Switch Transformers, GLaM, and
+ST-MoE [28, 17, 16, 56], with router-design alternatives such as BASE Layers, Hash Layers, and
+Expert-Choice routing addressing load balance and stability [30, 43, 55]. Open competitive MoE
+checkpoints—Mixtral, DeepSeekMoE, DeepSeek-V2/V3, and Qwen MoE—now place expert spe-
+cialization at the center of LLM design [25, 8, 11, 9, 40, 41], and Mixture-of-Depths extends the
+same routing logic to token-level compute allocation [42]. We treat this body of work as the archi-
+tectural substrate. Our contribution is not a new MoE architecture or training recipe; we ask how
+heterogeneously quantized instances of a given MoE checkpoint should be evaluated and routed at
+serving time, once expert affinity, expert fragility, and request heterogeneity are measured.
+12
+
+
+Post-training quantization and expert-wise bit allocation for LLMs.
+Low-bit LLM compression
+has matured rapidly through methods including LLM.int8(), ZeroQuant, GPTQ, SmoothQuant, AWQ,
+SparseGPT, OmniQuant, QLoRA, SpinQuant, and HQQ [12, 51, 20, 50, 33, 18, 45, 13, 34, 4].
+Non-uniform bit allocation has long been informed by Hessian- and sensitivity-based methods such
+as HAWQ, HAQ, and BRECQ [15, 49, 31], which provide the conceptual ancestry for the per-
+expert fragility surrogate we evaluate. MoE-specific quantization is now its own subline—QMoE
+compresses trillion-parameter sparse models to sub-bit precision, MoQE and MC-MoE study expert-
+wise bit assignment, and Chowdhury et al. [7] prove that an expert’s change in router-vector ℓ2 norm
+during training, Λs, is a theoretically grounded indicator of which experts must be kept at higher
+bitwidth [19, 26, 24, 7]. The FWP proxy in Section 3 inherits this Λ-as-fragility-signal idea and
+lifts it from an offline per-expert bit-allocation prior to an online per-request quality score. Our
+paper is complementary: rather than proposing another quantizer, we assume that a small pool
+of quantized instances has already been materialized by these methods and study the downstream
+decision problem—which instance should serve which request, and which quality signal is reliable
+enough to drive that decision. A checkpoint-level quality average can be an excellent audit number
+while still being too coarse for workload-conditioned routing, which is the gap our FWP signal
+targets.
+LLM serving systems and request scheduling.
+Production-grade serving systems have made
+LLM inference dramatically more efficient through iteration-level scheduling, paged attention,
+offloading, stall-free batching, prefill/decode disaggregation, autoscaling, and program-level runtime
+optimization—Orca, vLLM, FlexGen, Sarathi-Serve, DistServe, SGLang, AlpaServe, Splitwise, and
+Llumnix [52, 27, 47, 2, 54, 53, 32, 38, 48], with speculative-decoding methods further reshaping the
+latency/throughput frontier [29, 35]. We rely on the systems insight that throughput and latency are
+workload properties, not static model properties. The missing axis in most serving evaluations is
+quantization-induced quality risk; our lightweight routing experiments add a request-level quality
+term to the usual latency and queueing terms while remaining careful not to claim a full production
+scheduler.
+Adaptive inference and request-level model routing.
+A growing line of work routes requests
+across heterogeneous models to trade quality for cost: FrugalGPT cascades models by confidence
+[6], RouteLLM and RouterBench learn binary or multi-way model selectors [37, 23], Hybrid-LLM
+and AutoMix mix small and large models on a per-request basis [14, 1], and CALM uses early-exit
+confidence inside a single model [44]. Closest in spirit, these routers select which model to call;
+we route across which bitwidth instance of the same MoE checkpoint, and the decision lever is the
+expert-fragility lens rather than aggregate accuracy gaps between distinct models. Their confidence-
+based scoring also assumes that the candidate models are themselves well-calibrated outputs, whereas
+in our setting the very object being predicted—per-request quality degradation under a quantized
+instance—is what the FWP proxy is designed to measure.
+Calibration, selective prediction, and risk-controlled inference.
+Our use of FWP proxies sits
+within a longer line on calibration and selective prediction, which insists that a model’s confidence or
+risk score be evaluated against downstream decisions rather than only against aggregate accuracy
+[22, 21]. Distribution-free risk control via conformal prediction and Risk-Controlling Prediction
+Sets makes those guarantees finite-sample [3, 5], and recent work extends conformal control to
+language-model outputs and generation-time abstention [39, 36]. In our setting the calibrated object
+is request-level quality degradation under a quantized MoE instance, not class probability; the small
+audited quality-risk budget in our lightweight routing policy is the operational analog of a target risk
+level. Static average NLL and perplexity remain necessary audit targets, but the decisive question
+is whether a proxy helps a serving policy reduce workload-conditioned utility gap under realistic
+information and cost assumptions.
+B
+A Self-Contained Derivation of the Reduced-Form Quality Surrogate
+Under Explicit Model Assumptions
+This appendix replaces the generic perturbation argument with a fully specified two-expert sparse-
+MoE model. The development is staged in the standard order: first the data-generating process, router,
+13
+
+
+expert margins, and quantization noise; then the induced quality-loss expression; and finally the
+connection from the resulting coefficient map to the structured proxy used in the main paper.
+B.1
+Proof Architecture
+The derivation has five steps.
+1. Specify a two-expert sparse MoE in which requests belong to a rare population of mass α and a
+common population of mass 1 −α, and each population is routed to its own expert.
+2. Define quality as negative expected logistic loss and show that the quality loss under quantization
+decomposes exactly into an affinity term and an expert-local degradation term.
+3. Apply a small-noise expansion to each local degradation term to obtain a reduced-form surrogate
+of the form “coefficient × bit-decay”, then connect the coefficient to a router-derived margin
+proxy.
+4. Instantiate the same model with FWP-style weights and prove that the weighted proxy amplifies
+the degradation of the rare, fragile expert.
+5. Convert the same weighted surrogate into a request-level utility comparison, which makes the
+connection to the routing objective in Eq. (18) explicit.
+The gain of this route is that the additive surrogate is no longer postulated first and justified later. It is
+derived from an explicit mathematical model.
+The appendix is local rather than global. It justifies the form of the empirical surrogate and the
+FWP-style amplification mechanism under transparent assumptions; it does not prove that real MoE
+checkpoints obey an exact additive law globally. The main text accordingly treats the fitted surrogate
+as a weak ranking prior and uses measured FWP signals for the strongest routing claims.
+B.2
+Two-Expert Sparse-MoE Model
+We consider a sparse top-1 MoE classifier with two experts, denoted by er and ec. Each request
+belongs to one of two populations:
+X ∈{r, c},
+Pr(X = r) = α,
+Pr(X = c) = 1 −α,
+0 < α < 1
+4.
+(20)
+Population r is the rare population and population c is the common population. The router is
+deterministic in this model:
+g(x) =
+er,
+X = r,
+ec,
+X = c.
+(21)
+This is the simplest mathematical extraction of sparse MoE behavior: each request only activates a
+small subset of experts, and in the present specification that subset has size one.
+For a request of population j ∈{r, c}, let mj > 0 be the full-precision signed classification margin
+of the routed expert. We assume
+0 < mr < mc,
+(22)
+which captures the fragility mechanism of Chowdhury et al. [7] in its simplest form: the rare expert
+has a weaker activation margin and is therefore more fragile under quantization perturbations.
+The prediction loss is logistic:
+ℓ(z) := log
+ 1 + e−z
+.
+(23)
+The full-precision quality is defined by
+Qfull := −E
+
+ℓ(mX)
+
+.
+(24)
+B.3
+Quantization Model
+If expert ej is stored at bitwidth bj, quantization perturbs the signed margin by a scalar random
+variable ξj(bj), so that the quantized margin for a request of type j becomes
+Mj(bj) := mj + ξj(bj).
+(25)
+14
+
+
+We assume the following noise model for each j ∈{r, c}:
+E[ξj(bj)] = 0,
+(26)
+E[ξj(bj)2] = vj2−2bj,
+(27)
+E[|ξj(bj)|3] ≤χj2−3bj,
+(28)
+|ξj(bj)| ≤¯δj2−bj
+a.s.
+(29)
+for constants vj, χj, ¯δj > 0. The variance scaling in Eq. (29) is the standard uniform-quantization
+scaling under a mean-square criterion.
+Define the quantized quality by
+Q(b) := −E
+
+ℓ(MX(bX))
+
+,
+b = (br, bc).
+(30)
+The induced quality loss is
+∆Q(b) := Qfull −Q(b).
+(31)
+B.4
+Exact Affinity–Fragility Decomposition
+The first key fact is exact rather than asymptotic.
+Proposition B.1 (Exact mixture decomposition). Under the model above,
+∆Q(b) = α ∆r(br) + (1 −α) ∆c(bc),
+(32)
+where
+∆j(bj) := E
+
+ℓ(Mj(bj)) −ℓ(mj)
+
+,
+j ∈{r, c}.
+(33)
+Proof. Condition on the request type X. By definition,
+∆Q(b) = E
+h
+ℓ(MX(bX)) −ℓ(mX)
+i
+.
+(34)
+Using the law of total expectation and the probabilities of the two populations gives
+∆Q(b) = Pr(X = r) E
+
+ℓ(Mr(br)) −ℓ(mr)
+
++ Pr(X = c) E
+
+ℓ(Mc(bc)) −ℓ(mc)
+
+,
+(35)
+which is exactly Eq. (32).
+Proposition B.1 already factors into two objects that should not be combined. The probabilities α
+and 1 −α are affinity weights. The local terms ∆r and ∆c are intrinsic degradation functions of the
+routed experts.
+B.5
+Small-Noise Expansion of the Local Degradation
+We now derive the reduced form by expanding the local term in Eq. (33). Let
+mj := mj −¯δj2−bj.
+(36)
+Assume mj > 0, so the quantized margin remains in a compact subset of the positive half-line.
+Define
+Lj := sup
+z≥mj
+|ℓ′′′(z)|.
+(37)
+Lemma B.1 (Second-order local expansion). For each j ∈{r, c},
+∆j(bj) = 1
+2ℓ′′(mj)vj2−2bj + rj(bj),
+(38)
+where the remainder satisfies
+|rj(bj)| ≤Lj
+6 χj2−3bj.
+(39)
+15
+
+
+Proof. Taylor-expand ℓ(mj + ξj) around mj:
+ℓ(mj + ξj) = ℓ(mj) + ℓ′(mj)ξj + 1
+2ℓ′′(mj)ξ2
+j + 1
+6ℓ′′′( emj)ξ3
+j ,
+(40)
+where emj lies between mj and mj + ξj. Taking expectations and using E[ξj] = 0 removes the first-
+order term. The second-order term becomes 1
+2ℓ′′(mj)E[ξ2
+j ] = 1
+2ℓ′′(mj)vj2−2bj. For the remainder,
+
+1
+6E
+
+ℓ′′′( emj)ξ3
+j
+ ≤Lj
+6 E[|ξj|3] ≤Lj
+6 χj2−3bj,
+(41)
+which proves Eq. (39).
+Lemma B.1 is the precise point where bitwidth enters the centered-noise theory. The leading term
+is proportional to 2−2bj because the first-order term vanishes and the dominant contribution is the
+variance. A 2−bj term requires the distinct biased-noise expansion below and carries the signed
+coefficient ℓ′(mj)m(1)
+j ; it cannot reuse the positive centered-noise coefficient.
+Lemma B.2 (Biased-noise first-order variant). Suppose instead that the quantization perturbation
+has a small mean-shift component
+E[ξj(bj)] = m(1)
+j 2−bj + m(2)
+j 2−2bj + O(2−3bj),
+(42)
+while its second and third moment bounds follow the scaling in Eq. (29). Then the local degradation
+admits the expansion
+∆j(bj) = ℓ′(mj)m(1)
+j 2−bj +
+
+ℓ′(mj)m(2)
+j
++ 1
+2ℓ′′(mj)vj
+
+2−2bj + O(2−3bj).
+(43)
+Proof. Use the same Taylor expansion as in Lemma B.1, but do not cancel the first-order term.
+Taking expectations gives
+∆j(bj) = ℓ′(mj)E[ξj(bj)] + 1
+2ℓ′′(mj)E[ξj(bj)2] + O(E|ξj(bj)|3).
+(44)
+Substituting the assumed mean expansion and the moment bounds yields Eq. (43).
+Lemma B.2 explains why the experiments compare both 2−b and 2−2b families. If the dominant
+distortion behaves like symmetric zero-mean noise, the energy-response term 2−2b is natural. If
+clipping, scaling, or quantizer bias introduces a first-order mean shift, a 2−b term can dominate over
+the measured range. The empirical comparison between the two families is therefore part of the
+model check rather than an arbitrary hyperparameter sweep.
+Theorem B.1 (Reduced form under explicit model assumptions). Under Proposition B.1 and
+Lemma B.1,
+∆Q(b) = αsr2−2br + (1 −α)sc2−2bc + r(b),
+(45)
+where sj := 1
+2vjℓ′′(mj) for j ∈{r, c}, and
+|r(b)| ≤Lr
+6 αχr2−3br + Lc
+6 (1 −α)χc2−3bc.
+(46)
+Proof. Substitute the two local expansions from Eq. (38) into the exact decomposition in Eq. (32)
+and collect terms.
+Theorem B.1 is the core constructive result. The reduced-form surrogate is not assumed. It is obtained
+by combining an exact affinity decomposition with a local Taylor expansion under symmetric
+quantization noise.
+16
+
+
+B.6
+Intrinsic Fragility and Rare-Expert Ordering
+To factor intrinsic fragility out of the affinity-weighted coefficient, recall the intrinsic local coefficient
+sj := 1
+2vjℓ′′(mj),
+j ∈{r, c}.
+(47)
+The leading coefficients in Eq. (45) are therefore αsr and (1−α)sc, explicitly factoring the population-
+level affinity from the intrinsic fragility.
+Proposition B.2 (Rare expert is intrinsically more fragile). If 0 < mr < mc and vr ≥vc, then
+sr > sc.
+(48)
+Proof. For z > 0, the logistic loss satisfies
+ℓ′′(z) =
+ez
+(1 + ez)2 ,
+d
+dz ℓ′′(z) = ez(1 −ez)
+(1 + ez)3 < 0.
+(49)
+Hence ℓ′′(mr) > ℓ′′(mc) whenever 0 < mr < mc. Multiplying by vr/2 and vc/2 and using vr ≥vc
+yields sr > sc.
+Proposition B.2 formalizes the qualitative statement that weaker-margin experts are more fragile
+under the same quantization-noise scale. Affinity determines how often that fragility matters; it does
+not define fragility itself.
+B.7
+Connection to Router-Based Structured Coefficients
+One bridge back to the main paper remains: how should the margin mj be represented by observable
+router-side quantities? The next assumption makes that step explicit rather than implicit.
+Assumption B.1 (Router–margin link). For each population-specific expert j ∈{r, c}, there exist
+constants κ, µ, τ > 0 and a scale correction variable Vj ≥0 such that
+mj ≥κ
+eΛj + τ
+1 + µVj
+,
+(50)
+where eΛj is a router-derived margin proxy. This abstracts the claim in Chowdhury et al. [7] that
+larger router-norm change corresponds to a larger activation margin.
+Proposition B.3 (Monotone upper bound for structured coefficients). Under Assumption B.1,
+sj ≤vj
+2 ℓ′′
+ 
+κ
+eΛj + τ
+1 + µVj
+!
+,
+j ∈{r, c}.
+(51)
+Therefore sj is upper-bounded by a monotone decreasing function of (eΛj + τ)/(1 + µVj).
+Proof. Equation (47) gives sj = 1
+2vjℓ′′(mj). Since ℓ′′(z) is decreasing on z > 0, substituting the
+lower bound on mj from Eq. (50) yields Eq. (51). The right-hand side is monotone decreasing in
+(eΛj + τ)/(1 + µVj), giving the stated upper-bound interpretation.
+Proposition B.3 is the right interpretation of the structured coefficient family used as a restricted
+ablation in the main text (Section 3.1). The empirical structured family is
+bcstr
+e
+= θℓ(e)
+1 + µVe
+eΛe + τ
+p
+,
+(52)
+where eΛe is a router-derived fragility proxy (final router norm), Ve is a normalized-MaxVar scale
+correction, and (µ, τ, p) are shared parameters. The model does not prove that the exact coefficient
+must equal a specific power law of (1 + µVj)/(eΛj + τ). It proves a cleaner statement: the intrinsic
+fragility coefficient is controlled by a monotone decreasing upper bound in a router-derived margin
+proxy. The parametric family in Eq. (52) is then a parsimonious approximation to that monotone
+upper-bound shape when we return to real MoE checkpoints with many experts and imperfect
+observability.
+17
+
+
+B.8
+Conditional Multi-Layer Top-k Extension
+The two-expert identity isolates a mechanism but does not remove the interactions present in a
+realistic MoE. Let j = (ℓ, e) index an expert block, let Θ collect reference expert parameters, and
+let δj be the block perturbation produced by quantization. For a fixed request and evaluation token
+sequence, freeze the reference top-k support and denote the resulting smooth loss by eLx.
+Theorem B.2 (Conditional blockwise expansion). Assume the reference-support branch is C3 along
+the perturbation segment and every top-k routing margin remains positive enough that no selected
+and unselected expert exchange order. Then
+∆Lx =
+X
+j
+∇jL⊤
+x δj + 1
+2
+X
+j,k
+δ⊤
+j Hjk(x)δk + R3,x,
+|R3,x| ≤Mx
+6 ∥δ∥3.
+(53)
+If perturbations are centered and block-uncorrelated with Cov(δj) = 2−2bjΣj, then
+E[∆Lx] = 1
+2
+X
+j
+2−2bj tr(Hjj(x)Σj) + E[R3,x].
+(54)
+Recovering the affinity–fragility surrogate additionally requires
+1
+2 tr(Hjj(x)Σj) = ρj(x)cj + εj(x),
+(55)
+which yields
+E[∆Lx] =
+X
+j
+ρj(x)cj2−2bj +
+X
+j
+εj(x)2−2bj + E[R3,x].
+(56)
+Proof. Positive routing margins make the actual computation equal the reference-support branch
+along the perturbation segment. Multivariate Taylor expansion gives Eq. (53). Taking expectations
+removes centered linear terms and off-diagonal covariance terms, giving Eq. (54); substituting
+Eq. (55) gives Eq. (56).
+The theorem is conditional rather than architecture-wide. With biased or correlated deterministic
+quantization, the deviation from the surrogate additionally contains
+Ebias + Ecross + Esep + ETaylor + Eflip,
+(57)
+where Eflip is a distinct route-support correction, not an ordinary Taylor remainder. A reference-
+precision router does not eliminate it because upstream expert perturbations change later hidden states
+and router logits. At W2, measured Qwen retention is 95.7% for top-1 and 82.6% for the full top-8
+set, while a targeted two-block experiment has an 8.5% median relative additivity residual. These
+diagnostics support the mechanism operationally but do not validate small-noise or fixed-support
+assumptions at two bits.
+B.9
+Within-Request FWP Weighting
+The deployed FWP normalization is within each request, so its amplification property should also
+be stated within a request. Let Ex[·] denote the average over non-padding prompt tokens, let
+vi = (¯Λi + ϵw)−1, let wi = vi/Ex[v], and let di be the matched offline token degradation.
+Proposition B.4 (Within-request covariance identity). For every request with finite vi and di,
+Ex[widi] −Ex[di] = Covx(vi, di)
+Ex[vi]
+= Covx(wi, di).
+(58)
+Hence FWP amplifies prompt-average degradation if and only if inverse-router-norm weights and
+token degradation have positive within-request covariance.
+Proof. By definition, Ex[w] = 1. Therefore
+Ex[wd] −Ex[d] = Ex[wd] −Ex[w]Ex[d] = Covx(w, d).
+Substituting w = v/Ex[v] gives the first equality.
+18
+
+
+This identity also exposes the boundary of the two-expert top-1 model. If every token in one request
+activates the same expert, vi and wi are constant, so FWP equals ordinary average NLL for that
+request. Population-level reweighting of rare and common requests is a different statistic and cannot
+prove amplification of deployed FWP. The realistic top-k experiments therefore test the covariance
+condition directly rather than treating it as a consequence of the two-expert mixture identity.
+C
+Derivation of a Window-Level LP Routing Template
+This appendix derives the fixed-pool LP and its signed reduced-reward score. It separates the exact
+primal–dual statements from two implementation devices: projected price updates and quota tracking.
+The experiments instantiate offline population allocation and component timings; they do not claim
+to deploy the complete online dual-price controller.
+C.1
+Primal and Dual Linear Programs
+Consider the LP in Eq. (14). For convenience, write the quality-constraint coefficient as
+qga(t) := bℓga(t) −τg.
+(59)
+Proposition C.1 (Dual LP and strong duality). For a fixed control window t, the dual of the primal
+LP in Eq. (14) is
+min
+λ,π,ν≥0
+X
+g∈G
+λgBg(t) +
+X
+a∈A
+πaCa(t)
+s.t.
+λg + πasga(t) + νgqga(t) ≥Lg,
+∀g ∈G, a ∈A.
+(60)
+Whenever Eq. (14) is feasible and bounded, strong duality holds.
+Proof. Write Eq. (14) in the standard form
+max
+x≥0 c⊤x
+s.t.
+Ax ≤b,
+(61)
+where x stacks the variables xga(t), the vector c collects the throughput coefficients Lg, and A
+collects the demand, capacity, and quality-constraint coefficients. The stated dual is then the standard
+LP dual with nonnegative multipliers for each inequality block. Strong duality follows from the
+fundamental theorem of linear programming.
+Proposition C.1 is the OR foundation of the online rule. The prices λg, πa, and νg are not free tuning
+terms; they are the exact dual multipliers of demand, capacity, and quality constraints.
+Proposition C.2 (Shadow-price characterization of active routes). Let x∗solve the primal LP in
+Eq. (14), and let (λ∗, π∗, ν∗) solve the dual LP in Eq. (60). Then for every class-instance pair (g, a),
+x∗
+ga(t) > 0
+=⇒
+Lg −π∗
+asga(t) −ν∗
+gqga(t) = λ∗
+g.
+(62)
+If x∗
+ga(t) = 0, then
+Lg −π∗
+asga(t) −ν∗
+gqga(t) ≤λ∗
+g.
+(63)
+Consequently, a class may be split only across instances that maximize the reduced reward at the
+optimal shadow prices.
+Proof. The complementary-slackness condition for the nonnegativity constraint on xga(t) implies
+x∗
+ga(t)
+h
+λ∗
+g + π∗
+asga(t) + ν∗
+gqga(t) −Lg
+i
+= 0.
+(64)
+If x∗
+ga(t) > 0, the bracketed term must vanish, which yields Eq. (62). If x∗
+ga(t) = 0, dual feasibility
+gives Eq. (63).
+Proposition C.2 is the class-level shadow-price characterization. It is the exact static analogue of
+the online rule: active routes are precisely those instances whose shadow-price-adjusted utility is
+maximal.
+19
+
+
+C.2
+Lagrangian Decomposition and One-Step Reduced Reward
+The corresponding Lagrangian is
+L(x, λ, π, ν) =
+X
+g,a
+h
+Lg −λg −πasga(t) −νgqga(t)
+i
+xga(t) +
+X
+g
+λgBg(t) +
+X
+a
+πaCa(t). (65)
+Proposition C.3 (Reduced reward decomposition). Fix nonnegative dual variables (λ, π, ν). For
+any request class g, maximizing the Lagrangian contribution of a single incremental assignment is
+equivalent to choosing the instance with largest reduced reward
+Rga(t) = Lg −πa(t)sga(t) −νg(t)qga(t),
+(66)
+up to the class-specific constant λg.
+Proof of Proposition C.3. Fix nonnegative dual variables (λ, π, ν). Consider a single incremental
+assignment of one unit of class-g traffic. Let δa ∈{0, 1} indicate whether that unit is sent to instance
+a, with P
+a δa = 1. The Lagrangian contribution of this one-step assignment is
+X
+a∈A
+h
+Lg −λg −πasga(t) −νgqga(t)
+i
+δa.
+(67)
+Since the class-specific term λg does not depend on a, maximizing over the simplex is equivalent to
+choosing the instance with largest coefficient
+Rga(t) = Lg −πa(t)sga(t) −νg(t)qga(t).
+(68)
+This is exactly the reduced reward stated in Proposition C.3.
+Proposition C.3 is the one-step version of Proposition C.2. The multiplier λg acts as a class-specific
+reservation value and drops out when comparing instances within the same class, which is why the
+online score only needs the capacity and quality prices.
+Risk-formulation identity.
+The primal constraint, dual program, reduced reward, quota-tracking
+score, and pseudocode all use the same signed residual qga = bℓga −τg. A one-sided hinge would
+remove the credit from below-budget assignments and define a different primal problem; no KKT
+claim in this paper applies to that alternative.
+C.3
+Reduced Dual Objective and Price Updates
+The dual derivation can be pushed one step further by eliminating the class-demand multipliers. For
+fixed (π, ν), the smallest nonnegative λg satisfying Eq. (60) is
+λg(π, ν) =
+h
+max
+a∈A
+
+Lg −πasga(t) −νgqga(t)
+	i
++.
+(69)
+Substituting Eq. (69) into Eq. (60) gives the reduced dual objective
+eDt(π, ν) =
+X
+g∈G
+Bg(t)
+h
+max
+a∈A
+
+Lg −πasga(t) −νgqga(t)
+	i
++ +
+X
+a∈A
+πaCa(t).
+(70)
+Equation (70) shows that the dual optimization problem is entirely driven by reduced rewards.
+Lemma C.1 (Subgradient characterization of price residuals). Let x∗(π, ν) be any allocation induced
+by active maximizers in Eq. (70): for each class g, it places mass Bg(t) on instances attaining a
+positive maximum reduced reward, places zero mass if the positive part is inactive, and may split ties
+arbitrarily. Then the vectors
+gπ
+a(π, ν) := Ca(t) −
+X
+g∈G
+sga(t)x∗
+ga(π, ν),
+(71)
+gν
+g(π, ν) := −
+X
+a∈A
+qga(t)x∗
+ga(π, ν)
+(72)
+are subgradients of the reduced dual objective eDt(π, ν).
+20
+
+
+Proof. The reduced dual objective is a positive part of pointwise maxima of affine functions of (π, ν)
+plus the linear capacity term. By Danskin’s theorem, any gradient of an active affine piece is a valid
+subgradient of eDt. Holding the active allocation x∗(π, ν) fixed, differentiating with respect to πa gives
+Ca(t)−P
+g sga(t)x∗
+ga(π, ν), and differentiating with respect to νg gives −P
+a qga(t)x∗
+ga(π, ν).
+Lemma C.1 is the formal source of the dual price updates. A projected subgradient descent step on
+eDt has the form
+π(n+1)
+a
+=
+h
+π(n)
+a
+−ηngπ
+a(π(n), ν(n))
+i
++ =
+h
+π(n)
+a
++ ηn
+ UsedCapacity(n)
+a
+−Ca
+i
++,
+(73)
+ν(n+1)
+g
+=
+h
+ν(n)
+g
+−ηngν
+g(π(n), ν(n))
+i
++ =
+h
+ν(n)
+g
++ ηn
+X
+a
+qgax∗(n)
+ga
+i
++,
+(74)
+which is the exact optimization-theoretic analogue of the template price update. An online implemen-
+tation may replace the class-level aggregate P
+a qgax∗(n)
+ga
+by the realized average-loss residual in the
+window; this is simply a normalized stochastic estimate of the same subgradient component.
+Theorem C.1 (Finite-time dual convergence rate). Fix a control window t and assume that
+(Bg(t), sga(t), qga(t), Ca(t)) are stationary within that window. Let K ⊆RA+|G|
++
+be a compact
+convex set containing an optimal dual solution (π∗, ν∗), and suppose that every subgradient of eDt on
+K has Euclidean norm at most G. Consider the projected subgradient iterations
+(π(n+1), ν(n+1)) = ΠK
+
+(π(n), ν(n)) −ηng(n)
+,
+g(n) ∈∂eDt(π(n), ν(n)).
+(75)
+Then
+min
+1≤n≤T
+
+eDt(π(n), ν(n)) −eDt(π∗, ν∗)
+
+≤∥(π(1), ν(1)) −(π∗, ν∗)∥2
+2 + G2 PT
+n=1 η2
+n
+2 PT
+n=1 ηn
+.
+(76)
+In particular, if ηn = η/√n, then the bound is O((1 + log T)/
+√
+T); with a horizon-tuned constant
+step size ηn = η/
+√
+T, the bound is O(T −1/2).
+Proof. Nonexpansiveness of Euclidean projection gives
+∥(π(n+1), ν(n+1)) −(π∗, ν∗)∥2
+2 ≤∥(π(n), ν(n)) −(π∗, ν∗)∥2
+2 −2ηn⟨g(n), (π(n), ν(n)) −(π∗, ν∗)⟩
++ η2
+n∥g(n)∥2
+2.
+(77)
+By convexity of eDt,
+eDt(π(n), ν(n)) −eDt(π∗, ν∗) ≤⟨g(n), (π(n), ν(n)) −(π∗, ν∗)⟩.
+(78)
+Substituting this bound into the previous inequality, summing from n = 1 to T, and using ∥g(n)∥2 ≤
+G yields
+2
+T
+X
+n=1
+ηn
+
+eDt(π(n), ν(n)) −eDt(π∗, ν∗)
+
+≤∥(π(1), ν(1)) −(π∗, ν∗)∥2
+2 + G2
+T
+X
+n=1
+η2
+n.
+(79)
+Taking the minimum over n ≤T proves Eq. (76).
+Theorem C.1 makes the price dynamics fully technical: the online dual variables are not just
+interpretable as shadow prices; their dual objective gap obeys the standard projected-subgradient rate
+under stationary window statistics.
+C.4
+Quota Tracking as an Implementation Regularizer
+Let p⋆
+ga(t) be the target routing share derived from the LP solution and let epga(t) be the current
+realized share inside the same control window. Consider the regularized one-step objective for a
+request of class g:
+max
+δ∈∆A
+X
+a∈A
+h
+Lg −πasga(t) −νgqga(t)
+i
+δa −β
+2
+X
+a∈A
+
+epga(t) + δa −p⋆
+ga(t)
+2
+,
+(80)
+where ∆A is the probability simplex over instances.
+21
+
+
+Proposition C.4 (Derivation of the final score). Define the quota deficit
+dga(t) := p⋆
+ga(t) −epga(t).
+(81)
+If the one-step assignment is integral, i.e., δa ∈{0, 1} and P
+a δa = 1, then maximizing Eq. (80) is
+equivalent to choosing the instance with largest score
+Sga(t) = βdga(t) + Lg −πa(t)sga(t) −νg(t)qga(t).
+(82)
+Proof. Fix an action a and set δa = 1, δa′ = 0 for a′̸ = a. Expanding the quadratic term in Eq. (80)
+gives
+−β
+2
+X
+a′∈A
+
+epga′ −p⋆
+ga′
+2
+−β
+ epga −p⋆
+ga
+
+−β
+2 .
+(83)
+The first and third terms are independent of the chosen action and therefore do not affect the maximizer.
+Using dga = p⋆
+ga −epga, the action-dependent contribution reduces to βdga. Combining this with the
+reward, capacity price, and slack penalty gives the stated score.
+Proposition C.4 derives the tracking term from a quadratic penalty around LP target shares. The signed
+quality coefficient remains identical to the primal LP. For β > 0 this is a regularized implementation
+score; only the β = 0 score is the exact Lagrangian reduced reward.
+C.5
+Exact KKT Scope and Tie Allocation
+The dual score characterizes which routes may carry positive primal flow, but it does not by itself
+choose feasible proportions among tied maximizers.
+Theorem C.2 (KKT consistency with the LP optimum). Let x∗solve Eq. (14) and let (λ∗, π∗, ν∗)
+solve Eq. (60). Then:
+1. every pair with x∗
+ga > 0 maximizes Rga = Lg −π∗
+asga −ν∗
+gqga over a;
+2. assigning class-g traffic among those maximizers in the proportions of x∗recovers a primal-
+feasible allocation and is KKT-consistent with the LP optimum;
+3. an arbitrary greedy tie rule satisfies the reduced-reward stationarity condition but need not satisfy
+demand, capacity, or quality feasibility.
+Proof. The first statement is Proposition C.2. The second uses the primal-optimal proportions and
+therefore inherits primal feasibility, while strong duality and complementary slackness supply the
+remaining KKT conditions. The third follows because stationarity restricts support but does not
+determine how mass is split among tied support points.
+Projected subgradient convergence supplies optimal prices only under the stationarity, bounded-
+subgradient, step-size, and projection assumptions of Theorem C.1. The quota term in Proposition C.4
+is useful for tracking a target split, but KKT consistency for β > 0 additionally requires the realized
+proportions to converge to a primal-feasible optimum. We do not infer that property from a vanishing
+score perturbation alone.
+C.6
+Calibration Error and Workload-Conditioned Utility Loss
+The last link is from quality-prediction error to the workload-conditioned utility in Eq. (18). For this
+step, consider the linearized one-step utility
+uga(t) := Lg −αqℓga(t) −βsga(t),
+(84)
+where ℓga(t) is the true average quality loss of assigning class g to instance a in window t. Let the
+predicted utility be
+buga(t) := Lg −αqbℓga(t) −βsga(t).
+(85)
+22
+
+
+Proposition C.5 (Prediction error implies one-step utility regret). Assume that for a fixed window,
+sup
+g∈G, a∈A
+|bℓga(t) −ℓga(t)| ≤ε.
+(86)
+Let
+a∗
+g(t) ∈arg max
+a∈A uga(t),
+bag(t) ∈arg max
+a∈A buga(t).
+(87)
+Then the one-step utility loss of acting on the predicted surrogate satisfies
+0 ≤uga∗g(t)(t) −ugbag(t)(t) ≤2αqε.
+(88)
+Consequently, over any horizon of T requests whose classes are evaluated with the same error bound,
+the cumulative regret is at most 2αqεT.
+Proof. For any action a,
+|uga(t) −buga(t)| = αq|bℓga(t) −ℓga(t)| ≤αqε.
+(89)
+Therefore,
+uga∗g(t)(t) −ugbag(t)(t) =
+
+uga∗g(t)(t) −buga∗g(t)(t)
+
+(90)
++
+
+buga∗g(t)(t) −bugbag(t)(t)
+
+(91)
++
+
+bugbag(t)(t) −ugbag(t)(t)
+
+.
+(92)
+The middle term is nonpositive because bag(t) maximizes buga(t). The first and third terms are each
+bounded above by αqε, which proves Eq. (88). Summing over T requests yields the cumulative
+statement.
+Proposition C.5 connects calibrated request-risk error to routing utility. If the selected prompt-side
+predictor is uniformly calibrated within error ε, the induced one-step decision loses at most 2αqε in
+the linearized workload-conditioned objective. The result is conditional on the calibration bound;
+current held-out compliance does not establish such a production bound.
+This appendix establishes a claim hierarchy rather than one architecture-wide guarantee. The two-
+expert mixture identity is exact; the centered reduced form is second order; the multi-layer top-k
+bridge is conditional with explicit corrections; FWP amplification is a within-request covariance
+condition; and the signed LP score is KKT-consistent with the LP optimum only under optimal
+prices and primal-feasible tie allocation. The empirical headline remains the offline fixed-population
+comparison in Table 2.
+D
+Detailed Evaluation Protocol
+Complete-instance quality.
+The extended population contains 32 OpenBookQA prompts, 32
+MBPP prompts, and 24 CNN/DailyMail prompts. For each prompt and each W2/W3/W4 instance,
+average NLL is compared with the reference checkpoint. All 6,144 Qwen expert blocks are quantized;
+the resulting request rows produce Table 1. The sampled LOEO and 65-configuration studies remain
+separate because nonsampled experts stay at reference precision in those artifacts.
+Fixed-population allocation.
+Every policy in Table 2 receives the same 88 request-level
+W2/W3/W4 losses, budget τ = 0.1513, and analytical per-request multipliers 2, 4/3, 1. Static
+and capacity-proportional policies use no request information. The request-agnostic budget-aware
+mixture chooses one global W3/W4 mixture satisfying the population budget. Sequence length,
+activation frequency, and FWP supply alternative request orderings. The restricted reference orders
+requests by measured W3 loss after evaluation and is not deployable. No row models queueing,
+batching, scorer contention, or reconfiguration.
+Prompt-only calibration and compliance.
+Same-instance FWP is reported only as a measurement
+sanity check. The deployable diagnostic uses the raw W2 prompt FWP and prompt-observable
+features to predict W3 request loss, with Spearman 0.586 and AUROC 0.747. Prefix FWP is
+recomputed at 64, 128, 256, 512, and 1,024 tokens. Calibration, threshold selection, and final
+evaluation must use disjoint data; the current small repeated 50/50 splits achieve only about 35–50%
+budget-compliant splits and therefore do not satisfy a deployment acceptance gate.
+23
+
+
+Table 5: Evidence classes used in this paper. Results are compared only within a row unless an
+explicit bridge is stated.
+Evidence class
+Model and scope
+Protocol
+Permitted claim
+Complete-instance
+quality
+Qwen; all 6,144
+expert blocks
+HQQ W2/W3/W4; 88
+extended prompts
+Request-level quality distributions
+and fixed-population allocation
+inputs.
+Sampled structural
+diagnostics
+Qwen and
+DeepSeek; selected
+blocks/layers
+LOEO, route agreement,
+additivity,
+65-configuration ranking
+Mechanism and theory-boundary
+evidence, not complete-instance
+cross-model quality.
+Offline population
+allocation
+Qwen; same 88
+requests and
+complete losses
+τ = 0.1513; analytical
+factors 2, 4/3, 1
+Model-based allocation multiplier,
+not live throughput.
+Prompt-only FWP
+Qwen; reference
+W2 score predicting
+W3 risk
+Cross-instance
+Spearman/AUROC and
+prefix sweep
+Calibration feature and abstention
+boundary, not direct online quality
+measurement.
+Endpoint capacity
+Qwen; same
+two-A100 budget
+Separate serving
+checkpoints; 216 requests,
+five repeats
+Endpoint rate vector for that
+backend, not quality-aligned
+routed-pool throughput.
+Live routed
+prototype
+Three serving
+GPUs plus one
+INT3 scorer GPU
+Repeated workload;
+threshold dispatch
+Feasibility diagnostic only; not an
+equal-total-resource replica
+comparison.
+Memory and reconfiguration.
+Memory values in Table 4 are parameter estimates derived from
+expert and non-expert parameter counts on one accounting basis. They exclude KV cache, activations,
+runtime workspaces, fragmentation, and scorer residence. The reconfiguration coefficients in Eq. (4)
+are formal placeholders until weight-load, eviction, and placement times are measured on the target
+backend. The DeepSeek-V3 ten-minute redundant-expert example motivates the timescale separation
+but does not calibrate these coefficients.
+Endpoint and overhead protocols.
+The same-two-A100 endpoint test disables prefix caching
+and repeats 216 requests five times; 128 requests have 1,023 prompt tokens and 128 output tokens.
+Reported values are mean output tokens/s with population standard deviation. FWP instrumentation
+is timed within one transformers prefill at 512 and 1,024 tokens. LP times use a CPU synthetic
+control-window benchmark, and score time covers three candidate comparisons. None is labeled
+end-to-end routing overhead.
+Reference routing procedure.
+Algorithm 1 states the execution path consistent with the theory and
+evidence. It is a reference design: the complete online price controller and delayed quality-feedback
+path have not been deployed in the live prototype.
+24
+
+
+Fixed-pool prompt-risk routing
+Input: immutable resident pool A, reference instance aref, calibrated risk maps bra(z, |Ip|, g), service
+costs sga including target re-prefill when required, prices (π, ν), quality budget τg, validated prefix
+threshold Tmin, conservative fallback asafe
+Offline and once per provisioning epoch:
+1. Lock y(q), checkpoint hashes, endpoint capacities, memory footprints, and the reconfiguration record.
+2. Split task families into training, calibration, test, and OOD audits; fit bra from raw reference-instance
+prompt FWP without a same-request full-precision input.
+3. Select Tmin, uncertainty thresholds, and asafe on calibration data only.
+4. Solve the window LP or publish a price/target-share snapshot; record convergence and feasibility
+residuals.
+Online for request x:
+5. If |Ip(x)| < Tmin or the request is outside calibration support, send the complete request to asafe.
+6. Otherwise run the prompt prefill on aref and compute z(x) = ℓFWP(x; b(aref )) over non-padding
+prompt tokens.
+7. For each resident endpoint a, compute bℓa(x) = bra(z(x), |Ip(x)|, g) and
+Sa = Lg −πasga −νg
+ bℓa(x) −τg
+
++ βdga.
+8. Choose a∗∈arg maxa Sa, using the declared quota rule for ties.
+9. If a∗̸ = aref, discard the incompatible reference KV state and run a target prefill on a∗; otherwise
+reuse the reference KV state.
+10. Decode the complete response on a∗and log service cost, fallback status, and calibration diagnostics.
+Once per control window:
+11. Update capacity prices from realized utilization. Update quality prices only from a declared delayed-
+audit or conservative risk-control signal; true free-running loss is not an immediate online observable.
+Algorithm 1: Reference procedure for routing within a fixed resident pool. Its data-plane score is
+O(|A|); reference prefill, possible target re-prefill, and control-plane work are separately charged.
+25

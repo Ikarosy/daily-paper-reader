@@ -1,0 +1,89 @@
+{
+  "date": "20260915",
+  "date_label": "",
+  "generated_at": "2026-09-15 22:16:12 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.12208v1",
+      "route": "202609/15/2609.12208v1-vortex-bridging-extreme-compression-and-efficient-llm-inference",
+      "title": "Vortex: Bridging Extreme Compression and Efficient LLM Inference",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向大模型极低比特向量量化的高效推理架构",
+      "first_seen_at": "2026-09-15 22:16:12 UTC",
+      "updated_at": "2026-09-15 22:16:12 UTC"
+    },
+    {
+      "paper_id": "2609.12550v1",
+      "route": "202609/15/2609.12550v1-quality-constrained-routing-over-a-fixed-pool-of-quantized-mixture-of-experts-instances",
+      "title": "Quality-Constrained Routing over a Fixed Pool of Quantized Mixture-of-Experts Instances",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "在质量退化预算下对固定量化混合专家实例池进行路由",
+      "first_seen_at": "2026-09-15 22:16:12 UTC",
+      "updated_at": "2026-09-15 22:16:12 UTC"
+    },
+    {
+      "paper_id": "2609.09866v1",
+      "route": "202609/15/2609.09866v1-unistream-multi-expert-residual-vector-quantization-for-48-khz-causal-streaming-audio-coding",
+      "title": "UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "多专家残差向量量化与Top-K路由专家码本",
+      "first_seen_at": "2026-09-15 22:16:12 UTC",
+      "updated_at": "2026-09-15 22:16:12 UTC"
+    },
+    {
+      "paper_id": "2609.11716v1",
+      "route": "202609/15/2609.11716v1-why-does-post-training-quantization-work",
+      "title": "Why Does Post-Training Quantization Work?",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "大语言模型权重的后训练低精度量化",
+      "first_seen_at": "2026-09-15 22:16:12 UTC",
+      "updated_at": "2026-09-15 22:16:12 UTC"
+    },
+    {
+      "paper_id": "2609.14189v1",
+      "route": "202609/15/2609.14189v1-morphostyle-motion-style-transfer-with-morphology-control",
+      "title": "MorphoStyle: Motion Style Transfer with Morphology Control",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "有限标量量化VAE用于形状感知动作生成",
+      "first_seen_at": "2026-09-15 22:16:12 UTC",
+      "updated_at": "2026-09-15 22:16:12 UTC"
+    }
+  ]
+}

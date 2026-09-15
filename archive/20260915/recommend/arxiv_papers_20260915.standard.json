@@ -1,0 +1,210 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-15T22:12:38.988984+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 3,
+    "deep_cap": 7,
+    "deep_selected": 3,
+    "quick_candidates": 2,
+    "quick_skim_target": 12,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2609.12208v1",
+      "source": "arxiv",
+      "title": "Vortex: Bridging Extreme Compression and Efficient LLM Inference",
+      "abstract": "Extreme compression techniques, including vector quantization (VQ) and input-dependent sparsity, can significantly reduce the memory footprint of large language models (LLMs). However, a key challenge remains in translating such compression into practical efficiency. On conventional systolic-array-based accelerators, VQ incurs high dequantization overhead, while the irregular patterns of input-dependent sparsity are difficult to exploit. In this study, we address these challenges with Vortex, an architecture compatible with systolic-array-based accelerators with minimal hardware overhead, bridging the gap between extreme compression and efficient inference. Vortex adopts a bi-flow execution strategy that efficiently supports vector-quantized models across both prefill and decoding workloads, and we further optimize it through systematic design space exploration. On the algorithm side, we propose codebook-wise contextual sparsity to align with VQ execution. Across end-to-end workloads, Vortex achieves $8.03\\times$--$23.7\\times$ speedup and $5.68\\times$--$12.5\\times$ energy reduction over state-of-the-art accelerators.",
+      "authors": [
+        "Haoxuan Shan",
+        "Cong Guo",
+        "Bowen Duan",
+        "Chiyue Wei",
+        "Feng Cheng",
+        "Yuzhe Fu",
+        "Yintao He",
+        "Hai \"Helen\" Li",
+        "Yiran Chen"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-10T21:04:15+00:00",
+      "link": "https://arxiv.org/pdf/2609.12208v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "vector quantization for extreme LLM compression plus efficient inference architecture",
+      "llm_evidence_cn": "面向大模型极低比特向量量化的高效推理架构",
+      "llm_evidence": "面向大模型极低比特向量量化的高效推理架构",
+      "canonical_evidence": "面向大模型极低比特向量量化的高效推理架构",
+      "llm_tldr_en": "Vortex bridges the gap between extreme VQ/sparsity compression and practical LLM inference by proposing a systolic-array-compatible architecture with a bi-flow execution strategy that cuts dequantization overhead and exploits irregular sparsity.",
+      "llm_tldr_cn": "大语言模型的极低比特压缩（向量量化与输入相关稀疏）虽能显著降低显存占用，却难以在传统脉动阵列加速器上转化为实际效率，主要受限于反量化开销与稀疏模式不规则。为此，作者提出 Vortex 架构，采用双流执行策略，以极小的硬件开销同时支持向量量化模型与稀疏计算。该设计能有效弥合极限压缩与高效推理之间的鸿沟，为极低比特量化的实际部署提供了可行路径。",
+      "llm_tldr": "大语言模型的极低比特压缩（向量量化与输入相关稀疏）虽能显著降低显存占用，却难以在传统脉动阵列加速器上转化为实际效率，主要受限于反量化开销与稀疏模式不规则。为此，作者提出 Vortex 架构，采用双流执行策略，以极小的硬件开销同时支持向量量化模型与稀疏计算。该设计能有效弥合极限压缩与高效推理之间的鸿沟，为极低比特量化的实际部署提供了可行路径。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.12550v1",
+      "source": "arxiv",
+      "title": "Quality-Constrained Routing over a Fixed Pool of Quantized Mixture-of-Experts Instances",
+      "abstract": "Quantized Mixture-of-Experts (MoE) services can hold several pre-materialized instances of one base model, but quantization damage varies sharply across requests and bitwidths. Because instance materialization and replica counts consume memory and require slow reconfiguration, we treat them as upstream provisioning decisions and study routing within a fixed resident pool. Within this fixed-pool boundary, we route each request to maximize modeled throughput under a class-level expected quality-degradation budget and measured instance capacities. To predict this request-specific risk, we introduce FWP (Fragility-Weighted Perplexity), computed from prompt tokens on a reference-instance prefill and calibrated to candidate-instance degradation. Underlying FWP is an exact two-expert affinity--fragility decomposition and a conditional multi-layer top-$k$ expansion whose bias, interaction, route-change, separability, and higher-order terms remain explicit. Using these calibrated risks, a window-level linear program yields a signed reduced-reward score that is KKT-consistent with the LP optimum under optimal prices and primal-feasible tie allocation. On 88 extended Qwen prompts, complete W2, W3, and W4 instances quantizing all 6,144 expert blocks incur mean $Δ$NLL of $0.9437$, $0.1832$, and $0.0513$. Under the same population and $τ=0.1513$, FWP allocation reaches a $1.284\\times$ offline model-based multiplier versus $1.253\\times$ for request-agnostic mixing and $1.000\\times$ for static W4, an incremental $2.5\\%$ relative FWP gain.",
+      "authors": [
+        "Zhenghong Huang",
+        "Hongfan Wu",
+        "Jiheng Zhang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-11T07:57:25+00:00",
+      "link": "https://arxiv.org/pdf/2609.12550v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Routing over a fixed pool of Quantized Mixture-of-Experts instances under a quality-degradation budget",
+      "llm_evidence_cn": "在质量退化预算下对固定量化混合专家实例池进行路由",
+      "llm_evidence": "在质量退化预算下对固定量化混合专家实例池进行路由",
+      "canonical_evidence": "在质量退化预算下对固定量化混合专家实例池进行路由",
+      "llm_tldr_en": "Quantized MoE services can host multiple pre-materialized instances, but quantization damage varies per request and bitwidth while reconfiguration is costly. The paper studies routing within a fixed resident pool, proposing Fragility-Weighted Perplexity to predict request-specific quality risk and maximize throughput under a quality budget.",
+      "llm_tldr_cn": "量化混合专家（MoE）服务可预置同一基座模型的多个量化实例，但量化损伤随请求与比特宽度剧烈变化，而实例物化与副本数配置又消耗内存且重配置缓慢。为此作者把实例配置视为上游供给决策，专注固定常驻实例池内的请求路由问题。他们提出脆弱度加权困惑度FWP，用参考实例预填的提示词token预测各请求的质量退化风险，并在类别级质量预算与实测实例容量约束下最大化吞吐。该工作为量化MoE服务提供了质量约束下的高效路由方案。",
+      "llm_tldr": "量化混合专家（MoE）服务可预置同一基座模型的多个量化实例，但量化损伤随请求与比特宽度剧烈变化，而实例物化与副本数配置又消耗内存且重配置缓慢。为此作者把实例配置视为上游供给决策，专注固定常驻实例池内的请求路由问题。他们提出脆弱度加权困惑度FWP，用参考实例预填的提示词token预测各请求的质量退化风险，并在类别级质量预算与实测实例容量约束下最大化吞吐。该工作为量化MoE服务提供了质量约束下的高效路由方案。",
+      "llm_tags": [
+        "query:moe-quant"
+      ],
+      "matched_query_tag": "query:moe-quant",
+      "matched_query_text": "MoE Quantization",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.09866v1",
+      "source": "arxiv",
+      "title": "UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding",
+      "abstract": "We present UniStream, a fully causal 48 kHz neural audio codec for streaming speech, music, and environmental sounds. At its core is Multi-Expert Residual Vector Quantization (ME-RVQ), which replaces the single shared codebook in each residual quantization layer with four expert codebooks controlled by a deterministic Top-K router. Because routing decisions are derived solely from previously decoded quantized states, the decoder can reproduce the selected experts without transmitting expert identifiers, thereby expanding quantization capacity while adding 5.5M parameters. We further introduce an auxiliary Optimal Transport Conditional Flow Matching (OT-CFM) objective to regularize the quantized latent space during training. The flow module is removed entirely at inference and therefore incurs no runtime overhead. UniStream supports a 12 kbps Top-1 mode and a 22.5 kbps Top-2 mode within a causal 48 kHz encoder-decoder framework, while achieving real-time GPU inference. To complement narrow-band speech metrics, we report 48 kHz ViSQOL audio mode, ViSQOL speech mode, standard VGGish-FAD, DNSMOS P.835, and higher-rate reference comparisons with Opus and EnCodec. At 12 kbps, UniStream-Top1 achieves PESQ and UTMOS scores comparable to EnCodec while reducing speech Mel-D from 13.07 to 8.21. At 22.5 kbps, UniStream-Top2 achieves a ViSQOL speech-mode score of 4.67 and an environmental audio-mode score of 3.96, exceeding all evaluated systems operating at 12 kbps or below in the latter setting. It also comes within 0.03 MOS-LQO of Opus at 24 kbps on speech in ViSQOL audio mode. Ablation studies confirm that ME-RVQ is the primary source of quality improvement, whereas OT-CFM provides perceptual gains on speech with a mild trade-off in spectral distortion.",
+      "authors": [
+        "Mingyu Zhao",
+        "Zhiyong Wu"
+      ],
+      "primary_category": "eess.AS",
+      "categories": [
+        "eess.AS"
+      ],
+      "published": "2026-09-09T08:16:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.09866v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "multi-expert residual vector quantization with top-k routed expert codebooks",
+      "llm_evidence_cn": "多专家残差向量量化与Top-K路由专家码本",
+      "llm_evidence": "多专家残差向量量化与Top-K路由专家码本",
+      "canonical_evidence": "多专家残差向量量化与Top-K路由专家码本",
+      "llm_tldr_en": "UniStream is a fully causal 48 kHz neural audio codec whose core ME-RVQ replaces each residual layer shared codebook with four expert codebooks chosen by a deterministic Top-K router reproducible from decoded states.",
+      "llm_tldr_cn": "流式神经音频编解码需在低比特率下保持语音、音乐与环境声的高保真重建，而单码本残差量化容量有限。本文提出UniStream因果编解码器，其核心ME-RVQ在每层残差量化中用四个由确定性Top-K路由控制的专家码本替代共享码本，解码端可由已解码量化状态复现专家选择而无需传输标识。作者还引入最优传输条件流匹配目标正则化量化隐空间，仅增加5.5M参数即扩大量化容量。",
+      "llm_tldr": "流式神经音频编解码需在低比特率下保持语音、音乐与环境声的高保真重建，而单码本残差量化容量有限。本文提出UniStream因果编解码器，其核心ME-RVQ在每层残差量化中用四个由确定性Top-K路由控制的专家码本替代共享码本，解码端可由已解码量化状态复现专家选择而无需传输标识。作者还引入最优传输条件流匹配目标正则化量化隐空间，仅增加5.5M参数即扩大量化容量。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.11716v1",
+      "source": "arxiv",
+      "title": "Why Does Post-Training Quantization Work?",
+      "abstract": "Post-training quantization compresses large language models (LLMs) by storing their weights at reduced precision, and each quantized weight introduces an error into the hidden states. Naively, these errors should accumulate with depth and corrupt next-token prediction; randomly initialized models accumulate these discrepancies rapidly, whereas quantized pretrained models accumulate much less hidden-state error and largely maintain downstream task performance, even though they were never trained with quantization noise. This raises the question we address: why does post-training quantization work? Comparing full-precision and quantized forward passes, we identify two mechanisms that characterize pretrained quantization robustness. First, the error a layer newly introduces tends to oppose the error it inherits from the layer's input. The two cancel partially such that the discrepancy between full-precision and quantized passes grows slowly. This counteracting residual interaction develops during pretraining. Our quantitative analysis identifies it as a major factor slowing hidden-error growth. Second, LM-head geometry preferentially preserves the scores and probabilities of high-ranked tokens, which typically represent the model's most confident predictions. Together, these mechanisms explain why quantization error that passes through numerous layers can still produce only small output changes, and we verify the findings across models and quantization settings.",
+      "authors": [
+        "Yuxiang Chen",
+        "Michael Beyer",
+        "Jun Zhu",
+        "Jianfei Chen"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-09-10T15:32:32+00:00",
+      "link": "https://arxiv.org/pdf/2609.11716v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "post-training quantization of LLM weights at reduced precision",
+      "llm_evidence_cn": "大语言模型权重的后训练低精度量化",
+      "llm_evidence": "大语言模型权重的后训练低精度量化",
+      "canonical_evidence": "大语言模型权重的后训练低精度量化",
+      "llm_tldr_en": "Post-training quantization compresses LLM weights to reduced precision, yet errors should accumulate with depth. Comparing full-precision and quantized forward passes, the paper identifies two mechanisms explaining pretrained quantization robustness.",
+      "llm_tldr_cn": "后训练量化通过降低权重精度压缩大语言模型，但每层引入的误差理论上应随深度累积并破坏下一词预测，而量化模型却基本保持性能。论文对比全精度与量化前向传播，分析预训练模型的量化鲁棒性来源。研究识别出两种机制，解释量化模型隐状态误差累积远小于随机初始化模型的原因。该工作从机理层面回答了后训练量化为何有效，对低比特量化研究具有参考价值。",
+      "llm_tldr": "后训练量化通过降低权重精度压缩大语言模型，但每层引入的误差理论上应随深度累积并破坏下一词预测，而量化模型却基本保持性能。论文对比全精度与量化前向传播，分析预训练模型的量化鲁棒性来源。研究识别出两种机制，解释量化模型隐状态误差累积远小于随机初始化模型的原因。该工作从机理层面回答了后训练量化为何有效，对低比特量化研究具有参考价值。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "papers provide SoTA/advanced results",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.14189v1",
+      "source": "arxiv",
+      "title": "MorphoStyle: Motion Style Transfer with Morphology Control",
+      "abstract": "Human motion may be viewed as a combination of action content, style, and body morphology. Existing motion style transfer methods transfer a reference style onto a content motion while assuming a canonical body, whereas shape-aware motion generators adapt motion to a target shape without explicit style control. This separation of motion style and shape (morphology) makes it difficult to generate stylized motions for non-canonical bodies; naively combining a style transfer module with a shape-aware generator often leaks action content from the style reference and disrupts shape-consistent kinematics. We present MorphoStyle, a framework for shape-aware motion style transfer that is built on a shape-conditioned Finite-Scalar-Quantization Variational Auto-Encoder (FSQ-VAE). The key contribution is to pose the desired style transfer as modular latent disentanglement comprising: (i) a contrastive style encoder that extracts content-decoupled style embeddings; (ii) a text-guided style-routing mechanism that locates style-relevant joints in a text-motion feature space; and (iii) a manifold preserving style modulator that injects discriminative style embeddings in content features as a temporally-gated low-rank offset. Extensive experiments on benchmark datasets demonstrate that MorphoStyle outperforms competing baselines in terms of both shape control and motion style transfer, while simultaneously providing quantitative shape control. For more details, please see project website: https://github.com/funkdub/MorphoStyle.",
+      "authors": [
+        "Xin Feng",
+        "Eleonora D'Arnese",
+        "Mohan Sridharan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-12T23:40:27+00:00",
+      "link": "https://arxiv.org/pdf/2609.14189v1",
+      "tags": [
+        "keyword:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "finite scalar quantization VAE for shape-aware motion generation",
+      "llm_evidence_cn": "有限标量量化VAE用于形状感知动作生成",
+      "llm_evidence": "有限标量量化VAE用于形状感知动作生成",
+      "canonical_evidence": "有限标量量化VAE用于形状感知动作生成",
+      "llm_tldr_en": "Motion style transfer assumes a canonical body and cannot handle non-canonical shapes, while shape-aware generators lack style control. MorphoStyle builds a shape-conditioned Finite-Scalar-Quantization VAE to transfer style without leaking content.",
+      "llm_tldr_cn": "动作风格迁移通常假设标准体型，而形状感知生成器又缺少显式风格控制，导致难以为非标准体型生成风格化动作，简单拼接还会泄漏内容并破坏运动学一致性。论文提出MorphoStyle框架，基于形状条件的有限标量量化变分自编码器（FSQ-VAE）实现形状感知的风格迁移。方法在保持形状一致运动学的同时减少动作内容泄漏。该工作把低比特标量量化引入动作生成，为非常规体型的风格化动作生成提供新方案。",
+      "llm_tldr": "动作风格迁移通常假设标准体型，而形状感知生成器又缺少显式风格控制，导致难以为非标准体型生成风格化动作，简单拼接还会泄漏内容并破坏运动学一致性。论文提出MorphoStyle框架，基于形状条件的有限标量量化变分自编码器（FSQ-VAE）实现形状感知的风格迁移。方法在保持形状一致运动学的同时减少动作内容泄漏。该工作把低比特标量量化引入动作生成，为非常规体型的风格化动作生成提供新方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
