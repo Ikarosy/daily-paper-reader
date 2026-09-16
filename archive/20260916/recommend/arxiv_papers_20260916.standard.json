@@ -1,0 +1,137 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-16T22:39:06.935786+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 3,
+    "deep_cap": 7,
+    "deep_selected": 3,
+    "quick_candidates": 0,
+    "quick_skim_target": 12,
+    "quick_selected": 0
+  },
+  "deep_dive": [
+    {
+      "id": "2609.09866v1",
+      "source": "arxiv",
+      "title": "UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding",
+      "abstract": "We present UniStream, a fully causal 48 kHz neural audio codec for streaming speech, music, and environmental sounds. At its core is Multi-Expert Residual Vector Quantization (ME-RVQ), which replaces the single shared codebook in each residual quantization layer with four expert codebooks controlled by a deterministic Top-K router. Because routing decisions are derived solely from previously decoded quantized states, the decoder can reproduce the selected experts without transmitting expert identifiers, thereby expanding quantization capacity while adding 5.5M parameters. We further introduce an auxiliary Optimal Transport Conditional Flow Matching (OT-CFM) objective to regularize the quantized latent space during training. The flow module is removed entirely at inference and therefore incurs no runtime overhead. UniStream supports a 12 kbps Top-1 mode and a 22.5 kbps Top-2 mode within a causal 48 kHz encoder-decoder framework, while achieving real-time GPU inference. To complement narrow-band speech metrics, we report 48 kHz ViSQOL audio mode, ViSQOL speech mode, standard VGGish-FAD, DNSMOS P.835, and higher-rate reference comparisons with Opus and EnCodec. At 12 kbps, UniStream-Top1 achieves PESQ and UTMOS scores comparable to EnCodec while reducing speech Mel-D from 13.07 to 8.21. At 22.5 kbps, UniStream-Top2 achieves a ViSQOL speech-mode score of 4.67 and an environmental audio-mode score of 3.96, exceeding all evaluated systems operating at 12 kbps or below in the latter setting. It also comes within 0.03 MOS-LQO of Opus at 24 kbps on speech in ViSQOL audio mode. Ablation studies confirm that ME-RVQ is the primary source of quality improvement, whereas OT-CFM provides perceptual gains on speech with a mild trade-off in spectral distortion.",
+      "authors": [
+        "Mingyu Zhao",
+        "Zhiyong Wu"
+      ],
+      "primary_category": "eess.AS",
+      "categories": [
+        "eess.AS"
+      ],
+      "published": "2026-09-09T08:16:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.09866v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multi-Expert Residual Vector Quantization replaces each layer shared codebook with expert codebooks",
+      "llm_evidence_cn": "多专家残差矢量量化用专家码本替换每层共享码本",
+      "llm_evidence": "多专家残差矢量量化用专家码本替换每层共享码本",
+      "canonical_evidence": "多专家残差矢量量化用专家码本替换每层共享码本",
+      "llm_tldr_en": "UniStream is a fully causal 48 kHz neural audio codec whose Multi-Expert Residual Vector Quantization replaces each layer shared codebook with four Top-K routed expert codebooks, expanding quantization capacity without transmitting expert IDs.",
+      "llm_tldr_cn": "针对流式音频编码中单一共享码本量化容量有限的问题，本文提出全因果48 kHz神经音频编解码器UniStream，其核心ME-RVQ用四个专家码本与确定性Top-K路由替换每层残差量化的单码本，路由仅依赖已解码量化状态，解码端无需传输专家标识即可复现所选专家。方法还引入最优传输条件流匹配目标正则化量化潜空间。实验表明该方案在扩大量化容量的同时仅增加5.5M参数，适用于语音、音乐与环境声，为极低比特码本量化提供了可复用的多专家码本思路。",
+      "llm_tldr": "针对流式音频编码中单一共享码本量化容量有限的问题，本文提出全因果48 kHz神经音频编解码器UniStream，其核心ME-RVQ用四个专家码本与确定性Top-K路由替换每层残差量化的单码本，路由仅依赖已解码量化状态，解码端无需传输专家标识即可复现所选专家。方法还引入最优传输条件流匹配目标正则化量化潜空间。实验表明该方案在扩大量化容量的同时仅增加5.5M参数，适用于语音、音乐与环境声，为极低比特码本量化提供了可复用的多专家码本思路。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.12208v1",
+      "source": "arxiv",
+      "title": "Vortex: Bridging Extreme Compression and Efficient LLM Inference",
+      "abstract": "Extreme compression techniques, including vector quantization (VQ) and input-dependent sparsity, can significantly reduce the memory footprint of large language models (LLMs). However, a key challenge remains in translating such compression into practical efficiency. On conventional systolic-array-based accelerators, VQ incurs high dequantization overhead, while the irregular patterns of input-dependent sparsity are difficult to exploit. In this study, we address these challenges with Vortex, an architecture compatible with systolic-array-based accelerators with minimal hardware overhead, bridging the gap between extreme compression and efficient inference. Vortex adopts a bi-flow execution strategy that efficiently supports vector-quantized models across both prefill and decoding workloads, and we further optimize it through systematic design space exploration. On the algorithm side, we propose codebook-wise contextual sparsity to align with VQ execution. Across end-to-end workloads, Vortex achieves $8.03\\times$--$23.7\\times$ speedup and $5.68\\times$--$12.5\\times$ energy reduction over state-of-the-art accelerators.",
+      "authors": [
+        "Haoxuan Shan",
+        "Cong Guo",
+        "Bowen Duan",
+        "Chiyue Wei",
+        "Feng Cheng",
+        "Yuzhe Fu",
+        "Yintao He",
+        "Hai \"Helen\" Li",
+        "Yiran Chen"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-10T21:04:15+00:00",
+      "link": "https://arxiv.org/pdf/2609.12208v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "vector quantization extreme compression with codebook dequantization on accelerators",
+      "llm_evidence_cn": "向量量化极限压缩与码本反量化",
+      "llm_evidence": "向量量化极限压缩与码本反量化",
+      "canonical_evidence": "向量量化极限压缩与码本反量化",
+      "llm_tldr_en": "Vortex bridges extreme compression and efficient LLM inference by a bi-flow execution strategy that supports vector-quantized models on systolic-array accelerators with minimal hardware overhead.",
+      "llm_tldr_cn": "向量量化与输入相关稀疏虽能大幅压缩大模型内存，但在传统脉动阵列加速器上反量化开销高，不规则稀疏也难被利用，压缩难以转化为实际效率。作者提出Vortex架构，以极小硬件开销兼容脉动阵列，并采用双流执行策略高效支持向量量化模型。该工作弥合了极限压缩与高效推理之间的鸿沟，为极低比特向量量化模型在通用加速器上的落地提供了架构层面的支撑。",
+      "llm_tldr": "向量量化与输入相关稀疏虽能大幅压缩大模型内存，但在传统脉动阵列加速器上反量化开销高，不规则稀疏也难被利用，压缩难以转化为实际效率。作者提出Vortex架构，以极小硬件开销兼容脉动阵列，并采用双流执行策略高效支持向量量化模型。该工作弥合了极限压缩与高效推理之间的鸿沟，为极低比特向量量化模型在通用加速器上的落地提供了架构层面的支撑。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.12310v1",
+      "source": "arxiv",
+      "title": "ESTS at WMT26: Routing-Informed Expert Pruning for Model Compression",
+      "abstract": "We describe six submissions under the team name ESTS to the unconstrained WMT26 Model Compression Shared Task for English--Simplified Chinese and English--Egyptian Arabic. We submit three compression operating points per translation direction, all derived from GPT-OSS-20B. We use task-specific routing mass to rank experts and cross-lingual routing divergence to allocate retained capacity across layers, then physically remove low-importance experts. The resulting specialists are recovery-tuned on GPT-5.1-generated synthetic translation data and further compressed by applying MXFP4 quantization to the retained expert projection weights. We additionally implement a robust inference system for the instruction-conditioned WMT26 setting, including category inference, output validation, retries, segmented fallback, and source-owned JSON reconstruction. Across our six submissions, parameter counts range from 4.186B to 7.770B and packed artifact sizes from 4.55 to 6.33~GiB. Internal xCOMET-XL evaluation using GPT-5.1 pseudo-references provides an internal comparison across the submitted compression operating points.",
+      "authors": [
+        "Liu O. Martin",
+        "Lucas Bandarkar",
+        "Nanyun Peng"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-11T00:30:43+00:00",
+      "link": "https://arxiv.org/pdf/2609.12310v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "MoE expert pruning combined with MXFP4 quantization of expert weights",
+      "llm_evidence_cn": "MoE专家剪枝结合专家权重的MXFP4量化",
+      "llm_evidence": "MoE专家剪枝结合专家权重的MXFP4量化",
+      "canonical_evidence": "MoE专家剪枝结合专家权重的MXFP4量化",
+      "llm_tldr_en": "For WMT26 model compression, the authors rank MoE experts by task routing mass, allocate capacity via cross-lingual routing divergence, prune low-importance experts, and apply MXFP4 quantization to retained expert weights, yielding efficient compressed translation specialists.",
+      "llm_tldr_cn": "针对WMT26模型压缩任务，本文提出路由信息引导的专家剪枝方法。作者用任务相关路由质量对专家排序，并用跨语言路由差异在各层分配保留容量，物理移除低重要性专家，再对保留的专家投影权重施加MXFP4量化，并用合成数据恢复微调。该方法在英中与英埃翻译方向上给出多个压缩工作点，实现了MoE模型的高效量化压缩。",
+      "llm_tldr": "针对WMT26模型压缩任务，本文提出路由信息引导的专家剪枝方法。作者用任务相关路由质量对专家排序，并用跨语言路由差异在各层分配保留容量，物理移除低重要性专家，再对保留的专家投影权重施加MXFP4量化，并用合成数据恢复微调。该方法在英中与英埃翻译方向上给出多个压缩工作点，实现了MoE模型的高效量化压缩。",
+      "llm_tags": [
+        "query:moe-quant"
+      ],
+      "matched_query_tag": "query:moe-quant",
+      "matched_query_text": "MoE Quantization",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": []
+}

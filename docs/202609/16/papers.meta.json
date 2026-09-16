@@ -1,0 +1,54 @@
+{
+  "label": "2026-09-16",
+  "date": "2026-09-16",
+  "generated_at": "2026-09-16T22:41:03",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202609/16/2609.09866v1-unistream-multi-expert-residual-vector-quantization-for-48-khz-causal-streaming-audio-coding",
+      "section": "deep",
+      "title_en": "UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding",
+      "authors": "Mingyu Zhao, Zhiyong Wu",
+      "date": "2026-09-09",
+      "pdf": "https://arxiv.org/pdf/2609.09866v1",
+      "score": "9.0",
+      "evidence": "多专家残差矢量量化用专家码本替换每层共享码本",
+      "tldr": "48 kHz因果流式音频编码需在低码率兼顾语音、音乐与环境声。UniStream提出ME-RVQ，用确定性Top-K路由从已解码量化状态选专家码本，解码端无需专家标识即可复现，并加入OT-CFM训练正则化。支持12 kbps Top-1与22.5 kbps Top-2，推理移除流模块。12 kbps下Mel-D从13.07降至8.21，22.5 kbps下ViSQOL语音4.67、环境3.96，展现低码率流式编码竞争力。",
+      "tags": "query:wbv",
+      "abstract_en": "We present UniStream, a fully causal 48 kHz neural audio codec for streaming speech, music, and environmental sounds. At its core is Multi-Expert Residual Vector Quantization (ME-RVQ), which replaces the single shared codebook in each residual quantization layer with four expert codebooks controlled by a deterministic Top-K router. Because routing decisions are derived solely from previously decoded quantized states, the decoder can reproduce the selected experts without transmitting expert identifiers, thereby expanding quantization capacity while adding 5.5M parameters. We further introduce an auxiliary Optimal Transport Conditional Flow Matching (OT-CFM) objective to regularize the quantized latent space during training. The flow module is removed entirely at inference and therefore incurs no runtime overhead. UniStream supports a 12 kbps Top-1 mode and a 22.5 kbps Top-2 mode within a causal 48 kHz encoder-decoder framework, while achieving real-time GPU inference. To complement narrow-band speech metrics, we report 48 kHz ViSQOL audio mode, ViSQOL speech mode, standard VGGish-FAD, DNSMOS P.835, and higher-rate reference comparisons with Opus and EnCodec. At 12 kbps, UniStream-Top1 achieves PESQ and UTMOS scores comparable to EnCodec while reducing speech Mel-D from 13.07 to 8.21. At 22.5 kbps, UniStream-Top2 achieves a ViSQOL speech-mode score of 4.67 and an environmental audio-mode score of 3.96, exceeding all evaluated systems operating at 12 kbps or below in the latter setting. It also comes within 0.03 MOS-LQO of Opus at 24 kbps on speech in ViSQOL audio mode. Ablation studies confirm that ME-RVQ is the primary source of quality improvement, whereas OT-CFM provides perceptual gains on speech with a mild trade-off in spectral distortion.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/16/2609.12208v1-vortex-bridging-extreme-compression-and-efficient-llm-inference",
+      "section": "deep",
+      "title_en": "Vortex: Bridging Extreme Compression and Efficient LLM Inference",
+      "authors": "Haoxuan Shan, Cong Guo, Bowen Duan, Chiyue Wei, Feng Cheng, Yuzhe Fu, Yintao He, Hai \"Helen\" Li, Yiran Chen",
+      "date": "2026-09-10",
+      "pdf": "https://arxiv.org/pdf/2609.12208v1",
+      "score": "9.0",
+      "evidence": "向量量化极限压缩与码本反量化",
+      "tldr": "极端压缩（VQ、输入依赖稀疏）可大幅降LLM内存，但在脉动阵列加速器上VQ反量化开销高、稀疏不规则难利用，压缩难转实际效率。提出Vortex架构，硬件开销小且兼容脉动阵列；双流执行支持预填充与解码，并做设计空间探索；算法提出码本级上下文稀疏对齐VQ。端到端负载中，Vortex相比SOTA加速器实现8.03×–23.7×加速和5.68×–12.5×能耗降低。弥合极端压缩与高效LLM推理差距，为脉动阵列加速器提供实用方案。",
+      "tags": "query:wbv",
+      "abstract_en": "Extreme compression techniques, including vector quantization (VQ) and input-dependent sparsity, can significantly reduce the memory footprint of large language models (LLMs). However, a key challenge remains in translating such compression into practical efficiency. On conventional systolic-array-based accelerators, VQ incurs high dequantization overhead, while the irregular patterns of input-dependent sparsity are difficult to exploit. In this study, we address these challenges with Vortex, an architecture compatible with systolic-array-based accelerators with minimal hardware overhead, bridging the gap between extreme compression and efficient inference. Vortex adopts a bi-flow execution strategy that efficiently supports vector-quantized models across both prefill and decoding workloads, and we further optimize it through systematic design space exploration. On the algorithm side, we propose codebook-wise contextual sparsity to align with VQ execution. Across end-to-end workloads, Vortex achieves $8.03\\times$--$23.7\\times$ speedup and $5.68\\times$--$12.5\\times$ energy reduction over state-of-the-art accelerators.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/16/2609.12310v1-ests-at-wmt26-routing-informed-expert-pruning-for-model-compression",
+      "section": "deep",
+      "title_en": "ESTS at WMT26: Routing-Informed Expert Pruning for Model Compression",
+      "authors": "Liu O. Martin, Lucas Bandarkar, Nanyun Peng",
+      "date": "2026-09-11",
+      "pdf": "https://arxiv.org/pdf/2609.12310v1",
+      "score": "8.0",
+      "evidence": "MoE专家剪枝结合专家权重的MXFP4量化",
+      "tldr": "面向WMT26无约束模型压缩共享任务，ESTS为英-简中和英-埃及阿两个方向各提交三个压缩档，均源自GPT-OSS-20B。方法用任务路由质量排序专家、跨语言路由散度分配各层保留容量，再物理剪枝低重要专家，并用GPT-5.1合成译文恢复微调及MXFP4量化。六个提交参数量4.186B–7.770B，打包体积4.55–6.33 GiB，并配鲁棒推理流程。该方案验证了路由感知剪枝在指令约束翻译压缩中的有效性。",
+      "tags": "query:moe-quant",
+      "abstract_en": "We describe six submissions under the team name ESTS to the unconstrained WMT26 Model Compression Shared Task for English--Simplified Chinese and English--Egyptian Arabic. We submit three compression operating points per translation direction, all derived from GPT-OSS-20B. We use task-specific routing mass to rank experts and cross-lingual routing divergence to allocate retained capacity across layers, then physically remove low-importance experts. The resulting specialists are recovery-tuned on GPT-5.1-generated synthetic translation data and further compressed by applying MXFP4 quantization to the retained expert projection weights. We additionally implement a robust inference system for the instruction-conditioned WMT26 setting, including category inference, output validation, retries, segmented fallback, and source-owned JSON reconstruction. Across our six submissions, parameter counts range from 4.186B to 7.770B and packed artifact sizes from 4.55 to 6.33~GiB. Internal xCOMET-XL evaluation using GPT-5.1 pseudo-references provides an internal comparison across the submitted compression operating points.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

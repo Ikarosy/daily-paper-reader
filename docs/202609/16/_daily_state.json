@@ -1,0 +1,57 @@
+{
+  "date": "20260916",
+  "date_label": "",
+  "generated_at": "2026-09-16 22:41:01 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.09866v1",
+      "route": "202609/16/2609.09866v1-unistream-multi-expert-residual-vector-quantization-for-48-khz-causal-streaming-audio-coding",
+      "title": "UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "多专家残差矢量量化用专家码本替换每层共享码本",
+      "first_seen_at": "2026-09-16 22:41:01 UTC",
+      "updated_at": "2026-09-16 22:41:01 UTC"
+    },
+    {
+      "paper_id": "2609.12208v1",
+      "route": "202609/16/2609.12208v1-vortex-bridging-extreme-compression-and-efficient-llm-inference",
+      "title": "Vortex: Bridging Extreme Compression and Efficient LLM Inference",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "向量量化极限压缩与码本反量化",
+      "first_seen_at": "2026-09-16 22:41:01 UTC",
+      "updated_at": "2026-09-16 22:41:01 UTC"
+    },
+    {
+      "paper_id": "2609.12310v1",
+      "route": "202609/16/2609.12310v1-ests-at-wmt26-routing-informed-expert-pruning-for-model-compression",
+      "title": "ESTS at WMT26: Routing-Informed Expert Pruning for Model Compression",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "MoE专家剪枝结合专家权重的MXFP4量化",
+      "first_seen_at": "2026-09-16 22:41:01 UTC",
+      "updated_at": "2026-09-16 22:41:01 UTC"
+    }
+  ]
+}
