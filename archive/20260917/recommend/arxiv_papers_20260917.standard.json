@@ -1,0 +1,250 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-17T21:48:40.043052+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 3,
+    "deep_cap": 7,
+    "deep_selected": 3,
+    "quick_candidates": 3,
+    "quick_skim_target": 12,
+    "quick_selected": 3
+  },
+  "deep_dive": [
+    {
+      "id": "2609.18131v1",
+      "source": "arxiv",
+      "title": "Colla-Q: Toward Collaborative Experts in MoE Quantization via Minimax Precision Balancing",
+      "abstract": "In this paper, we present a Mixture-of-Experts (MoE) quantization method based on activation entropy. Although quantization reduces memory and computational costs, it can substantially degrade performance. In particular, performance decline is pronounced in quantized MoE models, where individual experts have a small number of parameters that are sensitive to low-bit representation. Considering that MoE operates as an ensemble model with collaborative contributions from routed experts, a significant performance decline of a particular expert due to quantization can harm model performance. Therefore, we propose Colla-Q, a bit-allocation framework to maintain balanced performance across experts through an activation-entropy-based bit-width allocation algorithm. This approach encourages each expert to operate collaboratively in the quantized model, thereby 1) improving the overall MoE performance and 2) reducing the dependence on the calibration dataset. Since uniformly adjusting each expert's performance facilitates robustness and stability of the MoE model, the proposed MoE quantization method can generalize more consistently across different calibration datasets. Our code is available at: https://github.com/mmai-laboratory/Colla_Q",
+      "authors": [
+        "Eunju Shin",
+        "Jongbin Ryu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-09-16T05:09:22+00:00",
+      "link": "https://arxiv.org/pdf/2609.18131v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "MoE quantization bit-allocation via activation entropy",
+      "llm_evidence_cn": "基于激活熵的MoE量化比特分配",
+      "llm_evidence": "基于激活熵的MoE量化比特分配",
+      "canonical_evidence": "基于激活熵的MoE量化比特分配",
+      "llm_tldr_en": "Colla-Q tackles performance degradation in low-bit quantized Mixture-of-Experts models, where parameter-poor experts are highly sensitive to quantization. It proposes an activation-entropy-based bit-allocation framework that balances precision across routed experts, keeping collaborative ensemble behavior intact and improving quantized MoE accuracy.",
+      "llm_tldr_cn": "针对低比特量化下混合专家（MoE）模型性能显著下降的问题，尤其是参数规模小、对量化敏感的单个专家易拖累整体表现。本文提出Colla-Q，一种基于激活熵的比特分配框架，通过极小极大精度平衡为各专家分配合适位宽，维持专家间协作贡献的均衡。方法在量化MoE上缓解了个别专家的退化，从而提升整体精度，为低比特MoE部署提供了实用的量化方案。",
+      "llm_tldr": "针对低比特量化下混合专家（MoE）模型性能显著下降的问题，尤其是参数规模小、对量化敏感的单个专家易拖累整体表现。本文提出Colla-Q，一种基于激活熵的比特分配框架，通过极小极大精度平衡为各专家分配合适位宽，维持专家间协作贡献的均衡。方法在量化MoE上缓解了个别专家的退化，从而提升整体精度，为低比特MoE部署提供了实用的量化方案。",
+      "llm_tags": [
+        "query:moe-quant"
+      ],
+      "matched_query_tag": "query:moe-quant",
+      "matched_query_text": "MoE Quantization",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.09866v1",
+      "source": "arxiv",
+      "title": "UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding",
+      "abstract": "We present UniStream, a fully causal 48 kHz neural audio codec for streaming speech, music, and environmental sounds. At its core is Multi-Expert Residual Vector Quantization (ME-RVQ), which replaces the single shared codebook in each residual quantization layer with four expert codebooks controlled by a deterministic Top-K router. Because routing decisions are derived solely from previously decoded quantized states, the decoder can reproduce the selected experts without transmitting expert identifiers, thereby expanding quantization capacity while adding 5.5M parameters. We further introduce an auxiliary Optimal Transport Conditional Flow Matching (OT-CFM) objective to regularize the quantized latent space during training. The flow module is removed entirely at inference and therefore incurs no runtime overhead. UniStream supports a 12 kbps Top-1 mode and a 22.5 kbps Top-2 mode within a causal 48 kHz encoder-decoder framework, while achieving real-time GPU inference. To complement narrow-band speech metrics, we report 48 kHz ViSQOL audio mode, ViSQOL speech mode, standard VGGish-FAD, DNSMOS P.835, and higher-rate reference comparisons with Opus and EnCodec. At 12 kbps, UniStream-Top1 achieves PESQ and UTMOS scores comparable to EnCodec while reducing speech Mel-D from 13.07 to 8.21. At 22.5 kbps, UniStream-Top2 achieves a ViSQOL speech-mode score of 4.67 and an environmental audio-mode score of 3.96, exceeding all evaluated systems operating at 12 kbps or below in the latter setting. It also comes within 0.03 MOS-LQO of Opus at 24 kbps on speech in ViSQOL audio mode. Ablation studies confirm that ME-RVQ is the primary source of quality improvement, whereas OT-CFM provides perceptual gains on speech with a mild trade-off in spectral distortion.",
+      "authors": [
+        "Mingyu Zhao",
+        "Zhiyong Wu"
+      ],
+      "primary_category": "eess.AS",
+      "categories": [
+        "eess.AS"
+      ],
+      "published": "2026-09-09T08:16:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.09866v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Multi-Expert Residual Vector Quantization with expert codebooks and Top-K router",
+      "llm_evidence_cn": "多专家残差矢量量化，采用专家码本与Top-K路由",
+      "llm_evidence": "多专家残差矢量量化，采用专家码本与Top-K路由",
+      "canonical_evidence": "多专家残差矢量量化，采用专家码本与Top-K路由",
+      "llm_tldr_en": "UniStream introduces Multi-Expert Residual Vector Quantization (ME-RVQ) for causal 48 kHz audio coding, replacing a single codebook with four expert codebooks selected by a deterministic Top-K router, and uses Optimal Transport Conditional Flow Matching to regularize the latent space, expanding quantization capacity while enabling streaming decoding.",
+      "llm_tldr_cn": "针对现有神经音频编解码器在因果流式场景下量化容量受限的问题，本文提出UniStream，一种支持48 kHz语音、音乐与环境声的完全因果神经编解码器。其核心是多专家残差矢量量化（ME-RVQ），在每个残差量化层用四个专家码本替换单一共享码本，并由确定性Top-K路由器控制，路由决策仅依赖已解码的量化状态，因此解码器无需传输专家标识即可复现所选专家，在仅增加5.5M参数的情况下扩展了量化容量。此外引入最优传输条件流匹配（OT-CFM）目标来正则化量化隐空间。实验表明该方法在流式音频编码中有效提升了量化能力，为低比特神经音频编码提供了新思路。",
+      "llm_tldr": "针对现有神经音频编解码器在因果流式场景下量化容量受限的问题，本文提出UniStream，一种支持48 kHz语音、音乐与环境声的完全因果神经编解码器。其核心是多专家残差矢量量化（ME-RVQ），在每个残差量化层用四个专家码本替换单一共享码本，并由确定性Top-K路由器控制，路由决策仅依赖已解码的量化状态，因此解码器无需传输专家标识即可复现所选专家，在仅增加5.5M参数的情况下扩展了量化容量。此外引入最优传输条件流匹配（OT-CFM）目标来正则化量化隐空间。实验表明该方法在流式音频编码中有效提升了量化能力，为低比特神经音频编码提供了新思路。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.17769v1",
+      "source": "arxiv",
+      "title": "Prior-Aided Masked Vector Quantization CSI Feedback for FDD Massive MIMO Systems",
+      "abstract": "Downlink channel state information (CSI) feedback is a key bottleneck in frequency-division duplex (FDD) massive MIMO systems, as the user equipment (UE) must convey its estimated channel to the base station (BS) over a limited uplink (UL) budget. To improve CSI reconstruction accuracy under tight feedback constraints, we propose prior-aided masked vector quantization (PM-VQ), a learning-based separate source--channel coding (SSCC) feedback scheme conditioned on the average angle--delay power map---a compact representation of the channel second-order statistics available at both the UE and the BS. In PM-VQ, a prior-aided encoder maps the CSI to latent tokens, and a spatially-adaptive masking module (SAMM) scores and selects the most informative tokens within the feedback budget. The selected tokens are vector-quantized and fed back together with their positions, while an adaptive de-masking module (ADM) completes the latent representation at the BS before prior-conditioned decoding. To support variable-rate compression, a single model is trained over a range of selected-token counts, enabling operation across multiple feedback dimensions without retraining. We evaluate PM-VQ against three representative baselines on a Sionna-generated 3GPP TR~38.901 UMa dataset, focusing on the most challenging diffuse regime where channel energy is spread across many angle--delay coefficients. Simulation results show that PM-VQ achieves the lowest NMSE across all tested SNR levels and feedback dimensions in this regime. Moreover, the angle--delay power-map prior remains beneficial even when estimated from only a few channel realizations.",
+      "authors": [
+        "Yi Song",
+        "Tianyu Yang",
+        "Kangda Zhi",
+        "Shuangyang Li",
+        "Fangzhou Wu",
+        "Songyan Xue",
+        "Giuseppe Caire"
+      ],
+      "primary_category": "cs.IT",
+      "categories": [
+        "cs.IT"
+      ],
+      "published": "2026-09-15T19:19:24+00:00",
+      "link": "https://arxiv.org/pdf/2609.17769v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "learning-based vector quantization with masking for token selection",
+      "llm_evidence_cn": "基于学习的掩码矢量量化与令牌选择",
+      "llm_evidence": "基于学习的掩码矢量量化与令牌选择",
+      "canonical_evidence": "基于学习的掩码矢量量化与令牌选择",
+      "llm_tldr_en": "PM-VQ couples a prior-aided encoder with spatially-adaptive masking and vector quantization to improve CSI feedback reconstruction under tight uplink budgets in FDD massive MIMO.",
+      "llm_tldr_cn": "在 FDD 大规模 MIMO 中，用户需在上行预算受限下反馈信道状态信息，是系统瓶颈。本文提出先验辅助掩码矢量量化 PM-VQ，基于收发双方共享的平均角度时延功率图，用编码器生成潜在令牌，并以空间自适应掩码挑选最关键令牌进行量化。该方案在紧约束下提升 CSI 重建精度，为有限反馈的矢量量化编码提供了新思路。",
+      "llm_tldr": "在 FDD 大规模 MIMO 中，用户需在上行预算受限下反馈信道状态信息，是系统瓶颈。本文提出先验辅助掩码矢量量化 PM-VQ，基于收发双方共享的平均角度时延功率图，用编码器生成潜在令牌，并以空间自适应掩码挑选最关键令牌进行量化。该方案在紧约束下提升 CSI 重建精度，为有限反馈的矢量量化编码提供了新思路。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.17652v1",
+      "source": "arxiv",
+      "title": "Fathom: Per-Query Read Depth for Sparse Decoding over Offloaded KV Caches",
+      "abstract": "When agentic sessions run to a million tokens with many sessions resident at once, the KV cache and the index that ranks it live in host memory, and the scan that ranks all n keys for a top-k step becomes the traffic that bounds decoding. We present Fathom, a key scan in which each query decides how many bits of each key channel to read. The 4-bit K cache is stored channel-major as bit planes, so a prefix of t planes is exactly the channel's t-bit quantizer, and the query spends its bit budget by reverse water-filling over the variance-weighted importance of its channels. At one million tokens on Qwen3-8B a decode step is 1.67x faster in GPU time than with the 136-bit scans of Double Sparsity, Loki and SparQ r=32, and in the same GPU time as SparQ's 68-bit read (r=16) Fathom reads 18% fewer bytes with lower attention error on six of seven model and context settings. On RULER-style tasks every per-token scan matches exact top-k decoding, and on real coding-agent sessions Fathom reaches the step agreement of the most accurate 136-bit scan at 92 bits. The store is the 4-bit K copy a quantized serving stack already holds, and the method is not faster when the index is resident in GPU memory.",
+      "authors": [
+        "Vivek Kalyanarangan"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL",
+        "cs.DC"
+      ],
+      "published": "2026-09-15T16:53:01+00:00",
+      "link": "https://arxiv.org/pdf/2609.17652v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "t-bit per-channel quantizer stored as bit planes, low-bit KV cache decoding",
+      "llm_evidence_cn": "按通道t比特量化器以位平面存储，低比特KV缓存解码",
+      "llm_evidence": "按通道t比特量化器以位平面存储，低比特KV缓存解码",
+      "canonical_evidence": "按通道t比特量化器以位平面存储，低比特KV缓存解码",
+      "llm_tldr_en": "Fathom stores the 4-bit K cache as channel-major bit planes so a prefix of t planes is exactly a t-bit quantizer, letting each query allocate its bit budget by reverse water-filling and speeding million-token decoding 1.67x.",
+      "llm_tldr_cn": "长上下文智能体场景下KV缓存与索引驻留主机内存，为top-k排序扫描全部键成为解码瓶颈。Fathom提出按查询决定读取深度的键扫描方法：4比特K缓存按通道以位平面存储，读取前t个平面即等价于该通道的t比特量化器，查询按通道方差加权重要性以反注水方式分配比特预算。在Qwen3-8B百万token下解码GPU时间比Double Sparsity等136比特扫描快1.67倍。该方法为低比特KV量化与稀疏解码提供了可复用的按需精度机制。",
+      "llm_tldr": "长上下文智能体场景下KV缓存与索引驻留主机内存，为top-k排序扫描全部键成为解码瓶颈。Fathom提出按查询决定读取深度的键扫描方法：4比特K缓存按通道以位平面存储，读取前t个平面即等价于该通道的t比特量化器，查询按通道方差加权重要性以反注水方式分配比特预算。在Qwen3-8B百万token下解码GPU时间比Double Sparsity等136比特扫描快1.67倍。该方法为低比特KV量化与稀疏解码提供了可复用的按需精度机制。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.16338v1",
+      "source": "arxiv",
+      "title": "Breaking the 1.58-bit Barrier for Ternary LLMs",
+      "abstract": "Ternary Large Language Models (LLM) store every weight as one of three symbols $\\{-1,0,+1\\}$, so the cost of a ternary model is conventionally referenced to the information-theoretic $\\log_2 3 \\approx 1.585$ bits per weight. The prevailing deployment format packs five ternary weights into one byte (five-trit packing), and due to the power-of-two group sizes used in practice this rounds up to $1.625$ bits per weight. This effective storage bit-width treats the three symbols $\\{-1,0,+1\\}$ as equiprobable. We measure the actual symbol distribution of 29 ternary LLM models and find that zeros account for up to $51.5\\%$ of all weights. Motivated by this finding, we introduce BITCOS, a simple distribution-adaptive layout comprised of a dense presence bitmap plus a compacted sign vector, and costs $2 - z$ bits per weight element given a zero density $z$ in the model's weights. BITCOS stores weights more compactly than the five-trit packing in 26 of the 29 tested models, and reaches $1.485$ bits per weight on the sparsest of them. BITCOS is amenable to efficient unpacking on modern processors and GPUs, and we present optimized unpacking sequences for AVX-512, AVX2 and Intel Xe2 GPUs. Measured against production state-of-the-art ternary matrix-vector multiplication kernels, at the zero densities real-world ternary models exhibit, the realized gain with our proposed layout is up to $1.28\\times$. Finally, we illustrate end-to-end LLM inference results on 5 different platforms (client and server CPUs, integrated and discrete Xe2 GPUs) where decode throughput improves by up to $1.18\\times$ on CPUs and $1.27\\times$ on GPUs.",
+      "authors": [
+        "Evangelos Georganas",
+        "Alexander Heinecke",
+        "Pradeep Dubey"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-14T20:54:24+00:00",
+      "link": "https://arxiv.org/pdf/2609.16338v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "distribution-adaptive storage layout pushing ternary LLM weights below 1.58-bit",
+      "llm_evidence_cn": "将三元LLM权重压缩至1.58比特以下的分布自适应存储布局",
+      "llm_evidence": "将三元LLM权重压缩至1.58比特以下的分布自适应存储布局",
+      "canonical_evidence": "将三元LLM权重压缩至1.58比特以下的分布自适应存储布局",
+      "llm_tldr_en": "Ternary LLMs nominally cost 1.585 bits/weight but five-trit packing yields 1.625 bits; measuring 29 models shows up to 51.5% zeros, motivating BITCOS, a distribution-adaptive bitmap-plus-sign layout.",
+      "llm_tldr_cn": "三元大语言模型以-1、0、+1表示权重，理论存储成本约1.585比特，但主流五进制打包因采用2的幂分组实际升至1.625比特，且默认三符号等概率。作者测量29个三元LLM，发现零权重占比最高达51.5%，据此提出BITCOS这一分布自适应布局，用稠密存在位图加紧凑符号向量编码。该方案突破了1.58比特的存储壁垒，为极低比特模型的部署提供了更高效的存储格式与实证依据。",
+      "llm_tldr": "三元大语言模型以-1、0、+1表示权重，理论存储成本约1.585比特，但主流五进制打包因采用2的幂分组实际升至1.625比特，且默认三符号等概率。作者测量29个三元LLM，发现零权重占比最高达51.5%，据此提出BITCOS这一分布自适应布局，用稠密存在位图加紧凑符号向量编码。该方案突破了1.58比特的存储壁垒，为极低比特模型的部署提供了更高效的存储格式与实证依据。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.16391v1",
+      "source": "arxiv",
+      "title": "Where Post-Training Quantization Breaks Text Embedders: A Measured Map Across Four Embedder Families",
+      "abstract": "Weight-only post-training quantization is the cheapest way to shrink a retrieval embedder, and the received advice for applying it -- protect the embedding table, allocate bits by module sensitivity, prefer a ranking-aware objective over weight reconstruction -- was carried into LLM quantization largely intact. We test that advice on retrieval embedders directly, quantizing five checkpoints from four architecture families across a grid of bit widths and group sizes, and isolating the embedding, attention and feed-forward blocks at each width.   Every heuristic fails to transfer as stated. The embedding table never emerges as the dominant isolated protection priority in any family, despite being the largest tensor in several of them. Module sensitivity does not survive as a transferable ordering: at INT4/g16 the spread between modules is too small to allocate against, at INT3 the ordering becomes family-dependent and joint damage stops being the sum of its parts, and at INT2 comparable reconstruction error accompanies retention ranging from 1.3 to 65.9 percent of full precision. A cheap reconstruction proxy is useful for screening uniform bit widths but substantially less reliable for choosing which tensors to protect; its apparent strength across the whole grid is a range-extension artifact.   A distilled 109M student at INT3 holds 78.04 NDCG@10 in 68.4 MB and dominates the extreme-PTQ arm of its own 0.6B teacher, 297.9 MB at 64.46, on both size and quality -- but only inside the task it was distilled for. Sizes are byte counts of files that exist rather than arithmetic estimates, and the measurement repository carries the byte provenance for every one of them.",
+      "authors": [
+        "Hyojung Han"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.CL"
+      ],
+      "published": "2026-09-14T21:57:47+00:00",
+      "link": "https://arxiv.org/pdf/2609.16391v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "weight-only post-training quantization across a grid of bit widths and group sizes",
+      "llm_evidence_cn": "跨比特宽度与分组大小的权重后训练量化",
+      "llm_evidence": "跨比特宽度与分组大小的权重后训练量化",
+      "canonical_evidence": "跨比特宽度与分组大小的权重后训练量化",
+      "llm_tldr_en": "Weight-only post-training quantization heuristics from LLM practice are tested on five retrieval embedders across bit widths and group sizes; every heuristic fails to transfer as stated.",
+      "llm_tldr_cn": "权重后训练量化是压缩检索嵌入模型最廉价的手段，但源自大语言模型的量化经验是否适用尚不明确。本文在四个架构家族、五个检查点上跨比特宽度与分组大小进行系统量化实验，并单独隔离嵌入、注意力与前馈模块。结果显示所有经验法则均无法按原样迁移，嵌入表并非首要保护对象，为嵌入模型量化提供了实测修正图。",
+      "llm_tldr": "权重后训练量化是压缩检索嵌入模型最廉价的手段，但源自大语言模型的量化经验是否适用尚不明确。本文在四个架构家族、五个检查点上跨比特宽度与分组大小进行系统量化实验，并单独隔离嵌入、注意力与前馈模块。结果显示所有经验法则均无法按原样迁移，嵌入表并非首要保护对象，为嵌入模型量化提供了实测修正图。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "3 bit SQ",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

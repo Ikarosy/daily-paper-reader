@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-16</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-17</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 3 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 6 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>3</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-16 22:41:01 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-17 21:52:56 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,7 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>2026-09-16 日报完成 3 篇精读，其中两篇 9.0 分论文分别聚焦 48 kHz 因果流式音频编码与极端压缩下的高效 LLM 推理。最值得看的是 UniStream 的多专家残差向量量化方案，以及 Vortex 在压缩与推理效率间的平衡思路。普通读者可优先浏览这两篇的摘要和实验对比，重点盯住压缩率、延迟与推理速度三个指标。</p>
+<p>今日精选 6 篇论文，精读 3 篇、速读 3 篇，聚焦 MoE 量化与流式音频编码两大方向。最值得关注的是 Colla-Q 用极小极大精度平衡实现 MoE 专家协同量化（9.0/10），以及 UniStream 面向 48 kHz 因果流式音频的多专家残差矢量量化（8.0/10）。普通读者可优先从这两篇切入，再顺带浏览三元 LLM 突破 1.58-bit 与 KV 缓存稀疏解码等速读工作。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -74,7 +74,7 @@
     <strong class="dpr-home-dashboard-count">3 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding">UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding</span></li><li><span class="dpr-home-dashboard-paper-title" title="Vortex: Bridging Extreme Compression and Efficient LLM Inference">Vortex: Bridging Extreme Compression and Efficient LLM Inference</span></li><li><span class="dpr-home-dashboard-paper-title" title="ESTS at WMT26: Routing-Informed Expert Pruning for Model Compression">ESTS at WMT26: Routing-Informed Expert Pruning for Model Compression</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Colla-Q: Toward Collaborative Experts in MoE Quantization via Minimax Precision Balancing">Colla-Q: Toward Collaborative Experts in MoE Quantization via Minimax Precision Balancing</span></li><li><span class="dpr-home-dashboard-paper-title" title="UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding">UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding</span></li><li><span class="dpr-home-dashboard-paper-title" title="Prior-Aided Masked Vector Quantization CSI Feedback for FDD Massive MIMO Systems">Prior-Aided Masked Vector Quantization CSI Feedback for FDD Massive MIMO Systems</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span><span class="dpr-home-dashboard-tag">moe-quant <strong>1</strong></span></div>
 </section>
@@ -84,12 +84,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">3 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Fathom: Per-Query Read Depth for Sparse Decoding over Offloaded KV Caches">Fathom: Per-Query Read Depth for Sparse Decoding over Offloaded KV Caches</span></li><li><span class="dpr-home-dashboard-paper-title" title="Breaking the 1.58-bit Barrier for Ternary LLMs">Breaking the 1.58-bit Barrier for Ternary LLMs</span></li><li><span class="dpr-home-dashboard-paper-title" title="Where Post-Training Quantization Breaks Text Embedders: A Measured Map Across Four Embedder Families">Where Post-Training Quantization Breaks Text Embedders: A Measured Map Across Four Embedder Families</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>3</strong></span></div>
 </section>
 </div>
 

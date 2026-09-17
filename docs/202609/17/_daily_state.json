@@ -1,0 +1,105 @@
+{
+  "date": "20260917",
+  "date_label": "",
+  "generated_at": "2026-09-17 21:52:56 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.18131v1",
+      "route": "202609/17/2609.18131v1-colla-q-toward-collaborative-experts-in-moe-quantization-via-minimax-precision-balancing",
+      "title": "Colla-Q: Toward Collaborative Experts in MoE Quantization via Minimax Precision Balancing",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于激活熵的MoE量化比特分配",
+      "first_seen_at": "2026-09-17 21:52:56 UTC",
+      "updated_at": "2026-09-17 21:52:56 UTC"
+    },
+    {
+      "paper_id": "2609.09866v1",
+      "route": "202609/17/2609.09866v1-unistream-multi-expert-residual-vector-quantization-for-48-khz-causal-streaming-audio-coding",
+      "title": "UniStream: Multi-Expert Residual Vector Quantization for 48 kHz Causal Streaming Audio Coding",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "多专家残差矢量量化，采用专家码本与Top-K路由",
+      "first_seen_at": "2026-09-17 21:52:56 UTC",
+      "updated_at": "2026-09-17 21:52:56 UTC"
+    },
+    {
+      "paper_id": "2609.17769v1",
+      "route": "202609/17/2609.17769v1-prior-aided-masked-vector-quantization-csi-feedback-for-fdd-massive-mimo-systems",
+      "title": "Prior-Aided Masked Vector Quantization CSI Feedback for FDD Massive MIMO Systems",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "基于学习的掩码矢量量化与令牌选择",
+      "first_seen_at": "2026-09-17 21:52:56 UTC",
+      "updated_at": "2026-09-17 21:52:56 UTC"
+    },
+    {
+      "paper_id": "2609.17652v1",
+      "route": "202609/17/2609.17652v1-fathom-per-query-read-depth-for-sparse-decoding-over-offloaded-kv-caches",
+      "title": "Fathom: Per-Query Read Depth for Sparse Decoding over Offloaded KV Caches",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "按通道t比特量化器以位平面存储，低比特KV缓存解码",
+      "first_seen_at": "2026-09-17 21:52:56 UTC",
+      "updated_at": "2026-09-17 21:52:56 UTC"
+    },
+    {
+      "paper_id": "2609.16338v1",
+      "route": "202609/17/2609.16338v1-breaking-the-158-bit-barrier-for-ternary-llms",
+      "title": "Breaking the 1.58-bit Barrier for Ternary LLMs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "将三元LLM权重压缩至1.58比特以下的分布自适应存储布局",
+      "first_seen_at": "2026-09-17 21:52:56 UTC",
+      "updated_at": "2026-09-17 21:52:56 UTC"
+    },
+    {
+      "paper_id": "2609.16391v1",
+      "route": "202609/17/2609.16391v1-where-post-training-quantization-breaks-text-embedders-a-measured-map-across-four-embedder-families",
+      "title": "Where Post-Training Quantization Breaks Text Embedders: A Measured Map Across Four Embedder Families",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "跨比特宽度与分组大小的权重后训练量化",
+      "first_seen_at": "2026-09-17 21:52:56 UTC",
+      "updated_at": "2026-09-17 21:52:56 UTC"
+    }
+  ]
+}
