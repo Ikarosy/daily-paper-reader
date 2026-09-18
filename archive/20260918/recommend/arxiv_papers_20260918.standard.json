@@ -1,0 +1,370 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-18T21:36:45.282742+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 2,
+    "deep_cap": 7,
+    "deep_selected": 2,
+    "quick_candidates": 7,
+    "quick_skim_target": 12,
+    "quick_selected": 7
+  },
+  "deep_dive": [
+    {
+      "id": "2609.12208v1",
+      "source": "arxiv",
+      "title": "Vortex: Bridging Extreme Compression and Efficient LLM Inference",
+      "abstract": "Extreme compression techniques, including vector quantization (VQ) and input-dependent sparsity, can significantly reduce the memory footprint of large language models (LLMs). However, a key challenge remains in translating such compression into practical efficiency. On conventional systolic-array-based accelerators, VQ incurs high dequantization overhead, while the irregular patterns of input-dependent sparsity are difficult to exploit. In this study, we address these challenges with Vortex, an architecture compatible with systolic-array-based accelerators with minimal hardware overhead, bridging the gap between extreme compression and efficient inference. Vortex adopts a bi-flow execution strategy that efficiently supports vector-quantized models across both prefill and decoding workloads, and we further optimize it through systematic design space exploration. On the algorithm side, we propose codebook-wise contextual sparsity to align with VQ execution. Across end-to-end workloads, Vortex achieves $8.03\\times$--$23.7\\times$ speedup and $5.68\\times$--$12.5\\times$ energy reduction over state-of-the-art accelerators.",
+      "authors": [
+        "Haoxuan Shan",
+        "Cong Guo",
+        "Bowen Duan",
+        "Chiyue Wei",
+        "Feng Cheng",
+        "Yuzhe Fu",
+        "Yintao He",
+        "Hai \"Helen\" Li",
+        "Yiran Chen"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-10T21:04:15+00:00",
+      "link": "https://arxiv.org/pdf/2609.12208v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "vector quantization for extreme LLM compression with low dequantization overhead",
+      "llm_evidence_cn": "面向LLM极限压缩的矢量量化与低反量化开销",
+      "llm_evidence": "面向LLM极限压缩的矢量量化与低反量化开销",
+      "canonical_evidence": "面向LLM极限压缩的矢量量化与低反量化开销",
+      "llm_tldr_en": "Vortex tackles the gap between extreme compression and practical speed, where vector quantization incurs high dequantization overhead and input-dependent sparsity is hard to exploit, via a systolic-array-compatible architecture with a bi-flow execution strategy.",
+      "llm_tldr_cn": "极低比特压缩（如矢量量化与输入相关稀疏）能大幅降低大语言模型显存占用，但在传统脉动阵列加速器上，矢量量化的反量化开销高、稀疏模式不规则，难以转化为实际加速。Vortex提出与脉动阵列兼容、硬件开销极小的架构，采用双流执行策略同时高效支持矢量量化模型与输入相关稀疏。该工作弥合了极限压缩与高效推理之间的鸿沟。",
+      "llm_tldr": "极低比特压缩（如矢量量化与输入相关稀疏）能大幅降低大语言模型显存占用，但在传统脉动阵列加速器上，矢量量化的反量化开销高、稀疏模式不规则，难以转化为实际加速。Vortex提出与脉动阵列兼容、硬件开销极小的架构，采用双流执行策略同时高效支持矢量量化模型与输入相关稀疏。该工作弥合了极限压缩与高效推理之间的鸿沟。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.17769v1",
+      "source": "arxiv",
+      "title": "Prior-Aided Masked Vector Quantization CSI Feedback for FDD Massive MIMO Systems",
+      "abstract": "Downlink channel state information (CSI) feedback is a key bottleneck in frequency-division duplex (FDD) massive MIMO systems, as the user equipment (UE) must convey its estimated channel to the base station (BS) over a limited uplink (UL) budget. To improve CSI reconstruction accuracy under tight feedback constraints, we propose prior-aided masked vector quantization (PM-VQ), a learning-based separate source--channel coding (SSCC) feedback scheme conditioned on the average angle--delay power map---a compact representation of the channel second-order statistics available at both the UE and the BS. In PM-VQ, a prior-aided encoder maps the CSI to latent tokens, and a spatially-adaptive masking module (SAMM) scores and selects the most informative tokens within the feedback budget. The selected tokens are vector-quantized and fed back together with their positions, while an adaptive de-masking module (ADM) completes the latent representation at the BS before prior-conditioned decoding. To support variable-rate compression, a single model is trained over a range of selected-token counts, enabling operation across multiple feedback dimensions without retraining. We evaluate PM-VQ against three representative baselines on a Sionna-generated 3GPP TR~38.901 UMa dataset, focusing on the most challenging diffuse regime where channel energy is spread across many angle--delay coefficients. Simulation results show that PM-VQ achieves the lowest NMSE across all tested SNR levels and feedback dimensions in this regime. Moreover, the angle--delay power-map prior remains beneficial even when estimated from only a few channel realizations.",
+      "authors": [
+        "Yi Song",
+        "Tianyu Yang",
+        "Kangda Zhi",
+        "Shuangyang Li",
+        "Fangzhou Wu",
+        "Songyan Xue",
+        "Giuseppe Caire"
+      ],
+      "primary_category": "cs.IT",
+      "categories": [
+        "cs.IT"
+      ],
+      "published": "2026-09-15T19:19:24+00:00",
+      "link": "https://arxiv.org/pdf/2609.17769v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "masked vector quantization with codebook for CSI feedback",
+      "llm_evidence_cn": "掩码矢量量化，CSI反馈码本",
+      "llm_evidence": "掩码矢量量化，CSI反馈码本",
+      "canonical_evidence": "掩码矢量量化，CSI反馈码本",
+      "llm_tldr_en": "To improve CSI reconstruction under tight feedback budgets in FDD massive MIMO, this paper proposes prior-aided masked vector quantization, a learned separate source-channel coding scheme that maps CSI to latent tokens and masks the most informative ones.",
+      "llm_tldr_cn": "针对FDD大规模MIMO系统中下行CSI反馈受限于上行预算的瓶颈，论文提出先验辅助掩码矢量量化（PM-VQ）方案，以平均角度-时延功率图作为先验条件，构建学习型分离信源信道编码。编码器将CSI映射为潜在令牌，空间自适应掩码模块评估并保留最具信息量的令牌。该方法在紧反馈约束下提升了CSI重建精度，为有限反馈的MIMO系统提供了新的矢量量化反馈思路。",
+      "llm_tldr": "针对FDD大规模MIMO系统中下行CSI反馈受限于上行预算的瓶颈，论文提出先验辅助掩码矢量量化（PM-VQ）方案，以平均角度-时延功率图作为先验条件，构建学习型分离信源信道编码。编码器将CSI映射为潜在令牌，空间自适应掩码模块评估并保留最具信息量的令牌。该方法在紧反馈约束下提升了CSI重建精度，为有限反馈的MIMO系统提供了新的矢量量化反馈思路。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.11642v1",
+      "source": "arxiv",
+      "title": "ZipCodec: Ultra-Low-Frame-Rate Streaming Speech Coding",
+      "abstract": "Neural audio codecs are a fundamental component of modern speech generation systems. While recent codecs achieve increasingly low bitrates, reducing frame rate remains challenging, as each token must preserve more information while maintaining reconstruction quality. We present ZipCodec, a streaming neural speech codec operating at 6.25 Hz and 0.80 kbps with a theoretical latency of 160 ms. Our approach combines large-scale WavLM distillation with a redesigned transformer-based architecture, a scalar spherical quantizer, and a latency-aware streaming decoder. Experiments show that ZipCodec substantially outperforms existing streaming codecs at comparable bitrates in both reconstruction and downstream tasks, while operating at a significantly lower frame rate. Despite its 842M parameters, ZipCodec achieves real-time single-stream inference on a consumer-grade CPU. Demo samples, code and checkpoints are available at https://lucadellalib.github.io/zipcodec-web/.",
+      "authors": [
+        "Luca Della Libera",
+        "Cem Subakan",
+        "Mirco Ravanelli"
+      ],
+      "primary_category": "cs.SD",
+      "categories": [
+        "cs.SD",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-10T14:49:54+00:00",
+      "link": "https://arxiv.org/pdf/2609.11642v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "ultra-low-bitrate streaming speech codec with scalar spherical quantizer",
+      "llm_evidence_cn": "采用标量球面量化器的超低比特率流式语音编解码器",
+      "llm_evidence": "采用标量球面量化器的超低比特率流式语音编解码器",
+      "canonical_evidence": "采用标量球面量化器的超低比特率流式语音编解码器",
+      "llm_tldr_en": "ZipCodec presents an ultra-low-frame-rate streaming neural speech codec at 6.25 Hz and 0.80 kbps, using WavLM distillation, a scalar spherical quantizer, and a latency-aware decoder to outperform existing codecs in reconstruction and downstream tasks.",
+      "llm_tldr_cn": "神经音频编解码器在降低比特率方面已有进展，但降低帧率仍很困难，因为每个令牌必须保留更多信息并维持重建质量。ZipCodec提出一种流式神经语音编解码器，结合大规模WavLM蒸馏、重新设计的Transformer架构、标量球面量化器以及延迟感知流式解码器。实验表明，该系统在6.25 Hz和0.80 kbps下，重建质量和下游任务表现均显著优于同比特率的现有流式编解码器。该工作推动了超低帧率与极低比特率语音编码的发展。",
+      "llm_tldr": "神经音频编解码器在降低比特率方面已有进展，但降低帧率仍很困难，因为每个令牌必须保留更多信息并维持重建质量。ZipCodec提出一种流式神经语音编解码器，结合大规模WavLM蒸馏、重新设计的Transformer架构、标量球面量化器以及延迟感知流式解码器。实验表明，该系统在6.25 Hz和0.80 kbps下，重建质量和下游任务表现均显著优于同比特率的现有流式编解码器。该工作推动了超低帧率与极低比特率语音编码的发展。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.14189v1",
+      "source": "arxiv",
+      "title": "MorphoStyle: Motion Style Transfer with Morphology Control",
+      "abstract": "Human motion may be viewed as a combination of action content, style, and body morphology. Existing motion style transfer methods transfer a reference style onto a content motion while assuming a canonical body, whereas shape-aware motion generators adapt motion to a target shape without explicit style control. This separation of motion style and shape (morphology) makes it difficult to generate stylized motions for non-canonical bodies; naively combining a style transfer module with a shape-aware generator often leaks action content from the style reference and disrupts shape-consistent kinematics. We present MorphoStyle, a framework for shape-aware motion style transfer that is built on a shape-conditioned Finite-Scalar-Quantization Variational Auto-Encoder (FSQ-VAE). The key contribution is to pose the desired style transfer as modular latent disentanglement comprising: (i) a contrastive style encoder that extracts content-decoupled style embeddings; (ii) a text-guided style-routing mechanism that locates style-relevant joints in a text-motion feature space; and (iii) a manifold preserving style modulator that injects discriminative style embeddings in content features as a temporally-gated low-rank offset. Extensive experiments on benchmark datasets demonstrate that MorphoStyle outperforms competing baselines in terms of both shape control and motion style transfer, while simultaneously providing quantitative shape control. For more details, please see project website: https://github.com/funkdub/MorphoStyle.",
+      "authors": [
+        "Xin Feng",
+        "Eleonora D'Arnese",
+        "Mohan Sridharan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-12T23:40:27+00:00",
+      "link": "https://arxiv.org/pdf/2609.14189v1",
+      "tags": [
+        "keyword:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Finite-Scalar-Quantization VAE for shape-aware motion style transfer",
+      "llm_evidence_cn": "有限标量量化变分自编码器用于形态感知运动风格迁移",
+      "llm_evidence": "有限标量量化变分自编码器用于形态感知运动风格迁移",
+      "canonical_evidence": "有限标量量化变分自编码器用于形态感知运动风格迁移",
+      "llm_tldr_en": "MorphoStyle addresses shape-aware motion style transfer by building on a Finite-Scalar-Quantization VAE, jointly modeling action content, style, and body morphology to avoid content leakage and preserve shape-consistent kinematics.",
+      "llm_tldr_cn": "现有运动风格迁移方法通常假设标准体型，而形状感知生成器又缺乏显式风格控制，导致非标准体型的风格化运动生成困难。MorphoStyle提出基于形状条件有限标量量化变分自编码器的框架，联合建模动作内容、风格与体型，避免风格参考中的内容泄漏。实验表明该方法能在保持形状一致运动学的同时实现风格迁移，为形态可控的风格化运动生成提供了有效方案。",
+      "llm_tldr": "现有运动风格迁移方法通常假设标准体型，而形状感知生成器又缺乏显式风格控制，导致非标准体型的风格化运动生成困难。MorphoStyle提出基于形状条件有限标量量化变分自编码器的框架，联合建模动作内容、风格与体型，避免风格参考中的内容泄漏。实验表明该方法能在保持形状一致运动学的同时实现风格迁移，为形态可控的风格化运动生成提供了有效方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.16338v1",
+      "source": "arxiv",
+      "title": "Breaking the 1.58-bit Barrier for Ternary LLMs",
+      "abstract": "Ternary Large Language Models (LLM) store every weight as one of three symbols $\\{-1,0,+1\\}$, so the cost of a ternary model is conventionally referenced to the information-theoretic $\\log_2 3 \\approx 1.585$ bits per weight. The prevailing deployment format packs five ternary weights into one byte (five-trit packing), and due to the power-of-two group sizes used in practice this rounds up to $1.625$ bits per weight. This effective storage bit-width treats the three symbols $\\{-1,0,+1\\}$ as equiprobable. We measure the actual symbol distribution of 29 ternary LLM models and find that zeros account for up to $51.5\\%$ of all weights. Motivated by this finding, we introduce BITCOS, a simple distribution-adaptive layout comprised of a dense presence bitmap plus a compacted sign vector, and costs $2 - z$ bits per weight element given a zero density $z$ in the model's weights. BITCOS stores weights more compactly than the five-trit packing in 26 of the 29 tested models, and reaches $1.485$ bits per weight on the sparsest of them. BITCOS is amenable to efficient unpacking on modern processors and GPUs, and we present optimized unpacking sequences for AVX-512, AVX2 and Intel Xe2 GPUs. Measured against production state-of-the-art ternary matrix-vector multiplication kernels, at the zero densities real-world ternary models exhibit, the realized gain with our proposed layout is up to $1.28\\times$. Finally, we illustrate end-to-end LLM inference results on 5 different platforms (client and server CPUs, integrated and discrete Xe2 GPUs) where decode throughput improves by up to $1.18\\times$ on CPUs and $1.27\\times$ on GPUs.",
+      "authors": [
+        "Evangelos Georganas",
+        "Alexander Heinecke",
+        "Pradeep Dubey"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-14T20:54:24+00:00",
+      "link": "https://arxiv.org/pdf/2609.16338v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "sub-1.58-bit storage layout for ternary weights",
+      "llm_evidence_cn": "三值权重的低于1.58比特存储布局",
+      "llm_evidence": "三值权重的低于1.58比特存储布局",
+      "canonical_evidence": "三值权重的低于1.58比特存储布局",
+      "llm_tldr_en": "Ternary LLMs assume equiprobable symbols, wasting bits. Measuring 29 models shows zeros up to 51.5%, motivating BITCOS, a distribution-adaptive bitmap-plus-sign layout that beats the 1.58-bit storage barrier.",
+      "llm_tldr_cn": "现有三值大语言模型默认三个符号等概率，采用五trit打包导致有效位宽被固定在约1.625比特。本文统计29个三值模型的权重分布，发现零权重占比最高达51.5%，并据此提出BITCOS分布自适应存储布局，用稠密存在位图与紧凑符号向量编码。实验表明该方案可突破1.58比特的信息论壁垒，显著降低极低比特模型的存储开销，为超低比特量化部署提供实用格式。",
+      "llm_tldr": "现有三值大语言模型默认三个符号等概率，采用五trit打包导致有效位宽被固定在约1.625比特。本文统计29个三值模型的权重分布，发现零权重占比最高达51.5%，并据此提出BITCOS分布自适应存储布局，用稠密存在位图与紧凑符号向量编码。实验表明该方案可突破1.58比特的信息论壁垒，显著降低极低比特模型的存储开销，为超低比特量化部署提供实用格式。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.17509v1",
+      "source": "arxiv",
+      "title": "LACE: Layer-Wise Compression for Dynamic Frame Rate Codecs",
+      "abstract": "Neural audio codecs are a key component in speech language modeling. However, their high frame rates lead to long sequence lengths, increasing computational costs. Dynamic frame rate codecs mitigate this by reducing the effective frame rate using a compression step to merge multiple frames together. However, most prior methods either operate on single-codebook codecs or apply a single compression step before multi-layer quantization. This forces all quantization layers to share the same segmentation boundaries, despite the residual embeddings at different quantization layers exhibiting different rates of change over time. We propose LACE (Layer-Adaptive Codec Encoding), a dynamic frame rate codec that applies an independent compression step at each quantization layer, enabling layer-specific segmentation boundaries. To use LACE tokens in downstream text-to-speech (TTS), we further introduce union alignment and boundary anchor mechanisms to make durations consistent across layers while preserving compression benefits. Experiments on LibriTTS show that LACE offers a better rate-quality tradeoff than prior dynamic frame rate methods on the reconstruction task and improves TTS inference efficiency while maintaining competitive synthesis quality. Our code is released as part of the ESPnet3 codec recipe.",
+      "authors": [
+        "Thanapat Trachu",
+        "Samuele Cornell",
+        "William Chen",
+        "Shinji Watanabe"
+      ],
+      "primary_category": "cs.SD",
+      "categories": [
+        "cs.SD",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-09-15T17:46:51+00:00",
+      "link": "https://arxiv.org/pdf/2609.17509v1",
+      "tags": [
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "multi-layer residual quantization codec with per-layer compression and codebooks",
+      "llm_evidence_cn": "多码本残差量化编解码器，采用逐层压缩与码本",
+      "llm_evidence": "多码本残差量化编解码器，采用逐层压缩与码本",
+      "canonical_evidence": "多码本残差量化编解码器，采用逐层压缩与码本",
+      "llm_tldr_en": "Neural audio codecs suffer long sequences from high frame rates; LACE applies an independent compression step at each quantization layer so residual codebooks need not share segmentation boundaries, improving dynamic frame-rate encoding.",
+      "llm_tldr_cn": "神经音频编解码器帧率高导致序列过长，动态帧率编解码通过合并帧降低有效帧率，但既有方法要么只支持单码本，要么在多层量化前只做一次压缩，迫使各量化层共享相同分段边界。本文提出LACE，在每一量化层施加独立的压缩步骤，以适配不同层残差嵌入随时间变化的速率差异。实验表明逐层自适应压缩能更有效地降低帧率并保持重建质量。该设计为多码本残差量化编解码提供了更灵活的帧率控制思路。",
+      "llm_tldr": "神经音频编解码器帧率高导致序列过长，动态帧率编解码通过合并帧降低有效帧率，但既有方法要么只支持单码本，要么在多层量化前只做一次压缩，迫使各量化层共享相同分段边界。本文提出LACE，在每一量化层施加独立的压缩步骤，以适配不同层残差嵌入随时间变化的速率差异。实验表明逐层自适应压缩能更有效地降低帧率并保持重建质量。该设计为多码本残差量化编解码提供了更灵活的帧率控制思路。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "Codebook/LUT",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.16656v1",
+      "source": "arxiv",
+      "title": "Channel-Wise and Token-Aware Post-Training Quantization for Visual State Space Duality",
+      "abstract": "State space models (SSMs), particularly Mamba, have emerged as efficient alternatives to attention-based architectures and have been extended to vision through ViM, VMamba, and Visual State Space Duality (VSSD). Yet the low-bit post-training quantization (PTQ) behavior of VSSD remains insufficiently understood. A weight-activation split on VSSD-Tiny identifies activation quantization as the dominant low-bit bottleneck, while representative inputs to selected VSSD-backbone linear layers exhibit strong channel-wise magnitude variation and token-localized extremes. We propose the Channel-wise Token-balanced Output-Aware Clipping (CTOAC) method, which learns per-input-channel clipping bounds by minimizing a token-balanced reconstruction loss on the corresponding linear outputs. Only the selected linear layers and their input activations are quantized; other backbone operations retain their original precision. Across VSSD-Tiny, VSSD-Small, and VSSD-Base, the proposed CTOAC method retains ImageNet-1K accuracy and remains substantially more robust than the evaluated baselines at more aggressive precision settings. Applying the same quantization scope to VSSD backbones on COCO and ADE20K preserves strong object detection, instance segmentation, and semantic segmentation performance. An optimized RTX 4090 deployment configuration achieves up to 1.42x end-to-end speedup over FP32.",
+      "authors": [
+        "Jonghyeon Lim",
+        "Changhoon Yim"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-15T05:21:09+00:00",
+      "link": "https://arxiv.org/pdf/2609.16656v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "low-bit post-training quantization, activation quantization bottleneck, channel-wise clipping",
+      "llm_evidence_cn": "低比特训练后量化，激活量化瓶颈，通道级裁剪",
+      "llm_evidence": "低比特训练后量化，激活量化瓶颈，通道级裁剪",
+      "canonical_evidence": "低比特训练后量化，激活量化瓶颈，通道级裁剪",
+      "llm_tldr_en": "This work studies low-bit post-training quantization for Visual State Space Duality, finds activation quantization to be the dominant bottleneck, and proposes channel-wise token-balanced output-aware clipping to learn per-channel clipping bounds.",
+      "llm_tldr_cn": "该论文针对视觉状态空间对偶（VSSD）在低比特训练后量化下的行为理解不足问题，通过权重-激活分离分析发现激活量化是主要瓶颈，且骨干线性层输入存在强通道幅度差异与令牌局部极值。为此提出通道级令牌平衡输出感知裁剪（CTOAC），以令牌平衡重建损失学习逐输入通道的裁剪边界。实验表明该方法有效改善低比特量化性能，为SSM视觉模型的低比特部署提供实用方案。",
+      "llm_tldr": "该论文针对视觉状态空间对偶（VSSD）在低比特训练后量化下的行为理解不足问题，通过权重-激活分离分析发现激活量化是主要瓶颈，且骨干线性层输入存在强通道幅度差异与令牌局部极值。为此提出通道级令牌平衡输出感知裁剪（CTOAC），以令牌平衡重建损失学习逐输入通道的裁剪边界。实验表明该方法有效改善低比特量化性能，为SSM视觉模型的低比特部署提供实用方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.17652v1",
+      "source": "arxiv",
+      "title": "Fathom: Per-Query Read Depth for Sparse Decoding over Offloaded KV Caches",
+      "abstract": "When agentic sessions run to a million tokens with many sessions resident at once, the KV cache and the index that ranks it live in host memory, and the scan that ranks all n keys for a top-k step becomes the traffic that bounds decoding. We present Fathom, a key scan in which each query decides how many bits of each key channel to read. The 4-bit K cache is stored channel-major as bit planes, so a prefix of t planes is exactly the channel's t-bit quantizer, and the query spends its bit budget by reverse water-filling over the variance-weighted importance of its channels. At one million tokens on Qwen3-8B a decode step is 1.67x faster in GPU time than with the 136-bit scans of Double Sparsity, Loki and SparQ r=32, and in the same GPU time as SparQ's 68-bit read (r=16) Fathom reads 18% fewer bytes with lower attention error on six of seven model and context settings. On RULER-style tasks every per-token scan matches exact top-k decoding, and on real coding-agent sessions Fathom reaches the step agreement of the most accurate 136-bit scan at 92 bits. The store is the 4-bit K copy a quantized serving stack already holds, and the method is not faster when the index is resident in GPU memory.",
+      "authors": [
+        "Vivek Kalyanarangan"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL",
+        "cs.DC"
+      ],
+      "published": "2026-09-15T16:53:01+00:00",
+      "link": "https://arxiv.org/pdf/2609.17652v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "bit-plane low-bit KV quantizer with per-query variable bit depth",
+      "llm_evidence_cn": "比特平面低位KV量化与逐查询位宽分配",
+      "llm_evidence": "比特平面低位KV量化与逐查询位宽分配",
+      "canonical_evidence": "比特平面低位KV量化与逐查询位宽分配",
+      "llm_tldr_en": "Fathom stores the 4-bit KV cache as channel-major bit planes so a prefix of t planes is the channel t-bit quantizer, letting each query spend its bit budget via reverse water-filling; decode is 1.67x faster at 1M tokens.",
+      "llm_tldr_cn": "在超长上下文与多会话并存的推理场景中，KV缓存及其索引驻留主机内存，对所有键排序的扫描成为解码瓶颈。Fathom将4比特K缓存按通道主序存储为比特平面，使前t个平面恰好构成该通道的t比特量化器，并让每个查询依据通道方差加权重要性，通过逆向注水法分配读取比特预算。在Qwen3-8B的百万token场景下，单步解码GPU时间比Double Sparsity、Loki与SparQ r=32的136比特扫描快1.67倍。该工作表明按查询自适应调整量化位宽可在几乎不损精度的前提下显著降低稀疏解码的访存开销。",
+      "llm_tldr": "在超长上下文与多会话并存的推理场景中，KV缓存及其索引驻留主机内存，对所有键排序的扫描成为解码瓶颈。Fathom将4比特K缓存按通道主序存储为比特平面，使前t个平面恰好构成该通道的t比特量化器，并让每个查询依据通道方差加权重要性，通过逆向注水法分配读取比特预算。在Qwen3-8B的百万token场景下，单步解码GPU时间比Double Sparsity、Loki与SparQ r=32的136比特扫描快1.67倍。该工作表明按查询自适应调整量化位宽可在几乎不损精度的前提下显著降低稀疏解码的访存开销。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "3 bit SQ",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.19880v1",
+      "source": "arxiv",
+      "title": "D-Quant: Driftable Entropy Coding for KV Cache Quantization",
+      "abstract": "The KV cache has become a major bottleneck in deploying LLMs, as its memory footprint grows linearly with sequence length and batch size, imposing substantial pressure on both memory capacity and bandwidth. Among various KV cache compression techniques, quantization is particularly attractive due to its effectiveness and ease of deployment. However, most existing methods rely on fixed-width quantization, where a $b$ bit representation is inherently limited to $2^b$ quantization levels. As the bit width decreases, the number of available levels shrinks exponentially, leading to severe information loss and rapid performance degradation. We further observe that fixed-width quantization fails to exploit the highly non-uniform distribution of KV cache. After rotation and normalization, KV values approximately follow a normal distribution, with most values concentrated near the center and only a small fraction appearing in the tails. Nevertheless, fixed-width coding allocates the same number of bits to frequent and rare symbols. Entropy coding naturally exploits such non-uniformity by assigning shorter codewords to frequent symbols and longer ones to rare symbols, substantially reducing the average number of bits required for representation. However, its variable-length output is not suited to highly parallel attention kernels, where efficient dequantization and computation rely on regular memory layouts and fixed-stride accesses. To bridge this gap, we propose \\textbf{D-Quant}, a flexible KV cache quantization framework that introduces a \\textbf{drift} mechanism to convert entropy-coded representations of each token into fixed-size bitstreams, enabling regular memory access and parallel dequantization within attention kernels.",
+      "authors": [
+        "Yi Su",
+        "Hong Liu",
+        "Guanghua Yu",
+        "Jianchen Zhu"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-09-17T08:29:17+00:00",
+      "link": "https://arxiv.org/pdf/2609.19880v1",
+      "tags": [
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Low-bit quantization with variable levels and entropy coding for KV cache",
+      "llm_evidence_cn": "面向 KV 缓存的低比特量化与熵编码",
+      "llm_evidence": "面向 KV 缓存的低比特量化与熵编码",
+      "canonical_evidence": "面向 KV 缓存的低比特量化与熵编码",
+      "llm_tldr_en": "D-Quant replaces fixed-width KV cache quantization, whose 2^b levels collapse at low bit width, with driftable entropy coding that exploits the non-uniform post-rotation distribution for better compression.",
+      "llm_tldr_cn": "KV 缓存随序列长度增长成为大模型部署的内存与带宽瓶颈，而现有量化多为固定位宽，其 b 比特表示仅有 2^b 个量化级，位宽降低时级数指数缩减并导致严重信息损失。为此作者提出 D-Quant，一种可漂移熵编码方案，利用旋转后 KV 缓存高度非均匀的分布进行变长编码，从而在低比特下保留更多信息。该工作为极低比特的 KV 缓存压缩提供了更高效的编码思路，缓解了低比特量化的性能退化。",
+      "llm_tldr": "KV 缓存随序列长度增长成为大模型部署的内存与带宽瓶颈，而现有量化多为固定位宽，其 b 比特表示仅有 2^b 个量化级，位宽降低时级数指数缩减并导致严重信息损失。为此作者提出 D-Quant，一种可漂移熵编码方案，利用旋转后 KV 缓存高度非均匀的分布进行变长编码，从而在低比特下保留更多信息。该工作为极低比特的 KV 缓存压缩提供了更高效的编码思路，缓解了低比特量化的性能退化。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

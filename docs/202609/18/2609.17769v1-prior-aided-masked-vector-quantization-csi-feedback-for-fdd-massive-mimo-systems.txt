@@ -1,0 +1,640 @@
+Title: Prior-Aided Masked Vector Quantization CSI Feedback for FDD Massive MIMO Systems
+
+URL Source: https://arxiv.org/pdf/2609.17769v1
+
+Published Time: Thu, 17 Sep 2026 00:11:11 GMT
+
+Number of Pages: 16
+
+Markdown Content:
+> 1
+
+# Prior-Aided Masked Vector Quantization CSI Feedback for FDD Massive MIMO Systems 
+
+Yi Song 1, Tianyu Yang 2, Kangda Zhi 1, Shuangyang Li 1, Fangzhou Wu 2, Songyan Xue 2, and Giuseppe Caire 1
+
+Abstract 
+
+Downlink channel state information (CSI) feedback is a key bottleneck in frequency-division duplex (FDD) massive MIMO systems, as the user equipment (UE) must convey its estimated channel to the base station (BS) over a limited uplink (UL) budget. To improve CSI reconstruction accuracy under tight feedback constraints, we propose prior-aided masked vector quantization (PM-VQ), a learning-based separate source–channel coding (SSCC) feedback scheme conditioned on the average angle–delay power map—a compact representation of the channel second-order statistics available at both the UE and the BS. In PM-VQ, a prior-aided encoder maps the CSI to latent tokens, and a spatially-adaptive masking module (SAMM) scores and selects the most informative tokens within the feedback budget. The selected tokens are vector-quantized and fed back together with their positions, while an adaptive de-masking module (ADM) completes the latent representation at the BS before prior-conditioned decoding. To support variable-rate compression, a single model is trained over a range of selected-token counts, enabling operation across multiple feedback dimensions without retraining. We evaluate PM-VQ against three representative baselines on a Sionna-generated 3GPP TR 38.901 UMa dataset, focusing on the most challenging diffuse regime where channel energy is spread across many angle– delay coefficients. Simulation results show that PM-VQ achieves the lowest NMSE across all tested SNR levels and feedback dimensions in this regime. Moreover, the angle–delay power-map prior remains beneficial even when estimated from only a few channel realizations. 
+
+Index Terms 
+
+CSI feedback, FDD massive MIMO, vector quantization, side information, rate–distortion theory, masking, de-masking, deep learning. 
+
+I. I NTRODUCTION 
+
+Accurate downlink (DL) channel state information (CSI) is the cornerstone of next-generation wireless systems, since it directly determines the quality of DL precoding and the achievable spectral efficiency. Acquiring such CSI with low complexity, low latency, and limited overhead becomes increasingly critical as systems scale toward more users, larger antenna arrays, and wider bandwidths. How CSI is acquired depends on the duplexing mode. In time-division duplex (TDD) systems, channel reciprocity allows the base station (BS) to infer the DL channel directly from uplink (UL) pilots through an open loop, at the cost of tighter transceiver synchronization and hardware calibration. Frequency-division duplex (FDD) systems avoid this calibration burden but lack channel reciprocity, which makes DL CSI acquisition intrinsically harder. In this case, a closed feedback loop is required: the BS transmits common pilots, each user equipment (UE) estimates the DL channel and feeds a compressed description back over the UL, and the BS reconstructs the CSI from this feedback. This loop exposes a fundamental tradeoff between pilot/feedback overhead and CSI reconstruction accuracy. Designing feedback schemes that can accurately reconstruct high-dimensional DL CSI under a limited UL feedback budget is the central problem addressed in this paper. 
+
+A. Uplink Feedback Strategies 
+
+The CSI feedback sent from the UE to the BS over the UL can be designed in two main ways, following the classical source–channel coding dichotomy [1]. In separate source–channel coding (SSCC), the UE first compresses the DL CSI into a bitstream using a source encoder and then protects these bits against UL noise using a channel code. The BS decodes the received bits and reconstructs the CSI. In joint source–channel coding (JSCC), the UE instead maps the CSI estimate directly onto UL channel symbols, and the BS reconstructs the CSI from the noisy received symbols. The two strategies are attractive for complementary reasons. SSCC is modular and well understood: in the infinite-blocklength limit, a rate–distortion-optimal source code followed by a capacity-achieving channel code is optimal according to Shannon’s source–channel separation theorem. In practical finite-blocklength systems, however, this ideal behavior may not be fully realized. For a given modulation and coding configuration, the decoding-error probability can increase rapidly when the instantaneous UL channel quality falls below its supported operating region, leading to the familiar cliff effect . Moreover, the bit-level source-coding, channel-coding, and decoding pipeline introduces additional latency. JSCC gives up this modularity, but by mapping source representations directly to channel inputs, it avoids an explicit bit interface and often degrades more gracefully with the UL SNR in practical noisy-feedback regimes. Its main difficulty lies in code design: information-theoretically optimal source–channel mappings 
+
+> 1
+
+Communications and Information Theory Group (CommIT), Technische Universit¨ at Berlin, 10587 Berlin, Germany (e-mail: {yi.song, k.zhi, shuangyang.li, caire }@tu-berlin.de). 
+
+> 2
+
+Huawei Technologies Co., Ltd., China (e-mail: fangzhou.wu, xuesongyan@huawei.com ). arXiv:2609.17769v1 [cs.IT] 15 Sep 2026 2
+
+exist in principle, but are generally not available in closed form, and simple linear mappings can be far from optimal in feedback-limited regimes. Given these complementary tradeoffs, we adopt the SSCC framework for two reasons. First, it is directly deployable: CSI reporting in FDD standards such as 5G NR is digital, with the UE conveying bits over standardized, channel-coded uplink control channels. An SSCC bitstream is compatible with this pipeline, whereas JSCC transmits CSI as analog channel symbols that current digital feedback links do not support. Second, and more fundamentally, the SSCC framework lets us treat source coding and channel coding separately. By combining a rate–distortion-optimal source code with a state-of-the-art, near-capacity channel code, the CSI feedback problem reduces to a source-coding problem, so the design can concentrate on the source encoder. This encoder can then be built around well-understood rate–distortion principles. In a practical digital UL such as 5G NR, the rate at which information bits can be reliably delivered to the BS over a given resource allocation depends on the UL SNR. For a given UL SNR, this reliably supportable rate depends on the employed modulation and coding scheme (MCS), the decoder implementation, and the target block error rate. Through link adaptation, a higher UL SNR generally permits a higher-order modulation and a higher code rate while maintaining the prescribed reliability, whereas a lower UL SNR requires a more robust configuration and therefore supports a lower information rate. Denoting this reliably supportable rate by Rach ul psnr ul q, measured in information bits per complex channel use, βfb complex UL feedback channel uses provide a reliable feedback-bit budget satisfying 
+
+B ď βfb Rach ul psnr ul q. (1) To study the CSI compression problem independently of a particular modulation, channel code, and decoder implementation, we adopt an idealized capacity-achieving channel-coding model. For the considered complex AWGN UL feedback channel, the asymptotic upper limit on the reliably achievable rate is 
+
+Cul psnr ul q “ log 2p1 ` snr ul q (2) bits per complex channel use. With sufficiently long blocklengths and capacity-approaching channel codes, the reliably supportable UL rate can approach Cul psnr ul q. We therefore use the optimistic feedback budget 
+
+B ď βfb Cul psnr ul q. (3) Thus, for a fixed number of UL feedback channel uses βfb , a higher UL SNR increases Cul psnr ul q and consequently increases the number of CSI feedback bits that can be reliably delivered to the BS. This abstraction reduces the noisy UL link to an optimistic reliable bit budget of βfb Cul psnr ul q bits, allowing the comparison to focus on the CSI source coding problem rather than on a particular UL channel-coding implementation. 
+
+B. Related Work a) Theoretical guidelines: The CSI feedback problem can be modeled as a remote source-coding problem, where the UE must encode the DL CSI from the noisy DL channel observation under a rate constraint relating to the UL feedback channel capacity. To study the information-theoretic limit, Khalilsarai et al. [2, 3] derived, for a Gaussian channel model, a lower bound on the CSI normalized mean-squared error (NMSE) under a given rate constraint using remote rate–distortion theory. The corresponding high-SNR scaling law characterizes how the error scales with the DL pilot dimension, the UL feedback dimension, and the channel rank. This result provides two useful design guidelines for CSI feedback. First, linear JSCC achieves the optimal high-SNR scaling in all regimes except one: the regime in which the DL pilot dimension exceeds the channel rank, while the UL feedback dimension remains smaller than the rank. In this feedback-limited regime, nonlinear encoding can in principle improve the scaling behavior. Second, for a Gaussian source, rate allocation of the rate–distortion-optimal solution follows reverse water-filling over the eigenmodes of the source covariance, allocating more rate to high-variance modes and no rate to modes below the water level. This suggests that an efficient feedback encoder should exploit channel second-order statistics and allocate the available feedback budget non-uniformly across channel components. Motivated by this observation, Song et al. [4, 5] exploited the low-rank eigenspace of spatially correlated channels [6] and proposed a low-complexity JSCC scheme that encodes the dominant Karhunen–Lo` eve coefficients with optimized power allocation. This demonstrates that exploiting the channel covariance structure can substantially simplify CSI feedback and guide the allocation of limited feedback resources. However, an important gap remains between these asymptotic information-theoretic characterizations and practical CSI feedback. Rate–distortion achievability is inherently asymptotic: when each CSI matrix is viewed as one realization of the source, the rate–distortion function RpDq is approached by jointly encoding blocks of source realizations, with the asymptotic limit attained as the source-coding blocklength tends to infinity. CSI feedback, in contrast, is naturally a one-shot source-coding problem: within each channel coherence interval, the UE must compress the current CSI realization and convey it to the BS under a stringent latency budget. The UE therefore cannot, in general, accumulate an arbitrarily long sequence of CSI realizations and jointly encode them using an asymptotically optimal rate–distortion code. Consequently, although remote rate– distortion theory provides a fundamental performance benchmark and reveals structural principles, such as reverse water-filling 3
+
+in the Gaussian case, it does not directly specify how to realize these principles with a practical finite-rate encoder operating on a single CSI realization. For the reasons explained before, we pursue these theoretical guidelines within an SSCC framework. 
+
+The open question we address is therefore how to design a trainable, variable-rate source encoder that operates effectively in this one-shot regime, exploits channel second-order statistics, and allocates the available feedback budget selectively across channel components on realistic channel data. b) Learning-based feedback: The stringent latency and complexity requirements of CSI feedback in multi-user massive MIMO systems have motivated a broad class of learning-based feedback schemes. Learning-based JSCC maps the CSI representation directly to channel inputs, and the BS reconstructs the CSI from the noisy received symbols. Early work adopted CNN-based encoder–decoder architectures for CSI feedback [7]. Subsequent studies improved robustness by introducing SNR-adaptive transmission strategies [8] and feedback-aided variants that exploit channel-output feedback [9]. A comprehensive overview of recent JSCC developments can be found in [10]. In parallel, a large body of work has studied learning-based SSCC CSI compression. A representative example is CsiNet [11], which employs a CNN autoencoder to compress and reconstruct angle–delay CSI. Later extensions improved the reconstruction quality by enlarging the receptive field [12], introducing multi-resolution feature extraction [13], and incorporating generative priors [14]. An overview of learning-based SSCC feedback schemes is provided in [15]. More recently, attention-based architectures, such as TransNet [16], have been introduced to capture long-range dependencies in CSI and are therefore adopted in this paper as the backbone of the neural network baselines. 
+
+c) Limitations: Despite these advances, existing learning-based CSI feedback schemes still have several limitations that motivate our design. First, since latent representations are often learned purely from data, different latent components may carry different amounts of information about the CSI. As a result, the feedback budget should concentrate on the most informative components. However, most existing schemes do not explicitly identify or prioritize the most informative components under the feedback budget. Second, although rate–distortion theory highlights the importance of channel second-order statistics, most learning-based schemes do not explicitly exploit it in the compression and reconstruction process. Zhuang et al. [17] exploited the channel second-order statistics but only at the decoder for reconstruction. Together, these two limitations suggest that the encoder should not only learn a compact CSI representation, but also identify and prioritize statistically important latent components . Third, most learning-based CSI feedback schemes support only a fixed compression ratio, requiring a separate model for each feedback budget. Existing variable-rate methods typically construct nested latent representations and transmit the first k features according to the available resources [18–20]. However, their feature ordering is generally fixed across channel realizations. Fourth, most existing evaluations rely on datasets generated from a single fixed channel profile, such as the standardized CDL-C or CDL-D models [21], with limited variation in delay profile, angular spread, array geometry, and user layout, which limits conclusions about generalization when the deployment environment differs from the training distribution. 
+
+C. Contributions 
+
+Motivated by the above limitations, we propose a learning-based SSCC feedback scheme, called prior-aided masked vector quantization (PM-VQ), for DL CSI feedback. Inspired by the reverse water-filling structure of the rate–distortion-optimal solution, PM-VQ uses the average angle–delay power map as prior side information to guide non-uniform latent-token selection under a given feedback budget. It combines vector-quantized latent compression with prior-aware token masking and mask-based latent completion, so that the encoder transmits only the most informative latent tokens and the BS reconstructs the full channel from the received tokens, with the channel statistical prior injected at the encoder, token-scoring module, and decoder. The main contributions are summarized as follows.  
+
+> ‚
+
+Multi-level prior conditioning. We exploit the average angle–delay power map as prior side information and inject it at multiple semantic levels: gated fusion in the encoder, SPADE-style modulation for token scoring and decoding, and BS-side prior skip connections. This conditions both compression and reconstruction on the channel second-order statistics.  
+
+> ‚
+
+Selective latent-token transmission. We introduce a spatially-adaptive masking module (SAMM) that scores latent tokens using both the instantaneous CSI and the long-term prior and retains only the most informative ones under the available feedback budget. At the BS, an adaptive de-masking module (ADM) reconstructs the masked tokens from the received quantized tokens.  
+
+> ‚
+
+Content-adaptive variable-rate feedback. Because SAMM selects a variable number of tokens per channel realization, a single trained model operates across multiple feedback dimensions βfb without retraining, and the selection adapts to each individual CSI sample.  
+
+> ‚
+
+Geometrically diverse dataset. We generate a DL CSI dataset with the Sionna simulator under the 3GPP TR 38.901 UMa model, sampling diverse UE locations around a fixed BS to introduce geometric diversity beyond single-profile training.  
+
+> ‚
+
+Unified benchmarking. We compare PM-VQ and all baselines under a common UL feedback dimension βfb measured in channel uses. On a UMa dataset spanning channel-rank conditions from diffuse to sparse, we focus the evaluation on the most challenging diffuse regime, where the channel energy spreads across many angle–delay coefficients. Extensive simulations show that PM-VQ achieves the best NMSE across SNR levels and feedback dimensions βfb in this regime, and its advantage over the baselines is especially pronounced. The results also demonstrate that the prior provides substantial gains even when the angle–delay power map is itself noisy. 4
+
+The remainder of this paper is organized as follows. Section II introduces the FDD massive MIMO-OFDM system model, the CSI representation, and the prior information. Section III presents the proposed PM-VQ feedback scheme. Section IV details the dataset generation procedure, Section V describes the baseline methods, Section VI presents the simulation results, and Section VII concludes the paper. II. S YSTEM MODEL 
+
+We consider an FDD massive MIMO-OFDM system, where a BS equipped with an NBS -element uniform linear array (ULA) serves multiple UEs, each also equipped with an NUE -element ULA. Since the UEs estimate and feed back their channels independently, we focus on a single generic UE and omit the user index throughout. Let F denote the set of selected OFDM subcarriers, with Nsc “ | F|. At subcarrier f P F, let Hf P CNUE ˆNBS denote the DL channel. To isolate the feedback problem from pilot design and channel estimation, we assume the UE has acquired its DL channel tHf u perfectly before feedback. Under this assumption, the remote source-coding formulation of Section I reduces to direct compression of the known channel. Our objective is a one-shot feedback scheme that compresses the CSI at the UE and reconstructs it at the BS under a limited UL feedback budget. 
+
+A. Angle–Delay CSI Representation 
+
+Rather than operating in the antenna–frequency domain, we represent the CSI in its angle–delay dual domain, where the channel sparsity becomes apparent due to the limited delay and angular spread of the propagation paths, which can be leveraged for channel compression. For UE antenna r, let Hprq P CNsc ˆNBS collect its antenna–frequency channel over the selected subcarriers and BS antennas. Its angle–delay representation is the two-sided unitary DFT 
+
+Hprq 
+
+> ad
+
+“ FHNsc Hprq FNBS , r “ 1, . . . , N UE , (4) where FN is the unitary N -point DFT matrix. Left multiplication by FHNsc maps frequencies to delays, and right multiplication by FNBS maps BS antennas to angles. Stacking tHprq 
+
+> ad
+
+uNUE  
+
+> r“1
+
+gives the angle–delay CSI tensor Had P CNsc ˆNBS ˆNUE . Being unitary, this transform preserves channel energy while exposing the channel’s sparse delay–angular structure. 
+
+B. Prior Information: Average Angle–Delay Power Map 
+
+To compress and reconstruct the channel more effectively, we exploit the channel second-order statistics as prior information. Since estimating and storing the full covariance is costly in massive MIMO systems, we instead approximate it by the average power in the angle–delay domain. In sparse multipath channels, the DFT basis approximately de-correlates the angle–delay coefficients, so the per-coefficient power captures the dominant second-order structure. The resulting average power map admits a natural interpretation in terms of power spectral density (PSD). For a wide-sense stationary random process, the PSD is the Fourier transform of its autocorrelation function and describes how the average signal power is distributed over frequency. Analogously, applying the DFT along the spatial and frequency dimensions transforms the channel into discrete angle–delay representation. The quantity Er| Had |2s 1 therefore describes how the average channel power is distributed across the angle–delay bins and can be viewed as a finite-grid angle–delay power spectrum. For a single realization, |Had psq| 2 gives the instantaneous power distribution, whereas averaging over multiple realizations estimates the underlying slowly varying power spectrum. Specifically, we estimate the average angle–delay power map from S independent small-scale realizations that share the same large-scale statistics (e.g., the same UE location), 
+
+PpSq “ 1
+
+S
+
+> S
+
+ÿ
+
+> s“1
+
+ˇˇHad psqˇˇ2 P R Nsc ˆNBS ˆNUE , (5) Thus, PpSq is a sample-average estimate of the underlying angle–delay power spectrum Er| Had |2s. Such averaging is feasible because small-scale fading typically varies faster than the geometry-induced second-order statistics, so multiple channel realizations can exhibit different instantaneous fading while sharing approximately the same angle–delay power distribution. We assume that both the UE and the BS maintain a buffer of historical angle–delay CSI: the UE accumulates its own channel estimates, while the BS accumulates the CSI it has already reconstructed from earlier feedback rounds. Each side then computes the power map directly from its local buffer via (5), so the prior becomes available at both ends without any additional feedback payload. Because the two buffers are formed from correlated realizations of the same slowly varying large-scale statistics, the resulting estimates are consistent, and the residual mismatch between them is tolerated by the robustness of PM-VQ to prior-estimation error demonstrated in Section VI. 5
+
+Fig. 1: System diagram of the proposed PM-VQ framework. III. P ROPOSED PRIOR -A IDED MASKED VECTOR QUANTIZATION CSI F EEDBACK SCHEME 
+
+In this section, we present the proposed CSI feedback scheme, a learnable SSCC-based design conditioned on prior side information. As shown in Fig. 1, the scheme builds on the encoder–decoder framework with vector quantization (VQ): the encoder at the UE compresses the DL CSI into a latent representation, the latent vectors are quantized to indices of a learned codebook and fed back, and the decoder at the BS reconstructs the DL CSI from the received indices. This framework is standard in learning-based CSI feedback [15], but it suffers from three limitations:  
+
+> ‚
+
+The network must be retrained for every target compression ratio, since the latent dimension is fixed by the architecture.  
+
+> ‚
+
+The compression mapping is purely data-driven: it exploits the redundancy of the high-dimensional CSI, but provides no measure of which latent dimensions are more informative and should be prioritized under a limited feedback budget.  
+
+> ‚
+
+There is no principled mechanism for integrating side information into the compression and reconstruction designs. The proposed prior-aided masked vector quantization (PM-VQ) feedback scheme addresses these limitations one by one: it supports a range of feedback dimensions with a single trained model by varying the number of transmitted latent tokens; it scores the latent tokens so that only the most informative ones are fed back; and it incorporates prior side information, i.e., the average angle–delay power map introduced in Section II-B, which is assumed to be available at both the UE and the BS, at multiple points in the encoder, SAMM, and decoder. The scheme consists of the following components:  
+
+> ‚
+
+Prior-aided encoder : compresses the DL CSI into latent tokens, conditioned on the prior;  
+
+> ‚
+
+Spatially-adaptive masking module (SAMM) : assigns an importance score to each latent token based on both the tokens and the prior power map;  
+
+> ‚
+
+Top-k selection and scaling : retains the k highest-scoring tokens and scales each retained token by its score;  
+
+> ‚
+
+Vector quantization : quantizes the selected, scaled tokens; the codeword indices and the positions of the selected tokens are transmitted to the BS over the UL feedback channel;  
+
+> ‚
+
+Adaptive de-masking module (ADM) : completes the latent representation at the BS from the received codewords and positions;  
+
+> ‚
+
+Prior-aided decoder : reconstructs the DL CSI from the completed latent representation, again conditioned on the prior. A further design principle of PM-VQ is that the prior is not merely concatenated with or added to the CSI at the input. Instead, it is injected at multiple semantic levels: (i) gated additive fusion at multiple encoder resolutions, (ii) SPADE-style modulation [22] for token scoring and decoding, (iii) a BS-side prior encoder that synthesizes U-Net skip connections without violating the CSI-feedback constraint that UE-side features are unavailable at the BS. These injection points correspond to the dashed arrows from the power map to the encoder, SAMM, and the decoder in Fig. 1.  
+
+> 1| ¨ | 2is applied elementwise 6
+
+A. Asymmetric Prior-Aided U-Net Backbone 
+
+The encoder–decoder backbone is motivated by two properties of massive MIMO-OFDM CSI in the angle–delay domain. First, the angle–delay channel behaves as a structured image whose energy concentrates in a small number of localized clusters. Accurate reconstruction therefore requires both global context, which locates the dominant clusters, and local detail, which describes the coefficients within each cluster. Second, the average angle–delay power map P already indicates the likely locations of the dominant paths and is available at both the UE and the BS. The first property motivates a U-Net-like multi-scale architecture [23], in which the encoder progressively reduces the spatial resolution so that the bottleneck latent captures the global channel structure, while the decoder progressively restores the resolution to recover fine angle–delay detail. The second property determines how the architecture is modified from a standard symmetric U-Net. In a conventional U-Net, intermediate encoder features are passed directly to the decoder through skip connections, but in CSI feedback these features are computed at the UE, and transmitting them to the BS would consume additional feedback resources. We therefore adopt an asymmetric U-Net, where the UE transmits no intermediate features, and the BS decoder replaces the missing encoder skips with multi-scale features extracted from the prior power map, conveying similar structural information at zero feedback cost. 
+
+B. Input Representation 
+
+We treat the complex angle–delay channel Had as a two-channel real-valued image X P R2ˆHˆW , stacking its real and imaginary parts, where the height H indexes delays and the width W “ NBS NUE indexes the flattened angle pairs. The prior power map PpSq is reshaped and normalized to the same layout, giving P P R1ˆHˆW . The two inputs are complementary: 
+
+X is the instantaneous realization to be compressed, while P summarizes the slowly varying second-order geometry of the channel. 
+
+C. Prior-Aided Encoder with Gated Fusion 
+
+The encoder maps the CSI image and the prior to a compact latent feature map, 
+
+ze “ Eθ pX, Pq P RCˆhˆw, K “ hw, (6) where C is the latent channel dimension and K “ hw the number of spatial latent tokens, written ze,i P RC for position i.Architecturally, Eθ is the contracting path of an asymmetric U-Net: a 3 ˆ 3 convolution, ndown residual downsampling stages, and a 1 ˆ 1 projection to dimension C, so that successive downsampling aggregates increasingly global angle–delay context. Rather than conditioning only on the input, we inject the prior at every encoder resolution. At stage ℓ, with CSI feature map 
+
+fℓ, the prior is resized to the same resolution, projected by a small network ρℓp¨q , and fused as 
+
+Fuse ℓpfℓ, Pq “ fℓ ` tanh pαℓq ρℓpPq ` GN pfℓq, (7) with a trainable scalar αℓ and GroupNorm GN p¨q . Each of the three terms serves a distinct purpose. The identity term fℓ
+
+passes the CSI features through unchanged, preserving their amplitude information. The normalized term GN pfℓq adds a scale-normalized version of the same features, which keeps activations at a consistent magnitude across different channel realizations and network layers and thus makes training more stable. The prior term ρℓpPq adds the long-term angle–delay power structure, resized to match the current resolution. The bounded gate tanh pαℓq lets each stage learn how strongly to rely on the prior, adding statistical guidance without overwhelming the instantaneous CSI. 
+
+D. Spatially-Adaptive Masking Module 
+
+Once the latent is formed, the UE must decide which tokens to transmit under the budget. The spatially-adaptive masking module (SAMM) is a lightweight network that scores each latent token, 
+
+s “ SAMM pze, rPq P p 0, 1qK , (8) where rP is the prior downsampled to the latent resolution and refined by a small CNN, and a higher score marks a token as more useful for reconstruction. SAMM conditions on the prior through spatially-adaptive normalization (SPADE) [22]. For a feature map h,
+
+SPADE ph, rPq “ `1 ` γp rPq˘ d GN phq ` βp rPq, (9) with modulation maps γp¨q , βp¨q produced from the prior by a small convolutional network. Unlike concatenation, SPADE reinjects the prior after normalization and thus modulates the feature statistics directly according to the dominant angle–delay clusters. Given the scores, the UE keeps the k highest-scoring tokens, 
+
+I “ top -kpsq, mi “ 1ti P Iu, (10) and discards the remaining K ´ k latent tokens. SAMM therefore performs content-adaptive selection: for each realization it spends the feedback budget on the latent positions predicted to be most informative. 7
+
+E. Score-Scaled Vector Quantization 
+
+The selected tokens are mapped to feedback bits by vector quantization. Before quantizing, we normalize each token with a token-wise LayerNorm and then scale it by its SAMM score, 
+
+rze,i “ LN pze,i q si, i P I. (11) The LayerNorm stabilizes the distribution seen by the quantizer. The score scaling serves a different purpose. Since the top-k
+
+selection that picks the tokens is non-differentiable, multiplying by si is what places the score on the forward computation path, so that the reconstruction loss can back-propagate into the SAMM scores and train the selection network. In effect, the scaling is the bridge that makes the otherwise discrete token selection trainable end-to-end. Quantization uses a learned codebook C “ t cj uJj“1 with cj P RC , assigning each token to its nearest codeword, 
+
+qi “ arg min 
+
+> j
+
+››r ze,i ´ cj
+
+››22, zqi “ cqi . (12) Gradients pass through the non-differentiable assignment via the straight-through estimator, 
+
+pzqi “ rze,i ` sg `zqi ´ rze,i 
+
+˘, (13) so the forward pass uses the codeword while the backward pass updates the score-scaled encoder token. 
+
+F. Feedback Budget and Number of Kept Tokens 
+
+The number of retained tokens follows directly from the feedback budget. The UE should transmit both the codeword indices tqiuiPI and the selected positions I. The positions cannot be inferred at the BS from the prior alone, since the mask is computed from the UE-side latent. With a codebook of size J, the indices cost k log 2 J bits, while describing the support of k tokens among K positions costs log 2
+
+`Kk
+
+˘ ď K h 2pk{Kq bits, where h2p¨q is the binary entropy. We therefore model the source-coding cost as 
+
+BpK, k, J q “ K h 2
+
+` kK
+
+˘ ` k log 2 J, (14) which upper-bounds the exact positional cost, so the budget constraint is always respected. Given the reliable budget βfb Cul 
+
+of Section I, we retain the largest admissible number of tokens, 
+
+k‹ “ max ␣k : BpK, k, J q ď βfb Cul 
+
+(. (15) Since βfb , Cul , K, and J are all known at both the UE and the BS, k‹ is determined identically at both sides and does not need to be signaled. The feedback resource thus sets k‹ directly, and a single trained model serves any budget by varying k‹,with no architectural change or retraining. 
+
+G. Adaptive De-Masking Module 
+
+When the BS receives the k‹ selected and quantized tokens zq “ t zqi uiPI and their grid positions I, the adaptive de-masking module (ADM) aims to reconstruct the complete set of latent tokens pz P RCˆhˆw required by the decoder. To achieve this, ADM first restores the full K-token grid, placing each received codeword at its own position and marking every missing position with a single shared, learnable mask token, 
+
+rz0,i “
+
+#
+
+zqi , i P I,
+
+zmask , i R I, (16) which turns the problem into one of completing the missing positions from the received ones. Let m P t 0, 1uK be the binary indicator of the selected positions, with mi “ 1 if i P I and mi “ 0 otherwise, so that m marks the received and missing entries of the grid. The completion is then written as 
+
+pz “ ADM `rz0, m˘. (17) Following masked generative models [24], ADM splits this completion into two parts, a fixed baseline plus a learned correction. The baseline is a dimension-preserving projection of the reassembled grid, 
+
+b “ P0prz0q (18) which gives the received codewords a direct path to the output, so their information is preserved rather than reconstructed from scratch. On top of this baseline, a transformer branch predicts the correction needed to fill in the missing positions, 
+
+∆z “ Rψ
+
+´
+
+Tψ
+
+´
+
+b, tapℓquL´1
+
+> ℓ“0
+
+¯¯ 
+
+, (19) 8
+
+where Tψ stacks L masked self-attention blocks and Rψ is a convolutional head. The ADM completes the latent purely from the received tokens and does not use the prior; the missing positions are inferred from the reliable received tokens through the completion mechanism described next. A key difficulty is that the mask tokens are only placeholders: they hold no channel information, yet they sit on the same grid as the received tokens. When the network reconstructs a position, it does so by combining information from all positions on the grid. If the placeholders are given the same weight as the received tokens in this combination, their empty content leaks into the result and corrupts the reconstruction. The network must therefore weigh the received tokens far more heavily than the placeholders. We address this with a progressive reliability mask . For each layer 
+
+ℓ, we build a soft reliability weight apℓq, that sets how much layer ℓ should trust each position. Initially the weight strongly favors the received tokens, 
+
+ap0q “ m ` ϵp1 ´ mq, 0 ă ϵ ! 1, (20) giving received positions weight 1 and missing positions a near-zero weight ϵ. After each layer the weight is raised toward 1
+
+by taking a square root, 
+
+apℓ`1q “
+
+a
+
+apℓq. (21) Since repeatedly square-rooting any value in p0, 1s pushes it toward 1, the missing positions become gradually more trusted as depth increases. Within layer ℓ, apℓq controls the combination described above: each position contributes to the result in proportion to its current reliability, so the received positions dominate early on and the missing ones are admitted only gradually. This schedule produces a coarse-to-fine completion. The early layers rely almost entirely on the reliable received tokens and use them to fill in a first estimate of the missing positions. Later layers, once those positions have been given plausible values, gradually bring them into the reconstruction as well. In this way the missing positions are recovered from trustworthy information first, rather than from the empty placeholders, before being refined across the whole grid. Finally, ADM adds the correction back to the baseline b, using separate strengths for the received and missing positions selected by the mask m,
+
+pz “ b ` αk m d ∆z ` αu p1 ´ mq d ∆z, (22) where αk, α u are learnable positive scalars. This lets the received codewords pass through almost untouched while the missing positions, which must be inferred, receive a stronger correction. 
+
+H. Prior-Conditioned Decoder 
+
+Once ADM has completed the latent, the decoder maps it back to the angle–delay image, 
+
+pX “ Dϕppz, Pq, (23) following a U-Net expanding path. A 3 ˆ 3 convolution first maps pz into the decoder’s feature space, a bottleneck multi-head self-attention block [25] then mixes global context at the coarsest scale, and finally ndown prior-conditioned upsampling blocks restore the original resolution. The one departure from a standard U-Net concerns the skip connections. A U-Net normally forwards the encoder’s intermediate features to the decoder through such skips, but here those features live at the UE and cannot reach the BS without extra feedback overhead. We therefore replace the UE-side skips with multi-scale features derived from the shared prior. A BS-side prior encoder produces skip features 
+
+tpskip  
+
+> ℓ
+
+undown  
+
+> ℓ“1
+
+“ EP pPq, (24) which carry high-resolution structure about the likely angle–delay support, while a prior pyramid produces scale-matched SPADE maps 
+
+tpmod  
+
+> ℓ
+
+undown  
+
+> ℓ“1
+
+“ ΠP pPq. (25) Each upsampling block then combines these prior features with the current decoder state, 
+
+hℓ`1 “ Uℓ
+
+`hℓ, pskip  
+
+> ℓ
+
+, pmod 
+
+> ℓ
+
+˘, (26) where Uℓ upsamples hℓ, merges in the prior skip feature, applies SPADE-modulated convolutions as in (9), and adds a residual shortcut. In this way the decoder is conditioned on the same prior as the encoder and SAMM, yet reconstructs the image using only information already available at the BS. 9
+
+Algorithm 1 Proposed PM-VQ CSI feedback scheme 
+
+Require: CSI image X, prior map P, feedback dimension βfb  
+
+> 1:
+
+Compute k‹ from the budget constraint in (15)  
+
+> 2:
+
+Encode CSI and prior: z Ð Eθ pX, Pq 
+
+> 3:
+
+Generate latent-resolution prior rP 
+
+> 4:
+
+Score latent tokens: s Ð SAMM pz, rPq 
+
+> 5:
+
+Select token positions: I Ð top -k‹psq 
+
+> 6:
+
+for i P I do  
+
+> 7:
+
+Normalize and score-scale: rzi Ð LN pziqsi 
+
+> 8:
+
+Quantize: qi Ð arg min j }rzi ´ cj }22 
+
+> 9:
+
+end for  
+
+> 10:
+
+UE feeds back tqiuiPI and I 
+
+> 11:
+
+BS reconstructs selected codewords: zqi Ð cqi 
+
+> 12:
+
+Assemble sparse grid rz0 via (16)  
+
+> 13:
+
+Recover full latent: pz Ð ADM prz0, mq 
+
+> 14:
+
+Decode CSI: pX Ð Dϕppz, Pq 
+
+> 15:
+
+During training, compute L in (27) and update all trainable modules 
+
+I. Training Objective 
+
+All modules are trained jointly and end-to-end under a single objective with four terms: a reconstruction loss, a VQ commitment loss, an ADM latent-completion loss, and a code-usage regularizer, 
+
+L “ λrec Lrec ` λcm Lcm ` λlat Llat ` λcu Lcu . (27) The reconstruction loss Lrec is the normalized MSE between the reconstructed and ground-truth angle–delay images. The commitment loss 
+
+Lcm “ 1
+
+|I|
+
+ÿ
+
+> iPI
+
+››sg pzqi q ´ rze,i 
+
+››22 (28) pulls each selected token toward its codeword, and where sg p¨q is the stop-gradient operator. The codewords themselves are updated not by the usual codebook loss but by exponential moving averages of the assigned encoder outputs [26], which stabilizes the codebook during training. The latent loss supervises ADM by comparing the recovered latent pz with the encoder latent ze, weighting the received and masked positions separately, 
+
+Llat “ ωr
+
+››m d `pz ´ sg pzeq˘› ›22
+
+}m}0
+
+` ωm
+
+››p1 ´ mq d `pz ´ sg pzeq˘› ›22
+
+}1 ´ m}0
+
+. (29) We set ωm ą ωr, so the loss lets ADM keep the received tokens intact while concentrating its effort on the harder missing positions. The final term, the code-usage regularizer, prevents codebook collapse by keeping the empirical codeword usage close to uniform [27–29]. Let B be the set of selected tokens in a batch. The hard quantization in (12) assigns each token to a single nearest codeword, which is not differentiable and gives no signal about the other codewords. We therefore replace it with a soft assignment 
+
+πi,j “ exp `´} rze,i ´ cj }22{τ ˘řJj1“1 exp `´} rze,i ´ cj1 }22{τ ˘ , ¯pj “ 1
+
+|B|
+
+ÿ
+
+> iPB
+
+πi,j , (30) where πi,j is the (approximate) probability that token i is quantized to codeword j: it is largest for the nearest codeword and decays with distance, controlled by the temperature τ “ 1. Averaging πi,j over the batch gives ¯pj , the mean rate at which codeword j is used. Stacking these into ¯p “ p ¯p1, . . . , ¯pJ q yields the empirical usage distribution over the codebook, and the penalty is its KL divergence from the uniform distribution, 
+
+Lcu “
+
+> J
+
+ÿ
+
+> j“1
+
+¯pj log ¯pj
+
+1{J “ log J ´ Hp¯pq, (31) so that minimizing Lcu maximizes the usage entropy and keeps all codewords active. 10 
+
+IV. D ATASET GENERATION 
+
+The DL CSI dataset is generated with the Sionna link-level simulator [30] under the 3GPP TR 38.901 urban macrocell (UMa) non-line-of-sight (NLoS) channel model [21]. A single BS is located at the cell center, dBS “ r 0, 0, 25 s m, and each UE is placed at 
+
+dUE “ r r cos θ, r sin θ, h UE s m, (32) where r denotes the horizontal BS–UE distance, θ the azimuth angle, and hUE the UE height. These parameters are drawn independently for each UE as 
+
+θ „ Ur0, 2πq, r „ Ur35 , 250 s m, hUE „ Ur1.5, 22 .5s m. (33) The DL carrier frequency is fDL “ 2.14 GHz . The BS employs an NBS “ 32 -element single-polarized uniform linear array (ULA) with the TR 38.901 antenna element pattern, while each UE is equipped with NUE “ 4 single-polarized antenna elements. The orthogonal frequency-division multiplexing (OFDM) grid contains NRB “ 50 resource blocks, each comprising 
+
+12 subcarriers, with subcarrier spacing ∆f “ 30 kHz . This yields 600 subcarriers over an 18 MHz bandwidth. To emulate subband-based CSI reporting, only the center subcarrier of each resource block is retained, i.e., subcarrier 12 r ` 6 of resource block r for r “ 0, . . . , N RB ´ 1. The resulting CSI representation therefore contains Nsc “ 50 subcarriers with a spacing of 
+
+360 kHz , sampled directly from the full-band channel response without interpolation. For a given UE, the model first draws the large-scale parameters (path loss, shadow fading, delay spread, angular spreads, and Ricean K-factor) from the UMa distributions conditioned on the BS–UE topology, and then draws the cluster delays, cluster powers, and the per-cluster and per-ray departure/arrival angles. At each UE location we hold all of these quantities fixed, that is, the BS and UE positions, the large-scale parameters, and the entire cluster/ray geometry (delays, powers, and angles), and resample only the random initial phases of the rays across realizations. Each realization is therefore an independent phase realization conditioned on a fixed topology and a fixed cluster/ray geometry , and the resulting variation is the coherent small-scale fading induced by the superposition of rays with independently drawn phases. The dataset is partitioned by UE location, with 7,500 locations used for training and 750 disjoint locations used for testing. For each location, 20 independent phase realizations are generated, resulting in 150 ,000 training samples and 15 ,000 test samples. An additional phase-realization pool, disjoint from the training and test samples, is generated at every location solely for prior estimation. V. B ASELINE METHODS 
+
+We compare the proposed scheme against three representative feedback baselines, all evaluated under the same uplink feedback dimension βfb and UL SNR: a JSCC scheme, an SSCC scheme, and a training-free compressed-sensing scheme. The two learned baselines both adopt the transformer-based TransNet architecture [16], a widely used and competitive backbone for learning-based CSI feedback that captures long-range angle–delay dependencies through self-attention. 
+
+A. Transformer-Based JSCC Baseline 
+
+The JSCC baseline adopts the TransNet-based feedback scheme [16]. A transformer encoder maps the angle–delay channel 
+
+Had directly to βfb complex symbols, normalized to unit average power per channel use, which are sent over the AWGN uplink, 
+
+yfb “ xfb ` nfb , (34) where xfb P Cβfb are the transmitted symbols and nfb is complex AWGN whose variance is set by the UL SNR. A symmetric transformer decoder then reconstructs the channel from yfb , and the encoder and decoder are trained jointly to minimize the channel NMSE. Because the encoder feeds analog symbols straight through the channel, a separate model must be trained for each βfb and UL SNR. 
+
+B. Transformer-Based SSCC Baseline 
+
+The SSCC baseline uses the same transformer encoder and decoder but, like the proposed method, feeds back a bit stream rather than analog symbols. The encoder produces a length-βout latent, and each entry is passed through a sigmoid and a uniform Q-bit scalar quantizer, giving βout Q bits in total. To match the reliable budget of (3) for βfb channel uses at capacity 
+
+Cul , the latent length is set to 
+
+βout “
+
+Z βfb Cul 
+
+Q
+
+^
+
+. (35) The model is trained end-to-end to minimize the channel NMSE. At the fixed budget βfb Cul , the number of quantization bits Q trades resolution against dimensionality: a larger Q quantizes each coefficient more finely but leaves room for fewer coefficients, whereas a smaller Q keeps more coefficients at coarser resolution. We use Q “ 2.11 
+
+TABLE I: PM-VQ architecture and training hyperparameters.                                                     
+
+> Hyperparameter Value
+> Architecture
+> Latent tokens K“hw 208
+> Latent channel dimension C16
+> Downsampling stages ndown 3
+> ADM self-attention blocks L8
+> Codebook size J512
+> Training
+> Optimizer AdamW LR schedule cosine ( ηmin “10 ´5)Peak LR (encoder / VQ) 1ˆ10 ´4
+> Peak LR (decoder / prior) 5ˆ10 ´5
+> Peak LR (ADM) 5ˆ10 ´4
+> Peak LR (SAMM) 2ˆ10 ´3
+> Weight decay 1ˆ10 ´4
+> Gradient clip 5.0
+> Epochs 500
+> Batch size 125
+> Keep-count range kr3,200 s
+> Codebook EMA decay 0.95
+> Prior snapshots Str (training) 20
+> Loss weights (27), (29)
+> λrec 1.0
+> λcm 0.05
+> λlat 0.05
+> λcu 10 ´3
+> ωr/ωm0.1/1.0
+
+C. Orthogonal Matching Pursuit under Random Projection 
+
+The final baseline is training-free and exploits the angle–delay sparsity of Had directly. The channel is vectorized and split into real and imaginary parts to form x P Rn, with n “ 2Nsc NBS NUE . It is then compressed by a random sensing matrix 
+
+A P RM ˆn with i.i.d. N p0, 1{M q entries, where the number of real measurements M “ 2βfb matches the feedback dimension. The measurements are received over the UL AWGN channel as 
+
+y “ Ax ` n, (36) with noise variance set by the UL SNR. From y, OMP greedily recovers x by solving min x }y ´ Ax }2 subject to a sparsity constraint }x}0 ď ksp , with the sparsity level ksp set from the empirical energy concentration of the channel. OMP thus serves as a sparsity-based reference that needs neither training nor channel statistics. VI. S IMULATION RESULTS 
+
+We evaluate the proposed PM-VQ scheme against the three baselines described in Section V on the UMa test dataset introduced in Section IV. Unless otherwise stated, PM-VQ uses a test-time prior power map estimated from S “ 20 independent channel realizations. The prior-aided encoder maps each channel realization to K “ 208 latent tokens, each of dimension 
+
+C “ 16 . These tokens are quantized using a learned codebook with J “ 512 entries, so each transmitted codeword index requires log 2 J “ 9 bits. The codebook is updated by exponential moving average (EMA) with a decay factor of 0.95 . All PM-VQ components are trained jointly end-to-end for 500 epochs with a batch size of 125 , using the AdamW optimizer [31] and a cosine learning-rate schedule. During training, the number of selected tokens k is sampled between 3 and 200 for each batch. This budget randomization enables a single trained model to support multiple feedback budgets by varying k at inference. By contrast, the JSCC and SSCC neural baselines are trained separately for each target combination of feedback dimension and UL SNR using the same training dataset. For a consistent comparison, all schemes are evaluated at the same UL SNR and with the same feedback dimension of βfb complex UL channel uses. Reconstruction accuracy is measured by NMSE. The main architectural and training hyperparameters of PM-VQ are summarized in Table I. To characterize performance across different scattering environments, we further split the test dataset according to the channel rank . A high channel rank corresponds to a rich, diffuse channel whose energy is spread across many angle–delay clusters, whereas a low rank corresponds to a sparse channel dominated by one or two strong paths. We sort the test locations by their channel rank and partition them into four equal-sized quartiles Q1 –Q4 , ranging from the most diffuse ( Q1 ) to the most sparse (Q4 ). The diffuse channels are the most challenging for CSI feedback, since their energy spreads across many non-negligible coefficients, precisely the regime that PM-VQ’s prior-guided token selection and prior-conditioned reconstruction are designed to exploit. We therefore focus the simulation study on the Q1 diffuse-channel dataset. 12 
+
+A. NMSE versus UL SNR at a Fixed Feedback Dimension 
+
+We first compare PM-VQ with the three baselines by sweeping the UL SNR from ´5 to 20 dB at a fixed feedback dimension 
+
+βfb “ 128 . To isolate the effect of prior conditioning, we also evaluate PM-VQ (no prior), which uses the same architecture and selective transmission mechanism but is trained and evaluated without prior information. As shown in Fig. 2a, PM-VQ achieves the lowest NMSE at every tested SNR, and its margin over the baselines increases as the UL channel improves. The no-prior variant is less effective in the low-SNR regime but progressively outperforms the learned baselines as the SNR increases. Among the baselines, JSCC performs better over the low-to-moderate SNR range, whereas SSCC becomes more competitive at high SNR. OMP has the highest NMSE throughout. These trends reflect how the schemes use an increase in UL SNR. At fixed βfb , JSCC always transmits the same number of analog symbols; a higher SNR reduces the feedback noise but does not enlarge the transmitted representation. Its curve therefore becomes nearly flat once the fixed-dimensional representation, rather than the channel noise, becomes the main bottleneck. SSCC instead converts the higher capacity into a larger error-free bit budget. Because its scalar-quantization resolution is fixed, the additional budget increases the number of transmitted coefficients, allowing SSCC to continue improving after the JSCC curve begins to saturate. This crossover reflects the different ways in which the two schemes exploit a better UL channel, but it does not imply a general ordering because SSCC assumes capacity-achieving channel coding and both learned baselines depend on their architectures and training procedures. PM-VQ shares this SSCC mechanism—a higher SNR buys a larger bit budget—but couples it with content-adaptive token selection, latent completion, and prior conditioning. At low SNR, only a small subset of latent tokens can be fed back, so ADM must infer most of the latent representation from limited received information. In this regime, the power-map prior is particularly valuable because it supplies channel structure without consuming instantaneous feedback bits. As the SNR increases, SAMM can forward more high-scoring tokens, enabling the decoder to recover progressively finer channel details. The comparison with PM-VQ (no prior) further separates the two sources of gain. Under a very limited bit budget, selective transmission and latent completion alone are insufficient to match the learned baselines, and the prior is responsible for PM-VQ’s clear advantage. Once the budget admits more tokens, the no-prior variant itself surpasses the baselines, demonstrating the benefit of content-adaptive token transmission and ADM. Full PM-VQ remains consistently better, showing that prior-conditioned reconstruction continues to provide a substantial improvement even when more latent information is available. -5 0 5 10 15 20 
+
+UL SNR (dB )      
+
+> -10 -8 -6 -4 -2 02468
+> NMSE  (dB )
+> k= 3
+> k= 8
+> k= 19
+> k= 34
+> k= 52
+> k= 73
+> JSCC baseline SSCC baseline PM-VQ PM-VQ (No Prior) OMP
+
+(a) NMSE vs. UL SNR with βfb “ 128 .SNR=+0 dB True CSI       
+
+> NMSE = -1.38 dB JSCC baseline
+> NMSE = -0.65 dB SSCC baseline
+> NMSE = -2.95 dB PM-VQ
+> NMSE = 0.48 dB PM-VQ (No Prior)
+> SNR=+10 dB
+> NMSE = -3.35 dB NMSE = -2.08 dB NMSE = -6.06 dB NMSE = -3.65 dB
+> SNR=+20 dB
+> NMSE = -2.71 dB NMSE = -3.32 dB NMSE = -8.24 dB NMSE = -5.06 dB
+
+(b) Angle–delay channel power heatmaps at UL SNR P t 0, 10 , 20 u dB with βfb “ 128 .
+
+Fig. 2: Comparison of CSI reconstruction across UL SNR. To complement the average NMSE curves, Fig. 2b shows the angle–delay channel power for a representative UE. The true channel contains several clusters whose energy spreads over neighboring bins because the continuous path angles and delays need not align with the discrete transform grid. At low SNR, the baselines retain mainly the strongest components, whereas full PM-VQ reconstructs more of the multi-cluster structure. Compared with PM-VQ (no prior), its clusters are also aligned more accurately with the true angle–delay locations, illustrating how the prior guides reconstruction when only a few tokens can be transmitted. As the SNR increases, SSCC and both PM-VQ variants recover additional structure, while JSCC remains limited by its fixed representation. Full PM-VQ preserves the weak components most faithfully and introduces fewer artifacts, consistent with its leading NMSE curve. 
+
+B. NMSE versus Feedback Dimension at a Fixed UL SNR 
+
+Next, we fix the UL SNR at 20 dB and vary the feedback dimension βfb , defined as the number of complex UL channel uses. As shown in Fig. 3a, the NMSE generally decreases as βfb increases. Full PM-VQ achieves the lowest NMSE at every feedback dimension, followed by PM-VQ (no prior), and their advantages over the baselines become more pronounced as βfb 
+
+increases. Among the learned baselines, JSCC and SSCC have similar performance under the smallest budget. JSCC initially 13 
+
+improves more, whereas SSCC benefits more strongly once the available feedback becomes larger. OMP improves with βfb 
+
+but remains the worst-performing method throughout. At the high UL SNR of 20 dB, changing βfb primarily changes how much channel information each scheme can convey. For JSCC, a larger feedback dimension allows more UL modulated symbols to be transmitted. For SSCC, the reliable bit budget grows proportionally, allowing more quantized coefficients to reach the BS. For OMP, the larger dimension provides more random measurements. Although the diffuse channels remain sparse in the angle–delay domain, their energy is distributed over more significant coefficients, and off-grid leakage spreads each physical path across neighboring bins. This higher effective sparsity makes greedy support recovery more difficult and limits the benefit of the additional measurements. In PM-VQ, a larger feedback dimension allows SAMM to transmit more selected tokens. The initial gains are substantial, but they diminish once the most informative tokens have already been conveyed. We next compare PM-VQ with PM-VQ (no prior) to distinguish the contributions of selective latent-token transmission and prior conditioning. Under the tightest feedback dimension, the no-prior variant performs comparably to the learned baselines. Its advantage grows as the feedback dimension increases, showing that selective token transmission and latent completion become increasingly effective when more informative tokens can be conveyed. The consistent gap between full PM-VQ and its no-prior variant reveals the additional benefit of the power-map prior across the entire feedback range. Full PM-VQ therefore remains the best-performing scheme throughout the sweep. 38 70 128 170 226 
+
+Feedback Dimension -fb        
+
+> -10 -8 -6 -4 -2 024
+> NMSE  (dB )
+> k= 18
+> k= 36
+> k= 73 k= 102 k= 146
+> JSCC baseline SSCC baseline PM-VQ PM-VQ (No Prior) OMP
+
+(a) NMSE vs. βfb at UL SNR “ 20 dB. fb  = 38       
+
+> True CSI
+> NMSE = -1.72 dB JSCC baseline
+> NMSE = -1.95 dB SSCC baseline
+> NMSE = -5.16 dB PM-VQ
+> NMSE = -1.55 dB PM-VQ (No Prior)
+> fb  = 128
+> NMSE = -2.83 dB NMSE = -3.32 dB NMSE = -8.24 dB NMSE = -5.06 dB
+> fb  = 226
+> NMSE = -4.25 dB NMSE = -4.20 dB NMSE = -8.62 dB NMSE = -5.80 dB
+
+(b) Angle–delay channel power heatmaps for βfb P t 38 , 128 , 226 u at UL SNR “ 20 dB. 
+
+Fig. 3: Comparison of CSI reconstruction across feedback dimension. Finally, Fig. 3b qualitatively compares the reconstructions of the same representative channel used in Fig. 2b. At the smallest feedback dimension, JSCC recovers mainly one dominant cluster, whereas SSCC recovers the two dominant clusters but misses much of the weaker structure. PM-VQ (no prior) also misplaces or merges some components. Full PM-VQ uses the prior to localize the dominant clusters closer to their true angle–delay positions and preserve more of the weak structure. As the feedback dimension increases, all schemes recover more channel detail, but full PM-VQ maintains the most accurate cluster locations and the least spurious energy. The comparatively small visual change at the largest dimensions is consistent with the flattening of its average NMSE curve. Overall, the qualitative reconstructions follow the same performance ordering as the NMSE results in Fig. 3a. 
+
+C. Ablation Study of Prior Side Information 
+
+The preceding NMSE studies establish that prior side information and content-adaptive token selection both improve CSI reconstruction. To understand where the prior gain comes from, Fig. 4 examines the prior from three complementary perspectives. Figure 4a measures how strongly a single trained model relies on each prior-conditioning pathway when that pathway is disabled at inference, Fig. 4b retrains the model from scratch under different prior configurations to confirm these conclusions hold beyond a single checkpoint, and Fig. 4c examines how accurately the prior must be estimated at inference. For the module-wise ablation, one pathway is removed at inference while all network weights remain fixed. The resulting performance loss therefore reflects how strongly the trained model depends on that pathway. The decoder-skip pathway is the most important: removing it eliminates most of the reconstruction gain across the feedback range. Encoder conditioning has the next largest effect, while the decoder-pyramid pathway provides a smaller but consistent improvement. In contrast, removing direct prior conditioning from SAMM changes the performance very little. This suggests that the prior-aided encoder has already embedded sufficient statistical information in the latent tokens for SAMM to rank them effectively. ADM is not included because it is prior-free by design and completes the latent solely from the received tokens and their positions. This ordering follows from the asymmetric U-Net architecture. The UE-side encoder features cannot be sent to the BS without additional feedback, so the prior-derived skip features are the decoder’s only source of high-resolution, multi-scale side information. Without them, the decoder must recover fine channel structure from the low-resolution latent alone. The 14 3 10 25 50 75 100 150    
+
+> Number of Selected Tokens k(K= 208)
+> −8
+> −6
+> −4
+> −20
+> NMSE  (dB )
+> PM-VQ No SAMM prior No enc prior No decoder pyramid prior No decoder skip prior
+
+(a) Effect of removing each prior-conditioning pathway at inference. 3 10 25 50 75 100 150    
+
+> Number of Selected Tokens k(K= 208)
+> −8
+> −6
+> −4
+> −2
+> NMSE  (dB )
+> PM-VQ PM-VQ (only decoder skip prior) PM-VQ (No prior)
+
+(b) Comparison of models trained with dif-ferent prior configurations. 3 10 25 50 75 100 150    
+
+> Number of Selected Tokens k(K= 208)
+> −8
+> −6
+> −4
+> −20
+> NMSE  (dB )
+> No prior (S=0) S = 1 S = 5 S = 10 S = 20
+
+(c) Effect of prior-estimation quality. 
+
+Fig. 4: Ablation of prior side information in PM-VQ. encoder prior shapes the latent before selection and quantization, while the decoder-pyramid prior refines the features during upsampling. Thus, the trained model uses the prior mainly for reconstruction at the decoder, especially through the prior-derived skip connections. Next, we verify whether these conclusions still hold when the network is retrained, since the above test only disables paths in a single trained model. In Fig. 4b, we compare three models trained from scratch: the full PM-VQ model, a model that uses only the decoder-skip prior, and a model that uses no prior. The ordering is consistent with the inference-time result: the full model achieves the lowest NMSE for all k, the no-prior model is the worst, and the decoder-skip-only model stays much closer to the full model than to the no-prior one, recovering most of the full-prior gain. This confirms that the decoder-skip path carries most of the benefit of the prior, while the remaining paths provide a smaller but consistent improvement. Having identified the decoder-skip pathway as the main source of prior gain, we next ask how accurately the prior must be estimated. Withholding it at inference causes reconstruction to collapse, consistent with the strong dependence on prior-derived decoder features. This test reflects how a prior-trained model responds to missing side information and is not equivalent to training a model without the prior. Nevertheless, even a rough power-map estimate restores most of the lost performance, and modest averaging approaches the result obtained with a well-estimated prior. This indicates that PM-VQ mainly needs the coarse angle–delay support; more accurate averaging primarily refines the power values. The model is therefore robust to moderate prior-estimation error but sensitive to the complete absence of the prior. 
+
+D. Ablation Study of the Token Selection Mechanism 
+
+To study the effect of the token selection mechanism, Fig. 5 compares the learned SAMM rule with two alternatives while keeping the remaining PM-VQ pipeline unchanged. Latent-energy selection retains the tokens with the largest magnitudes, whereas random masking selects the transmitted positions uniformly at random. SAMM achieves the best performance across the feedback range. Latent-energy selection is a strong heuristic and approaches SAMM when the feedback dimension is either very tight or very large, but it falls behind most clearly at intermediate feedback dimensions. Random masking performs substantially worse throughout, confirming that the identities of the transmitted tokens, rather than only their number, are important for reconstruction. This behavior follows from the information available at each feedback dimension. Under a very tight constraint, both SAMM and the energy rule tend to select the few dominant tokens. With a large feedback dimension, the most informative tokens can be retained, so the two rules again become similar. At intermediate feedback dimensions, however, the selector must balance token strength, spatial coverage, and redundancy with the tokens that ADM can reliably complete. Magnitude alone does not capture these interactions, whereas SAMM is trained jointly with ADM and the decoder to score tokens according to their reconstruction value. Learned content-adaptive selection therefore provides its clearest benefit in this intermediate regime. VII. C ONCLUSION 
+
+We proposed PM-VQ, a variable-rate SSCC scheme for FDD CSI feedback that uses the average angle–delay power map as side information. SAMM selects the latent tokens to be vector-quantized and transmitted, while the prior-free ADM completes the missing latent positions at the BS. Budget-randomized training allows the same model to operate over multiple feedback dimensions without retraining. PM-VQ outperforms the baselines across all tested UL SNRs and feedback dimensions in the challenging diffuse regime. The ablations show that the prior gain comes mainly from the decoder-skip pathway; encoder and decoder-pyramid conditioning provide secondary gains, whereas direct prior input to SAMM adds little. A coarse power-map estimate is sufficient for most of the benefit, but removing the prior entirely causes a performance loss. In contrast, SAMM’s learned selection rule remains important and outperforms both latent-energy selection and random masking, especially at intermediate feedback dimensions. These findings suggest a clear design principle: use the prior primarily to guide reconstruction at the BS and use learned content-adaptive selection to allocate the instantaneous feedback budget. 15 3 10 25 50 75 100 150 -10 -8 -6 -4 -2 0
+
+> NMSE  (dB )
+
+# Number of Selected Tokens k (K = 208 )
+
+# PM-VQ (SAMM selection) PM-VQ (latent-energy selection) PM-VQ (random masking) 
+
+Fig. 5: Effect of the token-selection rule in PM-VQ. REFERENCES 
+
+[1] C. E. Shannon, “A mathematical theory of communication,” Bell Syst. Tech. J. , vol. 27, no. 3, pp. 379–423, 1948. [2] M. B. Khalilsarai, Y. Song, T. Yang, and G. Caire, “Channel state acquisition in FDD massive MIMO: Rate–distortion bound and effectiveness of “analog” feedback,” in Proc. IEEE Int. Symp. Inf. Theory (ISIT) , 2022, pp. 2505–2510. [3] ——, “FDD massive MIMO channel training: Optimal rate–distortion bounds and the spectral efficiency of “one-shot” schemes,” IEEE Trans. Wireless Commun. , vol. 22, no. 9, pp. 6018–6032, 2023. [4] Y. Song, T. Yang, M. Barzegar Khalilsarai, and G. Caire, “Downlink CSIT under compressed feedback: Joint versus separate source– channel coding,” IEEE Trans. Wireless Commun. , vol. 24, no. 10, pp. 8429–8444, 2025. [5] ——, “Joint vs. separate source–channel coding in CSI feedback for massive MIMO,” in Proc. IEEE Int. Conf. Commun. (ICC) , 2024, pp. 5129–5134. [6] Z. Jiang, A. F. Molisch, G. Caire, and Z. Niu, “Achievable rates of FDD massive MIMO systems with spatial channel correlation,” 
+
+IEEE Trans. Wireless Commun. , vol. 14, no. 5, pp. 2868–2882, 2015. [7] M. B. Mashhadi, Q. Yang, and D. G¨ und¨ uz, “CNN-based analog CSI feedback in FDD MIMO-OFDM systems,” in Proc. IEEE Int. Conf. Acoust., Speech Signal Process. (ICASSP) , 2020, pp. 8579–8583. [8] J. Xu, B. Ai, N. Wang, and W. Chen, “Deep joint source–channel coding for CSI feedback: An end-to-end approach,” IEEE J. Sel. Areas Commun. , vol. 41, no. 1, pp. 260–273, 2023. [9] D. B. Kurka and D. G¨ und¨ uz, “DeepJSCC-f: Deep joint source–channel coding of images with feedback,” IEEE J. Sel. Areas Inf. Theory ,vol. 1, no. 1, pp. 178–193, 2020. [10] D. G¨ und¨ uz, M. A. Wigger, T.-Y. Tung, P. Zhang, and Y. Xiao, “Joint source–channel coding: Fundamentals and recent progress in practical designs,” Proc. IEEE , vol. 113, no. 9, pp. 888–919, 2025. [11] C.-K. Wen, W.-T. Shih, and S. Jin, “Deep learning for massive MIMO CSI feedback,” IEEE Wireless Commun. Lett. , vol. 7, no. 5, pp. 748–751, 2018. [12] J. Guo, C.-K. Wen, S. Jin, and G. Y. Li, “Convolutional neural network-based multiple-rate compressive sensing for massive MIMO CSI feedback: Design, simulation, and analysis,” IEEE Trans. Wireless Commun. , vol. 19, no. 4, pp. 2827–2840, 2020. [13] Z. Lu, J. Wang, and J. Song, “Multi-resolution CSI feedback with deep learning in massive MIMO system,” in ICC 2020 - 2020 IEEE International Conference on Communications (ICC) , 2020, pp. 1–6. [14] B. Tolba, M. Elsabrouty, M. G. Abdu-Aguye, H. Gacanin, and H. M. Kasem, “Massive MIMO CSI feedback based on generative adversarial network,” IEEE Commun. Lett. , vol. 24, no. 12, pp. 2805–2808, 2020. [15] J. Guo, C.-K. Wen, S. Jin, and G. Y. Li, “Overview of deep learning-based CSI feedback in massive MIMO systems,” IEEE Trans. Commun. , vol. 70, no. 12, pp. 8017–8045, 2022. [16] Y. Cui, A. Guo, and C. Song, “TransNet: Full attention network for CSI feedback in FDD massive MIMO systems,” IEEE Wireless Commun. Lett. , vol. 11, no. 5, pp. 903–907, 2022. 16 
+
+[17] J. Zhuang, X. He, Y. Wang, J. Liu, and W. Wang, “CovNet: Covariance information-assisted CSI feedback for FDD massive MIMO systems,” IEEE Wireless Communications Letters , vol. 14, no. 3, pp. 641–645, 2025. [18] J. Lee, J. Kim, and Y. Choi, “Learning variable-rate CSI compression with multi-stage vector quantization,” in ICC 2024-IEEE International Conference on Communications . IEEE, 2024, pp. 5123–5128. [19] S. K. Ankireddy, H. Kim, J. Cho, and H. Kim, “Residual diffusion models for variable-rate joint source–channel coding of MIMO CSI,” IEEE J. Sel. Areas Commun. , vol. 44, pp. 3620–3633, 2026. [20] V. Rizzello, M. Nerini, M. Joham, B. Clerckx, and W. Utschick, “User-driven adaptive CSI feedback with ordered vector quantization,” 
+
+IEEE Wireless Communications Letters , vol. 12, no. 11, pp. 1956–1960, 2023. [21] 3GPP, “Study on channel model for frequencies from 0.5 to 100 GHz,” 3rd Generation Partnership Project (3GPP), Technical Report TR 38.901, May 2024, version 18.0.0. [22] T. Park, M.-Y. Liu, T.-C. Wang, and J.-Y. Zhu, “Semantic image synthesis with spatially-adaptive normalization,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR) , 2019, pp. 2332–2341. [23] O. Ronneberger, P. Fischer, and T. Brox, “U-Net: Convolutional networks for biomedical image segmentation,” in Proc. Int. Conf. Med. Image Comput. Comput.-Assist. Intervent. (MICCAI) , 2015, pp. 234–241. [24] H. Chang, H. Zhang, L. Jiang, C. Liu, and W. T. Freeman, “MaskGIT: Masked generative image transformer,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR) , 2022, pp. 11 305–11 315. [25] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł. Kaiser, and I. Polosukhin, “Attention is all you need,” in 
+
+Adv. Neural Inf. Process. Syst. (NeurIPS) , 2017, pp. 5998–6008. [26] A. van den Oord, O. Vinyals, and K. Kavukcuoglu, “Neural discrete representation learning,” in Adv. Neural Inf. Process. Syst. (NeurIPS) ,2017, pp. 6306–6315. [27] S. Dieleman, A. van den Oord, and K. Simonyan, “The challenge of realistic music generation: Modelling raw audio at scale,” in Adv. Neural Inf. Process. Syst. (NeurIPS) , 2018. [28] A. Baevski, Y. Zhou, A. Mohamed, and M. Auli, “wav2vec 2.0: A framework for self-supervised learning of speech representations,” in Adv. Neural Inf. Process. Syst. (NeurIPS) , 2020. [29] J. Zhang, F. Zhan, C. Theobalt, and S. Lu, “Regularized vector quantization for tokenized image synthesis,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR) , 2023, pp. 18 467–18 476. [30] J. Hoydis, S. Cammerer, F. A. Aoudia, A. Vem, N. Binder, G. Marcus, and A. Keller, “Sionna: An open-source library for next-generation physical layer research,” arXiv preprint arXiv:2203.11854 , 2022. [31] I. Loshchilov and F. Hutter, “Decoupled weight decay regularization,” arXiv preprint arXiv:1711.05101 , 2017.
