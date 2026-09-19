@@ -1,0 +1,105 @@
+{
+  "date": "20260919",
+  "date_label": "",
+  "generated_at": "2026-09-19 21:42:37 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.16338v1",
+      "route": "202609/19/2609.16338v1-breaking-the-158-bit-barrier-for-ternary-llms",
+      "title": "Breaking the 1.58-bit Barrier for Ternary LLMs",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "突破1.58比特壁垒的极低比特三元存储布局",
+      "first_seen_at": "2026-09-19 21:42:37 UTC",
+      "updated_at": "2026-09-19 21:42:37 UTC"
+    },
+    {
+      "paper_id": "2609.19880v1",
+      "route": "202609/19/2609.19880v1-d-quant-driftable-entropy-coding-for-kv-cache-quantization",
+      "title": "D-Quant: Driftable Entropy Coding for KV Cache Quantization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "突破固定位宽2^b级别的低比特KV缓存量化",
+      "first_seen_at": "2026-09-19 21:42:37 UTC",
+      "updated_at": "2026-09-19 21:42:37 UTC"
+    },
+    {
+      "paper_id": "2609.16656v1",
+      "route": "202609/19/2609.16656v1-channel-wise-and-token-aware-post-training-quantization-for-visual-state-space-duality",
+      "title": "Channel-Wise and Token-Aware Post-Training Quantization for Visual State Space Duality",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "视觉状态空间模型的低比特训练后量化与权重-激活拆分",
+      "first_seen_at": "2026-09-19 21:42:37 UTC",
+      "updated_at": "2026-09-19 21:42:37 UTC"
+    },
+    {
+      "paper_id": "2609.17769v1",
+      "route": "202609/19/2609.17769v1-prior-aided-masked-vector-quantization-csi-feedback-for-fdd-massive-mimo-systems",
+      "title": "Prior-Aided Masked Vector Quantization CSI Feedback for FDD Massive MIMO Systems",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "先验辅助掩码矢量量化与码本token选择",
+      "first_seen_at": "2026-09-19 21:42:37 UTC",
+      "updated_at": "2026-09-19 21:42:37 UTC"
+    },
+    {
+      "paper_id": "2609.18063v2",
+      "route": "202609/19/2609.18063v2-the-other-half-of-the-memory-wall-serving-35b-moes-from-ssd-with-trained-routing-prediction",
+      "title": "The Other Half of the Memory Wall: Serving 35B MoEs from SSD with Trained Routing Prediction",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "4比特MoE服务与训练式路由预测",
+      "first_seen_at": "2026-09-19 21:42:37 UTC",
+      "updated_at": "2026-09-19 21:42:37 UTC"
+    },
+    {
+      "paper_id": "2609.18110v1",
+      "route": "202609/19/2609.18110v1-ssd-llama-ssd-native-inference-for-trillion-parameter-moe-at-1-tokens-on-a-consumer-pc",
+      "title": "SSD-LLaMA: SSD-Native Inference for Trillion-Parameter MoE at 1+ Token/s on a Consumer PC",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "万亿参数MoE推理中的量化与专家管理",
+      "first_seen_at": "2026-09-19 21:42:37 UTC",
+      "updated_at": "2026-09-19 21:42:37 UTC"
+    }
+  ]
+}

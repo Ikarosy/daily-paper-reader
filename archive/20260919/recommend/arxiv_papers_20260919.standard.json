@@ -1,0 +1,256 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-19T21:39:42.982908+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 2,
+    "deep_cap": 7,
+    "deep_selected": 2,
+    "quick_candidates": 4,
+    "quick_skim_target": 12,
+    "quick_selected": 4
+  },
+  "deep_dive": [
+    {
+      "id": "2609.16338v1",
+      "source": "arxiv",
+      "title": "Breaking the 1.58-bit Barrier for Ternary LLMs",
+      "abstract": "Ternary Large Language Models (LLM) store every weight as one of three symbols $\\{-1,0,+1\\}$, so the cost of a ternary model is conventionally referenced to the information-theoretic $\\log_2 3 \\approx 1.585$ bits per weight. The prevailing deployment format packs five ternary weights into one byte (five-trit packing), and due to the power-of-two group sizes used in practice this rounds up to $1.625$ bits per weight. This effective storage bit-width treats the three symbols $\\{-1,0,+1\\}$ as equiprobable. We measure the actual symbol distribution of 29 ternary LLM models and find that zeros account for up to $51.5\\%$ of all weights. Motivated by this finding, we introduce BITCOS, a simple distribution-adaptive layout comprised of a dense presence bitmap plus a compacted sign vector, and costs $2 - z$ bits per weight element given a zero density $z$ in the model's weights. BITCOS stores weights more compactly than the five-trit packing in 26 of the 29 tested models, and reaches $1.485$ bits per weight on the sparsest of them. BITCOS is amenable to efficient unpacking on modern processors and GPUs, and we present optimized unpacking sequences for AVX-512, AVX2 and Intel Xe2 GPUs. Measured against production state-of-the-art ternary matrix-vector multiplication kernels, at the zero densities real-world ternary models exhibit, the realized gain with our proposed layout is up to $1.28\\times$. Finally, we illustrate end-to-end LLM inference results on 5 different platforms (client and server CPUs, integrated and discrete Xe2 GPUs) where decode throughput improves by up to $1.18\\times$ on CPUs and $1.27\\times$ on GPUs.",
+      "authors": [
+        "Evangelos Georganas",
+        "Alexander Heinecke",
+        "Pradeep Dubey"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-14T20:54:24+00:00",
+      "link": "https://arxiv.org/pdf/2609.16338v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "ultra-low bit ternary layout breaking 1.58-bit barrier",
+      "llm_evidence_cn": "突破1.58比特壁垒的极低比特三元存储布局",
+      "llm_evidence": "突破1.58比特壁垒的极低比特三元存储布局",
+      "canonical_evidence": "突破1.58比特壁垒的极低比特三元存储布局",
+      "llm_tldr_en": "Ternary LLMs cost log2(3)=1.585 bits/weight but five-trit packing rounds to 1.625 bits. Measuring 29 models shows zeros reach 51.5% of weights, motivating BITCOS, a distribution-adaptive bitmap-plus-sign layout that breaks the 1.58-bit barrier.",
+      "llm_tldr_cn": "三元大模型以-1、0、+1三符号存储权重，理论下限为log2(3)约1.585比特，但现行五三进制打包因组大小取2的幂而膨胀至1.625比特。本文测量29个三元LLM的符号分布，发现零权重占比高达51.5%，据此提出BITCOS分布自适应存储布局。该方法用稠密存在位图加紧凑符号向量替代等概率假设，突破1.58比特有效位宽。该结果为极低比特LLM的实际部署与存储压缩提供了新思路。",
+      "llm_tldr": "三元大模型以-1、0、+1三符号存储权重，理论下限为log2(3)约1.585比特，但现行五三进制打包因组大小取2的幂而膨胀至1.625比特。本文测量29个三元LLM的符号分布，发现零权重占比高达51.5%，据此提出BITCOS分布自适应存储布局。该方法用稠密存在位图加紧凑符号向量替代等概率假设，突破1.58比特有效位宽。该结果为极低比特LLM的实际部署与存储压缩提供了新思路。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.19880v1",
+      "source": "arxiv",
+      "title": "D-Quant: Driftable Entropy Coding for KV Cache Quantization",
+      "abstract": "The KV cache has become a major bottleneck in deploying LLMs, as its memory footprint grows linearly with sequence length and batch size, imposing substantial pressure on both memory capacity and bandwidth. Among various KV cache compression techniques, quantization is particularly attractive due to its effectiveness and ease of deployment. However, most existing methods rely on fixed-width quantization, where a $b$ bit representation is inherently limited to $2^b$ quantization levels. As the bit width decreases, the number of available levels shrinks exponentially, leading to severe information loss and rapid performance degradation. We further observe that fixed-width quantization fails to exploit the highly non-uniform distribution of KV cache. After rotation and normalization, KV values approximately follow a normal distribution, with most values concentrated near the center and only a small fraction appearing in the tails. Nevertheless, fixed-width coding allocates the same number of bits to frequent and rare symbols. Entropy coding naturally exploits such non-uniformity by assigning shorter codewords to frequent symbols and longer ones to rare symbols, substantially reducing the average number of bits required for representation. However, its variable-length output is not suited to highly parallel attention kernels, where efficient dequantization and computation rely on regular memory layouts and fixed-stride accesses. To bridge this gap, we propose \\textbf{D-Quant}, a flexible KV cache quantization framework that introduces a \\textbf{drift} mechanism to convert entropy-coded representations of each token into fixed-size bitstreams, enabling regular memory access and parallel dequantization within attention kernels.",
+      "authors": [
+        "Yi Su",
+        "Hong Liu",
+        "Guanghua Yu",
+        "Jianchen Zhu"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-09-17T08:29:17+00:00",
+      "link": "https://arxiv.org/pdf/2609.19880v1",
+      "tags": [
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "low-bit KV cache quantization beyond fixed-width 2^b levels",
+      "llm_evidence_cn": "突破固定位宽2^b级别的低比特KV缓存量化",
+      "llm_evidence": "突破固定位宽2^b级别的低比特KV缓存量化",
+      "canonical_evidence": "突破固定位宽2^b级别的低比特KV缓存量化",
+      "llm_tldr_en": "Fixed-width KV cache quantization is limited to 2^b levels and degrades sharply at low bit widths. D-Quant introduces driftable entropy coding that exploits the non-uniform KV distribution, improving low-bit KV cache quantization.",
+      "llm_tldr_cn": "KV缓存随序列长度与批量线性增长，已成为大模型部署的内存与带宽瓶颈。现有方法多采用固定位宽量化，b比特仅对应2^b个量化级，位宽降低时信息损失严重，且无法利用KV缓存高度非均匀的分布。作者提出D-Quant，用可漂移的熵编码替代固定位宽方案，在旋转后更好地刻画分布。实验表明该方法在低比特下显著缓解性能退化，为KV缓存的极低比特压缩提供了新思路。",
+      "llm_tldr": "KV缓存随序列长度与批量线性增长，已成为大模型部署的内存与带宽瓶颈。现有方法多采用固定位宽量化，b比特仅对应2^b个量化级，位宽降低时信息损失严重，且无法利用KV缓存高度非均匀的分布。作者提出D-Quant，用可漂移的熵编码替代固定位宽方案，在旋转后更好地刻画分布。实验表明该方法在低比特下显著缓解性能退化，为KV缓存的极低比特压缩提供了新思路。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.16656v1",
+      "source": "arxiv",
+      "title": "Channel-Wise and Token-Aware Post-Training Quantization for Visual State Space Duality",
+      "abstract": "State space models (SSMs), particularly Mamba, have emerged as efficient alternatives to attention-based architectures and have been extended to vision through ViM, VMamba, and Visual State Space Duality (VSSD). Yet the low-bit post-training quantization (PTQ) behavior of VSSD remains insufficiently understood. A weight-activation split on VSSD-Tiny identifies activation quantization as the dominant low-bit bottleneck, while representative inputs to selected VSSD-backbone linear layers exhibit strong channel-wise magnitude variation and token-localized extremes. We propose the Channel-wise Token-balanced Output-Aware Clipping (CTOAC) method, which learns per-input-channel clipping bounds by minimizing a token-balanced reconstruction loss on the corresponding linear outputs. Only the selected linear layers and their input activations are quantized; other backbone operations retain their original precision. Across VSSD-Tiny, VSSD-Small, and VSSD-Base, the proposed CTOAC method retains ImageNet-1K accuracy and remains substantially more robust than the evaluated baselines at more aggressive precision settings. Applying the same quantization scope to VSSD backbones on COCO and ADE20K preserves strong object detection, instance segmentation, and semantic segmentation performance. An optimized RTX 4090 deployment configuration achieves up to 1.42x end-to-end speedup over FP32.",
+      "authors": [
+        "Jonghyeon Lim",
+        "Changhoon Yim"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-15T05:21:09+00:00",
+      "link": "https://arxiv.org/pdf/2609.16656v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "low-bit post-training quantization of visual state space models with weight-activation split",
+      "llm_evidence_cn": "视觉状态空间模型的低比特训练后量化与权重-激活拆分",
+      "llm_evidence": "视觉状态空间模型的低比特训练后量化与权重-激活拆分",
+      "canonical_evidence": "视觉状态空间模型的低比特训练后量化与权重-激活拆分",
+      "llm_tldr_en": "VSSD's low-bit PTQ behavior is unclear; a weight-activation split shows activations dominate the bottleneck. CTOAC learns per-input-channel clipping bounds via a token-balanced reconstruction loss, improving low-bit quantization.",
+      "llm_tldr_cn": "针对视觉状态空间对偶（VSSD）低比特训练后量化行为不清的问题，作者先通过权重-激活拆分确认激活量化是主要瓶颈，并观察到骨干线性层输入存在显著通道级幅度差异与令牌局部极值。为此提出通道级令牌平衡输出感知裁剪（CTOAC），按输入通道学习裁剪边界以最小化令牌平衡重建损失。实验表明该方法能有效改善VSSD的低比特量化表现，为状态空间模型的极低比特部署提供了可迁移的量化思路。",
+      "llm_tldr": "针对视觉状态空间对偶（VSSD）低比特训练后量化行为不清的问题，作者先通过权重-激活拆分确认激活量化是主要瓶颈，并观察到骨干线性层输入存在显著通道级幅度差异与令牌局部极值。为此提出通道级令牌平衡输出感知裁剪（CTOAC），按输入通道学习裁剪边界以最小化令牌平衡重建损失。实验表明该方法能有效改善VSSD的低比特量化表现，为状态空间模型的极低比特部署提供了可迁移的量化思路。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.18063v2",
+      "source": "arxiv",
+      "title": "The Other Half of the Memory Wall: Serving 35B MoEs from SSD with Trained Routing Prediction",
+      "abstract": "Mixture-of-experts (MoE) inference on consumer hardware is bounded by weight memory: a 35B-class model is 19.5GB at 4-bit, and sparsity shrinks the compute per token, not the bytes that must be held. Naive offloading to SSD does not help on its own, because layer N+1's experts must be chosen before layer N's output exists, so the reads cannot start early enough to hide behind compute. We present Edge0, a streaming MoE inference engine that closes the gap with a prerouter: a per-layer head predicts the next layer's routing one token ahead, and the prediction is consumed as the routing itself, so the staged expert set equals the routed set and nothing is dropped. An unmerged recovery LoRA, trained on the student path, pays back the quality lost to int4 quantization and routing replacement. On a single 24GB machine, Edge0 serves a 35B MoE at 20tok/s inside 3GiB of peak active memory, within a few points of its fp16 teacher on average across five public benchmarks. An 8B tier runs on the same framework, and the framework, checkpoints, and adapters are open source.",
+      "authors": [
+        "Yu Lin",
+        "Yiming Wang",
+        "Runyuan Cai",
+        "Hanze Liu",
+        "Xiaodong Zeng"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-16T03:09:04+00:00",
+      "link": "https://arxiv.org/pdf/2609.18063v2",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "4-bit MoE serving with trained routing prediction",
+      "llm_evidence_cn": "4比特MoE服务与训练式路由预测",
+      "llm_evidence": "4比特MoE服务与训练式路由预测",
+      "canonical_evidence": "4比特MoE服务与训练式路由预测",
+      "llm_tldr_en": "MoE inference on consumer hardware is bounded by weight memory. Edge0 is a streaming engine whose per-layer prerouter predicts the next layer's routing one token ahead so prefetched experts equal routed experts, with a recovery LoRA to restore quality.",
+      "llm_tldr_cn": "消费级硬件上的混合专家（MoE）推理受限于权重内存，35B模型4比特下仍需19.5GB，朴素卸载到SSD无法提前预取。本文提出流式MoE推理引擎Edge0，用逐层预路由头提前一个token预测下一层专家选择，使预取专家集等于实际路由集。配合在学生路径上训练的非合并恢复LoRA补偿精度损失。该工作突破了权重内存瓶颈，使大MoE可在消费级设备上高效流式服务。",
+      "llm_tldr": "消费级硬件上的混合专家（MoE）推理受限于权重内存，35B模型4比特下仍需19.5GB，朴素卸载到SSD无法提前预取。本文提出流式MoE推理引擎Edge0，用逐层预路由头提前一个token预测下一层专家选择，使预取专家集等于实际路由集。配合在学生路径上训练的非合并恢复LoRA补偿精度损失。该工作突破了权重内存瓶颈，使大MoE可在消费级设备上高效流式服务。",
+      "llm_tags": [
+        "query:moe-quant"
+      ],
+      "matched_query_tag": "query:moe-quant",
+      "matched_query_text": "MoE Quantization",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.17769v1",
+      "source": "arxiv",
+      "title": "Prior-Aided Masked Vector Quantization CSI Feedback for FDD Massive MIMO Systems",
+      "abstract": "Downlink channel state information (CSI) feedback is a key bottleneck in frequency-division duplex (FDD) massive MIMO systems, as the user equipment (UE) must convey its estimated channel to the base station (BS) over a limited uplink (UL) budget. To improve CSI reconstruction accuracy under tight feedback constraints, we propose prior-aided masked vector quantization (PM-VQ), a learning-based separate source--channel coding (SSCC) feedback scheme conditioned on the average angle--delay power map---a compact representation of the channel second-order statistics available at both the UE and the BS. In PM-VQ, a prior-aided encoder maps the CSI to latent tokens, and a spatially-adaptive masking module (SAMM) scores and selects the most informative tokens within the feedback budget. The selected tokens are vector-quantized and fed back together with their positions, while an adaptive de-masking module (ADM) completes the latent representation at the BS before prior-conditioned decoding. To support variable-rate compression, a single model is trained over a range of selected-token counts, enabling operation across multiple feedback dimensions without retraining. We evaluate PM-VQ against three representative baselines on a Sionna-generated 3GPP TR~38.901 UMa dataset, focusing on the most challenging diffuse regime where channel energy is spread across many angle--delay coefficients. Simulation results show that PM-VQ achieves the lowest NMSE across all tested SNR levels and feedback dimensions in this regime. Moreover, the angle--delay power-map prior remains beneficial even when estimated from only a few channel realizations.",
+      "authors": [
+        "Yi Song",
+        "Tianyu Yang",
+        "Kangda Zhi",
+        "Shuangyang Li",
+        "Fangzhou Wu",
+        "Songyan Xue",
+        "Giuseppe Caire"
+      ],
+      "primary_category": "cs.IT",
+      "categories": [
+        "cs.IT"
+      ],
+      "published": "2026-09-15T19:19:24+00:00",
+      "link": "https://arxiv.org/pdf/2609.17769v1",
+      "tags": [
+        "keyword:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "masked vector quantization with prior-aided codebook tokens",
+      "llm_evidence_cn": "先验辅助掩码矢量量化与码本token选择",
+      "llm_evidence": "先验辅助掩码矢量量化与码本token选择",
+      "canonical_evidence": "先验辅助掩码矢量量化与码本token选择",
+      "llm_tldr_en": "CSI feedback is a bottleneck in FDD massive MIMO. PM-VQ is a learning-based vector-quantization scheme conditioned on an angle-delay power-map prior, where a spatially-adaptive masking module selects the most informative latent tokens to improve reconstruction under tight budgets.",
+      "llm_tldr_cn": "FDD大规模MIMO系统中，用户设备需在有限上行预算下反馈下行信道状态信息，是系统瓶颈。本文提出先验辅助掩码矢量量化（PM-VQ）方案，以平均角度-时延功率图作为信道二阶统计先验，编码器将CSI映射为潜在token。空间自适应掩码模块对token打分并选择最关键部分进行量化传输。该方案在紧反馈约束下提升了CSI重建精度，为有限比特矢量量化反馈提供了有效途径。",
+      "llm_tldr": "FDD大规模MIMO系统中，用户设备需在有限上行预算下反馈下行信道状态信息，是系统瓶颈。本文提出先验辅助掩码矢量量化（PM-VQ）方案，以平均角度-时延功率图作为信道二阶统计先验，编码器将CSI映射为潜在token。空间自适应掩码模块对token打分并选择最关键部分进行量化传输。该方案在紧反馈约束下提升了CSI重建精度，为有限比特矢量量化反馈提供了有效途径。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "2 bit VQ",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.18110v1",
+      "source": "arxiv",
+      "title": "SSD-LLaMA: SSD-Native Inference for Trillion-Parameter MoE at 1+ Token/s on a Consumer PC",
+      "abstract": "Frontier open-weight language models increasingly use Mixture-of-Experts (MoE) architectures to expand model capacity while activating only a small subset of experts per token. Local inference must nevertheless keep the complete expert pool available, which remains far beyond consumer-grade RAM and VRAM capacity even after quantization. SSDs provide practical capacity at this scale, but turning that capacity into executable model memory requires efficient expert delivery, coordinated management of SSD, RAM, and VRAM, and CPU--GPU hybrid execution under bounded bandwidth. We present \\textit{SSD-LLaMA}, an SSD-native local MoE inference system that addresses these challenges with an SSD I/O pipeline optimized for expert delivery, a native three-tier storage hierarchy that delivers and retains experts dynamically, and balanced CPU--GPU hybrid execution. \\textit{SSD-LLaMA} executes every selected expert without pruning or substitution. Across three frontier MoE model families, \\textit{SSD-LLaMA} improves prefill token rate by 1.52$\\times$--4.19$\\times$ and decode token rate by 2.10$\\times$--15.58$\\times$ over the evaluated baselines. We also achieve higher than 1 token/s for running trillion-parameter model with a single RTX 5090 and no more than 32GB RAM.",
+      "authors": [
+        "Fangzhou Liang",
+        "Yibin Shen",
+        "Jianmin Hu",
+        "Jiayang Xu",
+        "Hanchi Gao",
+        "Minxian Xu",
+        "Zili Meng"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC"
+      ],
+      "published": "2026-09-16T04:28:47+00:00",
+      "link": "https://arxiv.org/pdf/2609.18110v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "trillion-parameter MoE inference with quantization and expert management",
+      "llm_evidence_cn": "万亿参数MoE推理中的量化与专家管理",
+      "llm_evidence": "万亿参数MoE推理中的量化与专家管理",
+      "canonical_evidence": "万亿参数MoE推理中的量化与专家管理",
+      "llm_tldr_en": "SSD-LLaMA is an SSD-native local MoE inference system for trillion-parameter models on consumer PCs, with an SSD I/O pipeline for expert delivery and CPU-GPU hybrid execution under bounded bandwidth, enabling 1+ token/s despite quantized expert pools exceeding RAM.",
+      "llm_tldr_cn": "前沿开源模型日益采用MoE架构，但本地推理需保留完整专家池，即便量化后仍远超消费级内存与显存容量。作者提出SSD-LLaMA，一个面向万亿参数MoE的SSD原生推理系统，通过面向专家投递的SSD I/O流水线、SSD与内存显存协同管理以及CPU-GPU混合执行，在有限带宽下实现每秒1+令牌。该工作使消费级PC本地运行超大MoE成为可能，为MoE量化部署提供了系统级支撑。",
+      "llm_tldr": "前沿开源模型日益采用MoE架构，但本地推理需保留完整专家池，即便量化后仍远超消费级内存与显存容量。作者提出SSD-LLaMA，一个面向万亿参数MoE的SSD原生推理系统，通过面向专家投递的SSD I/O流水线、SSD与内存显存协同管理以及CPU-GPU混合执行，在有限带宽下实现每秒1+令牌。该工作使消费级PC本地运行超大MoE成为可能，为MoE量化部署提供了系统级支撑。",
+      "llm_tags": [
+        "query:moe-quant:composite"
+      ],
+      "matched_query_tag": "query:moe-quant:composite",
+      "matched_query_text": "Papers central to MoE 量化, especially work that connects or combines: P; M; MoE Quantization.",
+      "matched_requirement_id": "req-composite-moe-quant",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
