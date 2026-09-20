@@ -1,0 +1,219 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-20T21:27:55.808636+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 0,
+    "deep_cap": 7,
+    "deep_selected": 0,
+    "quick_candidates": 5,
+    "quick_skim_target": 12,
+    "quick_selected": 5
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2609.16338v1",
+      "source": "arxiv",
+      "title": "Breaking the 1.58-bit Barrier for Ternary LLMs",
+      "abstract": "Ternary Large Language Models (LLM) store every weight as one of three symbols $\\{-1,0,+1\\}$, so the cost of a ternary model is conventionally referenced to the information-theoretic $\\log_2 3 \\approx 1.585$ bits per weight. The prevailing deployment format packs five ternary weights into one byte (five-trit packing), and due to the power-of-two group sizes used in practice this rounds up to $1.625$ bits per weight. This effective storage bit-width treats the three symbols $\\{-1,0,+1\\}$ as equiprobable. We measure the actual symbol distribution of 29 ternary LLM models and find that zeros account for up to $51.5\\%$ of all weights. Motivated by this finding, we introduce BITCOS, a simple distribution-adaptive layout comprised of a dense presence bitmap plus a compacted sign vector, and costs $2 - z$ bits per weight element given a zero density $z$ in the model's weights. BITCOS stores weights more compactly than the five-trit packing in 26 of the 29 tested models, and reaches $1.485$ bits per weight on the sparsest of them. BITCOS is amenable to efficient unpacking on modern processors and GPUs, and we present optimized unpacking sequences for AVX-512, AVX2 and Intel Xe2 GPUs. Measured against production state-of-the-art ternary matrix-vector multiplication kernels, at the zero densities real-world ternary models exhibit, the realized gain with our proposed layout is up to $1.28\\times$. Finally, we illustrate end-to-end LLM inference results on 5 different platforms (client and server CPUs, integrated and discrete Xe2 GPUs) where decode throughput improves by up to $1.18\\times$ on CPUs and $1.27\\times$ on GPUs.",
+      "authors": [
+        "Evangelos Georganas",
+        "Alexander Heinecke",
+        "Pradeep Dubey"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-14T20:54:24+00:00",
+      "link": "https://arxiv.org/pdf/2609.16338v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "ultra-low-bit ternary weight layout breaking the 1.58-bit barrier",
+      "llm_evidence_cn": "极低比特三值权重量化布局，突破1.58比特壁垒",
+      "llm_evidence": "极低比特三值权重量化布局，突破1.58比特壁垒",
+      "canonical_evidence": "极低比特三值权重量化布局，突破1.58比特壁垒",
+      "llm_tldr_en": "Ternary LLMs are packed as equiprobable five-trit groups, costing about 1.625 bits per weight. Measuring 29 models shows zeros reach 51.5 percent, motivating BITCOS, a distribution-adaptive layout of a presence bitmap plus compacted sign vector that breaks the 1.58-bit barrier.",
+      "llm_tldr_cn": "三值LLM通常以五进制打包存储，把{-1,0,+1}视为等概率，导致约1.625比特每权重的实际存储开销。作者测量29个三值模型发现零值占比高达51.5%，据此提出BITCOS：一种由稠密存在位图与压缩符号向量组成的分布自适应布局。该方案突破1.58比特壁垒，降低实际存储位宽并保持表示能力，为极低比特LLM部署提供了新格式。",
+      "llm_tldr": "三值LLM通常以五进制打包存储，把{-1,0,+1}视为等概率，导致约1.625比特每权重的实际存储开销。作者测量29个三值模型发现零值占比高达51.5%，据此提出BITCOS：一种由稠密存在位图与压缩符号向量组成的分布自适应布局。该方案突破1.58比特壁垒，降低实际存储位宽并保持表示能力，为极低比特LLM部署提供了新格式。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.14189v1",
+      "source": "arxiv",
+      "title": "MorphoStyle: Motion Style Transfer with Morphology Control",
+      "abstract": "Human motion may be viewed as a combination of action content, style, and body morphology. Existing motion style transfer methods transfer a reference style onto a content motion while assuming a canonical body, whereas shape-aware motion generators adapt motion to a target shape without explicit style control. This separation of motion style and shape (morphology) makes it difficult to generate stylized motions for non-canonical bodies; naively combining a style transfer module with a shape-aware generator often leaks action content from the style reference and disrupts shape-consistent kinematics. We present MorphoStyle, a framework for shape-aware motion style transfer that is built on a shape-conditioned Finite-Scalar-Quantization Variational Auto-Encoder (FSQ-VAE). The key contribution is to pose the desired style transfer as modular latent disentanglement comprising: (i) a contrastive style encoder that extracts content-decoupled style embeddings; (ii) a text-guided style-routing mechanism that locates style-relevant joints in a text-motion feature space; and (iii) a manifold preserving style modulator that injects discriminative style embeddings in content features as a temporally-gated low-rank offset. Extensive experiments on benchmark datasets demonstrate that MorphoStyle outperforms competing baselines in terms of both shape control and motion style transfer, while simultaneously providing quantitative shape control. For more details, please see project website: https://github.com/funkdub/MorphoStyle.",
+      "authors": [
+        "Xin Feng",
+        "Eleonora D'Arnese",
+        "Mohan Sridharan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-12T23:40:27+00:00",
+      "link": "https://arxiv.org/pdf/2609.14189v1",
+      "tags": [
+        "keyword:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Finite Scalar Quantization VAE quantizes latents with a small implicit codebook",
+      "llm_evidence_cn": "有限标量量化VAE以小型隐式码本量化潜码",
+      "llm_evidence": "有限标量量化VAE以小型隐式码本量化潜码",
+      "canonical_evidence": "有限标量量化VAE以小型隐式码本量化潜码",
+      "llm_tldr_en": "MorphoStyle addresses shape-aware motion style transfer by building on a shape-conditioned Finite-Scalar-Quantization VAE, disentangling action content, style and body morphology to avoid content leakage and preserve shape-consistent kinematics for non-canonical bodies.",
+      "llm_tldr_cn": "针对现有运动风格迁移假设标准体型、而形态感知生成器缺乏显式风格控制的问题，提出MorphoStyle框架，基于以体型为条件的有限标量量化变分自编码器（FSQ-VAE）实现形态感知的运动风格迁移。方法将动作内容、风格与身体形态解耦，避免风格参考中的动作内容泄漏并保持形态一致的动力学。实验表明其可为非标准体型生成风格化且形状一致的运动。该工作借助有限标量量化提升了运动生成的可控性与解耦能力。",
+      "llm_tldr": "针对现有运动风格迁移假设标准体型、而形态感知生成器缺乏显式风格控制的问题，提出MorphoStyle框架，基于以体型为条件的有限标量量化变分自编码器（FSQ-VAE）实现形态感知的运动风格迁移。方法将动作内容、风格与身体形态解耦，避免风格参考中的动作内容泄漏并保持形态一致的动力学。实验表明其可为非标准体型生成风格化且形状一致的运动。该工作借助有限标量量化提升了运动生成的可控性与解耦能力。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.18110v1",
+      "source": "arxiv",
+      "title": "SSD-LLaMA: SSD-Native Inference for Trillion-Parameter MoE at 1+ Token/s on a Consumer PC",
+      "abstract": "Frontier open-weight language models increasingly use Mixture-of-Experts (MoE) architectures to expand model capacity while activating only a small subset of experts per token. Local inference must nevertheless keep the complete expert pool available, which remains far beyond consumer-grade RAM and VRAM capacity even after quantization. SSDs provide practical capacity at this scale, but turning that capacity into executable model memory requires efficient expert delivery, coordinated management of SSD, RAM, and VRAM, and CPU--GPU hybrid execution under bounded bandwidth. We present \\textit{SSD-LLaMA}, an SSD-native local MoE inference system that addresses these challenges with an SSD I/O pipeline optimized for expert delivery, a native three-tier storage hierarchy that delivers and retains experts dynamically, and balanced CPU--GPU hybrid execution. \\textit{SSD-LLaMA} executes every selected expert without pruning or substitution. Across three frontier MoE model families, \\textit{SSD-LLaMA} improves prefill token rate by 1.52$\\times$--4.19$\\times$ and decode token rate by 2.10$\\times$--15.58$\\times$ over the evaluated baselines. We also achieve higher than 1 token/s for running trillion-parameter model with a single RTX 5090 and no more than 32GB RAM.",
+      "authors": [
+        "Fangzhou Liang",
+        "Yibin Shen",
+        "Jianmin Hu",
+        "Jiayang Xu",
+        "Hanchi Gao",
+        "Minxian Xu",
+        "Zili Meng"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC"
+      ],
+      "published": "2026-09-16T04:28:47+00:00",
+      "link": "https://arxiv.org/pdf/2609.18110v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "MoE inference system managing quantized expert pools on SSD",
+      "llm_evidence_cn": "在SSD上管理量化专家池的MoE推理系统",
+      "llm_evidence": "在SSD上管理量化专家池的MoE推理系统",
+      "canonical_evidence": "在SSD上管理量化专家池的MoE推理系统",
+      "llm_tldr_en": "SSD-LLaMA is an SSD-native local MoE inference system that pipelines expert delivery and coordinates SSD, RAM and VRAM to run trillion-parameter quantized MoE models on a consumer PC.",
+      "llm_tldr_cn": "前沿开源大模型普遍采用混合专家（MoE）架构，但本地推理需常驻完整专家池，即使量化后仍远超消费级内存与显存容量。本文提出SSD-LLaMA，一种以SSD为原生存储的本地MoE推理系统，通过面向专家投递优化的SSD I/O流水线、SSD/内存/显存协同管理以及CPU-GPU混合执行，在受限带宽下把SSD容量转化为可执行模型内存。系统在消费级PC上实现万亿参数MoE每秒1+ token的推理速度，为量化MoE的本地部署提供可行路径。",
+      "llm_tldr": "前沿开源大模型普遍采用混合专家（MoE）架构，但本地推理需常驻完整专家池，即使量化后仍远超消费级内存与显存容量。本文提出SSD-LLaMA，一种以SSD为原生存储的本地MoE推理系统，通过面向专家投递优化的SSD I/O流水线、SSD/内存/显存协同管理以及CPU-GPU混合执行，在受限带宽下把SSD容量转化为可执行模型内存。系统在消费级PC上实现万亿参数MoE每秒1+ token的推理速度，为量化MoE的本地部署提供可行路径。",
+      "llm_tags": [
+        "query:moe-quant"
+      ],
+      "matched_query_tag": "query:moe-quant",
+      "matched_query_text": "MoE Quantization",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.15810v1",
+      "source": "arxiv",
+      "title": "VC-Attention: Value Smoothing and Softmax Casting for Low-bit Attention",
+      "abstract": "Diffusion Transformers deliver state-of-the-art video generation, but their long spatiotemporal sequences make attention the dominant deployment cost, and a deployable low-bit kernel must be accurate and fast. Accuracy is limited by outliers: a block's quantization scale is set by its largest entries, leaving typical entries confined to a narrow range of representable values. Prior work smooths queries and keys, but value outliers follow no fixed channel or spatiotemporal structure and remain the dominant source of output error. Speed is limited by softmax: low-bit Tensor Cores accelerate only the two matrix multiplications, so the high-precision exponential between them becomes the longest pipeline stage on datacenter GPUs. We propose VC-Attention, a training-free low-bit attention framework that addresses both by pairing Value smoothing with a fused probability Cast. V-Smooth reorders value tokens by lightweight online clustering, so the tokens in a hardware block quantize well together. It quantizes only the residual after subtracting the block mean, and restores that mean from the row sum the online softmax already maintains. ExpCast-FP8 maps log-domain scores directly to E4M3 probability codes with one fused multiply-add, eliminating the FP32 exponential and the format conversion. We implement VC-Attention for B200, B300, H200, RTX PRO 6000, and RTX 5090. Across Wan2.2, LongCat-Video, HunyuanVideo-1.5, and MiniMax-H3, VC-Attention improves fidelity over low-bit baselines, speeds up the attention kernel over BF16 FlashAttention-4 by 1.46-1.59x on datacenter Blackwell and Hopper and by 2.3-3.6x on workstation cards, and generates a clip 1.13-1.19x and 1.36-1.70x faster end to end.",
+      "authors": [
+        "Xingyang Li",
+        "Dongyun Zou",
+        "Shining Zhang",
+        "Jiacheng Chen",
+        "Haocheng Xi",
+        "Lvmin Zhang",
+        "Jun-Yan Zhu",
+        "Song Han",
+        "Zhekai Zhang",
+        "Yujun Lin",
+        "Muyang Li"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-14T16:17:35+00:00",
+      "link": "https://arxiv.org/pdf/2609.15810v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "low-bit attention quantization with outlier smoothing",
+      "llm_evidence_cn": "低比特注意力量化与离群值平滑",
+      "llm_evidence": "低比特注意力量化与离群值平滑",
+      "canonical_evidence": "低比特注意力量化与离群值平滑",
+      "llm_tldr_en": "VC-Attention addresses low-bit attention in diffusion transformers, where value outliers dominate output error and high-precision softmax bottlenecks the pipeline; it smooths values and casts softmax to deliver an accurate, fast low-bit attention kernel.",
+      "llm_tldr_cn": "扩散Transformer的注意力因序列长而成为部署瓶颈，低比特量化时value离群值主导输出误差，且softmax中的高精度指数运算成为最长流水级。为此提出VC-Attention，对value做平滑并对softmax进行低精度类型转换，从而构建可部署的低比特注意力内核。该方案同时缓解离群值导致的精度损失与指数运算的速度瓶颈，兼顾精度与效率。其贡献在于为视频生成等长序列注意力的极低比特部署提供实用路径。",
+      "llm_tldr": "扩散Transformer的注意力因序列长而成为部署瓶颈，低比特量化时value离群值主导输出误差，且softmax中的高精度指数运算成为最长流水级。为此提出VC-Attention，对value做平滑并对softmax进行低精度类型转换，从而构建可部署的低比特注意力内核。该方案同时缓解离群值导致的精度损失与指数运算的速度瓶颈，兼顾精度与效率。其贡献在于为视频生成等长序列注意力的极低比特部署提供实用路径。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.19880v1",
+      "source": "arxiv",
+      "title": "D-Quant: Driftable Entropy Coding for KV Cache Quantization",
+      "abstract": "The KV cache has become a major bottleneck in deploying LLMs, as its memory footprint grows linearly with sequence length and batch size, imposing substantial pressure on both memory capacity and bandwidth. Among various KV cache compression techniques, quantization is particularly attractive due to its effectiveness and ease of deployment. However, most existing methods rely on fixed-width quantization, where a $b$ bit representation is inherently limited to $2^b$ quantization levels. As the bit width decreases, the number of available levels shrinks exponentially, leading to severe information loss and rapid performance degradation. We further observe that fixed-width quantization fails to exploit the highly non-uniform distribution of KV cache. After rotation and normalization, KV values approximately follow a normal distribution, with most values concentrated near the center and only a small fraction appearing in the tails. Nevertheless, fixed-width coding allocates the same number of bits to frequent and rare symbols. Entropy coding naturally exploits such non-uniformity by assigning shorter codewords to frequent symbols and longer ones to rare symbols, substantially reducing the average number of bits required for representation. However, its variable-length output is not suited to highly parallel attention kernels, where efficient dequantization and computation rely on regular memory layouts and fixed-stride accesses. To bridge this gap, we propose \\textbf{D-Quant}, a flexible KV cache quantization framework that introduces a \\textbf{drift} mechanism to convert entropy-coded representations of each token into fixed-size bitstreams, enabling regular memory access and parallel dequantization within attention kernels.",
+      "authors": [
+        "Yi Su",
+        "Hong Liu",
+        "Guanghua Yu",
+        "Jianchen Zhu"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-09-17T08:29:17+00:00",
+      "link": "https://arxiv.org/pdf/2609.19880v1",
+      "tags": [
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "low-bit KV cache quantization overcoming fixed-width 2^b level limits",
+      "llm_evidence_cn": "低比特KV缓存量化，突破定点2^b级数限制",
+      "llm_evidence": "低比特KV缓存量化，突破定点2^b级数限制",
+      "canonical_evidence": "低比特KV缓存量化，突破定点2^b级数限制",
+      "llm_tldr_en": "Fixed-width KV cache quantization wastes levels under non-uniform distributions. D-Quant introduces driftable entropy coding that adapts to the distribution, improving low-bit accuracy and deployment efficiency.",
+      "llm_tldr_cn": "针对KV缓存随序列长度增长造成内存与带宽瓶颈、而定点量化在低比特下可用级数指数级减少并导致严重信息损失的问题，本文提出D-Quant可漂移熵编码方法，利用KV缓存高度非均匀的分布特性进行自适应编码，摆脱固定位宽2^b级数的限制。实验表明该方法在极低比特下显著缓解性能退化，为长上下文LLM部署提供了更高效的KV缓存压缩方案。",
+      "llm_tldr": "针对KV缓存随序列长度增长造成内存与带宽瓶颈、而定点量化在低比特下可用级数指数级减少并导致严重信息损失的问题，本文提出D-Quant可漂移熵编码方法，利用KV缓存高度非均匀的分布特性进行自适应编码，摆脱固定位宽2^b级数的限制。实验表明该方法在极低比特下显著缓解性能退化，为长上下文LLM部署提供了更高效的KV缓存压缩方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

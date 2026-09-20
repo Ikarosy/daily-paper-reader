@@ -1,0 +1,405 @@
+Title: MorphoStyle: Motion Style Transfer with Morphology Control
+
+URL Source: https://arxiv.org/pdf/2609.14189v1
+
+Published Time: Tue, 15 Sep 2026 01:02:02 GMT
+
+Number of Pages: 18
+
+Markdown Content:
+> arXiv:2609.14189v1 [cs.CV] 12 Sep 2026
+
+X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE 1
+
+# MorphoStyle: Motion Style Transfer with Morphology Control 
+
+Xin Feng 
+
+xfeng4@ed.ac.uk 
+
+Eleonora D’Arnese 
+
+eleonora.darnese@ed.ac.uk 
+
+Mohan Sridharan 
+
+m.sridharan@ed.ac.uk 
+
+Institute of Perception, Action, and Behavior School of Informatics University of Edinburgh Edinburgh, UK 
+
+Abstract 
+
+Human motion may be viewed as a combination of action content, style, and body morphology. Existing motion style transfer methods transfer a reference style onto a content motion while assuming a canonical body, whereas shape-aware motion gener-ators adapt motion to a target shape without explicit style control. This separation of motion style and shape (morphology) makes it difficult to generate stylized motions for non-canonical bodies; naively combining a style transfer module with a shape-aware gen-erator often leaks action content from the style reference and disrupts shape-consistent kinematics. We present MorphoStyle , a framework for shape-aware motion style transfer that is built on a shape-conditioned Finite-Scalar-Quantization Variational Auto-Encoder (FSQ-VAE). The key contribution is to pose the desired style transfer as modular la-tent disentanglement comprising: (i) a contrastive style encoder that extracts content-decoupled style embeddings; (ii) a text-guided style-routing mechanism that locates style-relevant joints in a text-motion feature space; and (iii) a manifold preserving style modulator that injects discriminative style embeddings in content features as a temporally-gated low-rank offset. Extensive experiments on benchmark datasets demonstrate that MorphoStyle outperforms competing baselines in terms of both shape control and mo-tion style transfer, while simultaneously providing quantitative shape control. For more details, please see project website: https://github.com/MorphoStyle. 
+
+# 1 Introduction 
+
+Human motion generation aims to synthesize realistic and natural human movements condi-tioned on various inputs, such as text descriptions, reference motion, audio, or body param-eters. It is a core research topic in computer vision and graphics, and has extensive applica-tions in gaming [17], film production [40], virtual reality [16], and robotics [33]. Realistic human motion is determined by three complementary factors: the content, i.e. , what action is performed, such as walking or sitting down; the style, i.e. , how the action is performed, such as a funny or childish gait; and the morphology, e.g. , who performs the action, such as a tall and lean adult or a short and heavy one. All three components are essential for realis-tic and personalized digital avatars across various applications, since identical content with mismatched style or morphology breaks the perception of realism. Despite rapid progress 
+
+© 2026. The copyright of this document resides with its authors. It may be distributed unchanged freely in print or electronic forms. 2 X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE 
+
+in human motion generation based on deep generative models [4, 8, 9, 13, 34, 37], jointly controlling transfer of motion style and body shape remains a challenging open problem. Most existing methods for motion synthesis focus on either motion style transfer or shape-aware motion generation. Motion style transfer methods aim to generate a novel mo-tion that adapts the content obtained from a source to the style of a reference motion [2, 3, 10, 11, 14, 15, 19, 23, 24, 36, 39, 43]. Due to the difficulty of capturing paired stylistic motions, most recent methods start with pretrained latent-diffusion backbones [4, 37] and inject style through ControlNet-style adaptors [42, 43] or cross-modal alignment with foundation em-beddings [6, 11]. While these methods produce visually realistic stylized motions, they have two main limitations. First, style features are fused with the content stream of a pretrained latent-diffusion space without explicit disentanglement of content and style, resulting in con-tent leakage and unrealistic kinematics in the synthesized output [41]. Second, the transfer of motion style is not adapted to body shape, e.g., a canonical body is assumed and param-eterized by the Skinned Multi-Person Linear (SMPL) model [26], producing unpleasant ar-tifacts when used with non-canonical body morphologies. Meanwhile, shape-aware motion generation aims to control body shape in the motion generation pipeline [25, 32, 33]. One re-cent example, ShapeMyMove [25], employs a shape-conditioned Finite-Scalar-Quantization Variational Auto-Encoder (FSQ-VAE) [29] that first quantizes motions into discrete tokens and de-quantizes them in a shape-conditioned manner. This formulation does not support style control, and morphology-aware motion style transfer remains an open problem. We describe MorphoStyle , a novel shape-aware motion style transfer framework that seeks to address the limitations of existing work. We introduce a content-decoupled ’ style encoder ’ that builds on a pretrained shape-conditioned FSQ-VAE generator and injects style embeddings into motion content. It does so through a contrastive learning-based style en-coder that maps reference style motion to a content-decoupled latent feature space; and a manifold-preserving style modulator that injects the style embeddings into content features as a temporally-gated low-rank offset. Specifically, the contributions of this paper are: • A unified framework for motion style transfer with morphology control. MorphoStyle builds on a frozen shape-conditioned FSQ-VAE, preserving its content and shape gen-eration capability while introducing a dedicated branch for controllable style. • A content-decoupled style injection mechanism that leverages a supervised contrastive encoder to learn discriminative style embeddings; a text-guided routing module to localize style-relevant joints; and a manifold-preserving style modulator to inject style embeddings into content features. • Extensive experiments on HumanML3D and 100Style (benchmark) datasets to demon-strate better motion style transfer and morphology control, and significantly higher efficiency, compared with state-of-the-art diffusion-based baselines. We begin with a description of related work (Section 2), followed by a description of our framework (Section 3), experimental evaluation (Section 4), and conclusions (Section 5). 
+
+# 2 Related Work 
+
+We motivate the proposed framework by reviewing related work in motion style transfer and shape-aware motion generation. X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE 3
+
+## 2.1 Motion Style Transfer 
+
+Motion style transfer aims to adapt motion content, i.e. the action performed, to a style ref-erence, i.e. how the action is performed, to obtain a stylized output [2, 14, 19]. Early efforts were based on statistical or graph-based methods [3, 23, 39], but they provide limited expres-sivity in terms of the styles they can reproduce. Deep network models [7, 13, 21] provided better performance through their powerful ability to interpolate over the space of training samples. Inspired by image stylization, Holden et al. [14, 15] performed Gram-matrix op-timization on a learned motion manifold, and Aberman et al. [2] introduced a Generative Adversarial Network model with Adaptive Instance Normalization (AdaIN) [18] that dis-entangles content and style without paired supervision. Subsequent methods have pursued temporally coherent style transfer through per-body-part graph-aware feature exchange [19], spatial-temporal graph generators [30], time-series Transformers [36], and pre-trained auto-encoder latent spaces [10]. Although these methods have improved the performance of mo-tion style transfer, they still struggle with limited expressivity and realism in stylized mo-tions, with the underlying motion generators being the main bottleneck. Building on diffusion-based models for human motion generation [4, 37], SMooDi [43] employs a ControlNet-style adaptor [42] and a classifier-based style guidance to augment a pretrained latent diffusion backbone. More recently, StyleMotif [11] further extends motion stylization to multimodal style conditioning aligned with relevant AI models such as Image-Bind [6] and MulSMo [24]. Despite their visual realism, these diffusion-based methods share two main limitations. First, style features are fused into the content stream of a pretrained la-tent diffusion space without explicit content-style disentanglement, which inevitably results in content leakage and unrealistic kinematics in the stylized output. Second, they address motion style transfer in isolation from body geometry, implicitly assuming a canonical body shape, thus leading to undesirable artifacts with non-canonical morphologies. In contrast, MorphoStyle injects style embeddings obtained from a latent disentangled feature space in a frozen shape-conditioned backbone to effectively achieve high-quality motion style transfer with reliable morphological control. 
+
+## 2.2 Shape-aware Motion Generation 
+
+Body shape is a critical yet often overlooked factor in human motion generation; individu-als with different heights, limb proportions, and body morphology perform the same action with visibly different kinematics [25, 26]. Most human motion generators are trained on motions of a canonical SMPL body [26] and thus generate motion in a shape-agnostic man-ner [4, 8, 9, 34, 37]. This decreases the natural correlation between morphology and motion, as well as propagating artifacts to downstream tasks [1, 25, 38]. Some works have begun to inject shape information into the motion generation pipeline. For example, Physics-based controllers [32, 33] embed shape parameters into character simulation but rely on physi-cal engines and reinforcement learning, and perform poorly when scaled to large motion datasets. Shape-aware pose models [5, 22] condition kinematic regressors on body parame-ters to mitigate self-intersection and contact errors. ShapeMyMove [25], designed for shape-aware text-to-motion generation, is most related to our work. It trains a shape-aware Finite-Scalar-Quantization model (FSQ-VAE) [29] that quantizes shape-canonical motions into dis-crete tokens, and de-quantizes them in a shape-conditioned manner, thereby reconstructing motions adapted to body morphology. Based on this shape-aware tokenizer, it employs a language model to jointly predict shape parameters and motion token indices to yield more realistic motions with plausible body shapes. 4 X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE Content Motion               
+
+> StyleEncoder ℰs
+> Encoder ℰ
+> Shape Description
+> Decoder 𝒟
+> Style Branch Style Branch
+> Profile of a person: Height
+> of 196.5 cm, with a chest
+> measurement of 120.4 cm,
+> waist of 108.4 cm, and hips
+> spanning 107.3 cm. The
+> arm and leg heights are
+> 60.2 cm and 82.6 cm,
+> respectively.
+> Global Projection (contrastive learning)
+> Joint Routing (low-sim joints)
+> Joint Routing (low-sim joints)
+> Similarity
+> Content Text:
+> A man walks forward.
+> ...
+> MPSM MPSM
+> Concat Concat
+> Content codes
+> c
+> ...
+> Shape Branch Shape Branch
+> Style embeddings
+> s
+> Stylized codes
+> c′
+> ...
+> 𝑥 c
+> Motion Tokenizer Motion Tokenizer
+> s
+> g
+> s
+> j
+> LLM (T5) LLM (T5)
+> S2FM
+> MLP MLP  ϕ(β)
+> ts
+> Stylized Motion
+> 𝑥 s
+> Style Reference
+> predict
+> shape β𝑥
+
+Figure 1: Framework Overview. Given a content motion xc, a style reference xs, and a textual body-shape description ts, MorphoStyle synthesizes an output motion ˆ x that pre-serves the action of xc, transfers the style of xs, and matches the target body shape. A
+
+frozen shape-aware FSQ-VAE tokenizes xc into content codes c and decodes ˆ x via a shape-conditioned decoder D. A trainable style branch produces a global style embedding sg and a joint-localized embedding s j, fuses them into style code s, and injects s in c through a Manifold-Preserving Style Modulator (MPSM) as a temporally-gated low-rank residual. A 
+
+frozen Shape-to-Feature module (S2FM) maps ts to shape embedding φ (β ) conditioning D.Although the aforementioned methods are content- and shape-driven, it is challenging to control the style of output motion since a naive combination of a style transfer mecha-nism and a shape-aware backbone interferes with the simultaneous modeling of style and shape. Our MorphoStyle model extends the shape-aware FSQ-VAE backbone of Shape-MyMove [25], but targets a fundamentally different objective of motion style transfer with morphology control. Instead of co-training the decoder to reconstruct stylistic motions, we freeze it and extract style embeddings in a discriminative latent feature space to achieve motion style transfer. This design choice enables MorphoStyle to inherit ShapeMyMove’s shape control ability, while also supporting motion style transfer. 
+
+# 3 Method 
+
+This section describes the problem formulation and basic components of MorphoStyle (Sec-tion 3.1), and the key style disentanglement component and learning scheme (Section 3.2). 
+
+## 3.1 Framework Overview 
+
+Problem formulation. Given content motion xc ∈ RT ×C that specifies the target action, reference motion xs ∈ RT ×C that contains the target style, and a body shape β ∈ R10 parame-terized by the Skinned Multi-Person Linear (SMPL) model [26], our goal is to synthesize an output motion ˆ x ∈ RT ×C that simultaneously satisfies three conditions: (i) the action content ˆx matches xc; (ii) the stylistic appearance of ˆ x matches that of xs; (iii) the body morphology of ˆ x is faithful to β . Since we adopt the standard HumanML3D feature representations [8], per-frame feature dimension C = 263 and sequence length T = 196. 
+
+Latent disentanglement. MorphoStyle is built on the observation that different aspects of motion act on disjoint subspaces of a well-trained shape-aware motion auto-encoder. Specif-X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE 5
+
+ically, in a shape-aware FSQ-VAE [25, 29], content motion is encoded in a discrete code se-quence c ∈ RT ′×D, where T ′ = T /4 is the temporally down-sampled length produced by the encoder’s 4 × temporal compression, and code dimension D = 512. Body-shape β modulates de-quantization rather than the code sequence itself, and stylistic variation can be defined as a low-rank residual offset to c that does not change which codebook entries are selected. Latent disentanglement indicates that shape-aware motion style transfer can be captured by three independent modular components without shared parameters: (i) a frozen shape-aware backbone that is able to handle both content and shape; (ii) a lightweight content-decoupled style branch which stylizes the content code sequence in a low-rank manner; and (iii) a shape-to-feature module which projects textual shape description into latent shape features. 
+
+Our architecture. As presented in Figure 1, MorphoStyle consists of a frozen shape-aware FSQ-VAE backbone, a style disentanglement branch, and a shape control branch. The FSQ-VAE consisting of a content motion encoder E, a Finite-Scalar-Quantizer, and a shape-conditioned decoder D, is kept frozen throughout training. A contrastive style encoder Es
+
+maps the reference style motion xs to style embeddings s ∈ R256 , while Manifold-Preserving Style Modulator (MPSM) fuses s into encoded content tokens c to yield stylized motion codes c′. The frozen decoder D then reconstructs c′ to the motion space conditioned on body shape β . The shape control branch uses a pretrained Shape-to-Feature module (S2FM) in-spired by ShapeMyMove [25], with a T5-based language model predicting SMPL model’s 
+
+β parameters from shape descriptions ts and a Multi-layered Perceptron (MLP) model to extract shape features φ (β ) = S2FM (ts) from β . MorphoStyle’s overall pipeline is thus: ˆx = D( MPSM (E(xc), s) , φ (β )) (1) 
+
+Shape-aware FSQ-VAE backbone. MorphoStyle substantially extends the shape-aware FSQ-VAE introduced in ShapeMyMove [25], which is pretrained on HumanML3D [8] jointly with continuous SMPL [26] condition parameters, and serves as a foundation of our model. Specifically, the encoder E employs three Conv1d residual blocks with dilation, downsam-ples temporal length by a factor of four, and then feeds encoded motion features into an FSQ bottleneck with a 1000-entry codebook. The shape-aware decoder D concatenates each quantized content code c ∈ RT ′×D with a 32-dimensional shape feature φ (β ) obtained from the shape branch, and reconstructs motions through symmetric Conv1d upsampling. Impor-tantly, such a backbone is able to effectively control two of three factors, content and shape, thus we further introduce and optimize a lightweight style branch with Manifold-Preserving Style Modulator to inject style information without content drift. 
+
+Shape-to-Feature Module. While FSQ-VAE takes φ (β ) as its shape condition, the SMPL model’s β parameters are inconvenient since body shape is usually described in natural lan-guage. Similar to ShapeMyMove [25], we introduce the Shape-to-Feature Module (S2FM) (see Figure 1) to convert textual shape description ts into shape embeddings φ (β ):
+
+φ (β ) = MLP φ (T5 (ts)) (2) where the T5-based language model [35] obtains the 10-dimensional SMPL model’s β pa-rameters from ts like ShapeMyMove [25], and a two-layer MLP then projects β into a 32-dimensional shape embedding that matches the shape-aware decoder D’s input space. 
+
+## 3.2 Style Disentanglement 
+
+Contrastive global style embedding. Contrastive style encoder Es aims to extract compact and content-decoupled style embeddings that summarize whole-body stylistic cues from a 6 X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE 
+
+reference motion. Specifically, Es takes a style reference motion xs ∈ RT ×C as input. It con-sists of stacked Conv1d layers followed by adaptive average pooling, and a two-layer MLP, projecting pooled features into 256-dimensional style embeddings sg. In addition, we also introduce style dropout with probability p = 0.15, which replaces style embeddings s with a null token to improve model’s robustness. To prevent s from interfering with content fea-tures, which is the root cause of the content leakage observed in previous diffusion-based stylizers [11, 43], we introduce a supervised contrastive learning mechanism that pulls to-gether embeddings of motions with the same style label, and pushes apart embeddings of different styles in the latent feature space. The supervised contrastive learning loss [20] is: 
+
+Lcl = −Ei log exp  sim (si, s+ 
+
+> i
+
+)/τ
+
+exp  sim (si, s+ 
+
+> i
+
+)/τ + ∑sn∈Ni exp (sim (si, sn)/τ) (3) where s+ 
+
+> i
+
+is a positive sample with the same style label as si; Ni is the set of negative samples, motions whose style labels differ from that of si in the mini-batch; sim (·, ·) denotes cosine similarity; and τ is a temperature hyperparameter. Contrastive supervision leads to effective disentanglement between content and style for whole-body motions in the output of Es.
+
+Text-guided joint style routing. Although style embeddings s extract whole-body stylistic cues, they inevitably blend signals from joints that are mainly content-driven ( e.g. the pelvis during walking) with joints that are mainly style-driven ( e.g. the hands during a swaggering walk). To explicitly disentangle them within the body, our text-guided routing module lever-ages a pretrained text-motion alignment model [8], including a text encoder T and a motion encoder M jointly trained to align text and motion in a shared latent feature space. For each joint j of J = 22 body joints, we construct a joint-masked variant ˜ x js of style motion that only retains j’s positional, rotational, and velocity channels. We then encode each masked motion using M and content text caption ct using T , and score the alignment of each joint with the caption through cosine similarity. The style-relevant joints are identified as the K (=8, set experimentally) lowest values of the alignment score: 
+
+S = arg min K
+
+> j∈[0,J−1]
+
+cos  M( ˜x js ), T (ct ) (4) Given the selected set S of style-relevant joints, we introduce per-joint kinematic features 
+
+ψ j(xs) ∈ RT ×12 , where the 12 channels concatenate position, rotation and velocity channels defined by HumanML3D [8], through an MLP fj with an additive joint-identity embedding: 
+
+s j = fj
+
+1
+
+|S| ∑
+
+> j∈S
+
+  ¯ψ j(xs) + u j
+
+!
+
+(5) where ¯ψ j(xs) = 1 
+
+> T
+
+∑t ψ j(xs)[ t, :] are time-averaged features and u j is a learnable identity embedding that lets fj tell joint-specific stylistic patterns apart. Finally, we fuse joint-level embeddings with global embeddings through a residual MLP to produce unified codes s ∈
+
+R256 of style reference for MPSM’s style modulation: 
+
+s = sg + α · MLP ([ sg ; s j ]) (6) where [· ; ·] represents channel-wise concatenation and α = 1 is a residual scale. At inference, the final MLP layer is initialized with a small Gaussian standard deviation of 0 .01 so that the routing residual is near zero at the resumed step, and α becomes a runtime knob that smoothly trades stylization strength against motion fidelity without retraining. Intuitively, M( ˜x js ) encodes isolated motion dynamics of joint j, and T (ct ) summarizes target action from content textual caption. Joints whose isolated motion is least aligned with X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE 7style code s  
+
+> content code c
+> stylized code c′
+> MPSM
+
+Figure 2: Structure of Manifold-Preserving Style Modulator (MPSM). the content caption carry stylistic information that the caption does not describe, and are therefore the most informative for style transfer. Based on the selected set of stylistic joints 
+
+S, we project kinematic features [8] ψ j(xs) through the layers of an MLP, and then fuse it with global style embeddings sg to obtain stylistic motion features that contain the style cues of movements of style-bearing joints, while also mitigating content leakage. 
+
+Manifold-Preserving Style Modulator. Given content codes c = E(xc) ∈ RT ′×512 and style embeddings s, as presented in Figure 2, MorphoStyle incorporates a Manifold-Preserving Style Modulator (MPSM) to fuse them into stylized codes c′ that remain in the codebook neighborhood of the frozen decoder throughout the motion sequence. We design the MPSM with two main requirements: (i) style injection should be constrained to a low-dimensional subspace of each 512-dimensional code space so as not to change content information; (ii) per-frame intensity of style injection should adapt to local kinematic context so as not to corrupt physical constraints such as foot contacts. MPSM is thus composed of two main components: a low-rank additive offset and a learnable temporal gate. Instead of using affine modulation schemes such as AdaIN [18], which multiply content features by style-conditioned scales, we project the style offset into a rank-r subspace using a bilinear bottleneck in our framework: 
+
+r(s) = Wup Wdown s + b (7) where Wdown ∈ Rr×256 and Wup ∈ R512 ×r are transformation matrices, b ∈ R512 is a learnable bias initialized to zero, and rank is empirically set to r = 16. Subsequently, we introduce a learnable temporal gate g ∈ (0, 1) calculated from both content codes c and fused style embeddings s to obtain per-frame intensity of style injection: 
+
+g = σ  fg
+
+ [ c ; s ] (8) where σ (·) denotes the sigmoid function, [ · ; ·] denotes channel-wise concatenation, and fg
+
+is a three-layer Conv1d block with Sigmoid Linear Unit (SiLU) activations. Stylized motion codes c′ ∈ RT ′×512 are obtained by adding a gated low-rank offset to content motion codes: 
+
+c′ 
+
+> t
+
+= ct + gt · r(s), t = 1, . . . , T ′ (9) 
+
+## 3.3 Learning Scheme 
+
+MorphoStyle is trained using a loss function that combines content-style disentanglement (Ldis ) and shape control ( Lshape ). All gradients are restricted to the trainable style branch; FSQ-VAE backbone and text-motion alignment model remain frozen. All loss weights (be-low) are fixed and specified in Section 4.1. 8 X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE 
+
+Content-style disentanglement loss Ldis seeks to inject style into content features without content leakage. It consists of three terms. The reconstruction term enforces fidelity of motion and code compared with the ground truth target x∗, with c∗ = E(x∗), resulting in the stylized motion output being faithful to ground truth in motion-and latent code-space. 
+
+Lrec = ∥ ˆx − x∗∥1 + λcode ∥c′ − c∗∥1 (10) Code-level supervision keeps modulated codes c′ within FSQ-VAE’s codebook neighbor-hood, preventing style branch from causing drastic latent shifts. The style embedding term aims to learn a discriminative feature space for reference style motion via supervised contrastive learning— Lcl in Equation 3—together with a content clas-sifier loss Lcc . In the latent feature space, Lcl pulls motion embeddings with the same style label together and pushes apart those with different styles, so encoded style embeddings sg
+
+are without unnecessary content from the style reference. The content classifier loss Lcc 
+
+prevents content leakage by employing a content classifier fac on stylized motion ˆ x, ensuring that it belongs to the same content label yact as the corresponding content motion. 
+
+Lcc = CE ( fac ( ˆx), yact ) (11) where CE (·, ·) denotes the cross-entropy. The style embedding term is then defined as: 
+
+Lemb = λcl Lcl + λcc Lcc (12) The style classifier guidance term uses the 47-class style classifier of SMooDi [43] fsm ,which is trained over the joint label space of HumanML3D [8] and 100Style [28], to provide direct supervision on the synthesized motion. Without explicit alignment to this classifier, even perceptually correct stylized motions may receive low style recognition accuracy due to subtle distributional shifts. We therefore introduce a training-time cross-entropy guidance that aligns ˆ x with the target style label ysty through fsm :
+
+Lcls = λcls CE   fsm ( ˆx), ysty 
+
+ (13) As a result, the disentanglement loss Ldis is given by: 
+
+Ldis = Lrec + Lemb + Lcls (14) 
+
+Shape control objective. Although the shape-conditioned decoder D is frozen, style injec-tion can still interfere with shape signal in the final output. To enforce shape consistency between synthesized motions and shape descriptions, we leverage the parameter β of shape descriptions and introduce three shape supervision terms. The bone-length matching term builds on ShapeMyMove [25] to minimize Mean-Squared Error (MSE) between bone length (BL) vectors of synthesized motion ˆ x and target shape x∗:
+
+Lbone = MSE (BL ( ˆx), BL (x∗)) (15) The direction-aware term ensures that bone length changes occur along realistic direc-tions, e.g., generating longer legs and shorter arms than canonical shapes . It seeks to avoid synthesizing motions with bones shifting in the opposite direction to prescribed ones. 
+
+Ldir = 1 − cos 
+
+
+
+ˆx − xβt , xβt − xβn
+
+
+
+(16) where xβt and xβn are motions with target shape βt and normalized shape βn.The magnitude-bounding term seeks to prevent shape shift from overshooting the ground truth shift beyond a tolerance margin γ:X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE 9
+
+Lmag = ReLU 
+
+
+
+∥ ˆx − xβn ∥ − γ ∥xβt − xβn ∥
+
+2
+
+(17) where γ = 1.5 (set empirically) to allow limited stylistic exaggeration beyond the ground truth shape drift. The shape control loss function is the weighted sum of three components: 
+
+Lshape = Lbone + λdir Ldir + λmag Lmag (18) These terms propagate gradients through MPSM instead of shape-aware decoder D, ensuring reliable shape control. The overall loss function of MorphoStyle is: 
+
+Ltotal = Ldis + Lshape (19) 
+
+# 4 Experiments 
+
+This section describes the experimental setup and results. 
+
+## 4.1 Experimental Settings 
+
+Hypothesis. Our experiments evaluate three main hypotheses about MorphoStyle: ( H1 )our style disentanglement mechanism transfers style more faithfully and with better phys-ical plausibility than competing baselines; ( H2 ) style injection can be decoupled from the shape-control pathway to preserve quantitative shape control under style transfer; and ( H3 )MorphoStyle achieves much lower computational cost than diffusion-based stylizers. 
+
+Datasets. We conduct extensive experiments on HumanML3D [8] for content motion and 
+
+100Style [28] for style reference, following the standard SMooDi evaluation protocol [43]. HumanML3D contains 14,616 motion sequences ( ∼ 29 hours) with three free-form cap-tions per sequence, retargeted to the canonical SMPL skeleton [26]; we use the official train/val/test splits. 100Style contains 100 distinct stylistic walking variants performed by a single actor; for fair comparison with prior diffusion-based stylizers, we adopt the 47-class subset whose action categories overlap with HumanML3D, so that the same cross-dataset style classifier can be used for evaluation. To supervise the direction-aware shape control terms, we further use the paired neutral- and target-shape renderings of HumanML3D re-leased by ShapeMyMove [25], which provide xβn and xβt for each training motion. 
+
+Evaluation Measures. We adopt seven evaluation protocols to account for both motion style transfer quality and shape control fidelity. For motion style transfer, we follow the SMooDi protocol [43] to report three measures on N = 4209 content-style pairs, where 4209 content motions are the standard HumanML3D [8] test split, each randomly paired with a style reference sampled from the 100Style [28] dataset. Fréchet Inception Distance (FID) [12] measures the distributional distance between generated and ground-truth motions in the Guo22 evaluator’s feature space [8]; Style Recognition Accuracy (SRA) measures styl-ization fidelity as the top-1 classification accuracy of a frozen 47-class style classifier on the generated motions; Foot Skating measures physical plausibility as the average horizontal foot velocity in the foot-contact frames. For shape control, we adopt the Bone-Length MAE 
+
+protocol, which measures absolute bone-length agreement with the target body, from Shape-MyMove [25] and introduce three additional measures. Bone-Length Temporal Standard Deviation (BoneLen-T-Std) measures intra-sequence stability of bone lengths; β -swap re-sponse measures the bone-length shift induced by switching between two contrasting body presets (thin ↔heavy and short ↔tall); and β -correlation measures the Pearson correlation between the recovered shape direction and the ground-truth shape direction. 10 X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE 
+
+Implementation Details. MorphoStyle is implemented in PyTorch [31] and trained on a single NVIDIA A100 GPU (80 GB). To better fit the data distribution of the 100Style dataset, we follow ShapeMyMove [25] to fine-tune the FSQ-VAE backbone on both HumanML3D and 100Style. The text-motion alignment model and the Shape-to-Feature module are loaded from their released checkpoints [8, 25] and kept frozen throughout the training procedure. We use the AdamW optimizer [27] with (β1, β2)=( 0.9, 0.99 ) and weight decay 10 −4; the base learning rate is 1 .5 × 10 −5 with a 5 × multiplier for the joint-text routing modules to compensate for their near-zero initialization, a 50-step linear warmup, and cosine annealing to 10 −6. We train for 120 epochs with batch size 24 on cross-domain content-style pairings sampled from HumanML3D and 100Style at a 1:1 ratio, and the SMooDi-classifier guidance is ramped up linearly over the first three epochs. We fix all loss weights throughout training, with λcode = 0.5, λcl = 0.15, λcc = 0.05, λcls = 0.05, λdir = 0.5, and λmag = 0.25. During inference, the residual scale is set to α=0.5 in Equation 6. 
+
+## 4.2 Experimental Results 
+
+Motion style transfer. We compare MorphoStyle with six representative motion style trans-fer baselines. MLD+Aberman et al. [2, 4] and MLD+MotionPuzzle [4, 19] are classical cascades that attach an AdaIN-based or graph-aware stylizer on top of a pre-trained text-to-motion latent diffusion model. SMooDi [43] and StyleMotif [11] are two recent diffusion-based stylizers that augment a latent-diffusion backbone with a ControlNet-style adaptor and cross-modal alignment (respectively). ShapeMyMove [25] is the shape-aware text-to-motion generator on which our backbone is built. Although it has no stylization option, we compare it to isolate the contribution of the FSQ-VAE backbone alone. SMooDi + ShapeMyMove 
+
+is a stronger cascade we constructed by attaching SMooDi’s style adaptor to the ShapeMy-Move [25] shape-aware decoder; it serves as the most direct baseline for comparison. As reported in Table 1, MorphoStyle achieves the best Style Recognition Accuracy (SRA) and the best Foot Skating ratio among all competing methods, while remaining com-petitive on FID. Specifically, MorphoStyle attains an SRA of 81 .9%, surpassing the baseline StyleMotif by 13 .1%; this large gap indicates that our modular latent disentanglement is sub-stantially more effective in injecting style into the generative latent than ControlNet-style or cross-modal-alignment alternatives. In terms of physical plausibility, our Foot Skating ratio of 0 .081 is the lowest across the board, owing to the temporal gate of MPSM that adaptively attenuates style injection at contact-critical frames. Regarding distributional realism, our FID of 2 .84 is comparable to that of SMooDi (2 .95) and substantially lower than that of all cascade baselines (3 .89 to 7 .87), although it does not surpass StyleMotif (1 .38); we attribute this gap to StyleMotif’s significantly heavier ∼ 495 M-parameter latent-diffusion backbone. More importantly, MorphoStyle is the only method that simultaneously delivers high-quality motion style transfer and quantitative shape control: the four diffusion-based baselines are architecturally incapable of supporting shape input, and the SMooDi+ShapeMyMove, al-though shape-aware in design, suffers severely on both FID and Foot Skating due to the latent-space interference. These results strongly support H1 .Figure 3 provides qualitative comparisons of stylized motions conditioned by different body shape descriptions. SMooDi+ShapeMyMove transfers the coarse appearance of the reference style but corrupts the motion content, producing undesired content leakage in the form of over-extended hand swings, irregular gait timing, and noticeable foot skating. Mor-phoStyle reproduces the target style while remaining faithful to the input motion content throughout the sequence; the generated motion is temporally coherent and free of skating. X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE 11 Content Motion             
+
+> SMooDi+ShapeMyMove MorphoStyle (ours)
+> Shape Description
+> SMooDi
+> SMooDi+ShapeMyMove MorphoStyle (ours) SMooDi
+> A person standing 196.5 cm tall,
+> with a chest circumference of 120.4
+> cm, waist circumference of 108.4
+> cm, and hip circumference of 107.3
+> cm. The length of the arm is 60.2
+> cm and leg height is 82.6 cm.
+> The person stands 147.2 cm tall ,ha s a chest circumference of 88.9
+> cm, a waist of 74.3 cm, and hips
+> that measure 97.8 cm. The arm
+> and leg measurements are 43.9 cm
+> and 62.6 cm, respectively.
+> Content Motion Style Reference
+> (Drunk )
+> Shape Description
+> Style Reference
+> （Flapping ）
+
+Figure 3: Qualitative comparison of shape-aware motion style transfer against SMooDi [43] and SMooDi+ShapeMyMove. Yellow body is the target shape used for reference. 
+
+Method SRA ↑ FID ↓ Foot Skate ↓ Shape Control 
+
+MLD + Aberman et al . 61.1% 3.89 0.338 ×
+
+MLD + Motion Puzzle 67.2% 6.87 0.197 ×
+
+SMooDi 65.1% 2.95 0.095 ×
+
+StyleMotif 68.8% 1.38 0.094 ×
+
+ShapeMyMove 1.57% 1.36 0.228 ✓
+
+SMooDi + ShapeMyMove 69.9% 7.87 0.245 ✓
+
+MorphoStyle (ours) 81.9% 2.84 0.081 ✓
+
+Table 1: Comparing MorphoStyle with baselines for motion style transfer on HumanML3D content with 100Style references. Bold indicates best result and underline the second-best. 
+
+Shape control. We evaluated shape control fidelity of MorphoStyle against two shape-aware baselines, ShapeMyMove [25] and the SMooDi+ShapeMyMove, in terms of four shape mea-sures. We do not include SMooDi [43] or StyleMotif [11] since their backbones do not con-dition on body shape and are incapable of being evaluated on shape measures. As reported in Table 2, MorphoStyle attains the lowest Bone-Length MAE (1 .91 cm), lowest temporal Bone-Length standard deviation (1 .26 cm), and highest β -swap response (5 .31 cm), surpass-ing the SMooDi+ShapeMyMove by 23 .3% on bone-length and a striking 61 .9% on temporal stability. This indicates that MorphoStyle most accurately produces motions with the target body proportions, keeps these proportions consistent over the motion sequence, and is most responsive to changes in the SMPL shape parameter β . In summary, MorphoStyle delivers the highest-fidelity shape control among all methods that simultaneously support stylization, 12 X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE                   
+
+> Method BoneLen-MAE ↓BoneLen-T-Std ↓β-swap ↑β-corr ↑
+> ShapeMyMove 4.59 3.53 5.05 0.677
+> SMooDi + ShapeMyMove 2.49 3.31 3.87 0.314
+> MorphoStyle (ours) 1.91 1.26 5.31 0.332
+
+Table 2: Comparison with competing methods for shape control during motion style transfer using four evaluation measures. Bold indicates the best result and underline the second-best.             
+
+> Method Trainable params Inference time ↓GFLOPS ↓
+> SMooDi 13.90 M 7.19s 79.59 SMooDi+ShapeMyMove 31.11 M 2.11s 112.84
+> MorphoStyle (ours) 4.25 M 0.02s 1.98
+
+Table 3: Comparison of model parameters, inference speed, and computational cost. providing strong evidence in support of H2 .As presented in Figure 3, we visualize motion style transfer results conditioned on dif-ferent target body shapes specified by textual shape descriptions. SMooDi+ShapeMyMove does adapt to the target body shape, yet the bolt-on style adaptor consistently introduces drastic kinematic artifacts, confirming the architectural mismatch discussed earlier. In con-trast, MorphoStyle preserves the target body morphology, produces stylistically expressive yet physically plausible motions, and remains stable across diverse style references, validat-ing the effectiveness of our modular latent disentanglement design. 
+
+Computational overhead. We evaluated the computational efficiency of MorphoStyle against two competing baselines, SMooDi and the SMooDi + ShapeMyMove, that natively support shape control or are closest to our problem setting in terms of trainable parameter count, inference time, and computational cost measured in GFLOPs. All measurements are con-ducted on a single NVIDIA A100 GPU with batch size 1 to faithfully reflect a real-time deployment scenario. Since StyleMotif [11] has not released its software or checkpoints, we do not compare it in terms of shape control (Table 2) or computational overhead. As reported in Table 3, MorphoStyle requires 4 .25 M trainable parameters, which is 3 .3× smaller than SMooDi (13 .90 M) and 7 .3× smaller than the SMooDi+ShapeMyMove (31 .11 M). Specifi-cally, MorphoStyle synthesizes a stylized motion in 0 .02 second per sample (approximately 50 FPS on a single GPU), compared to 7 .19 seconds for SMooDi’s 50-step DDIM sampler and 2 .11 seconds for the SMooDi+ShapeMyMove, yielding significant speed-up. Similarly, MorphoStyle requires only 1 .98 GFLOPs per inference, which is significantly less than the two competing baselines. These results strongly support H3 and are due to our design choices; unlike diffusion-based stylizers that perform iterative denoising over tens of sam-pling steps, MorphoStyle synthesizes the stylized motion in a single forward pass through a 4.25 M-parameter style branch grafted onto a frozen FSQ-VAE backbone. Such efficiency makes MorphoStyle work at real-time rates while supporting quantitative shape control, ex-panding its applicability to interactive animation, real-time avatar control, and on-device deployment scenarios that remain infeasible for diffusion-based competitors. 
+
+## 4.3 Ablation Study 
+
+Content-style disentanglement. We conducted experiments to investigate two main com-ponents of our content-style disentanglement design. The supervised contrastive supervision (Con ) on the global style embedding sg (Equation 3), and the text-guided joint style routing module ( JTC ) that distills s j from style-related joints (Equation 5). Starting from a base-X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE 13 Aeroplane 
+
+> Chicken
+> Drunk
+> Old
+> Robot
+> Superman
+
+Figure 4: t-SNE visualization of global style embeddings sg on six representative style classes, with (right) versus without (left) the contrastive supervision Lcl .                         
+
+> Variant Contrastive Joint FID ↓SRA ↑Foot ↓
+> Base ××3.57 74.7% 0.143 JTC ×✓3.54 78.5% 0.139 Con ✓×3.05 81.2% 0.110 MorphoStyle ✓✓2.84 81.9% 0.081
+
+Table 4: Ablation on content-style disentanglement components. line variant ( Base ) that disables both, we add each component independently and finally combine them in MorphoStyle. As reported in Table 4, adding the contrastive supervision alone yields the most improvement, and Con increases SRA by 6 .5%, reduces FID by 0 .52, and lowers Foot Skating, which indicates that without explicit supervision in the embedding space, global style encoder Es inevitably entangles content cues that degrades stylization fi-delity and motion realism. Adding the joint routing brings a smaller but consistent gain, which confirms that joint-level disentanglement provides complementary local style cues that the whole-body global embedding cannot capture. Combining them in MorphoStyle provides the best performance on every measure, which demonstrates their effectiveness for high-quality motion style transfer. To further investigate the qualitative effect of contrastive supervision, we visualize global style embeddings sg with t-SNE in Figure 4 for six representative style classes. Without con-trastive supervision, embeddings of the same style class are scattered and frequently overlap with other classes, reflecting strong content entanglement in sg. In contrast, with contrastive supervision, embeddings of the same style form tight and well-separated clusters in the la-tent feature space. This shows that our content-style disentanglement method provides a discriminative style space, which MPSM relies on for high-fidelity style injection. 
+
+MPSM module. We investigated two variants of our MPSM, low-rank additive offset (Equa-tion 9) and learnable temporal gate (Equation 8). We first entirely remove MPSM ( w/o MPSM ), which is replaced by a naive concatenation between content features and style em-beddings, and then remove only temporal gate ( w/o gate g ), which keeps low-rank offset but applies it uniformly across all temporal frames. As reported in Table 5, entirely disabling the MPSM results in worse performance in terms of SRA and FID due to content leakage, which demonstrates that MPSM is an essential component for injecting style in content features. Removing the temporal gate yields a less severe but still significant degradation, indicating that applying low-rank offset across all frames corrupts key movements without temporal intensity control of style injection, degrading style fidelity and motion quality. 
+
+Shape control supervision. We also evaluated the effectiveness of the shape control ob-jective Lshape by removing it from the training process ( w/o Lshape ) (see Table 5). Without 
+
+Lshape , MorphoStyle still attains a high SRA and a low FID. However, it is evident from 14 X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE Content Motion  Style Reference             
+
+> (Kick )
+> w/o 𝓛 shape MorphoStyle (ours)
+> Shape description
+> w/o 𝓛 dis
+> The person stands 147.2 cm tall.
+> They have a chest circumference
+> of 88.9 cm, a waist of 74.3 cm, and
+> hips that measure 97.8 cm. The
+> arm and leg measurements are
+> 43.9 cm and 62.6 cm, respectively.
+
+Figure 5: Qualitative ablation of two training objectives, Ldis and Lshape , on the same content (walk forward), style reference ( kick ), and target body shape. 
+
+SRA ↑ FID ↓ BoneLen-MAE ↓ β -swap ↑
+
+w/o MPSM 62.9% 5.16 1.97 2.06 w/o gate g 72.1% 4.85 1.92 4.12 w/o Lshape 80.4% 2.99 2.20 3.41 MorphoStyle 81.9% 2.84 1.91 5.31 
+
+Table 5: Ablation results on key technical components of our MorphoStyle. the shape measures that Bone-Length MAE rises, and β -swap response collapses from 5 .31 to 3 .41 which indicates that the model no longer responds meaningfully to changes in the SMPL shape parameter β , effectively ignoring the shape signal. Figure 5 also visualizes the failure modes of removing each loss function confirming that the shape control objective adapts latent codes to ground truth shape direction through Lshape supervision. 
+
+# 5 Conclusion 
+
+We presented MorphoStyle , a unified framework for shape-aware motion style transfer that jointly models motion style transfer and body-shape control. MorphoStyle leverages a frozen shape-conditioned FSQ-VAE and injects style as a compact low-rank residual in the post-quantization content space, while preserving explicit shape control through the de-quantization pathway. This design enables effective disentanglement of content, style, and morphology with fewer parameters. Built on this backbone, our content-decoupled style branch combines contrastive style encoding, text-guided joint routing, and manifold-preserving modulation to localize and transfer style without disrupting motion content. Extensive experiments show that MorphoStyle achieves state-of-the-art performance in both motion style transfer and morphological control, while being 3 .3× smaller and 360 × faster than the closest compet-ing baseline, enabling real-time shape-aware motion style transfer. 
+
+Limitations and future work. MorphoStyle’s distributional realism is limited by the ca-pacity of the frozen FSQ-VAE backbone, and its FID does not surpass the diffusion-based methods. In addition, the text-guided joint routing module depends on a frozen text-motion alignment model, which may be less reliable for out-of-distribution actions. We will explore extensions to MorphoStyle to address these limitations. Future work also includes extending the framework to consider image, video, and/or audio style references, and adapting shape-aware stylization to non-humanoid characters and physics-based animation. X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE 15 
+
+# 6 Acknowledgment 
+
+The authors thank Lei Zhong and Ziyuan Li for suggestions during the development of Mor-phoStyle. This work was supported in part by the Arts and Humanities Research Council grant AH/Y00115X/1. All conclusions reported here are those of the authors alone. 
+
+# References 
+
+[1] Kfir Aberman, Peizhuo Li, Dani Lischinski, Olga Sorkine-Hornung, Daniel Cohen-Or, and Baoquan Chen. Skeleton-aware networks for deep motion retargeting. ACM Transactions on Graphics (SIGGRAPH) , 39(4):62:1–62:14, 2020. [2] Kfir Aberman, Yijia Weng, Dani Lischinski, Daniel Cohen-Or, and Baoquan Chen. Un-paired motion style transfer from video to animation. ACM Transactions on Graphics (SIGGRAPH) , 39(4):64:1–64:12, 2020. [3] Matthew Brand and Aaron Hertzmann. Style machines. In Proceedings of SIGGRAPH ,pages 183–192, 2000. [4] Xin Chen, Biao Jiang, Wen Liu, Zilong Huang, Bin Fu, Tao Chen, and Gang Yu. Exe-cuting your commands via motion diffusion in latent space. In IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2023. [5] Vasileios Choutas, Lea Müller, Chun-Hao P. Huang, Siyu Tang, Dimitrios Tzionas, and Michael J. Black. Accurate 3D body shape regression using metric and seman-tic attributes. In IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2022. [6] Rohit Girdhar, Alaaeldin El-Nouby, Zhuang Liu, Mannat Singh, Kalyan Vasudev Al-wala, Armand Joulin, and Ishan Misra. ImageBind: One embedding space to bind them all. In IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) ,2023. [7] Ian Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville, and Yoshua Bengio. Generative adversarial nets. In 
+
+Advances in Neural Information Processing Systems (NeurIPS) , 2014. [8] Chuan Guo, Shihao Zou, Xinxin Zuo, Sen Wang, Wei Ji, Xingyu Li, and Li Cheng. Generating diverse and natural 3D human motions from text. In IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2022. [9] Chuan Guo, Yuxuan Mu, Muhammad Gohar Javed, Sen Wang, and Li Cheng. Mo-Mask: Generative masked modeling of 3D human motions. In IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2024. [10] Chuan Guo, Yuxuan Mu, Xinxin Zuo, Peng Dai, Youliang Yan, Juwei Lu, and Li Cheng. Generative human motion stylization in latent space. In B. Kim, Y. Yue, S. Chaudhuri, K. Fragkiadaki, M. Khan, and Y. Sun, editors, International Conference on Learning Representations (ICLR) , volume 2024, pages 7859–7878, 2024. 16 X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE 
+
+[11] Ziyu Guo, Young Yoon Lee, Joseph Liu, Yizhak Ben-Shabat, Victor Zordan, and Mub-basir Kapadia. StyleMotif: Multi-modal motion stylization using style-content cross fusion. In IEEE/CVF International Conference on Computer Vision (ICCV) , 2025. [12] Martin Heusel, Hubert Ramsauer, Thomas Unterthiner, Bernhard Nessler, and Sepp Hochreiter. GANs trained by a two time-scale update rule converge to a local Nash equilibrium. In Advances in Neural Information Processing Systems (NeurIPS) , 2017. [13] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models. In Advances in Neural Information Processing Systems (NeurIPS) , 2020. [14] Daniel Holden, Jun Saito, and Taku Komura. A deep learning framework for character motion synthesis and editing. ACM Transactions on Graphics (SIGGRAPH) , 35(4): 138:1–138:11, 2016. [15] Daniel Holden, Ikhsanul Habibie, Ikuo Kusajima, and Taku Komura. Fast neural style transfer for motion data. IEEE Computer Graphics and Applications , 37(4):42–49, 2017. [16] Daniel Holden, Taku Komura, and Jun Saito. Phase-functioned neural networks for character control. ACM Transactions on Graphics (ToG) , 36(4):1–13, 2017. [17] Daniel Holden, Oussama Kanoun, Maksym Perepichka, and Tiberiu Popa. Learned motion matching. ACM Transactions on Graphics (ToG) , 39(4):53–1, 2020. [18] Xun Huang and Serge Belongie. Arbitrary style transfer in real-time with adaptive instance normalization. In IEEE International Conference on Computer Vision (ICCV) ,2017. [19] Deok-Kyeong Jang, Soomin Park, and Sung-Hee Lee. Motion puzzle: Arbitrary motion style transfer by body part. ACM Transactions on Graphics (ToG) , 41(3):33:1–33:16, 2022. [20] Prannay Khosla, Piotr Teterwak, Chen Wang, Aaron Sarna, Yonglong Tian, Phillip Isola, Aaron Maschinot, Ce Liu, and Dilip Krishnan. Supervised contrastive learning. 
+
+Advances in Neural Information Processing Systems (NIPS) , 33:18661–18673, 2020. [21] Diederik P Kingma and Max Welling. Auto-encoding variational bayes. arXiv preprint arXiv:1312.6114 , 2013. [22] Muhammed Kocabas, Chun-Hao P. Huang, Otmar Hilliges, and Michael J. Black. PARE: Part attention regressor for 3D human body estimation. In IEEE/CVF Inter-national Conference on Computer Vision (ICCV) , 2021. [23] Yan Li, Tianshu Wang, and Heung-Yeung Shum. Motion texture: A two-level statistical model for character motion synthesis. ACM Transactions on Graphics (SIGGRAPH) ,21(3):465–472, 2002. [24] Zhe Li, Yisheng He, Lei Zhong, Weichao Shen, Qi Zuo, Lingteng Qiu, Zilong Dong, Laurence Tianruo Yang, and Weihao Yuan. Mulsmo: Multimodal stylized motion gen-eration by bidirectional control flow. arXiv preprint arXiv:2412.09901 , 2024. X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE 17 
+
+[25] Ting-Hsuan Liao, Yi Zhou, Yu Shen, Chun-Hao Paul Huang, Saayan Mitra, Jia-Bin Huang, and Uttaran Bhattacharya. Shape my moves: Text-driven shape-aware synthesis of human motions. In Proceedings of the Computer Vision and Pattern Recognition Conference (CVPR) , pages 1917–1928, 2025. [26] Matthew Loper, Naureen Mahmood, Javier Romero, Gerard Pons-Moll, and Michael J. Black. SMPL: A skinned multi-person linear model. ACM Transactions on Graphics (SIGGRAPH Asia) , 34(6):248:1–248:16, 2015. [27] Ilya Loshchilov and Frank Hutter. Decoupled weight decay regularization. In Interna-tional Conference on Learning Representations (ICLR) , 2019. [28] Ian Mason, Sebastian Starke, and Taku Komura. Real-time style modelling of human locomotion via feature-wise transformations and local motion phases. Proceedings of the ACM on Computer Graphics and Interactive Techniques , 5(1):1–18, 2022. [29] Fabian Mentzer, David Minnen, Eirikur Agustsson, and Michael Tschannen. Finite scalar quantization: VQ-VAE made simple. In International Conference on Learning Representations (ICLR) , 2024. [30] Soomin Park, Deok-Kyeong Jang, and Sung-Hee Lee. Diverse motion stylization for multiple style domains via spatial-temporal graph-based generative model. Proc. ACM Comput. Graph. Interact. Tech. , 4(3):1–17, 2021. [31] Adam Paszke, Sam Gross, Francisco Massa, Adam Lerer, James Bradbury, Gregory Chanan, Trevor Killeen, et al. PyTorch: An imperative style, high-performance deep learning library. In Advances in Neural Information Processing Systems (NeurIPS) ,2019. [32] Xue Bin Peng, Pieter Abbeel, Sergey Levine, and Michiel van de Panne. DeepMimic: Example-guided deep reinforcement learning of physics-based character skills. ACM Transactions on Graphics (SIGGRAPH) , 37(4):143:1–143:14, 2018. [33] Xue Bin Peng, Ze Ma, Pieter Abbeel, Sergey Levine, and Angjoo Kanazawa. AMP: Adversarial motion priors for stylized physics-based character control. ACM Transac-tions on Graphics (SIGGRAPH) , 40(4):144:1–144:20, 2021. [34] Mathis Petrovich, Michael J. Black, and Gül Varol. TEMOS: Generating diverse hu-man motions from textual descriptions. In European Conference on Computer Vision (ECCV) , 2022. [35] Colin Raffel, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael Matena, Yanqi Zhou, Wei Li, and Peter J Liu. Exploring the limits of transfer learning with a unified text-to-text transformer. Journal of Machine Learning Research (JMLR) ,21(140):1–67, 2020. [36] Tianxin Tao, Xiaohang Zhan, Zhongquan Chen, and Michiel van de Panne. Style-erd: Responsive and coherent online motion style transfer. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 6593–6603, 2022. 18 X. FENG, E. D’ARNESE, M. SRIDHARAN: MORPHOSTYLE 
+
+[37] Guy Tevet, Sigal Raab, Brian Gordon, Yonatan Shafir, Daniel Cohen-Or, and Amit H. Bermano. Human motion diffusion model. In International Conference on Learning Representations (ICLR) , 2023. [38] Ruben Villegas, Jimei Yang, Duygu Ceylan, and Honglak Lee. Neural kinematic net-works for unsupervised motion retargetting. In IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2018. [39] Shihong Xia, Congyi Wang, Jinxiang Chai, and Jessica Hodgins. Realtime style trans-fer for unlabeled heterogeneous human motion. ACM Transactions on Graphics (SIG-GRAPH) , 34(4):119:1–119:10, 2015. [40] Katsu Yamane, Yuka Ariki, and Jessica Hodgins. Animating non-humanoid characters with human motion data. In Proceedings of the 2010 ACM SIGGRAPH/Eurographics Symposium on Computer Animation , pages 169–178, 2010. [41] Fatemeh Zargarbashi, Dhruv Agrawal, Jakob Buhmann, Martin Guay, Stelian Coros, and Robert W Sumner. Vq-style: Disentangling style and content in motion with resid-ual quantized representations. In Computer Graphics Forum , page e70377. Wiley On-line Library, 2026. [42] Lvmin Zhang, Anyi Rao, and Maneesh Agrawala. Adding conditional control to text-to-image diffusion models. In IEEE/CVF International Conference on Computer Vision (ICCV) , 2023. [43] Lei Zhong, Yiming Xie, Varun Jampani, Deqing Sun, and Huaizu Jiang. SMooDi: Styl-ized motion diffusion model. In European Conference on Computer Vision (ECCV) ,2024.
