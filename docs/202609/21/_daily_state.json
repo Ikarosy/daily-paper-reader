@@ -1,0 +1,57 @@
+{
+  "date": "20260921",
+  "date_label": "",
+  "generated_at": "2026-09-21 22:39:42 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.16338v1",
+      "route": "202609/21/2609.16338v1-breaking-the-158-bit-barrier-for-ternary-llms",
+      "title": "Breaking the 1.58-bit Barrier for Ternary LLMs",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "分布自适应位布局实现低于 1.58 比特的三元 LLM 存储",
+      "first_seen_at": "2026-09-21 22:39:42 UTC",
+      "updated_at": "2026-09-21 22:39:42 UTC"
+    },
+    {
+      "paper_id": "2609.19880v1",
+      "route": "202609/21/2609.19880v1-d-quant-driftable-entropy-coding-for-kv-cache-quantization",
+      "title": "D-Quant: Driftable Entropy Coding for KV Cache Quantization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "突破固定位宽量化级数限制的低比特KV缓存量化",
+      "first_seen_at": "2026-09-21 22:39:42 UTC",
+      "updated_at": "2026-09-21 22:39:42 UTC"
+    },
+    {
+      "paper_id": "2609.21137v1",
+      "route": "202609/21/2609.21137v1-a-multi-engine-dataflow-for-moe-decoding-on-scratchpad-based-tensor-accelerators",
+      "title": "A Multi-Engine Dataflow for MoE Decoding on Scratchpad-Based Tensor Accelerators",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "向量量化专家权重与多引擎MoE解码数据流",
+      "first_seen_at": "2026-09-21 22:39:42 UTC",
+      "updated_at": "2026-09-21 22:39:42 UTC"
+    }
+  ]
+}

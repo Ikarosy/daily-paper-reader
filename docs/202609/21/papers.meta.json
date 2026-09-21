@@ -1,0 +1,54 @@
+{
+  "label": "2026-09-21",
+  "date": "2026-09-21",
+  "generated_at": "2026-09-21T22:39:44",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202609/21/2609.16338v1-breaking-the-158-bit-barrier-for-ternary-llms",
+      "section": "deep",
+      "title_en": "Breaking the 1.58-bit Barrier for Ternary LLMs",
+      "authors": "Evangelos Georganas, Alexander Heinecke, Pradeep Dubey",
+      "date": "2026-09-14",
+      "pdf": "https://arxiv.org/pdf/2609.16338v1",
+      "score": "8.0",
+      "evidence": "分布自适应位布局实现低于 1.58 比特的三元 LLM 存储",
+      "tldr": "三值LLM权重取{-1,0,+1}，传统五三进制打包按1.625 bit/权重存储，忽略符号分布不均。作者测量29个模型发现零权重占比最高达51.5%，提出BITCOS：用存在位图加压缩符号向量自适应编码，按2-z bit/权重存储。在26/29模型中优于五三进制打包，最稀疏模型达1.485 bit/权重，并给出AVX-512、AVX2与Xe2 GPU解包优化。端到端解码吞吐在CPU/GPU最高提升1.18x/1.27x。",
+      "tags": "query:wbv",
+      "abstract_en": "Ternary Large Language Models (LLM) store every weight as one of three symbols $\\{-1,0,+1\\}$, so the cost of a ternary model is conventionally referenced to the information-theoretic $\\log_2 3 \\approx 1.585$ bits per weight. The prevailing deployment format packs five ternary weights into one byte (five-trit packing), and due to the power-of-two group sizes used in practice this rounds up to $1.625$ bits per weight. This effective storage bit-width treats the three symbols $\\{-1,0,+1\\}$ as equiprobable. We measure the actual symbol distribution of 29 ternary LLM models and find that zeros account for up to $51.5\\%$ of all weights. Motivated by this finding, we introduce BITCOS, a simple distribution-adaptive layout comprised of a dense presence bitmap plus a compacted sign vector, and costs $2 - z$ bits per weight element given a zero density $z$ in the model's weights. BITCOS stores weights more compactly than the five-trit packing in 26 of the 29 tested models, and reaches $1.485$ bits per weight on the sparsest of them. BITCOS is amenable to efficient unpacking on modern processors and GPUs, and we present optimized unpacking sequences for AVX-512, AVX2 and Intel Xe2 GPUs. Measured against production state-of-the-art ternary matrix-vector multiplication kernels, at the zero densities real-world ternary models exhibit, the realized gain with our proposed layout is up to $1.28\\times$. Finally, we illustrate end-to-end LLM inference results on 5 different platforms (client and server CPUs, integrated and discrete Xe2 GPUs) where decode throughput improves by up to $1.18\\times$ on CPUs and $1.27\\times$ on GPUs.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/21/2609.19880v1-d-quant-driftable-entropy-coding-for-kv-cache-quantization",
+      "section": "deep",
+      "title_en": "D-Quant: Driftable Entropy Coding for KV Cache Quantization",
+      "authors": "Yi Su, Hong Liu, Guanghua Yu, Jianchen Zhu",
+      "date": "2026-09-17",
+      "pdf": "https://arxiv.org/pdf/2609.19880v1",
+      "score": "8.0",
+      "evidence": "突破固定位宽量化级数限制的低比特KV缓存量化",
+      "tldr": "KV cache 随序列长度和批量线性增长，成为 LLM 部署的内存与带宽瓶颈。固定位宽量化受限于 2^b 个量化级，低位宽下信息损失严重，且无法利用 KV 值近似正态、分布高度不均的特点。D-Quant 引入 drift 机制，将每个 token 的熵编码变长表示转换为固定大小比特流，从而兼容规则访存与注意力核内并行反量化。它把熵编码的压缩优势带入 KV cache 量化，为低位宽部署提供新思路。",
+      "tags": "query:wbv",
+      "abstract_en": "The KV cache has become a major bottleneck in deploying LLMs, as its memory footprint grows linearly with sequence length and batch size, imposing substantial pressure on both memory capacity and bandwidth. Among various KV cache compression techniques, quantization is particularly attractive due to its effectiveness and ease of deployment. However, most existing methods rely on fixed-width quantization, where a $b$ bit representation is inherently limited to $2^b$ quantization levels. As the bit width decreases, the number of available levels shrinks exponentially, leading to severe information loss and rapid performance degradation. We further observe that fixed-width quantization fails to exploit the highly non-uniform distribution of KV cache. After rotation and normalization, KV values approximately follow a normal distribution, with most values concentrated near the center and only a small fraction appearing in the tails. Nevertheless, fixed-width coding allocates the same number of bits to frequent and rare symbols. Entropy coding naturally exploits such non-uniformity by assigning shorter codewords to frequent symbols and longer ones to rare symbols, substantially reducing the average number of bits required for representation. However, its variable-length output is not suited to highly parallel attention kernels, where efficient dequantization and computation rely on regular memory layouts and fixed-stride accesses. To bridge this gap, we propose \\textbf{D-Quant}, a flexible KV cache quantization framework that introduces a \\textbf{drift} mechanism to convert entropy-coded representations of each token into fixed-size bitstreams, enabling regular memory access and parallel dequantization within attention kernels.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/21/2609.21137v1-a-multi-engine-dataflow-for-moe-decoding-on-scratchpad-based-tensor-accelerators",
+      "section": "deep",
+      "title_en": "A Multi-Engine Dataflow for MoE Decoding on Scratchpad-Based Tensor Accelerators",
+      "authors": "Bin Ma, Wenjie Fan, Dong Li",
+      "date": "2026-09-17",
+      "pdf": "https://arxiv.org/pdf/2609.21137v1",
+      "score": "8.0",
+      "evidence": "向量量化专家权重与多引擎MoE解码数据流",
+      "tldr": "MoE 解码在基于 scratchpad 的张量加速器上受制于专家权重搬运，而计算引擎大量空闲，且专家需路由后才确定，流量既难隐藏也难压缩。CARDAN 将每个专家权重矩阵表示为向量量化分量加共享基低秩分量，并与多引擎解码数据流协同设计，把专家公共与私有计算分离，使 DMA 与多引擎计算重叠。在 AWS Trainium3 上跨五个 MoE 家族，困惑度不劣于 BF16 教师模型，batch-one 解码加速 1.15-1.31 倍，batch size 16 时达 1.7 倍。",
+      "tags": "query:moe-quant",
+      "abstract_en": "Mixture-of-Experts (MoE) decoding on scratchpad-based tensor accelerators (STA) is dominated by moving expert weights while the compute engines sit idle. This traffic is hard to hide, because the experts are known only after routing, and hard to shrink without losing quality or adding critical-path work. We present CARDAN, which represents each expert-weight matrix as a vector-quantized component plus a shared-basis low-rank component and co-designs this representation with a multi-engine decoding dataflow. The representation separates expert-common from expert-private work, so the dataflow overlaps DMA with computation on several engines. Across five MoE families on AWS Trainium3, CARDAN matches or improves BF16-teacher perplexity across all five models and speeds up batch-one decoding by 1.15-1.31x over AWS dense MoE megakernels, rising to 1.7x at batch size 16.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
