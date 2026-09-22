@@ -1,0 +1,249 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-22T22:30:31.139723+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 3,
+    "deep_cap": 7,
+    "deep_selected": 3,
+    "quick_candidates": 3,
+    "quick_skim_target": 12,
+    "quick_selected": 3
+  },
+  "deep_dive": [
+    {
+      "id": "2609.21137v2",
+      "source": "arxiv",
+      "title": "A Multi-Engine Dataflow for MoE Decoding on Scratchpad-Based Tensor Accelerators",
+      "abstract": "Mixture-of-Experts (MoE) decoding on scratchpad-based tensor accelerators (STA) is dominated by moving expert weights while the compute engines sit idle. This traffic is hard to hide, because the experts are known only after routing, and hard to shrink without losing quality or adding critical-path work. We present CARDAN, which represents each expert-weight matrix as a vector-quantized component plus a shared-basis low-rank component and co-designs this representation with a multi-engine decoding dataflow. The representation separates expert-common from expert-private work, so the dataflow overlaps DMA with computation on several engines. Across five MoE families on AWS Trainium3, CARDAN matches or improves BF16-teacher perplexity across all five models and speeds up batch-one decoding by 1.15-1.31x over AWS dense MoE megakernels, rising to 1.7x at batch size 16.",
+      "authors": [
+        "Bin Ma",
+        "Wenjie Fan",
+        "Jialin Liu",
+        "Dong Li"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-17T22:47:01+00:00",
+      "link": "https://arxiv.org/pdf/2609.21137v2",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "MoE expert weights represented via vector-quantized component plus shared low-rank basis",
+      "llm_evidence_cn": "用向量量化分量加共享低秩基表示MoE专家权重",
+      "llm_evidence": "用向量量化分量加共享低秩基表示MoE专家权重",
+      "canonical_evidence": "用向量量化分量加共享低秩基表示MoE专家权重",
+      "llm_tldr_en": "MoE decoding on scratchpad tensor accelerators is bottlenecked by moving expert weights while compute idles. CARDAN represents each expert matrix as a vector-quantized component plus a shared low-rank basis, co-designed with a multi-engine dataflow that overlaps DMA and compute. On AWS Trainium3 across five MoE families it matches or beats BF16-teacher perplexity.",
+      "llm_tldr_cn": "在基于暂存器的张量加速器上，MoE解码的性能瓶颈主要来自专家权重的搬运，而计算引擎常常空闲。论文提出CARDAN，将每个专家权重矩阵表示为向量量化分量与共享低秩基分量之和，并与多引擎解码数据流协同设计，把专家共性部分与私有部分分离以实现搬运与计算重叠。在AWS Trainium3上对五个MoE系列评估，其困惑度匹配或优于BF16教师模型。该工作为MoE量化与硬件协同设计提供了新的可复用范式。",
+      "llm_tldr": "在基于暂存器的张量加速器上，MoE解码的性能瓶颈主要来自专家权重的搬运，而计算引擎常常空闲。论文提出CARDAN，将每个专家权重矩阵表示为向量量化分量与共享低秩基分量之和，并与多引擎解码数据流协同设计，把专家共性部分与私有部分分离以实现搬运与计算重叠。在AWS Trainium3上对五个MoE系列评估，其困惑度匹配或优于BF16教师模型。该工作为MoE量化与硬件协同设计提供了新的可复用范式。",
+      "llm_tags": [
+        "query:moe-quant"
+      ],
+      "matched_query_tag": "query:moe-quant",
+      "matched_query_text": "MoE Quantization",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.21450v1",
+      "source": "arxiv",
+      "title": "Understanding LLM Quantization through Activation-Guided Compensation and Orthogonal Residuals",
+      "abstract": "Post-training weight-activation quantization reduces the memory and inference costs of large language models, but aggressive W4A4 quantization remains difficult because activation outliers degrade effective quantization resolution. Although weight optimization, channel-wise scaling, and orthogonal rotation mitigate this problem, the error components they address and their relationship remain unclear. Using an exact decomposition of local weight-activation quantization error into an activation-guided weight compensation term and an orthogonal residual, we bound the residual using persistent channel-wise outlier and regular activation quantities. This decomposition clarifies which error components can be addressed by weight compensation and which require transformation design. We then use the residual bounds to derive practical guidelines for applying randomized Hadamard rotation, sign selection, and channel scaling. In particular, the analysis explains how random signs suppress constructive interference among persistent outlier channels, how sampling multiple sign patterns can improve transformation selection, and how second-moment balancing leads to an $L_2$ scaling rule while a further relaxation recovers SmoothQuant-style $L_\\infty$ scaling. We evaluate these guidelines through backpropagation-free configurations across eight Llama and Mistral models, obtaining performance competitive with gradient-trained SpinQuant.",
+      "authors": [
+        "Yamato Narita",
+        "Issei Sato"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-18T08:00:27+00:00",
+      "link": "https://arxiv.org/pdf/2609.21450v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "W4A4 weight-activation quantization error decomposition for low-bit LLM quantization",
+      "llm_evidence_cn": "面向LLM低比特量化的W4A4权重激活误差分解",
+      "llm_evidence": "面向LLM低比特量化的W4A4权重激活误差分解",
+      "canonical_evidence": "面向LLM低比特量化的W4A4权重激活误差分解",
+      "llm_tldr_en": "W4A4 quantization suffers from activation outliers that cut effective resolution. The paper decomposes weight-activation quantization error into an activation-guided compensation term and an orthogonal residual, bounding the residual via persistent outliers to clarify what scaling and rotation can fix.",
+      "llm_tldr_cn": "后训练权重-激活量化可降低大语言模型的内存与推理开销，但W4A4等激进量化因激活离群值而难以保持有效分辨率。本文把局部权重-激活量化误差精确分解为激活引导的权重补偿项与正交残差，并用持续的通道级离群量对残差进行界定。该分解厘清了权重优化、通道缩放与正交旋转各自能处理哪部分误差，为理解并改进极低比特量化提供了理论工具。",
+      "llm_tldr": "后训练权重-激活量化可降低大语言模型的内存与推理开销，但W4A4等激进量化因激活离群值而难以保持有效分辨率。本文把局部权重-激活量化误差精确分解为激活引导的权重补偿项与正交残差，并用持续的通道级离群量对残差进行界定。该分解厘清了权重优化、通道缩放与正交旋转各自能处理哪部分误差，为理解并改进极低比特量化提供了理论工具。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "w",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.16338v1",
+      "source": "arxiv",
+      "title": "Breaking the 1.58-bit Barrier for Ternary LLMs",
+      "abstract": "Ternary Large Language Models (LLM) store every weight as one of three symbols $\\{-1,0,+1\\}$, so the cost of a ternary model is conventionally referenced to the information-theoretic $\\log_2 3 \\approx 1.585$ bits per weight. The prevailing deployment format packs five ternary weights into one byte (five-trit packing), and due to the power-of-two group sizes used in practice this rounds up to $1.625$ bits per weight. This effective storage bit-width treats the three symbols $\\{-1,0,+1\\}$ as equiprobable. We measure the actual symbol distribution of 29 ternary LLM models and find that zeros account for up to $51.5\\%$ of all weights. Motivated by this finding, we introduce BITCOS, a simple distribution-adaptive layout comprised of a dense presence bitmap plus a compacted sign vector, and costs $2 - z$ bits per weight element given a zero density $z$ in the model's weights. BITCOS stores weights more compactly than the five-trit packing in 26 of the 29 tested models, and reaches $1.485$ bits per weight on the sparsest of them. BITCOS is amenable to efficient unpacking on modern processors and GPUs, and we present optimized unpacking sequences for AVX-512, AVX2 and Intel Xe2 GPUs. Measured against production state-of-the-art ternary matrix-vector multiplication kernels, at the zero densities real-world ternary models exhibit, the realized gain with our proposed layout is up to $1.28\\times$. Finally, we illustrate end-to-end LLM inference results on 5 different platforms (client and server CPUs, integrated and discrete Xe2 GPUs) where decode throughput improves by up to $1.18\\times$ on CPUs and $1.27\\times$ on GPUs.",
+      "authors": [
+        "Evangelos Georganas",
+        "Alexander Heinecke",
+        "Pradeep Dubey"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-14T20:54:24+00:00",
+      "link": "https://arxiv.org/pdf/2609.16338v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "ultra low-bit ternary LLM storage layout acting like a codebook",
+      "llm_evidence_cn": "极低比特三元LLM存储布局，类似码本",
+      "llm_evidence": "极低比特三元LLM存储布局，类似码本",
+      "canonical_evidence": "极低比特三元LLM存储布局，类似码本",
+      "llm_tldr_en": "BITCOS breaks the 1.58-bit barrier for ternary LLMs by measuring skewed symbol distributions and using a presence bitmap plus compacted sign vector to store weights below the equiprobable bound.",
+      "llm_tldr_cn": "三元大模型将每个权重存为-1、0、+1三种符号，传统打包按等概率处理，信息论下界约为1.585比特每权重，实际部署格式甚至高达1.625比特。论文测量29个三元模型的符号分布，发现零值占比最高达51.5%，说明等概率假设并不成立。据此提出BITCOS，一种由密集存在位图加紧凑符号向量构成的分布自适应存储布局。该布局有效降低每权重存储比特并突破1.58比特壁垒，为极低比特大模型的实用部署提供了新格式。",
+      "llm_tldr": "三元大模型将每个权重存为-1、0、+1三种符号，传统打包按等概率处理，信息论下界约为1.585比特每权重，实际部署格式甚至高达1.625比特。论文测量29个三元模型的符号分布，发现零值占比最高达51.5%，说明等概率假设并不成立。据此提出BITCOS，一种由密集存在位图加紧凑符号向量构成的分布自适应存储布局。该布局有效降低每权重存储比特并突破1.58比特壁垒，为极低比特大模型的实用部署提供了新格式。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.23585v1",
+      "source": "arxiv",
+      "title": "Global Ranks Survive, Selected Heads Shift: BOS-Sink Topology under 4-bit Weight-Only Quantization",
+      "abstract": "Sink-aware deployment may identify important first-token attention heads before a model is quantized, then reuse that map at the edge. We test when this shortcut is safe for 4-bit NF4 weight-only post-training quantization (PTQ). Our Sink Topology Consistency (STC) metrics separate global rank preservation, top-$k$ set overlap, and layerwise sink-mass shift, and distinguish per-input sensitivity from calibration-map transfer. Across Qwen2.5-0.5B, Qwen2.5-1.5B, and Llama-3.2-1B, global bf16-to-4-bit ranks remain high at 4,096 tokens ($ρ_s \\geq 0.980$), yet top-$k$ Jaccard overlap is only 0.619-0.793, corresponding to 76.5-88.5% membership retention. The global statistic also masks local failures: terminal Qwen layers shift by 6.2-7.9x their model means, whereas Llama-3.2-1B shows low, nearly uniform drift. Under a C4-to-LongBench shift, cross-domain overlap degrades more than the within-domain precision comparison for both Qwen models, but not for Llama-3.2-1B. Matched-domain 4-bit recalibration reaches 90% of a split-half stability plateau at the smallest tested $n=8$ for both Qwen models and $n=32$ for Llama-3.2-1B, though not as a sharp threshold; for the two Qwen models, updating only selected layers does not reach the full-map stability criterion. On Jetson Orin NX, the 16-sample workload takes seconds for the two models with valid on-device sink measurements. The practical message is precise: global rankings often transfer, but discrete head sets, layer-local policies, and cross-domain calibration should be revalidated after quantization.",
+      "authors": [
+        "Kuanlin Chen",
+        "Chen-Wei Kuo",
+        "Cheng-En Ou"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-09-20T12:07:41+00:00",
+      "link": "https://arxiv.org/pdf/2609.23585v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "4-bit NF4 weight-only post-training quantization effect on attention sink topology",
+      "llm_evidence_cn": "4比特NF4仅权重量化对注意力汇拓扑的影响",
+      "llm_evidence": "4比特NF4仅权重量化对注意力汇拓扑的影响",
+      "canonical_evidence": "4比特NF4仅权重量化对注意力汇拓扑的影响",
+      "llm_tldr_en": "Sink-aware deployment reuses pre-quantization attention-head maps at the edge. Using Sink Topology Consistency metrics, the paper tests when this shortcut is safe under 4-bit NF4 weight-only PTQ, finding global ranks stay high while top-k head overlap drops, revealing hidden local failures.",
+      "llm_tldr_cn": "将注意力汇感知的部署方案会把量化前识别出的重要首token注意力头映射复用到边缘端，但其在4比特量化下是否安全尚不清楚。本文提出汇拓扑一致性指标，分离全局秩保持、top-k集合重叠与逐层汇质量漂移。在多个小模型上，4比特NF4仅权重量化后全局秩仍很高，但top-k头重叠显著下降，说明全局统计掩盖了局部失效，为量化后部署提供了风险提示。",
+      "llm_tldr": "将注意力汇感知的部署方案会把量化前识别出的重要首token注意力头映射复用到边缘端，但其在4比特量化下是否安全尚不清楚。本文提出汇拓扑一致性指标，分离全局秩保持、top-k集合重叠与逐层汇质量漂移。在多个小模型上，4比特NF4仅权重量化后全局秩仍很高，但top-k头重叠显著下降，说明全局统计掩盖了局部失效，为量化后部署提供了风险提示。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "w",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.24298v1",
+      "source": "arxiv",
+      "title": "KV-COBRA: KV Cache Compression via Co-Optimized Bit-Rank Allocation",
+      "abstract": "What limits KV-cache compression at extreme bit-rates? We argue that it is not the choice of compression scheme, but how its budget is allocated across attention heads. Existing methods apply rank and bit-width uniformly, ignoring that each head has a different optimal mix of rank truncation and quantization. We show that co-optimizing rank and bit-width per head, using only standard low-rank projection and scalar quantization, dominates uniform allocation, with the largest gains at low bit-rates. Our method, KV-COBRA (Co-Optimized Bit-Rank Allocation), formalizes this as a resource-allocation problem: it balances rank-truncation loss against quantization loss within each head, then redistributes budget across heads to minimize total distortion. A fused Hadamard rotation equalizes per-channel variance, and reordering the SVD basis by attention-KL importance makes the solver query-aware. The same allocator extends to joint $K{+}V$ compression. On perplexity, zero-shot, and long-context benchmarks from $0.5$ to $4$ bits per dimension (bpd), KV-COBRA shows the smallest accuracy degradation among evaluated methods at low bpd, with no per-token overhead.",
+      "authors": [
+        "Sihyeon Ha",
+        "Jaeho Lee",
+        "Yo-Seb Jeon"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-21T08:58:24+00:00",
+      "link": "https://arxiv.org/pdf/2609.24298v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "co-optimized bit-rank allocation with scalar quantization at low bit-rates",
+      "llm_evidence_cn": "低比特下秩与标量量化的联合比特分配",
+      "llm_evidence": "低比特下秩与标量量化的联合比特分配",
+      "canonical_evidence": "低比特下秩与标量量化的联合比特分配",
+      "llm_tldr_en": "KV-COBRA shows that at extreme bit-rates KV-cache compression is limited by budget allocation across heads, jointly optimizing rank and scalar quantization per head.",
+      "llm_tldr_cn": "论文针对极端低比特率下KV缓存压缩的瓶颈，指出问题不在压缩方案而在于各注意力头间比特与秩预算的分配。方法KV-COBRA将每头的秩截断与标量量化联合优化，形式化为资源分配问题以最小化总失真。实验表明每头联合优化显著优于统一分配，且低比特率下增益最大，说明预算分配才是极限压缩的关键。",
+      "llm_tldr": "论文针对极端低比特率下KV缓存压缩的瓶颈，指出问题不在压缩方案而在于各注意力头间比特与秩预算的分配。方法KV-COBRA将每头的秩截断与标量量化联合优化，形式化为资源分配问题以最小化总失真。实验表明每头联合优化显著优于统一分配，且低比特率下增益最大，说明预算分配才是极限压缩的关键。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.24875v1",
+      "source": "arxiv",
+      "title": "SPHQuant: Efficient extreme low bit weight quantization for Vision-Language Models",
+      "abstract": "Recent foundation models are moving toward native multimodal Vision-Language Models (VLMs), making VLMs a central form of next-generation foundation models. However, their large language backbones make edge deployment difficult due to high memory footprint and memory-bound autoregressive decoding. Weight-only post-training quantization is a practical solution, but pushing VLMs to extreme low bit-widths remains challenging: existing rotation-free methods suffer from outliers at 2-3 bits, while rotation-based methods improve accuracy at the cost of additional runtime overhead. We propose SPHQuant, a rotation-free spherical weight-only quantization framework for VLMs. Instead of quantizing weights directly in Cartesian coordinates, SPHQuant decomposes each 8D weight vector into coordinate signs, radius, and a positive unit direction. This representation isolates outlier magnitude into the radius while keeping directions bounded and statistically regular. Based on this insight, SPHQuant allocates extra precision to the radius to mitigate accuracy degradation induced by outliers. It further uses a compact positive-direction codebook and fine-tunes codebook entries through angular parameterization to preserve the unit-sphere constraint. We also design a hardware-friendly GEMV kernel that keeps the direction codebook small enough for shared-memory lookup and packs radial bits efficiently. Experiments show that SPHQuant matches the performance of state-of-the-art extreme low-bit quantization methods while improving decode throughput over QTIP by 30.3% on RTX A6000. Code will be released in https://github.com/Pushazf/SPHQuant.",
+      "authors": [
+        "Kewei Zhang",
+        "Zheng Chen",
+        "Haotong Qin",
+        "Yulun Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-21T16:46:46+00:00",
+      "link": "https://arxiv.org/pdf/2609.24875v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "rotation-free extreme low bit 2-3 bit weight quantization for VLMs",
+      "llm_evidence_cn": "面向VLM的旋转无关2-3比特极低比特权重量化",
+      "llm_evidence": "面向VLM的旋转无关2-3比特极低比特权重量化",
+      "canonical_evidence": "面向VLM的旋转无关2-3比特极低比特权重量化",
+      "llm_tldr_en": "SPHQuant tackles extreme low bit weight-only quantization for VLMs, where rotation-free methods suffer outliers at 2-3 bits and rotation methods add runtime overhead, by quantizing weights in spherical rather than Cartesian coordinates.",
+      "llm_tldr_cn": "视觉语言模型因大语言骨干内存占用高而难以边缘部署，现有旋转无关的权重量化在2-3比特极低比特下受离群值困扰，而旋转方法又带来额外运行时开销。作者提出SPHQuant，一种旋转无关的球面权重量化框架，不再在笛卡尔坐标中直接量化权重，而是将其映射到球面坐标后再量化。该方案在极低比特下缓解离群值问题，同时避免旋转方法的运行时代价。其贡献在于为VLM提供兼顾精度与效率的极低比特权重量化路径，与极低比特量化主题高度相关。",
+      "llm_tldr": "视觉语言模型因大语言骨干内存占用高而难以边缘部署，现有旋转无关的权重量化在2-3比特极低比特下受离群值困扰，而旋转方法又带来额外运行时开销。作者提出SPHQuant，一种旋转无关的球面权重量化框架，不再在笛卡尔坐标中直接量化权重，而是将其映射到球面坐标后再量化。该方案在极低比特下缓解离群值问题，同时避免旋转方法的运行时代价。其贡献在于为VLM提供兼顾精度与效率的极低比特权重量化路径，与极低比特量化主题高度相关。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

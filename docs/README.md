@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-21</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-22</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 3 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 6 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>3</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-21 22:39:42 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-22 22:39:29 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读3篇，全部聚焦大模型量化前沿，《Breaking the 1.58-bit Barrier for Ternary LLMs》与《D-Quant: Driftable Entropy Coding for KV Cache Quantization》双双拿到8.0分。</p>
-<p>最值得看的是两条线：三元LLM如何突破1.58-bit精度瓶颈，以及用可漂移熵编码给KV Cache&quot;瘦身&quot;降显存。</p>
-<p>普通读者不必啃公式，先记住&quot;更低位宽＋更省显存&quot;是主线，后续遇到同类论文可重点比对精度损失与推理速度的实际取舍。</p>
+<p>今日精读 3 篇、速读 3 篇，聚焦 MoE 解码、三值 LLM 量化与 KV Cache 压缩等高效推理方向。最值得看的是《A Multi-Engine Dataflow for MoE Decoding on Scratchpad-Based Tensor Accelerators》（9.0/10）和《Breaking the 1.58-bit Barrier for Ternary LLMs》（8.0/10），分别针对 MoE 解码数据流与三值模型精度瓶颈。普通读者可先抓这两篇的核心思路，再按兴趣补读 4-bit 量化与 KV Cache 压缩的速读文章。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -76,7 +74,7 @@
     <strong class="dpr-home-dashboard-count">3 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Breaking the 1.58-bit Barrier for Ternary LLMs">Breaking the 1.58-bit Barrier for Ternary LLMs</span></li><li><span class="dpr-home-dashboard-paper-title" title="D-Quant: Driftable Entropy Coding for KV Cache Quantization">D-Quant: Driftable Entropy Coding for KV Cache Quantization</span></li><li><span class="dpr-home-dashboard-paper-title" title="A Multi-Engine Dataflow for MoE Decoding on Scratchpad-Based Tensor Accelerators">A Multi-Engine Dataflow for MoE Decoding on Scratchpad-Based Tensor Accelerators</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="A Multi-Engine Dataflow for MoE Decoding on Scratchpad-Based Tensor Accelerators">A Multi-Engine Dataflow for MoE Decoding on Scratchpad-Based Tensor Accelerators</span></li><li><span class="dpr-home-dashboard-paper-title" title="Breaking the 1.58-bit Barrier for Ternary LLMs">Breaking the 1.58-bit Barrier for Ternary LLMs</span></li><li><span class="dpr-home-dashboard-paper-title" title="Understanding LLM Quantization through Activation-Guided Compensation and Orthogonal Residuals">Understanding LLM Quantization through Activation-Guided Compensation and Orthogonal Residuals</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span><span class="dpr-home-dashboard-tag">moe-quant <strong>1</strong></span></div>
 </section>
@@ -86,12 +84,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">3 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Global Ranks Survive, Selected Heads Shift: BOS-Sink Topology under 4-bit Weight-Only Quantization">Global Ranks Survive, Selected Heads Shift: BOS-Sink Topology under 4-bit Weight-Only Quantization</span></li><li><span class="dpr-home-dashboard-paper-title" title="KV-COBRA: KV Cache Compression via Co-Optimized Bit-Rank Allocation">KV-COBRA: KV Cache Compression via Co-Optimized Bit-Rank Allocation</span></li><li><span class="dpr-home-dashboard-paper-title" title="SPHQuant: Efficient extreme low bit weight quantization for Vision-Language Models">SPHQuant: Efficient extreme low bit weight quantization for Vision-Language Models</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>3</strong></span></div>
 </section>
 </div>
 
