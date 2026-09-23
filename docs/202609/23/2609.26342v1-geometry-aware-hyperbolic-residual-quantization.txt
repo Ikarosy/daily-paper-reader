@@ -1,0 +1,956 @@
+Title: Geometry-Aware Hyperbolic Residual Quantization
+
+URL Source: https://arxiv.org/pdf/2609.26342v1
+
+Published Time: Wed, 23 Sep 2026 01:17:34 GMT
+
+Number of Pages: 30
+
+Markdown Content:
+# Geometry-Aware Hyperbolic Residual-Quantized Variational Autoencoders 
+
+Alessio Colombo and Melika Ayoughi 
+
+Universiteit van Amsterdam, Amsterdam, Netherlands 
+
+alessio.colombo@student.uva.nl , m.ayoughi@uva.nl 
+
+Abstract. Residual Vector Quantization turns continuous representa-tions into discrete, multi-level token sequences. Yet most methods op-erate in Euclidean space, despite the coarse-to-fine structure of the re-sulting codes and the latent hierarchies present in many data domains. Hyperbolic geometry offers a natural alternative for hierarchical repre-sentations, but naive hyperbolic extensions introduce geometric incon-sistencies: non-associative hyperbolic addition prevents consistent resid-ual aggregation, while standard straight-through gradient estimation ig-nores the geometry of the latent space. We propose a geometry-aware hyperbolic residual quantization that addresses these issues in both the forward and backward passes. In the forward pass, Hyperbolic Resid-ual Aggregation restores the telescoping behavior of residual quantiza-tion on the Poincaré ball. In the backward pass, a discounted Hyperbolic Straight-Through Estimator routes the reconstruction gradient through the quantizer as a single geometric block, avoiding unstable recursive gra-dient transport across residual stages. Evaluations on hierarchical pre-diction, recommendation, image tokenization, and neural audio coding tasks show that our method improves the stability and structural orga-nization of hyperbolic residual codes over naive hyperbolic baselines. At the same time, we observe a clear structure–compression trade-off: Eu-clidean residual quantization remains preferable for pure compression, while geometry-aware hyperbolic quantization is most useful for hierar-chically organized discrete latent spaces. 
+
+Keywords: Hyperbolic Learning · Residual Vector Quantization 
+
+# 1 Introduction 
+
+In recent years, a growing line of work in modern generative modeling is increas-ingly shifting toward learning discrete representations [6, 29, 49, 54, 77]. By con-verting continuous signals into token sequences, vector-quantized autoencoders make it possible to apply powerful sequence models, such as autoregressive transformers [41, 59] and diffusion-based architectures [37], to images [41, 54], audio [11, 21, 78], text [62], and multi-modal data [19, 24]. Residual vector quan-tization extends this idea by representing an input through multiple quantization stages: early codebooks capture coarse information, while later codebooks refine the remaining error [41, 78]. arXiv:2609.26342v1 [cs.LG] 22 Sep 2026 2 A. Colombo and M. Ayoughi 
+
+Most residual quantization methods, however, operate in Euclidean latent spaces [21, 41, 78], which are intrinsically flat, with volume growing only polyno-mially in the radius [63]. This is not always ideal: many data domains contain latent hierarchical structure [52,63] that the multi-stage codes of residual quanti-zation could organize given a suitable geometry. Hyperbolic geometry is a natural candidate, as its negative curvature and exponential volume growth represent hierarchies with low distortion [13, 63, 65]. Residual quantization in hyperbolic space could thus provide a better inductive bias when the goal is not only com-pression but the discovery of hierarchically organized representations [47, 58]. Recent works explore hyperbolic vector quantization [12, 17, 28] and hyper-bolic residual quantization [58,73]. Yet a naive transfer to hyperbolic space intro-duces two geometric inconsistencies. First, during the forward pass, the residual cascade is no longer algebraically accurate. In Euclidean residual quantization, subtracting selected codewords from the residual and summing them back into the reconstruction are inverse operations. In hyperbolic space, the corresponding operation, Möbius addition, is non-associative and non-commutative [27, 72]; so naive aggregation fails to recompose the encoder input, and the residual cas-cade drifts as depth increases. Second, during the backward pass, the standard straight-through estimator passes gradients through the residual quantizer as if the latent space were Euclidean. This ignores the geometry of the manifold and leads to unstable gradient flow across residual stages. We address both issues with a geometry-aware hyperbolic residual-quantized variational autoencoder (GHRQ-VAE) that repairs the forward and backward passes, stabilizing training at depth and enabling the representation of latent hierarchical structures. Our contributions are threefold. (i) We identify and formalize the forward and backward geometric inconsistencies that arise when residual quantization is naively lifted to hyperbolic space. (ii) We introduce a geometry-aware hyper-bolic residual quantizer that restores consistent residual aggregation and pro-vides stable block-level gradient routing on the Poincaré ball. (iii) We evaluate the method across hierarchical prediction, recommendation, image tokenization, and neural audio coding. To the best of our knowledge, this is the first applica-tion of hyperbolic RQ-VAEs to image and audio tasks. Our results reveal that while Euclidean methods remain preferable for pure signal compression and raw reconstruction fidelity, geometry-aware hyperbolic residual quantization provides more stable training and yields more structurally organized hyperbolic residual codes, especially compared with naive hyperbolic baselines. 
+
+# 2 Related Work 
+
+Vector and Residual Quantization. Vector quantization has a long history in signal processing for lossy compression [29], and was revived in deep learning by the VQ-VAE [54], which introduced a discrete bottleneck into the autoencoder framework (we review its mechanics in §3). A persistent obstacle is codebook collapse [39, 62], where only a few codewords are ever selected; remedies range Geometry-Aware Hyperbolic Residual Quantization 3
+
+from codebook resets and EMA updates to alternative bottlenecks [6, 49, 70]. Residual Vector Quantization (RVQ) extends single-stage VQ by quantizing in multiple successive stages [78], constructing a virtual codebook of exponential capacity without growing the memory footprint or sequence length. RQ-VAE has since been applied across image generation [14, 37, 41, 43], audio codecs [21, 78], audio generation [11, 19], and generative recommendation [59, 73], all sharing an inherent hierarchy: truncating the code tuple at any depth yields a coarser but coherent approximation. Yet all existing RVQ methods operate in Euclidean space, whose flat geometry and polynomial volume growth are mismatched with the hierarchical structure that residual quantization induces. 
+
+Hyperbolic Representation Learning. In hyperbolic space, the volume of a geodesic ball grows exponentially with radius, in stark contrast to the polynomial growth of Euclidean space [13]. Sala et al. [63] showed that any weighted tree with n
+
+nodes embeds into two-dimensional hyperbolic space with arbitrarily low distor-tion, whereas Euclidean space requires O(n) dimensions, a gap that continues to guide the design of hierarchy embeddings [5]. Hyperbolic representation learn-ing was pioneered by Nickel and Kiela [52, 53], and Ganea et al. [27] formalized neural network operations on the ball via Möbius gyrovector algebra [72]; sub-sequent work moved computation fully onto the manifold [7, 18, 68]. Hyperbolic networks have since been applied across word embeddings [23,71,79], graph learn-ing [15, 44, 45, 76], computer vision [2, 25, 36, 46, 50, 56], continual and incremen-tal learning [4, 32, 69], and vision-language and language models [30, 31, 34, 55]. Poincaré VAE [47] and related hyperbolic generative models [20,42,51,66] showed that hierarchical structure emerges in hyperbolic latents without supervision, while supervised approaches embed known label hierarchies through entailment cones [16, 22, 26] and ideal boundary prototypes [1, 10], at any level of gran-ularity [3]. Several works combine hyperbolic geometry with vector quantiza-tion [17, 28] and residual vector quantization [58, 73]. Because these methods retain Euclidean gradient transport and a non-associative aggregation, we make both geometrically aware. 
+
+# 3 Preliminaries 
+
+Vector-Quantized Variational Autoencoders. The VQ-VAE [54] learns a discrete latent representation of continuous data. Given an input signal x, an encoder network E maps it to a continuous latent representation ze = E(x) ∈ Rd. A trainable codebook C = {c1, . . . , c K } ⊂ Rd is then used to discretize this vector via the nearest codeword under the Euclidean distance, q(ze) = ck with k =argmin j ∥ze −cj ∥22. The selected vector is passed to a decoder G that reconstructs 
+
+ˆx = G(q(ze)) . Since the nearest-neighbor assignment is non-differentiable, the VQ-VAE uses the Straight-Through Estimator (STE) [9]: the forward value is computed while the difference q(ze) − ze is held under the stop-gradient operator 
+
+sg[ ·],
+
+ˆzSTE = ze + sg q(ze) − ze
+
+. (1) 4 A. Colombo and M. Ayoughi 
+
+This evaluates to q(ze) in the forward pass, yet because the stop-gradient term is treated as a constant, its Jacobian reduces to ∂ ˆzSTE /∂z e = I, so the decoder gradient is passed unaltered to the encoder. 
+
+Residual Vector Quantization. RVQ extends the single-stage paradigm by quan-tizing the latent representation in N successive stages, each with its own code-book [78]. Let r0 = ze denote the encoder output. At stage i the current residual 
+
+ri−1 is quantized to a codeword qi, and the residual for the next stage is obtained by subtracting the selected codeword, ri = ri−1 − qi. The STE of Eq. 1 is ap-plied independently at every stage, and the final representation is the sum of the selected codewords, ˆz = PNi=1 qi. This coarse-to-fine decomposition constructs a virtual codebook of effective size KN and induces a natural hierarchy: early stages capture coarse, global structure while later stages encode progressively finer detail. All stages are trained jointly with the objective 
+
+L = ∥x − ˆx∥22
+
+| {z }
+
+> Lrec
+
++
+
+> N
+
+X
+
+> i=1
+
+
+
+d  sg[ ri−1], q i
+
+2
+
+| {z }
+
+> codebook
+
++ β d  ri−1, sg[ qi]2
+
+| {z }
+
+> commitment
+
+
+
+, (2) where the reconstruction term Lrec is decoded from the aggregate code as ˆx =
+
+G(ˆ z), β weights the commitment term, and d(·, ·) is a distance on the latent space. The Euclidean distance recovers the standard RQ-VAE loss; replacing it with the geodesic distance and the hyperbolic aggregate of §4.1 gives the hyperbolic counterpart we adopt. 
+
+Hyperbolic Geometry. Hyperbolic space is a Riemannian manifold of constant negative curvature whose geodesic-ball volume grows exponentially with radius [13]. We adopt the Poincaré ball, which is well suited to gradient-based learning because its operations admit closed forms [27]. For a curvature parameter c > 0,the Poincaré ball Ddc = {x ∈ Rd : c∥x∥2 < 1} is equipped with the conformal metric gcx = ( λcx)2gE , with conformal factor λcx = 2 /(1 − c∥x∥2); conformal 
+
+means that the metric is a positive pointwise rescaling of the Euclidean metric 
+
+gE , so angles are preserved but lengths are not. The setting c = 0 recovers Euclidean space. The conformal factor is decisive: λc 
+
+> 0
+
+= 2 at the origin but diverges, λcx → ∞ , toward the boundary, which both grants expressive power and makes computations numerically delicate there. In the Poincaré ball, the analogue of addition is the Möbius addition 
+
+x ⊕c y =
+
+ 1 + 2 c⟨x, y ⟩ + c∥y∥2x +  1 − c∥x∥2y
+
+1 + 2 c⟨x, y ⟩ + c2∥x∥2∥y∥2 , (3) with Möbius subtraction x ⊖c y = x ⊕c (−y). ⊕c is neither commutative nor associative. The failure of commutativity is captured by the gyration operator 
+
+gyr[ u, v ] w = ⊖(u ⊕c v) ⊕c
+
+ u ⊕c (v ⊕c w), (4) an automorphism of the ball that acts as a rotation: u⊕c v = gyr[ u, v ]( v⊕c u). The induced geodesic distance is dDc (x, y ) = 2√c tanh −1(√c∥(−x) ⊕c y∥). At every Geometry-Aware Hyperbolic Residual Quantization 5
+
+point x the tangent space TxDdc is a local Euclidean linearization of the mani-fold; movement between the manifold and a tangent space is mediated by the mutually inverse exponential and logarithmic maps, which at the origin take the radial forms exp c
+
+> 0
+
+(v) = tanh( √c∥v∥) v√c∥v∥ and log c
+
+> 0
+
+(y) = tanh −1(√c∥y∥) y√c∥y∥ .A tangent vector at x cannot be directly compared with one at y; parallel trans-port carries it along the connecting geodesic while preserving its Riemannian norm, 
+
+P cx→y (v) = λcx
+
+λcy
+
+gyr[ y, −x] v,  (5) which both rescales the vector by the ratio of conformal factors and rotates it through the gyration. Finally, because the metric rescales the inner product by (λcx)2, the Riemannian gradient relates to the Euclidean one by ∇Rf (x) = (λcx)−2∇E f (x). A correct backward pass on the ball therefore converts Euclidean gradients to Riemannian ones, transports them between tangent spaces via Eq. 5, and converts back; as λcx diverges near the boundary, these conversions can amplify gradient magnitudes substantially. 
+
+# 4 Method 
+
+Geometry-aware Hyperbolic Residual Quantization (GHRQ) lifts residual quan-tization onto the Poincaré ball through two independent repairs that compose into a single quantizer: Hyperbolic Residual Aggregation (HRA), which provides an algebraically correct coarse-to-fine decomposition in the forward pass (§4.1), and a block-level gradient routing, which uses a single discounted Hyperbolic Straight-Through Estimator (d-HSTE) step to send the gradient back to the encoder during the backward pass (§4.2). 
+
+4.1 Hyperbolic Residual Aggregation 
+
+Residual quantization rests on a single algebraic guarantee: the rule that removes 
+
+a code from the running residual and the rule that re-assembles the codes into the reconstruction must be exact inverses. In Euclidean space this holds for free. Writing r0 = ze for the encoder point and ˆzi for the aggregate of the first i
+
+codes, the update ri = ri−1 − qi and the sum ˆz = P 
+
+> i
+
+qi are mutually inverse because addition is commutative and associative; the residual entering each stage therefore equals the part of ze not yet captured by the earlier codes (the true residual Rtrue  
+
+> i
+
+= ze − ˆzi = ri) and the decomposition telescopes , recomposing ze
+
+up to the final, unquantized residual, ˆz + rN = ze. Each codebook is thus fitted to the reconstruction error left by its predecessors, which is the entire purpose of the coarse-to-fine cascade. On the Poincaré ball this guarantee is no longer automatic. Möbius addition is neither commutative nor associative, so the naive lift of the recursion, replacing the subtraction by a right Möbius subtraction and the sum by a left-associated Möbius addition, 
+
+ri = ri−1 ⊕c (−qi), ˆz =   · · · (q1 ⊕c q2) ⊕c · · ·  ⊕c qN , (6) 6 A. Colombo and M. Ayoughi 
+
+no longer inverts itself. The tracked residual drifts away from the true residual, compounds with depth, and the codes no longer recompose to ze.
+
+The HRA convention. To solve this, we choose the residual and aggregation rules so that they cancel by construction , using the one cancellation law the gyrogroup does provide. The left-cancellation law 
+
+a ⊕c
+
+ (−a) ⊕c b = b (7) states that adding a on the left exactly undoes subtracting a on the left. Pairing a left Möbius subtraction in the residual update with a reverse-nested (right-associated) aggregation, 
+
+ri = ( −qi) ⊕c ri−1, ˆz = q1 ⊕c
+
+ q2 ⊕c (· · · ⊕ c qN ), (8) matches each subtraction to precisely the addition that inverts it. We call this pairing the Hyperbolic Residual Aggregation (HRA) convention. 
+
+Exact telescoping. The HRA convention inverts the cascade stage by stage. The first stage gives r1 = ( −q1) ⊕c ze, which Eq. 7 (taking a = q1, b = ze) inverts as q1 ⊕c r1 = ze. The same identity holds at every stage, qi ⊕c ri = ri−1, so unrolling the recursion recomposes the encoder point without error, q1 ⊕c (q2 ⊕c
+
+(· · · ⊕ c (qN ⊕c rN ))) = ze. Dropping the final unquantized residual rN leaves the reconstruction ˆz of Eq. 8, which coincides with ze up to that tail. This is exactly the Euclidean telescoping property, now recovered on the ball. 
+
+The residual mismatch collapses to a pure rotation. On the ball the true residual is Rtrue  
+
+> i
+
+:= ( −ˆzi)⊕cze, the Möbius left-difference satisfying ˆzi⊕cRtrue  
+
+> i
+
+= ze, which in general differs from the tracked residual ri. Under HRA, however, repeatedly applying the gyration form of left cancellation relates the two by a composition of gyrations, 
+
+Rtrue  
+
+> i
+
+= Γi ri, Γi =
+
+> i−1
+
+Y
+
+> k=1
+
+gyr qk, u k+1 
+
+, (9) Each factor is a norm-preserving rotation of the ball about the origin, so Γi
+
+rotates the residual’s direction while adding zero magnitude error, ∥Rtrue  
+
+> i
+
+∥ =
+
+∥ri∥. The tracked residual thus carries the magnitude of the true reconstruction error at every depth (proof in Appendix B.2), unlike the naive convention, whose mismatch is a drift that corrupts this magnitude and compounds with depth. Figure 1 makes the contrast concrete on the Poincaré disk, where HRA ag-gregation lands on ze up to the tail rN while the naive order drifts away. 
+
+4.2 Block-Level Gradient Routing with a Discounted HSTE 
+
+We repair the backward pass with two mechanisms. The first is the Discounted Hyperbolic Straight-Through Estimator (d-HSTE), a single-step surrogate that transports one gradient between two points on the Poincaré ball while respecting Geometry-Aware Hyperbolic Residual Quantization 7
+
+Fig. 1: Residual aggregation of the same codewords under the two conventions of §4.1, on the Poincaré disk. An encoder point ze (star) is quantized into coarse-to-fine codes 
+
+q1, q 2, q 3, and each aggregation is drawn as a chain of Möbius hops from the origin 
+
+O. The HRA reverse-nested order q1 ⊕c (q2 ⊕c q3) (green circle, Eq. 8) reaches ˆzHRA ,coinciding with ze up to the final residual. The naive left-associated order (q1 ⊕c q2)⊕c q3
+
+(orange square, Eq. 6) misplaces the gyration factors and drifts to ˆznaive ; the inset zooms on ze. The drift is small for shallow, well-quantized residuals, and compounds with depth and proximity to the ball boundary. 
+
+its geometry. The second is a block-level gradient routing strategy that, via stop-gradients, decouples the residual cascade and applies the d-HSTE exactly once. This transports a single, boundary-stable reconstructed gradient from the aggre-gate reconstruction ˆz directly to the encoder output ze, bypassing all intermedi-ate codes qi (i > 1) and residuals ri (i > 0). The result is a depth-independent gradient to the encoder that parallels the Euclidean RQ-VAE behavior. 
+
+Discounted Hyperbolic Parallel Transport. In the forward pass, the d-HSTE acts as the identity mapping: d-HSTE( ze, q ) = q. It only modifies the back-ward pass, where it assigns the encoder point a surrogate Jacobian in place of the non-differentiable nearest-neighbor assignment. Given a Euclidean gradient 
+
+gq := ∂L/∂q at a code q, exact transport to ze requires three Riemannian op-erations: (i) conversion to a Riemannian gradient at q by dividing by (λcq )2; (ii) parallel transport along the geodesic from q to ze, scaling by λcq /λ cze and rotating by gyr[ ze, −q]; and (iii) conversion back to a Euclidean gradient at ze via multi-plication by (λcze )2. We skip the third step, since (λcze )2 diverges as ze approaches the boundary. Steps (i)–(ii) alone define a discounted parallel transport eP cq→ze ,the surrogate derivative the estimator assigns to the encoder point: 
+
+∂L ∂z e
+
+= eP cq→ze gq = 1
+
+λcq λcze
+
+gyr[ ze, −q] gq . (10) Because q closely approximates ze, evaluating the gyration via its standard for-mulation is prone to catastrophic cancellation; we instead use a numerically sta-8 A. Colombo and M. Ayoughi 
+
+ble, exact reformulation of the gyration. Writing gyr[ ze, −q] v = v+2 ( a z e−b q )/d 
+
+and setting the quantization error δ := q − ze, both the denominator d and the coefficient gap a − b otherwise subtract two nearly identical O(1) quantities; cancelling these analytically gives the equivalent forms 
+
+d = (1 − c∥ze∥2)2 − 2c (1 − c∥ze∥2) ⟨ze, δ ⟩ + c2∥ze∥2∥δ∥2,a − b = −c (1 − c∥ze∥2) ⟨δ, v ⟩ − c2⟨ze, v ⟩ ∥ δ∥2 + 2 c2⟨ze, δ ⟩ ⟨ δ, v ⟩, (11) expressed through small terms of comparable magnitude (with a z e − b q = 
+
+> a−b
+> 2
+
+(q +ze)− a+b 
+
+> 2
+
+δ and a+b computed directly). This is mathematically identical to the closed form (Appendix B.4) but stays finite at the boundary, preserving expressiveness in high-curvature regions. 
+
+Block-Level Gradient Routing. Stacking d-HSTE steps naively would still be un-stable: unlike the Euclidean case, the per-stage residual Jacobians Ai = ∂r i/∂r i−1
+
+do not vanish on the ball (the two differentials of ⊕c differ by c∥qi − ri−1∥2/γ i on the directions orthogonal to span {ri−1, q i}, so Ai̸ = 0 unless the stage quantizes exactly), so reconstruction and commitment gradients accumulate across all N
+
+stages and diverge as the residuals approach the boundary (Appendix B.3). To circumvent this recursive instability, we decouple the intermediate resid-uals from the computational graph. Applying a stop-gradient to every inter-mediate residual ( ri ← sg[ ri] for i ≥ 1) lets the codes propagate their for-ward values into the aggregation (Eq. 8) without backpropagating the recon-struction gradient through the cascade. Instead, the encoder receives the recon-struction gradient via a single d-HSTE step from the aggregate reconstruction 
+
+ˆz = q1 ⊕c (q2 ⊕c (· · · ⊕ c qN )) directly to r0 = ze. The full decoder gradient 
+
+gˆz := ∂L rec /∂ ˆz is transported using Eq. 10 with q = ˆ z, yielding the block-level estimator  ∂L rec 
+
+∂z e
+
+= 1
+
+λc 
+
+> ˆz
+
+λcze
+
+gyr[ ze, −ˆz] gˆz . (12) The reconstruction signal reaches the encoder as a single, depth-independent gradient copy rather than through the leaking per-stage cascade, and the com-mitment terms are filtered identically: stage i’s commitment loss pulls ri−1 to-ward qi, but for i > 1 the residual lies behind the stop-gradient, so only the coarsest i = 1 term survives. Codebooks remain optimizable through their per-stage codebook loss, and at zero curvature the formulation recovers standard Euclidean residual vector quantization up to a rescaling (Appendix B.5). Fig-ure 2 summarizes the complete forward pass. 
+
+# 5 Experimental Setup 
+
+The methodology of §4 provides a geometry- and architecture-agnostic frame-work for residual quantization on the Poincaré ball. We test the quantizer across four tasks spanning a shallow regime ( N = 4 ), typical of prior hyperbolic residual quantization studies, and a deep regime ( N = 12 ), where numerical instabilities Geometry-Aware Hyperbolic Residual Quantization 9Forward pass of GHRQ-VAE      
+
+> Encoder +exp 0
+> ze
+> RQM
+> r0
+> r1
+> rn-1
+> q1
+> q2
+> qn
+> zˆlog 0+Decoder HSTE
+
+Fig. 2: Forward pass of GHRQ. The encoder output ze is residual-quantized into coarse-to-fine codes q1, . . . , q N , recombined into ˆz. The block-level gradient routing of §4.2 sends a discounted-HSTE gradient from ˆz directly back to ze, bypassing the intermediate codes and residuals. All backward passes through the Residual Quantiza-tion Module (RQM) are blocked, except the path ˆz → q1 → ze, left intact to preserve the coarsest commitment signal as in the Euclidean case. In the naive case, gradients would instead flow and accumulate through all residuals and quantizations of the RQM. 
+
+become pronounced. Across all experiments, the quantizer geometry and gradient routing are the sole independent variables; the encoder, decoder, optimizer, data pipeline, and evaluation protocols remain fixed within each task. We compare against two baselines with identical configurations. The Euclidean baseline em-ploys standard residual vector quantization ( c = 0 ) with an identity STE and an additive residual recursion. The naive hyperbolic baseline directly adapts prior hyperbolic residual quantization methods [58] ( c = 1 ): codebooks reside on the Poincaré ball and assignments use squared geodesic distance, but the estimator retains the Euclidean identity STE and employs Möbius addition (Eq. 6). Cur-vature is set to c = 1 for hyperbolic models. Encoder and decoder architectures, codebook sizes, optimizers, and training budgets are identical across the three configurations within each task; they are specified in full in Appendix A. The source code will be made publicly available. 
+
+Tasks and datasets. (i) WordNet hypernymy prediction [52] embeds the 82 ,115 
+
+noun synsets of the WordNet hierarchy in the shallow regime ( N = 4 ), training the encoder with a contrastive InfoNCE objective ( 50 negatives) on the clo-sure split, i.e. the transitive closure of the hypernymy DAG, in which a pair 
+
+(u, v ) is positive whenever v is any ancestor of u rather than only its direct hypernym. (ii) Generative sequential recommendation follows the semantic-ID paradigm [59], mapping items of the Amazon Reviews Beauty corpus [48] (leave-one-out protocol) to discrete codes ( N = 4 ) over frozen MPNet [67] sentence embeddings, from which a downstream sequence model generates semantic IDs autoregressively. (iii) Image reconstruction and generation uses MNIST [40] and CIFAR-100 [38] (whose 100 fine classes form 20 coarse superclasses, used only for unsupervised taxonomy evaluation), quantizing a convolutional VQ-VAE [54] 10 A. Colombo and M. Ayoughi                       
+
+> Table 1: WordNet hypernymy reconstruction (Recall@10, closure split) across varying encoder dimensions ( d∈ { 8,16 }) and per-stage codebook sizes ( b∈ { 64 ,128 }), with
+> N= 4 .Configuration d8/b 64 d8/b 128 d16 /b 64 d16 /b 128
+> Euclidean 75 .875 .476 .775 .9
+> Naive hyperbolic 88 .262 .386 .983 .4
+> GHRQ-VAE (ours) 81 .978 .783 .881 .9
+
+tokenizer ( N = 4 ) over which an RQ-Transformer prior [41] is trained to draw 
+
+10 ,000 samples. (iv) Neural audio coding employs a SoundStream-style neural codec [21, 75, 78] on LibriTTS train-clean-100 at 24 kHz, the deepest stack (N = 12 ). Due to the divergence of conformal factors near the boundary, the hyperbolic codec necessitates explicit encoder stabilization, specifically an auto-calibrated regularizer and quantizer-depth dropout [78] (Appendix A.5). 
+
+Metrics. Each configuration is evaluated on task-specific performance and, where applicable, on the structural hierarchy of the learned latent space. WordNet is scored by Recall@10 on the closure split, code-tuple uniqueness, and intra-cluster semantic coherence (WordNet path and Wu–Palmer tree similarity [74], GloVe cosine similarity [57]); recommendation by Recall@5/10, NDCG@5/10 [35] and the pre-deduplication uniqueness ratio; images by reconstruction MSE, FID and IS [64], and unsupervised CIFAR-100 superclass hierarchy recovery via Adjusted Rand Index (ARI) [33], Normalized Mutual Information (NMI), and dendrogram purity; audio by reconstruction loss and perceptual rate-distortion (PESQ [60], SI-SDR [61]) against entropy-estimated bitrates. 
+
+# 6 Results 
+
+We evaluate the three quantizer configurations on the four tasks, separating three questions: whether hyperbolic residual quantization improves hierarchi-cal organization, whether our geometric corrections improve stability over naive baselines, and whether these benefits translate into compression. Prior work [58] shows hyperbolic residual quantization improves WordNet (§6.1) and sequential recommendation (§6.2); on these we assess whether GHRQ-VAE outperforms the naive baseline. We additionally present the first working application of hy-perbolic residual quantization to a convolutional image tokenizer (§6.3) and a deep ( N = 12 ) neural audio codec (§6.4). 
+
+6.1 WordNet Hypernymy Prediction 
+
+Table 1 reports the Recall@10 for hypernymy reconstruction across varying model capacities. While hyperbolic formulations consistently outperform the Eu-clidean baseline, the naive hyperbolic baseline is unstable. Although it achieves peak recall in specific configurations, it collapses significantly in others ( 62 .3% at Geometry-Aware Hyperbolic Residual Quantization 11             
+
+> Table 2: WordNet latent representation quality evaluated at the standard capacity setting ( d16 /b 128 ) across all 82 ,115 noun synsets. The semantic similarity of concepts mapped to identical codes is evaluated using WordNet Path, Wu–Palmer tree similarity, and GloVe cosine similarity, with higher values indicating coherent clustering. Configuration uniq. ratio path sim wup sim GloVe sim Naive hyperbolic 0.888 0.078 0.242 0.097
+> GHRQ-VAE (ours) 0.967 0.088 0.262 0.162
+
+d8/b 128 ). Furthermore, its performance may be inflated by lower codebook us-age: Table 2 shows that the naive approach yields a low uniqueness ratio ( 0.888 ), assigning identical code sequences to disparate concepts, thereby reducing the target space for the reconstructor. Conversely, GHRQ-VAE provides a stable op-timization profile and maintains high codebook utilization (uniqueness 0.967 ). Crucially, as shown in Table 2, GHRQ-VAE clusters the vocabulary into more semantically coherent groups, consistently outperforming the naive approach across multiple similarity metrics. 
+
+6.2 Generative Sequential Recommendation 
+
+The recommendation task evaluates whether the improved hierarchical code space translates to downstream seq2seq generative recommendation. As shown in Table 3, both hyperbolic methods outperform the Euclidean baseline. GHRQ-VAE achieves the highest performance on the majority of ranking metrics, as well as the highest codebook usage.                      
+
+> Table 3: Downstream recommendation performance on the Amazon Beauty dataset. We report the test-set ranking metrics and the pre-deduplication uniqueness ratio (a proxy for codebook health). Configuration uniq. ratio R@5 NDCG@5 R@10 NDCG@10 Euclidean 0.960 0.0352 0.0242 0.0530 0.0299
+> Naive hyperbolic 0.870 0.0388 0.0259 0.0606 0.0329
+> GHRQ-VAE (ours) 0.971 0.0393 0.0264 0.0604 0.0332
+
+6.3 Image Reconstruction and Generation 
+
+The image domain scores the same trained codes across three criteria: compres-sion fidelity (reconstruction MSE), token quality for generative modeling (RQ-Transformer FID/IS), and unsupervised taxonomy discovery. The Euclidean baseline yields the lowest reconstruction error (Table 4); both hyperbolic con-figurations incur a 19 –36% relative MSE penalty, with GHRQ-VAE marginally behind the naive lift, reflecting that hyperbolic methods are weaker at raw signal 12 A. Colombo and M. Ayoughi                                             
+
+> Table 4: Image reconstruction loss (×10 −3). Euclidean achieves the lowest error. Configuration MNIST CIFAR-100 Euclidean 0.477 1.077
+> Naive hyperbolic 0.600 1.280
+> GHRQ-VAE (ours) 0.647 1.360
+> Table 5: Unsupervised CIFAR-100 su-perclass recovery. Configuration ARI ↑NMI ↑purity ↑
+> Euclidean 0.048 0.469 0.327
+> Naive hyperbolic 0.055 0.481 0.337
+> GHRQ-VAE (ours) 0.087 0 .515 0.370
+> Table 6: Image generation performance with an autoregressive RQ-Transformer (10 ,000 samples, single seed). We report FID (lower is better) and IS in parenthe-ses (higher is better). Configuration MNIST FID ↓(IS ↑) CIFAR-100 FID ↓(IS ↑)Euclidean 20 .36 (2 .069) 94 .67 (3 .86)
+> Naive hyperbolic 15 .01 (2 .105) 101 .84 (3 .51)
+> GHRQ-VAE (ours) 16 .78 (2 .068) 98 .23 (3 .80)
+
+reconstruction. When assessing structural organization (Table 5), the ranking in-verts: GHRQ-VAE increases the Adjusted Rand Index from the Euclidean base-line’s 0.048 to 0.087 (+81% ) and similarly leads in NMI and purity. For datasets possessing a latent taxonomy, the capacity surrendered at the reconstruction stage is recovered here as a more robust global taxonomy. Generation is dataset-dependent (Table 6): on MNIST both hyperbolic configurations achieve superior FID, whereas on CIFAR-100 the Euclidean baseline leads, with GHRQ-VAE the strongest hyperbolic alternative. 
+
+6.4 Neural Audio Coding 
+
+The neural audio coding task uses the deep configuration ( N = 12 ) to evaluate the scalability of the proposed block-level estimator under extended depth. The hyperbolic codec requires an auto-calibrated encoder-scale control and uniform quantizer-depth dropout to prevent representation collapse across all hyperbolic configurations. Figure 3 reports the perceptual rate–distortion behavior across the full depth sweep ( N ∈ { 1, 2, 4, 8, 12 }), plotting PESQ-wb and SI-SDR against the empirical entropy rate. The Euclidean baseline maintains a superior Pareto frontier at every bitrate, confirming that flat geometry remains preferable for pure signal compression. Among the hyperbolic methods, however, GHRQ-VAE dominates the naive Möbius lift almost everywhere, attaining higher perceptual quality at matched entropy rate across nearly all operating points and dimen-sions. 
+
+6.5 Residual Reconstruction Error Across Tasks 
+
+This section evaluates whether GHRQ-VAE lets the residual cascade accurately reconstruct the encoder output on the Poincaré ball, overcoming the gyration Geometry-Aware Hyperbolic Residual Quantization 13 2 4 6 8 10 12 entropy rate (kbps) 1.1 1.2 1.3 1.4 1.5 1.6 PESQ-wb      
+
+> 246810 12 entropy rate (kbps) 30
+> 25
+> 20
+> 15
+> 10
+> 5
+> SI-SDR (dB)
+> Audio rate--distortion, 10-epoch dimension sweep ( nq=1,2,4,8,12)
+> Euclidean d8 Euclidean d32 Euclidean d128 GHRQ-VAE (ours) d8 GHRQ-VAE (ours) d32 GHRQ-VAE (ours) d128 Naive hyperbolic d8 Naive hyperbolic d32 Naive hyperbolic d128
+
+Fig. 3: Rate–distortion performance across varying quantization depths (N ∈{1, 2, 4, 8, 12 }), plotted against the empirical entropy rate. Individual markers denote distinct operating points. Color indicates the quantizer variant (blue: Euclidean; or-ange: GHRQ-VAE; green: naive hyperbolic lift), while shading represents the codebook dimensionality ( d ∈ { 8, 32 , 128 }). Left: PESQ-wb. Right: SI-SDR. The curves plateau when subsequent residual stages increase the empirical entropy rate without propor-tional gains in perceptual quality. 
+
+Table 7: Mean validation reconstruction error on the Poincaré ball, measured as the squared hyperbolic distance between the reconstructed code and the encoder output (audio trained for 10 epochs). Lower is better; the best result per row is in bold. Task Naive hyperbolic GHRQ-VAE (ours) WordNet hypernymy ( d16 /b 128 ) 14 .4 12 .9
+
+Sequential recommendation 44 .79 0.031 
+
+Image reconstruction (MNIST) 0.00049 < 10 −5
+
+Image reconstruction (CIFAR-100) 0.00133 < 10 −5
+
+Neural audio coding (mean over d ∈ { 8, 32 , 128 }) 0.521 0.0044 
+
+drift of the naive baseline (Eq. 6), quantified by the squared hyperbolic distance between the aggregated codes and the encoder output. The results (Table 7) corroborate the predictions of §4.1: GHRQ-VAE reconstructs the encoder repre-sentation with high precision, yielding residual errors near zero. 
+
+6.6 Ablation 
+
+GHRQ-VAE combines two modifications to the naive baseline: the HRA forward ordering and the block-level d-HSTE gradient. To identify which one drives the reduction in on-ball residual error, we ablate each in turn while holding all other hyperparameters fixed: HRA only keeps the forward ordering but reverts the gradient to the identity STE, and d-HSTE only applies the corrected gradient over the naive Möbius aggregation (Eq. 6). Table 8 reports the residual error of the two ablations against the full model. 14 A. Colombo and M. Ayoughi                      
+
+> Table 8: Component ablation on the on-ball residual error ( N= 4 ), measured as the mean validation squared hyperbolic distance between the recomposed codes and the encoder output; image columns are scaled by 10 −3. The full-model values correspond to those of Table 7. Bold indicates the best result per column. HRA d-HSTE WordNet ↓Recommendation ↓MNIST ( ×10 −3)↓CIFAR ( ×10 −3)↓
+> ✓×10 .35.49 0.01 0.03
+> ×✓30 .40.12 0.02 0.05
+> ✓✓12 .90.03 0.00 0.00
+
+HRA guarantees telescoping algebraically, yet when paired with the uncor-rected gradient it is the least faithful configuration on recommendation. Sym-metrically, dropping HRA is harmless on recommendation and images but in-flates the WordNet error to 30 .4. The two modifications are thus complementary rather than independent: HRA’s telescoping guarantee holds only at the operat-ing radii that d-HSTE trains the encoder to visit, while the corrected gradient recomposes faithfully only when the forward pass is ordered to telescope. Each component supplies the precondition the other requires, and the residual error collapses uniformly only when both are present. 
+
+# 7 Conclusion and Discussion 
+
+Across four domains, a consistent picture emerges: hyperbolic curvature is most valuable for structure, not compression. Euclidean models retain the edge on raw reconstruction and on CIFAR-100 generation quality, yet the curved latent space organizes hierarchy more naturally, yielding substantial gains in unsuper-vised CIFAR-100 superclass recovery and WordNet hypernymy reconstruction. Relative to the naive hyperbolic lift, GHRQ-VAE is more robust, less prone to instability and codebook collapse, and its geometric corrections align the resid-ual codes with the encoder point on the manifold. The value of GHRQ-VAE thus lies in stable hierarchical structuring rather than signal fidelity. This separation also reframes an open question around the naive lift. Despite being geometrically inexact, it remains strong at shallow depth, attaining the best WordNet recall and leading on recommendation R@10. A plausible cause is its leaked per-stage gradient: geometrically inaccurate, yet behaving as a low-variance, on-average-correct directional signal; a rigorous study of how to fold it into a geometrically consistent estimator is one direction for future work. Closing this gap, and following the field’s shift toward diffusion and flow-matching generation [12, 37, 42], evaluating hyperbolic tokenizers within these continuous paradigms and within large-scale modern tokenizers is a natural next step. Geometry-Aware Hyperbolic Residual Quantization 15 
+
+# References 
+
+1. Atigh, M.G., Keller-Ressel, M., Mettes, P.: Hyperbolic busemann learning with ideal prototypes. In: Advances in Neural Information Processing Systems 34: An-nual Conference on Neural Information Processing Systems 2021, NeurIPS 2021, December 6-14, 2021, virtual. pp. 103–115 (2021), https://proceedings.neurips. cc/paper/2021/hash/01259a0cb2431834302abe2df60a1327-Abstract.html 
+
+2. Atigh, M.G., Schoep, J., Acar, E., van Noord, N., Mettes, P.: Hyperbolic im-age segmentation. In: IEEE/CVF Conference on Computer Vision and Pattern Recognition, CVPR 2022, New Orleans, LA, USA, June 18-24, 2022. pp. 4443– 4452. IEEE (2022). https://doi.org/10.1109/CVPR52688.2022.00441 , https: //doi.org/10.1109/CVPR52688.2022.00441 
+
+3. Atigh, M.G., van Spengler, M., Long, T., Ayoughi, M., Kasarla, T., Mettes, P.: Hyperbolic learning with supervision from any granularity. In: The 29th In-ternational Conference on Artificial Intelligence and Statistics (2026), https: //openreview.net/forum?id=Hi2H3Logzx 
+
+4. Ayoughi, M., Atigh, M.G., Derakhshani, M.M., Snoek, C.G.M., Mettes, P., Groth, P.: Continual hyperbolic learning of instances and classes (2025), https://arxiv. org/abs/2506.10710 
+
+5. Ayoughi, M., van Spengler, M., Mettes, P., Groth, P.: Designing hierarchies for optimal hyperbolic embedding. In: European Semantic Web Conference (ESWC). pp. 362–382. Springer (2025) 6. Baevski, A., Schneider, S., Auli, M.: vq-wav2vec: Self-supervised learning of dis-crete speech representations. In: 8th International Conference on Learning Repre-sentations, ICLR 2020, Addis Ababa, Ethiopia, April 26-30, 2020. OpenReview.net (2020), https://openreview.net/forum?id=rylwJxrYDS 
+
+7. Bdeir, A., Schwethelm, K., Landwehr, N.: Fully hyperbolic convolutional neural networks for computer vision. In: The Twelfth International Conference on Learn-ing Representations, ICLR 2024, Vienna, Austria, May 7-11, 2024. OpenReview.net (2024), https://openreview.net/forum?id=ekz1hN5QNh 
+
+8. Bécigneul, G., Ganea, O.E.: Riemannian adaptive optimization methods. In: In-ternational Conference on Learning Representations (2019), https://openreview. net/forum?id=r1eiqi09K7 
+
+9. Bengio, Y., Léonard, N., Courville, A.: Estimating or propagating gradients through stochastic neurons for conditional computation (2013), https://arxiv. org/abs/1308.3432 
+
+10. Berg, P., Buecher, L., Michele, B., Pham, M.T., Chapel, L., Courty, N.: Multi-prototype hyperbolic learning guided by class hierarchy. International Journal of Computer Vision pp. 1–16 (2025) 11. Borsos, Z., Marinier, R., Vincent, D., Kharitonov, E., Pietquin, O., Sharifi, M., Roblek, D., Teboul, O., Grangier, D., Tagliasacchi, M., Zeghidour, N.: Audiolm: A language modeling approach to audio generation. IEEE ACM Trans. Audio Speech Lang. Process. 31 , 2523–2533 (2023). https://doi.org/10.1109/TASLP. 2023.3288409 , https://doi.org/10.1109/TASLP.2023.3288409 
+
+12. Bu, T., Wang, C., Ma, H., Zheng, H., Lu, X., Wu, T.: Ggball: Graph generative model on poincaré ball (2026), https://arxiv.org/abs/2506.07198 
+
+13. Cannon, J.W., Floyd, W.J., Kenyon, R., Parry, W.R.: Hyperbolic geometry. Fla-vors of Geometry 31 , 59–115 (1997) 14. Cao, H., Liang, C., Guo, W., Qin, Z., Han, J.: Progic: Progressive and lightweight generative image compression with residual vector quantization (2026), https: //arxiv.org/abs/2603.02897 16 A. Colombo and M. Ayoughi 15. Chami, I., Ying, Z., Ré, C., Leskovec, J.: Hyperbolic graph convolutional neural networks. In: Advances in Neural Information Processing Systems 32: Annual Con-ference on Neural Information Processing Systems 2019, NeurIPS 2019, December 8-14, 2019, Vancouver, BC, Canada. pp. 4869–4880 (2019), https://proceedings. neurips.cc/paper/2019/hash/0415740eaa4d9decbc8da001d3fd805f-Abstract. html 
+
+16. Chen, B., Huang, X., Xiao, L., Cai, Z., Jing, L.: Hyperbolic interaction model for hierarchical multi-label classification. In: Proceedings of the AAAI Conference on Artificial Intelligence. vol. 34, pp. 7496–7503 (2020) 17. Chen, S., Fang, P., Harandi, M., Le, T., Cai, J., Phung, D.: Hvq-vae: Variational auto-encoder with hyperbolic vector quantization. Computer Vision and Image Un-derstanding 258 , 104392 (2025). https://doi.org/https://doi.org/10.1016/ j.cviu.2025.104392 , https://www.sciencedirect.com/science/article/pii/ S1077314225001158 
+
+18. Chen, W., Han, X., Lin, Y., Zhao, H., Liu, Z., Li, P., Sun, M., Zhou, J.: Fully hyperbolic neural networks. In: Proceedings of the 60th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers), ACL 2022, Dublin, Ireland, May 22-27, 2022. pp. 5672–5686. Association for Computational Linguistics (2022). https://doi.org/10.18653/v1/2022.acl-long.389 , https: //doi.org/10.18653/v1/2022.acl-long.389 
+
+19. Copet, J., Kreuk, F., Gat, I., Remez, T., Kant, D., Synnaeve, G., Adi, Y., Dé-fossez, A.: Simple and controllable music generation. In: Advances in Neural Information Processing Systems 36: Annual Conference on Neural Information Processing Systems 2023, NeurIPS 2023, New Orleans, LA, USA, December 10 - 16, 2023 (2023), http://papers.nips.cc/paper_files/paper/2023/hash/ 94b472a1842cd7c56dcb125fb2765fbd-Abstract-Conference.html 
+
+20. Dai, S., Gan, Z., Cheng, Y., Tao, C., Carin, L., Liu, J.: Apo-vae: Text generation in hyperbolic space. In: Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Tech-nologies, NAACL-HLT 2021, Online, June 6-11, 2021. pp. 416–431. Association for Computational Linguistics (2021). https://doi.org/10.18653/v1/2021.naacl-main.36 , https://doi.org/10.18653/v1/2021.naacl-main.36 
+
+21. Défossez, A., Copet, J., Synnaeve, G., Adi, Y.: High fidelity neural audio compres-sion. Trans. Mach. Learn. Res. 2023 (2023), https://openreview.net/forum?id= ivCd8z8zR2 
+
+22. Dhall, A., Makarova, A., Ganea, O., Pavllo, D., Greeff, M., Krause, A.: Hierarchi-cal image classification using entailment cone embeddings. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops. pp. 836–837 (2020) 23. Dhingra, B., Shallue, C., Norouzi, M., Dai, A., Dahl, G.: Embedding text in hyper-bolic spaces. In: Proceedings of the Twelfth Workshop on Graph-Based Methods for Natural Language Processing (TextGraphs-12). pp. 59–69 (2018) 24. Doh, S., Choi, K., Nam, J.: Talkplay: Multimodal music recommendation with large language models (2026), https://arxiv.org/abs/2502.13713 
+
+25. Ermolov, A., Mirvakhabova, L., Khrulkov, V., Sebe, N., Oseledets, I.V.: Hy-perbolic vision transformers: Combining improvements in metric learning. In: IEEE/CVF Conference on Computer Vision and Pattern Recognition, CVPR 2022, New Orleans, LA, USA, June 18-24, 2022. pp. 7399–7409. IEEE (2022). 
+
+https://doi.org/10.1109/CVPR52688.2022.00726 , https://doi.org/10.1109/ CVPR52688.2022.00726 Geometry-Aware Hyperbolic Residual Quantization 17 26. Ganea, O., Bécigneul, G., Hofmann, T.: Hyperbolic entailment cones for learning hierarchical embeddings. In: Proceedings of the 35th International Conference on Machine Learning, ICML 2018, Stockholmsmässan, Stockholm, Sweden, July 10-15, 2018. Proceedings of Machine Learning Research, vol. 80, pp. 1632–1641. PMLR (2018), http://proceedings.mlr.press/v80/ganea18a.html 
+
+27. Ganea, O., Bécigneul, G., Hofmann, T.: Hyperbolic neural networks. In: Advances in Neural Information Processing Systems 31: Annual Conference on Neural Infor-mation Processing Systems 2018, NeurIPS 2018, December 3-8, 2018, Montréal, Canada. pp. 5350–5360 (2018), https://proceedings.neurips.cc/paper/2018/ hash/dbab2adc8f9d078009ee3fa810bea142-Abstract.html 
+
+28. Goswami, N., Mukuta, Y., Harada, T.: Hypervq: Mlr-based vector quantization in hyperbolic space. Trans. Mach. Learn. Res. 2025 (2025), https://openreview. net/forum?id=WgJgIULL9Q 
+
+29. Gray, R.: Vector quantization. IEEE ASSP Magazine 1(2), 4–29 (1984). https: //doi.org/10.1109/MASSP.1984.1162229 
+
+30. He, N., Anand, R., Madhu, H., Maatouk, A., Krishnaswamy, S., Tassiu-las, L., Yang, M., Ying, R.: HELM: hyperbolic large language models via mixture-of-curvature experts. In: Advances in Neural Information Processing Sys-tems 38: Annual Conference on Neural Information Processing Systems 2025, NeurIPS 2025 (2025), http://papers.nips.cc/paper_files/paper/2025/hash/ d1e2f808a51842eedaf6ef0099d716c6-Abstract-Conference.html 
+
+31. He, N., Madhu, H., Bui, N., Yang, M., Ying, R.: Hyperbolic deep learning for foun-dation models: A survey. In: Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining, V.2, KDD 2025, Toronto ON, Canada, Au-gust 3-7, 2025. pp. 6021–6031. ACM (2025). https://doi.org/10.1145/3711896. 3736564 , https://doi.org/10.1145/3711896.3736564 
+
+32. Hindel, J., Cattaneo, D., Valada, A.: Taxonomy-aware continual semantic seg-mentation in hyperbolic spaces for open-world perception. IEEE Robotics and Automation Letters (2024) 33. Hubert, L., Arabie, P.: Comparing partitions. Journal of Classification 2(1), 193– 218 (1985). https://doi.org/10.1007/BF01908075 
+
+34. Ibrahimi, S., Atigh, M.G., van Noord, N., Mettes, P., Worring, M.: Intriguing prop-erties of hyperbolic embeddings in vision-language models. Trans. Mach. Learn. Res. (2024) 35. Järvelin, K., Kekäläinen, J.: Cumulated gain-based evaluation of IR techniques. ACM Transactions on Information Systems 20 (4), 422–446 (2002). https://doi. org/10.1145/582415.582418 
+
+36. Khrulkov, V., Mirvakhabova, L., Ustinova, E., Oseledets, I.V., Lempitsky, V.S.: Hy-perbolic image embeddings. In: 2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition, CVPR 2020, Seattle, WA, USA, June 13-19, 2020. pp. 6417–6427. Computer Vision Foundation / IEEE (2020). https://doi.org/10. 1109/CVPR42600.2020.00645 , https://openaccess.thecvf.com/content_CVPR_ 2020/html/Khrulkov_Hyperbolic_Image_Embeddings_CVPR_2020_paper.html 
+
+37. Kim, J., Moon, T., Lee, K., Cho, J.: Efficient generative modeling with resid-ual vector quantization-based tokens. In: Forty-second International Conference on Machine Learning, ICML 2025, Vancouver, BC, Canada, July 13-19, 2025. Proceedings of Machine Learning Research, vol. 267. PMLR (2025), https: //proceedings.mlr.press/v267/kim25ab.html 
+
+38. Krizhevsky, A.: Learning multiple layers of features from tiny images. Tech. rep., University of Toronto (2009) 18 A. Colombo and M. Ayoughi 39. Lancucki, A., Chorowski, J., Sanchez, G., Marxer, R., Chen, N., Dolfing, H.J., Khurana, S., Alumae, T., Laurent, A.: Robust training of vector quantized bottle-neck models. In: 2020 International Joint Conference on Neural Networks (IJCNN). p. 1–7. IEEE (Jul 2020). https://doi.org/10.1109/ijcnn48605.2020.9207145 ,
+
+http://dx.doi.org/10.1109/IJCNN48605.2020.9207145 
+
+40. LeCun, Y., Bottou, L., Bengio, Y., Haffner, P.: Gradient-based learning applied to document recognition. Proceedings of the IEEE 86 (11), 2278–2324 (1998). https: //doi.org/10.1109/5.726791 
+
+41. Lee, D., Kim, C., Kim, S., Cho, M., Han, W.: Autoregressive image generation using residual quantization. In: IEEE/CVF Conference on Computer Vision and Pattern Recognition, CVPR 2022, New Orleans, LA, USA, June 18-24, 2022. pp. 11513–11522. IEEE (2022). https://doi.org/10.1109/CVPR52688.2022.01123 ,
+
+https://doi.org/10.1109/CVPR52688.2022.01123 
+
+42. Li, L., Fan, K., Gong, B., Yue, X.: HYPDAE: hyperbolic diffusion autoencoders for hierarchical few-shot image generation. In: IEEE/CVF International Conference on Computer Vision, ICCV 2025, Honolulu, HI, USA, October 19-25, 2025. pp. 17119–17128. IEEE (2025). https://doi.org/10.1109/ICCV51701.2025.01590 ,
+
+https://doi.org/10.1109/ICCV51701.2025.01590 
+
+43. Li, Y., Liao, N., Zhao, X., Zhang, S., Wang, X., Yang, Y., Yan, J., Yang, X.: Evotok: A unified image tokenizer via residual latent evolution for visual understanding and generation (2026), https://arxiv.org/abs/2603.12108 
+
+44. Li, Y., Zhang, X., Cui, Y., Ma, S.: Hyperbolic graph neural network for temporal knowledge graph completion. In: Proceedings of the 2024 Joint International Con-ference on Computational Linguistics, Language Resources and Evaluation (LREC-COLING) (2024) 45. Liu, Q., Nickel, M., Kiela, D.: Hyperbolic graph neural networks. In: Advances in Neural Information Processing Systems 32: Annual Conference on Neural Infor-mation Processing Systems 2019, NeurIPS 2019, December 8-14, 2019, Vancouver, BC, Canada. pp. 8228–8239 (2019), https://proceedings.neurips.cc/paper/ 2019/hash/103303dd56a731e377d01f6a37badae3-Abstract.html 
+
+46. Liu, S., Chen, J., Pan, L., Ngo, C.W., Chua, T.S., Jiang, Y.G.: Hyperbolic visual embedding learning for zero-shot recognition. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 9273–9281 (2020) 47. Mathieu, E., Lan, C.L., Maddison, C.J., Tomioka, R., Teh, Y.W.: Continuous hi-erarchical representations with poincaré variational auto-encoders. In: Advances in Neural Information Processing Systems 32: Annual Conference on Neural Infor-mation Processing Systems 2019, NeurIPS 2019, December 8-14, 2019, Vancouver, BC, Canada. pp. 12544–12555 (2019), https://proceedings.neurips.cc/paper/ 2019/hash/0ec04cb3912c4f08874dd03716f80df1-Abstract.html 
+
+48. McAuley, J.J., Targett, C., Shi, Q., van den Hengel, A.: Image-based recommen-dations on styles and substitutes. In: Proceedings of the 38th International ACM SIGIR Conference on Research and Development in Information Retrieval. pp. 43–52 (2015). https://doi.org/10.1145/2766462.2767755 
+
+49. Mentzer, F., Minnen, D., Agustsson, E., Tschannen, M.: Finite scalar quantiza-tion: VQ-VAE made simple. In: The Twelfth International Conference on Learning Representations, ICLR 2024, Vienna, Austria, May 7-11, 2024. OpenReview.net (2024), https://openreview.net/forum?id=8ishA3LxN8 
+
+50. Mettes, P., Atigh, M.G., Keller-Ressel, M., Gu, J., Yeung, S.: Hyperbolic deep learning in computer vision: A survey. Int. J. Comput. Vis. 132 (9), 3484–3508 (2024). https://doi.org/10.1007/s11263-024-02043-5 , https://doi.org/10. 1007/s11263-024-02043-5 Geometry-Aware Hyperbolic Residual Quantization 19 51. Nagano, Y., Yamaguchi, S., Fujita, Y., Koyama, M.: A wrapped normal distribu-tion on hyperbolic space for gradient-based learning. In: Proceedings of the 36th International Conference on Machine Learning, ICML 2019, 9-15 June 2019, Long Beach, California, USA. Proceedings of Machine Learning Research, vol. 97, pp. 4693–4702. PMLR (2019), http://proceedings.mlr.press/v97/nagano19a.html 
+
+52. Nickel, M., Kiela, D.: Poincaré embeddings for learning hierarchical representa-tions. In: Advances in Neural Information Processing Systems 30: Annual Con-ference on Neural Information Processing Systems 2017, December 4-9, 2017, Long Beach, CA, USA. pp. 6338–6347 (2017), https://proceedings.neurips. cc/paper/2017/hash/59dfa2df42d9e3d41f5b02bfc32229dd-Abstract.html 
+
+53. Nickel, M., Kiela, D.: Learning continuous hierarchies in the lorentz model of hyper-bolic geometry. In: Proceedings of the 35th International Conference on Machine Learning, ICML 2018, Stockholmsmässan, Stockholm, Sweden, July 10-15, 2018. Proceedings of Machine Learning Research, vol. 80, pp. 3776–3785. PMLR (2018), 
+
+http://proceedings.mlr.press/v80/nickel18a.html 
+
+54. van den Oord, A., Vinyals, O., Kavukcuoglu, K.: Neural discrete representation learning. In: Advances in Neural Information Processing Systems 30: Annual Con-ference on Neural Information Processing Systems 2017, December 4-9, 2017, Long Beach, CA, USA. pp. 6306–6315 (2017), https://proceedings.neurips. cc/paper/2017/hash/7a98af17e63a0ac09ce2e96d03992fbc-Abstract.html 
+
+55. Pal, A., van Spengler, M., di Melendugno, G.M.D., Flaborea, A., Galasso, F., Mettes, P.: Compositional entailment learning for hyperbolic vision-language models. In: The Thirteenth International Conference on Learning Representa-tions, ICLR 2025, Singapore, April 24-28, 2025. OpenReview.net (2025), https: //openreview.net/forum?id=3i13Gev2hV 
+
+56. Peng, W., Varanka, T., Mostafa, A., Shi, H., Zhao, G.: Hyperbolic deep neural net-works: A survey. IEEE Transactions on Pattern Analysis and Machine Intelligence 
+
+44 (12), 10023–10044 (2021) 57. Pennington, J., Socher, R., Manning, C.D.: Glove: Global vectors for word repre-sentation. In: Proceedings of the 2014 Conference on Empirical Methods in Natural Language Processing, EMNLP 2014. pp. 1532–1543 (2014). https://doi.org/10. 3115/v1/D14-1162 
+
+58. Piękos, P., Kayal, S., Karatzoglou, A.: Hyperbolic residual quantization: Discrete representations for data with latent hierarchies (2025), https://arxiv.org/abs/ 2505.12404 
+
+59. Rajput, S., Mehta, N., Singh, A., Keshavan, R.H., Vu, T., Heldt, L., Hong, L., Tay, Y., Tran, V.Q., Samost, J., Kula, M., Chi, E.H., Sathiamoorthy, M.: Recommender systems with generative retrieval. In: Advances in Neural Infor-mation Processing Systems 36: Annual Conference on Neural Information Pro-cessing Systems 2023, NeurIPS 2023, New Orleans, LA, USA, December 10 - 16, 2023 (2023), http://papers.nips.cc/paper_files/paper/2023/hash/ 20dcab0f14046a5c6b02b61da9f13229-Abstract-Conference.html 
+
+60. Rix, A.W., Beerends, J.G., Hollier, M.P., Hekstra, A.P.: Perceptual evaluation of speech quality (PESQ) - a new method for speech quality assessment of telephone networks and codecs. In: IEEE International Conference on Acoustics, Speech, and Signal Processing, ICASSP 2001. pp. 749–752 (2001). https://doi.org/10.1109/ ICASSP.2001.941023 
+
+61. Roux, J.L., Wisdom, S., Erdogan, H., Hershey, J.R.: SDR - half-baked or well done? In: IEEE International Conference on Acoustics, Speech and Signal Pro-20 A. Colombo and M. Ayoughi cessing, ICASSP 2019. pp. 626–630 (2019). https://doi.org/10.1109/ICASSP. 2019.8683855 
+
+62. Roy, A., Vaswani, A., Neelakantan, A., Parmar, N.: Theory and experiments on vector quantized autoencoders (2018), https://arxiv.org/abs/1805.11063 
+
+63. Sala, F., Sa, C.D., Gu, A., Ré, C.: Representation tradeoffs for hyperbolic em-beddings. In: Proceedings of the 35th International Conference on Machine Learn-ing, ICML 2018, Stockholmsmässan, Stockholm, Sweden, July 10-15, 2018. Pro-ceedings of Machine Learning Research, vol. 80, pp. 4457–4466. PMLR (2018), 
+
+http://proceedings.mlr.press/v80/sala18a.html 
+
+64. Salimans, T., Goodfellow, I.J., Zaremba, W., Cheung, V., Radford, A., Chen, X.: Improved techniques for training gans. In: Advances in Neu-ral Information Processing Systems 29: Annual Conference on Neural In-formation Processing Systems 2016, December 5-10, 2016, Barcelona, Spain. pp. 2226–2234 (2016), https://proceedings.neurips.cc/paper/2016/hash/ 8a3363abe792db2d8761d6403605aeb7-Abstract.html 
+
+65. Sarkar, R.: Low distortion delaunay embedding of trees in hyperbolic plane. In: Graph Drawing - 19th International Symposium, GD 2011, Eindhoven, The Nether-lands, September 21-23, 2011, Revised Selected Papers. Lecture Notes in Computer Science, vol. 7034, pp. 355–366. Springer (2011). https://doi.org/10.1007/978-3-642-25878-7_34 , https://doi.org/10.1007/978-3-642-25878-7_34 
+
+66. Skopek, O., Ganea, O., Bécigneul, G.: Mixed-curvature variational autoencoders. In: 8th International Conference on Learning Representations, ICLR 2020, Ad-dis Ababa, Ethiopia, April 26-30, 2020. OpenReview.net (2020), https : / / openreview.net/forum?id=S1g6xeSKDS 
+
+67. Song, K., Tan, X., Qin, T., Lu, J., Liu, T.: Mpnet: Masked and permuted pre-training for language understanding. In: Advances in Neural Information Process-ing Systems 33: Annual Conference on Neural Information Processing Systems 2020, December 6-12, 2020, virtual (2020), https://proceedings.neurips.cc/ paper/2020/hash/c3a690be93aa602ee2dc0ccab5b7b67e-Abstract.html 
+
+68. van Spengler, M., Berkhout, E., Mettes, P.: Poincaré resnet. In: IEEE/CVF Inter-national Conference on Computer Vision, ICCV 2023, Paris, France, October 1-6, 2023. pp. 5396–5405. IEEE (2023). https://doi.org/10.1109/ICCV51070.2023. 00499 , https://doi.org/10.1109/ICCV51070.2023.00499 
+
+69. Sur, T., Mukherjee, S., Rahaman, K., Chaudhuri, S., Khan, M.H., Banerjee, B.: Hyperbolic uncertainty-aware few-shot incremental point cloud segmentation. In: Proceedings of the Computer Vision and Pattern Recognition Conference (CVPR). pp. 11810–11821 (2025) 70. Takida, Y., Ikemiya, Y., Shibuya, T., Shimada, K., Choi, W., Lai, C., Murata, N., Uesaka, T., Uchida, K., Liao, W., Mitsufuji, Y.: HQ-VAE: hierarchical discrete representation learning with variational bayes. Trans. Mach. Learn. Res. 2024 
+
+(2024), https://openreview.net/forum?id=xqAVkqrLjx 
+
+71. Tifrea, A., Bécigneul, G., Ganea, O.: Poincaré glove: Hyperbolic word embeddings. In: 7th International Conference on Learning Representations, ICLR 2019, New Orleans, LA, USA, May 6-9, 2019. OpenReview.net (2019), https://openreview. net/forum?id=Ske5r3AqK7 
+
+72. Ungar, A.A.: A Gyrovector Space Approach to Hyperbolic Geometry. Morgan & Claypool Publishers (2009) 73. Wu, L., Zeng, T., Seni, G., Peng, Z., Rawat, B.P.S., Zhang, S., Zhou, Y., Xu, B., Zheng, L., Ji, B., Yan, Y., Zhou, D.: HypRQ-VAE: Long-tail-aware item indexing for generative recommender systems (2025), https://openreview.net/forum?id= ALJsIAmO54 Geometry-Aware Hyperbolic Residual Quantization 21 74. Wu, Z., Palmer, M.: Verb semantics and lexical selection. In: Proceedings of the 32nd Annual Meeting of the Association for Computational Linguistics. pp. 133– 138 (1994). https://doi.org/10.3115/981732.981751 
+
+75. Yang, D., Liu, S., Huang, R., Tian, J., Weng, C., Zou, Y.: Hifi-codec: Group-residual vector quantization for high fidelity audio codec (2023), https://arxiv. org/abs/2305.02765 
+
+76. Yang, M., Zhou, M., Li, Z., Liu, J., Pan, L., Xiong, H., King, I.: Hyperbolic graph neural networks: A review of methods and applications (2022), https://arxiv. org/abs/2202.13852 
+
+77. Yang, Z., Dong, W., Li, X., Huang, M., Sun, Y., Shi, G.: Vector quantization with self-attention for quality-independent representation learning. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 24438–24448 (2023). https://doi.org/10.1109/CVPR52729.2023.02341 
+
+78. Zeghidour, N., Luebs, A., Omran, A., Skoglund, J., Tagliasacchi, M.: Soundstream: An end-to-end neural audio codec. IEEE ACM Trans. Audio Speech Lang. Process. 
+
+30 , 495–507 (2022). https://doi.org/10.1109/TASLP.2021.3129994 , https: //doi.org/10.1109/TASLP.2021.3129994 
+
+79. Zhu, Y., Zhou, D., Xiao, J., Jiang, X., Chen, X., Liu, Q.: Hypertext: Endowing fasttext with hyperbolic geometry. In: Findings of the Association for Compu-tational Linguistics: EMNLP 2020, Online Event, 16-20 November 2020. Find-ings of ACL, vol. EMNLP 2020, pp. 1166–1171. Association for Computational Linguistics (2020). https://doi.org/10.18653/v1/2020.findings-emnlp.104 ,
+
+https://doi.org/10.18653/v1/2020.findings-emnlp.104 22 A. Colombo and M. Ayoughi 
+
+# Supplementary Material 
+
+This supplementary material contains the two items deferred from the main paper. Appendix A gives the complete architecture, dataset-processing, and op-timization details of every experiment, so that all four setups are reproducible from the description alone. Appendix B collects proofs of claims that the main paper states without derivation, and we show the recovery of Euclidean RQ at zero curvature. 
+
+# A Architecture and Implementation Details 
+
+All experiments were run on a SLURM-managed cluster of NVIDIA A100 and H100 GPUs. Within each task the encoder, decoder, downstream model, data pipeline, and evaluation protocol are held fixed; the quantizer geometry and gradient routing are the only independent variables. Every configuration of a given task shares the number of residual stages N , the codebook sizes, and the encoder/decoder architectures, so that differences in the reported metrics are attributable to the quantizer alone. 
+
+A.1 Quantizer Configurations 
+
+Euclidean (baseline). Standard residual vector quantization at c = 0 , with the identity straight-through estimator and the additive recursion ri = ri−1 − qi,
+
+ˆz = P 
+
+> i
+
+qi.
+
+Naive hyperbolic. A direct adaptation of prior hyperbolic residual quantiza-tion [58] at c = 1 . Codebooks are parameters on the Poincaré ball and as-signments minimize the squared geodesic distance, i.e. q(x) = ck with 
+
+k = argmin 
+
+> j
+
+d2 
+
+> Dc
+
+(x, c j ),
+
+but the estimator keeps the Euclidean identity STE and the left-associated Möbius aggregation of Eq. 6. 
+
+GHRQ-VAE (ours). Identical to the naive hyperbolic configuration except for the two repairs of §4: the HRA forward convention (Eq. 8) and block-level routing of a single d-HSTE step (Eq. 12), with the numerically stable gyration of Eq. 11. 
+
+A.2 WordNet Hypernymy Prediction 
+
+The task embeds the WordNet noun hierarchy, comprising 82 ,115 noun synsets and their hypernymy edges as extracted with NLTK. A fully-connected embed-ding network maps each synset to a 16 -dimensional vector, which is projected onto the manifold and quantized with N = 4 stages and 128 codes per stage in the standard setting; the capacity grid of Table 1 sweeps encoder dimension Geometry-Aware Hyperbolic Residual Quantization 23 
+
+d ∈ { 8, 16 } and per-stage codebook size b ∈ { 64 , 128 }. The encoder is trained with a contrastive InfoNCE objective that contrasts each positive hypernymy edge against 50 sampled negatives; negatives are drawn from outside the transi-tive closure so that true ancestors are never sampled as negatives. Evaluation uses the closure split, which requires composing transitive relations to reconstruct held-out edges. Recall@10 is measured with an autoregressive seq2seq model that predicts hypernym code tuples under beam search, trained for 10 epochs on the frozen representations. For calibration, a no-model graph-composition base-line reaches roughly 80% Recall@10 on this split and a global-popularity baseline roughly 41% .
+
+A.3 Generative Sequential Recommendation 
+
+We follow the semantic-ID paradigm [59]: each item is mapped to a tuple of discrete codes by residual quantization, and a sequence model predicts the codes of the next item from the user’s interaction history. The data is the Beauty cat-egory of the Amazon Reviews 2014 corpus [48] under the standard leave-one-out protocol. Items are first encoded into 768 -dimensional sentence embeddings with a pretrained MPNet sentence-transformer [67]; these embeddings are frozen and serve as the input to the quantizer. The quantizer is an RQ-VAE [41, 58] with a 
+
+768 → 512 → 32 MLP encoder and a symmetric decoder, N = 4 stages and 128 
+
+codes per stage. The downstream recommender is an encoder–decoder Trans-former of model dimension 384 with 6 layers, 6 attention heads, feed-forward dimension 1024 and dropout 0.1, which generates semantic IDs autoregressively by beam search with 50 beams over a history length of 20 . As is standard, a uniqueness tie-break token is appended to disambiguate items that map to iden-tical code tuples. 
+
+A.4 Image Reconstruction and Generation 
+
+The image experiments use MNIST [40] ( 28 × 28 grayscale; 60 ,000 training and 
+
+10 ,000 test images) and CIFAR-100 [38] ( 32 ×32 RGB; 50 ,000 training and 10 ,000 
+
+test images). CIFAR-100 supplies a two-level label hierarchy, 100 fine classes grouped into 20 coarse superclasses, which is used only to score unsupervised taxonomy recovery and never as a training signal. Pixel values are normalized to [−1, 1] and no data augmentation is applied, so that the quantizer’s effect is isolated. The tokenizer is a convolutional VQ-VAE [54]. The encoder is a stack of strided 2-D convolutions with channel widths in → 32 → 64 → 128 → D, giving a spatial downsampling factor of four, followed by the residual quantizer; the decoder mirrors it with transposed convolutions. We use N = 4 stages with latent dimension D = 8 and 128 codes per stage on MNIST, and D = 16 with 
+
+512 codes per stage on CIFAR-100. For generation, an RQ-Transformer prior [41] consisting of a spatial and a depth transformer, each with 4 layers, 8 heads and model dimension 256 , is trained over the frozen quantizer, and 10 ,000 samples are drawn from it for FID and IS. 24 A. Colombo and M. Ayoughi 
+
+A.5 Neural Audio Coding 
+
+The codec is a SoundStream-style neural audio codec [21, 78] built on the Aca-demiCodec implementation [75], using a SEANet convolutional encoder–decoder paired with a 12 -stage residual quantizer with 1024 codes per stage. It is trained on the train-clean-100 subset of LibriTTS at a 24 kHz sample rate. This is the deepest evaluated stack and drives the intermediate residuals close to the bound-ary of the ball, which is precisely the regime in which the leaked per-stage gradi-ent of Appendix B.3 diverges. Training uses an adversarial objective with multi-scale STFT, multi-period and multi-scale waveform discriminators, together with reconstruction and feature-matching losses; the adversarial terms are switched on after 500 steps. All configurations are trained under a 10 -epoch budget, and the rate–distortion sweep of Fig. 3 additionally varies N ∈ { 1, 2, 4, 8, 12 } and 
+
+d ∈ { 8, 32 , 128 }.
+
+Encoder-scale control. High-dimensional encoder outputs have tangent norm of order √d and are therefore mapped essentially onto the boundary by exp c
+
+> 0
+
+,which saturates the geodesic distance and produces vanishing gradients. We counter this with an auto-calibrated global multiplier applied to the encoder tangent vectors, tuned so that the median residual radius is 0.5. The multiplier is maintained by an exponential moving average, s ← 0.99 s + 0 .01 sbatch , which prevents deep residuals from drifting toward the boundary over training. Uniform quantizer-depth dropout [78] is applied alongside it; without both mechanisms all hyperbolic configurations collapse. 
+
+A.6 Optimization 
+
+Base parameters are optimized with AdamW and manifold parameters (the code-books) with Riemannian Adam [8], except on WordNet, where the encoder is trained with Riemannian SGD. Curvature is fixed at c = 1 for all hyperbolic models. Table 9 lists the per-task budgets, learning rates and loss weights.                                            
+
+> Table 9: Per-task optimization settings. “lr” is the base learning rate and “codebook lr” the learning rate of the manifold parameters; βis the commitment weight. Downstream models (seq2seq reconstructor, recommender, RQ-Transformer prior) are trained on frozen quantizers. Task optimizer epochs lr codebook lr β
+> WordNet encoder Riem. SGD 50 1.01.01.0
+> + seq2seq recall model AdamW 10 10 −4——Recommendation RQ-VAE AdamW 5000 10 −410 −40.01
+> + recommender AdamW 100 10 −4——Image VQ-VAE AdamW 50 3×10 −410 −40.25
+> Audio codec AdamW 10 3×10 −410 −40.25 Geometry-Aware Hyperbolic Residual Quantization 25
+
+The recommendation RQ-VAE additionally weights its reconstruction term by 
+
+1000 relative to the commitment term, which is the setting under which all three quantizer configurations converge. 
+
+A.7 Evaluation Protocol 
+
+WordNet path similarity is the inverse graph distance in the taxonomy and Wu– Palmer similarity [74] derives relatedness from the depth of the lowest common ancestor; both are averaged over pairs of synsets that receive identical code tu-ples, alongside the cosine similarity of their GloVe embeddings [57]. Recommen-dation reports Recall@ 5/10 and NDCG@ 5/10 [35] on held-out items, with the pre-deduplication uniqueness ratio of generated semantic IDs as a diagnostic of codebook utilization. Image reconstruction is scored by the best validation MSE and generation by FID and IS [64] over 10 ,000 samples. CIFAR-100 hierarchy re-covery is computed by agglomeratively clustering the mean code embeddings of the 100 fine classes into 20 groups and comparing them against the ground-truth superclasses via the Adjusted Rand Index [33], Normalized Mutual Information and purity. Audio reports the best validation reconstruction loss and percep-tual rate–distortion in PESQ [60] and SI-SDR [61] against entropy-estimated bitrates. 
+
+# B Proofs 
+
+Throughout, Ddc = {x ∈ Rd : c∥x∥2 < 1} carries the Möbius addition of Eq. 3, and ⊖x := −x. We write λcx = 2 /(1 − c∥x∥2) for the conformal factor and 
+
+gyr[ u, v ] for the gyration of Eq. 4. We use two standard facts about the Möbius gyrogroup (Ddc , ⊕c) [27, 72]. (G1) Left gyroassociativity. a ⊕c (b ⊕c w) = ( a ⊕c b) ⊕c gyr[ a, b ] w, together with 
+
+a ⊕c (−a) = 0 , gyr[ a, −a] = Id , and gyr[ a, 0] = Id .(G2) Gyrations are rotations. For every u, v ∈ Ddc the map gyr[ u, v ] : Rd → Rd is linear and orthogonal, so ∥ gyr[ u, v ] w∥ = ∥w∥ for all w; it acts as the identity on the orthogonal complement of span {u, v }.
+
+B.1 The Left-Cancellation Law Proposition 1. For all a, b ∈ Ddc , a ⊕c
+
+ (−a) ⊕c b = b, which is Eq. 7. Proof. Apply left gyroassociativity (G1) with the middle argument −a:
+
+a ⊕c
+
+ (−a) ⊕c b =  a ⊕c (−a) ⊕c gyr[ a, −a] b = 0 ⊕c Id b = b, 
+
+using a ⊕c (−a) = 0 , gyr[ a, −a] = Id , and the fact that 0 is the identity element of ⊕c. ⊓⊔
+
+The asymmetry that HRA exploits is that the corresponding right -hand statement is false:  b ⊕c (−a) ⊕c a̸ = b in general, because ⊕c is not asso-ciative. A residual update that subtracts on the left is therefore inverted by an aggregation that adds on the left, and by no other. 26 A. Colombo and M. Ayoughi 
+
+B.2 The HRA Residual Mismatch is a Pure Rotation 
+
+Let ˆzi := q1 ⊕c (q2 ⊕c (· · · ⊕ c qi)) be the aggregate of the first i codes and let 
+
+Rtrue  
+
+> i
+
+:= ( −ˆzi) ⊕c ze, so that ˆzi ⊕c Rtrue  
+
+> i
+
+= ze (13) be the true residual, the exact part of ze not yet captured by the first i codes. This is the quantity each codebook is meant to be fitted to, and it is in general distinct from the tracked residual ri.
+
+Proposition 2. Under the HRA recursion, for every i = 1 , . . . , N ,
+
+Rtrue  
+
+> i
+
+= Γi ri, Γi =
+
+> i−1
+
+Y
+
+> k=1
+
+gyr qk, u k+1 
+
+, uk := qk ⊕c
+
+ qk+1 ⊕c (· · · ⊕ c qi),
+
+(14) 
+
+which is Eq. 9; here ui = qi, u1 = ˆ zi, the product is taken in increasing k from left to right, and it is empty (hence Id ) when i = 1 . Since Γi is a composition of gyrations it is orthogonal, and therefore 
+
+Rtrue  
+
+> i
+
+= ri . (15) 
+
+Proof. We use the gyrotranslation identity [72] 
+
+−(a ⊕c b) ⊕c (a ⊕c w) = gyr[ a, b ] (−b) ⊕c w. (16) Alongside the tail aggregates uk of Eq. 14, set wk := qk ⊕c
+
+ qk+1 ⊕c (· · · ⊕ c (qi ⊕c
+
+ri))  for k = 1 , . . . , i , so that uk = qk ⊕c uk+1 and wk = qk ⊕c wk+1 . Proposition 1 with a = qk and b = rk−1 gives the telescoping identity qk ⊕c rk = rk−1, so 
+
+wi = ri−1 and, descending, wk = rk−1; in particular w1 = r0 = ze, while 
+
+u1 = ˆ zi.Applying Eq. 16 with a = qk, b = uk+1 and w = wk+1 gives, for k =1, . . . , i − 1,
+
+(−uk) ⊕c wk = −(qk ⊕c uk+1 ) ⊕c (qk ⊕c wk+1 ) = gyr[ qk, u k+1 ] (−uk+1 ) ⊕c wk+1 
+
+,
+
+while at k = i the left-cancellation law gives (−ui)⊕c wi = ( −qi)⊕c (qi ⊕c ri) = ri.Composing these i − 1 steps, 
+
+Rtrue  
+
+> i
+
+= ( −ˆzi) ⊕c ze = ( −u1) ⊕c w1 =
+
+ i−1Y
+
+> k=1
+
+gyr[ qk, u k+1 ]
+
+
+
+ri = Γi ri,
+
+which is Eq. 14; for i = 1 the product is empty and Rtrue  
+
+> 1
+
+= ( −q1) ⊕c ze = r1
+
+directly. Each factor of Γi is orthogonal by (G2) and a product of orthogonal maps is orthogonal, so ∥Rtrue  
+
+> i
+
+∥ = ∥Γiri∥ = ∥ri∥. ⊓⊔
+
+Proposition 2 is the precise sense in which HRA repairs the forward pass: the mismatch between the residual the quantizer tracks and the residual it ought to track is a rotation about the origin, which contributes zero magnitude error at every depth. The coarse-to-fine magnitude decomposition on which residual quantization rests therefore remains faithful, in contrast with the naive conven-tion, whose mismatch is a drift that corrupts ∥ri∥ and accumulates with i.Geometry-Aware Hyperbolic Residual Quantization 27 
+
+B.3 The Residual Gradient Leaks on the Ball 
+
+In Euclidean residual quantization the identity STE has Jacobian ∂q i/∂r i−1 = I
+
+and the residual update is additive, so 
+
+∂r i
+
+∂r i−1
+
+= ∂(ri−1 − qi)
+
+∂r i−1
+
+= I − I = 0 . (17) Thanks to this exact cancellation the residual branch transmits nothing, so the encoder receives exactly one copy of the decoder gradient (through the shortest path, whose empty product of residual Jacobians is I) together with the lone 
+
+i = 1 commitment term, independently of the depth N . Proposition 3 shows the cancellation fails on the ball. 
+
+Proposition 3. Let r := ri−1, q := qi and let Ji := ∂q i/∂r i−1 be the straight-through Jacobian. For ri = ri−1 ⊕c (−qi),
+
+Ai := ∂r i
+
+∂r i−1
+
+= D1 ⊕c (r, −q) − D2 ⊕c (r, −q) Ji, (18) 
+
+where D1⊕c and D2⊕c are the Jacobians of Möbius addition in its first and second argument. At c = 0 one has D1 = D2 = I, so the straight-through convention 
+
+Ji = I gives Ai = 0 . For c > 0 and Ji = I, however, whenever span {r, q }⊥̸ = {0}
+
+— in particular for every d ≥ 3 — one has Ai = 0 if and only if qi = ri−1: it leaks at every stage at which the quantization is not exact. 
+
+Unrolling the recursion with r0 = ze, the chain rule now routes both signals of Eq. 2 to the encoder through these leak products, 
+
+∇r0 L =
+
+> N
+
+X
+
+> i=1
+
+ Qi−1 
+
+> j=1
+
+A⊤
+
+> j
+
+
+
+J⊤ 
+
+> i
+
+∇qi Lrec 
+
+| {z }
+
+> reconstruction, via the codes
+
++
+
+> N
+
+X
+
+> i=1
+
+ Qi−1 
+
+> j=1
+
+A⊤
+
+> j
+
+
+
+∇ri−1 Lcommit 
+
+> i
+
+| {z }
+
+> commitment, via the residuals
+
+, (19) with the empty product at i = 1 equal to I. Every stage contributes, so instead of the two clean copies of the Euclidean case the encoder collects a superposition of N reconstruction and N commitment terms, each filtered through a different-length product of leak matrices. Proposition 3 shows the individual factors do not vanish, and the explicit form obtained in its proof (Eq. 20) makes their growth explicit: as the residuals approach the boundary of the ball, ∥Aj ∥ diverges, so the superposition amplifies with both depth and radius. This is why the forward re-pair alone is insufficient and the backward pass must be repaired independently: applying stop-gradients to ri for i ≥ 1 sets every Aj path to zero by construction, and the single d-HSTE hop of Eq. 12 reinstates the one depth-independent copy of the reconstruction gradient that Eq. 17 used to guarantee. It remains to prove Proposition 3; the computation below quantifies the leak but is not needed to follow the argument above. 28 A. Colombo and M. Ayoughi 
+
+Proof (of Proposition 3). Equation 18 is the chain rule applied to the two argu-ments of ⊕c, the second contributing through qi = q(ri−1) with a minus sign; at 
+
+c = 0 Möbius addition is ordinary addition, so D1 = D2 = I and the two terms cancel, which is Eq. 17. Let c > 0, put δ := q−r and γ := 1 −2c⟨r, q ⟩+c2∥r∥2∥q∥2, and set x := r, y := 
+
+−q, so that x⊕c y = ( αx +βy )/γ with α := 1+2 c⟨x, y ⟩+c∥y∥2 and β := 1 −c∥x∥2;Cauchy–Schwarz gives γ ≥ (1 − c∥x∥∥ y∥)2 > 0. Differentiating the quotient in x
+
+and applying the result to a w ⊥ span {x, y }, every term carrying a factor ⟨x, w ⟩
+
+or ⟨y, w ⟩ drops out and only D1 ⊕c (x, y ) w = ( α/γ ) w survives. For the second argument, y 7 → x ⊕c y is an isometry of Ddc , whose differential is D2 ⊕c (x, y ) = (λcy /λ cx⊕cy ) gyr[ x, y ]; the identity 1 − c∥x ⊕c y∥2 = (1 − c∥x∥2)(1 − c∥y∥2)/γ 
+
+reduces the prefactor to β/γ , and gyr[ x, y ] fixes span {x, y }⊥ pointwise by (G2), so D2 ⊕c (x, y ) w = ( β/γ ) w there. With Ji = I this gives Aiw = ( α − β)γ−1w,and since 
+
+α − β = c ∥q∥2 + ∥r∥2 − 2⟨r, q ⟩ = c∥δ∥2,
+
+the leak acts on span {r, q }⊥ as the strictly positive scalar 
+
+Ai w = c ∥δ∥2
+
+γ w, w ⊥ span {r, q }. (20) In the collinear case r = ρe and q = κe (∥e∥ = 1 ), ⊕c restricts to the one-dimensional law ρ ⊕c (−κ) = ( ρ − κ)/(1 − cρκ ) with γ = (1 − cρκ )2, whose two partial derivatives are (1 − cκ 2)/γ and (1 − cρ 2)/γ ; their difference gives the action on the radial direction, 
+
+Ai e = c (ρ2 − κ2)(1 − cρκ )2 e = 2(1 − cρκ )2
+
+ 1
+
+λcq
+
+− 1
+
+λcr
+
+
+
+e,  (21) using 1 − c∥x∥2 = 2 /λ cx.Finally, c∥δ∥2/γ = 0 forces δ = 0 . Conversely, if q = r then y = −x, so 
+
+α = β = 1 − c∥r∥2, αx + βy = 0 and gyr[ x, −x] = Id , whence D1 = D2 =(1 − c∥r∥2)−1I and Ai = 0 . ⊓⊔
+
+The same conclusion holds under the HRA convention: with ri = ( −qi)⊕cri−1
+
+the roles of D1 and D2 are exchanged and the identical computation gives Aiw =
+
+−c∥δ∥2γ−1w on span {ri−1, q i}⊥, of the same magnitude. 
+
+B.4 Exactness of the Numerically Stable Gyration 
+
+The backward pass evaluates gyr[ ze, −q] when its base points nearly coincide, since q quantizes ze (and at the block level ˆz ≈ ze). Writing the closed form as 
+
+gyr[ A, B ] v = v + 2( aA + bB )/d with A = ze and B = −q,
+
+a = −c2⟨A, v ⟩∥ B∥2 + c⟨B, v ⟩ + 2 c2⟨A, B ⟩⟨ B, v ⟩,b = −c2⟨B, v ⟩∥ A∥2 − c⟨A, v ⟩,d = 1 + 2 c⟨A, B ⟩ + c2∥A∥2∥B∥2. (22) Geometry-Aware Hyperbolic Residual Quantization 29 
+
+With δ := q − ze small one has A ≈ − B, and the evaluation cancels catas-trophically twice: d collapses to ≈ (1 − c∥ze∥2)2, computed as a difference of 
+
+O(1) quantities that itself vanishes at the boundary, while aA + bB = a z e − b q 
+
+subtracts two nearly equal vectors because a ≈ b. Proposition 4 states that the reformulation used in Eq. 11 is not an approximation but an algebraic identity. 
+
+Proposition 4. With A = ze, B = −q and δ = q − ze, the quantities of Eq. 22 satisfy, exactly, 
+
+d = (1 − c∥ze∥2)2 − 2c (1 − c∥ze∥2) ⟨ze, δ ⟩ + c2∥ze∥2∥δ∥2,a − b = −c (1 − c∥ze∥2) ⟨δ, v ⟩ − c2⟨ze, v ⟩ ∥ δ∥2 + 2 c2⟨ze, δ ⟩ ⟨ δ, v ⟩, (23) 
+
+and the numerator decomposes as aA + bB = a−b 
+
+> 2
+
+(q + ze) − a+b 
+
+> 2
+
+δ.Proof. Write z := ze, so q = z + δ, ⟨A, B ⟩ = −∥ z∥2 − ⟨ z, δ ⟩, ∥B∥2 = ∥z∥2 +2⟨z, δ ⟩ + ∥δ∥2 and ∥A∥2 = ∥z∥2. Substituting into d,
+
+d = 1 − 2c∥z∥2 − 2c⟨z, δ ⟩ + c2∥z∥2 ∥z∥2 + 2 ⟨z, δ ⟩ + ∥δ∥2
+
+=  1 − 2c∥z∥2 + c2∥z∥4 − 2c⟨z, δ ⟩ 1 − c∥z∥2 + c2∥z∥2∥δ∥2,
+
+which is the first line of Eq. 23 since the first bracket is (1 − c∥z∥2)2. Every term after the first is O(∥δ∥), so no O(1) cancellation occurs. For the second line, substitute ⟨A, v ⟩ = ⟨z, v ⟩ and ⟨B, v ⟩ = −⟨ q, v ⟩ into Eq. 22: 
+
+a = −c2⟨z, v ⟩∥ q∥2 − c⟨q, v ⟩ + 2 c2⟨z, q ⟩⟨ q, v ⟩,b = c2⟨q, v ⟩∥ z∥2 − c⟨z, v ⟩.
+
+The two terms of order c combine into c ⟨z, v ⟩ − ⟨ q, v ⟩ = −c⟨δ, v ⟩. For the remaining terms, expand q = z + δ in 
+
+c−2 a − b 
+
+> O(c2)
+
+= −⟨ z, v ⟩∥ q∥2 − ⟨ q, v ⟩∥ z∥2 + 2 ⟨z, q ⟩⟨ q, v ⟩.
+
+Using ∥q∥2 = ∥z∥2 +2 ⟨z, δ ⟩+∥δ∥2, ⟨q, v ⟩ = ⟨z, v ⟩+⟨δ, v ⟩ and ⟨z, q ⟩ = ∥z∥2 +⟨z, δ ⟩,the coefficient of ⟨z, v ⟩∥ z∥2 is −1 − 1 + 2 = 0 and the coefficient of ⟨z, v ⟩⟨ z, δ ⟩ is 
+
+−2 + 2 = 0 , so both O(1) contributions cancel identically. What survives is 
+
+∥z∥2⟨δ, v ⟩ − ⟨ z, v ⟩∥ δ∥2 + 2 ⟨z, δ ⟩⟨ δ, v ⟩.
+
+Multiplying by c2 and adding −c⟨δ, v ⟩ gives 
+
+a − b = −c⟨δ, v ⟩ + c2∥z∥2⟨δ, v ⟩ − c2⟨z, v ⟩∥ δ∥2 + 2 c2⟨z, δ ⟩⟨ δ, v ⟩,
+
+which is the second line of Eq. 23 after collecting −c⟨δ, v ⟩(1 − c∥z∥2). Finally,  
+
+> a−b
+> 2
+
+(q + z) − a+b 
+
+> 2
+
+(q − z) = 12
+
+ aq + az − bq − bz  − 12
+
+ aq − az + bq − bz 
+
+= a z − b q = aA + bB. 
+
+⊓⊔30 A. Colombo and M. Ayoughi 
+
+Both expressions in Eq. 23 are sums of terms of comparable, small magnitude, so the O(1) contributions cancel symbolically rather than in floating point. The combination a+b is evaluated directly, as a and b share a sign and no cancellation arises there. The estimator is therefore mathematically identical to the closed form of Eq. 22 while remaining finite as 1 − c∥ze∥2 → 0.
+
+B.5 Recovery of Euclidean Residual Quantization at Zero Curvature Proposition 5. At c = 0 , GHRQ reduces to standard Euclidean residual vector quantization: the forward pass coincides with it exactly, and the d-HSTE back-ward operator equals 14 I, that is, the identity straight-through estimator up to a constant rescaling. Proof. At c = 0 Eq. 3 gives x ⊕0 y = x + y, so ⊕0 is commutative and associative and gyr[ u, v ] = Id for all u, v by Eq. 4. The HRA recursion of Eq. 8 therefore becomes ri = −qi + ri−1 = ri−1 − qi and ˆz = q1 + · · · + qN = P 
+
+> i
+
+qi, which is the Euclidean cascade; the association order is immaterial, so HRA and the naive convention coincide. The conformal factor is the constant λ0 
+
+> x
+
+= 2 , so eP 0 
+
+> q→ze
+
+= 
+
+> 12·2
+
+Id = 14 I. Proposition 3 gives Ai = 0 , so block-level routing and the per-stage cascade deliver the same encoder gradient. ⊓⊔
+
+In practice we use the identity estimator directly at c = 0 , so the Euclidean baseline is recovered exactly rather than up to the factor 14 . Hyperbolic residual quantization is in this sense a strict generalization of its Euclidean counterpart rather than a separate model.

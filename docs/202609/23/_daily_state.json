@@ -1,0 +1,153 @@
+{
+  "date": "20260923",
+  "date_label": "",
+  "generated_at": "2026-09-23 22:19:17 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.24875v1",
+      "route": "202609/23/2609.24875v1-sphquant-efficient-extreme-low-bit-weight-quantization-for-vision-language-models",
+      "title": "SPHQuant: Efficient extreme low bit weight quantization for Vision-Language Models",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向2-3比特极低比特的免旋转球面权重仅量化",
+      "first_seen_at": "2026-09-23 22:19:17 UTC",
+      "updated_at": "2026-09-23 22:19:17 UTC"
+    },
+    {
+      "paper_id": "2609.20882v1",
+      "route": "202609/23/2609.20882v1-task-oriented-quantization-for-quadratic-scheduling-centroid-water-filling-and-power-diagram-encoders",
+      "title": "Task-Oriented Quantization for Quadratic Scheduling: Centroid Water-Filling and Power-Diagram Encoders",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "Lloyd-Max向量量化码本设计与任务率失真",
+      "first_seen_at": "2026-09-23 22:19:17 UTC",
+      "updated_at": "2026-09-23 22:19:17 UTC"
+    },
+    {
+      "paper_id": "2609.26342v1",
+      "route": "202609/23/2609.26342v1-geometry-aware-hyperbolic-residual-quantization",
+      "title": "Geometry-Aware Hyperbolic Residual Quantization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "几何感知的残差向量量化与码本",
+      "first_seen_at": "2026-09-23 22:19:17 UTC",
+      "updated_at": "2026-09-23 22:19:17 UTC"
+    },
+    {
+      "paper_id": "2609.26774v1",
+      "route": "202609/23/2609.26774v1-stablevq-practical-guidelines-for-stable-vector-quantized-tokenizer-training",
+      "title": "StableVQ: Practical Guidelines for Stable Vector-Quantized Tokenizer Training",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "向量量化tokenizer的码本训练稳定性",
+      "first_seen_at": "2026-09-23 22:19:17 UTC",
+      "updated_at": "2026-09-23 22:19:17 UTC"
+    },
+    {
+      "paper_id": "2609.26425v1",
+      "route": "202609/23/2609.26425v1-quantwm-temporally-consistent-2-bit-kv-cache-quantization-for-world-models-and-video-generation",
+      "title": "QuantWM: Temporally Consistent 2-Bit KV Cache Quantization for World Models and Video Generation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向视频生成的2比特KV缓存量化",
+      "first_seen_at": "2026-09-23 22:19:17 UTC",
+      "updated_at": "2026-09-23 22:19:17 UTC"
+    },
+    {
+      "paper_id": "2609.21834v1",
+      "route": "202609/23/2609.21834v1-beyond-shadow-weights-quantization-aware-training-as-quantized-endpoint-descent",
+      "title": "Beyond Shadow Weights: Quantization-Aware Training as Quantized-Endpoint Descent",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "将量化感知训练重构为有限网格上的量化端点动力学",
+      "first_seen_at": "2026-09-23 22:19:17 UTC",
+      "updated_at": "2026-09-23 22:19:17 UTC"
+    },
+    {
+      "paper_id": "2609.24298v1",
+      "route": "202609/23/2609.24298v1-kv-cobra-kv-cache-compression-via-co-optimized-bit-rank-allocation",
+      "title": "KV-COBRA: KV Cache Compression via Co-Optimized Bit-Rank Allocation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "极低比特率下标量量化与逐头比特分配",
+      "first_seen_at": "2026-09-23 22:19:17 UTC",
+      "updated_at": "2026-09-23 22:19:17 UTC"
+    },
+    {
+      "paper_id": "2609.25492v1",
+      "route": "202609/23/2609.25492v1-rgsq-riemannian-geometry-sensitive-quantization-for-large-vision-language-models",
+      "title": "RGSQ: Riemannian Geometry-Sensitive Quantization for Large Vision-Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向视觉语言模型的低比特量化",
+      "first_seen_at": "2026-09-23 22:19:17 UTC",
+      "updated_at": "2026-09-23 22:19:17 UTC"
+    },
+    {
+      "paper_id": "2609.26333v1",
+      "route": "202609/23/2609.26333v1-disaggregated-quantization-specializing-llm-prefill-and-decode",
+      "title": "Disaggregated Quantization: Specializing LLM Prefill and Decode",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "2-3比特解码量化与低比特权重量化",
+      "first_seen_at": "2026-09-23 22:19:17 UTC",
+      "updated_at": "2026-09-23 22:19:17 UTC"
+    }
+  ]
+}

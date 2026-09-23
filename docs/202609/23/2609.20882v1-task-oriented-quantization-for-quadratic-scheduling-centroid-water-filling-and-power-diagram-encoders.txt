@@ -1,0 +1,266 @@
+Title: Task-Oriented Quantization for Quadratic Scheduling: Centroid Water-Filling and Power-Diagram Encoders
+
+URL Source: https://arxiv.org/pdf/2609.20882v1
+
+Published Time: Mon, 21 Sep 2026 00:02:39 GMT
+
+Number of Pages: 7
+
+Markdown Content:
+# Task-Oriented Quantization for Quadratic Scheduling: Centroid Water-Filling and Power-Diagram Encoders 
+
+Joss Armstrong Ericsson, Athlone, Ireland 
+
+joss.armstrong@ericsson.com 
+
+September 2026 
+
+Abstract 
+
+We distinguish two regimes in task-oriented quantization with a known deterministic oracle action. For an unconstrained interior oracle and a smooth strongly concave utility, quantizing the oracle action by vector Lloyd–Max minimizes a mean-squared-error surrogate and achieves a β/α approximation to the optimal K-level task quantizer. The reduction is exact for isotropic quadratic loss, and the corresponding task rate–distortion function is bracketed by two ordi-nary rate–distortion functions. Budget-constrained quadratic scheduling is different: the oracle satisfies a variational inequality, so quantizing water-filled actions is not generally optimal. We derive the exact Lloyd-type conditions for this case. The optimal action for a quantizer cell is water-filling evaluated at the cell’s conditional-mean load, and the optimal encoder partitions load space into affine power-diagram cells. Thus the correct prescription is to quantize the load and water-fill its centroid. The distinction is material whenever a cell crosses water-filling active-set boundaries. 
+
+Keywords: task-oriented quantization; goal-oriented quantization; joint precoding-quantization; Lloyd-Max; water-filling; power diagram. 
+
+# 1 Introduction 
+
+Task-oriented communications G¨ und¨ uz et al. [2023] replaces reconstruction-fidelity criteria with criteria tied to the receiver’s downstream decision. In wireless task-oriented quantization, this has produced bespoke quantizer designs whose encoder and decoder rules are driven by the task loss rather than by Euclidean distortion. Zou et al. [2023] introduce goal-oriented quantization (GOQ) with high-resolution optimality conditions involving the Jacobian of the decision rule and the Hessian of the goal (Propositions 1–2, Algorithm 1). Sun et al. [2024] extend GOQ to joint precoding and quantization for Lp-norm power scheduling, with a modified Lloyd iteration whose encoder and decoder conditions are driven by the task loss (Algorithm 2, Eqs. 26–28). Adjacent threads include task-based quantization for hardware-limited inference Shlezinger et al. [2019] and the wider semantic-communication literature G¨ und¨ uz et al. [2023]. A common structure recurs in wireless-resource testbeds: the receiver applies a known optimal action to the decoded representation rather than inferring a latent quantity. This structure alone, however, does not make Euclidean quantization of the oracle action optimal. The geometry depends on whether the oracle is an interior stationary point or a constrained optimum. In the former case, a curvature sandwich controls task loss by mean-squared error (MSE) on the oracle action. In 1arXiv:2609.20882v1 [cs.IT] 16 Sep 2026 the latter, the first-order term is governed by a variational inequality and need not vanish when a reconstruction crosses a constraint boundary. This paper makes that distinction explicit. First, for unconstrained interior oracles, we prove an MSE sandwich, correct rate–distortion bounds, and a finite-codebook β/α guarantee for Lloyd– Max on the oracle action. Exact equivalence is reserved for isotropic quadratic loss. Second, for the L2 power-scheduling problem of Sun et al. [2024], we solve the constrained cell update exactly. A cell’s representative is not, in general, the conditional mean of its water-filled schedules; it is the water-filled conditional-mean load. For fixed representatives, the assignment rule is affine in the load and therefore produces a power diagram. These two updates give a monotone Lloyd-type algorithm with the correct constrained geometry. 
+
+# 2 Designed-Source Setup 
+
+Source T ∼ F over T ⊆ Rd. The receiver applies a known deterministic optimal action ϕ∗ : T → 
+
+Rr to the decoded representation, incurring task loss ℓ(t, a ) = U (t, ϕ ∗(t)) − U (t, a ) ≥ 0 where 
+
+U : T × A → R is the utility being maximised. We refer to such sources as designed because the receiver’s optimal action is fixed by the system design, in contrast to settings where the task-relevant quantity is a latent variable to be inferred. Let 
+
+ε(c) = E∥ϕ∗(T ) − ϕ(c(T )) ∥2, ϕ(k) = E[ϕ∗(T ) | c(T )= k], (1) denote the within-cell variance for any quantizer c : T → { 1, . . . , K } with conditional-mean decoder 
+
+ϕ.For the results in this section we assume: 
+
+A0. For every t, ϕ∗(t) is an unconstrained maximizer of the differentiable map a 7 → U (t, a ) on Rr;hence ∇aU (t, ϕ ∗(t)) = 0. 
+
+A1. β-smoothness of U in the action: ∇2
+
+> aa
+
+U (t, a ) ⪰ − βI for all ( t, a ). 
+
+A2. α-strong concavity of U in the action: ∇2
+
+> aa
+
+U (t, a ) ⪯ − αI for all ( t, a ). A1 and A2 are standard β-smoothness and α-strong-concavity conditions from convex analysis Boyd and Vandenberghe [2004]. Together with the oracle action ϕ∗, they define the designed-source mechanism class of Armstrong [2026]. A0 is load-bearing. If actions are constrained to a budget simplex, the oracle generally satisfies a variational inequality rather than a zero-gradient condition; that case is analysed separately in Section 4.2. For comparison, the GOQ framework Zou et al. [2023] considers an M -level quantizer QM :
+
+T → { z1, . . . , z M } with optimality loss 
+
+L(Q; f ) = αf
+
+Z
+
+> T
+
+f (χ(Q(g)); g) − f (χ(g); g) φ(g) dg, (2) where χ(g) = arg min x f (x; g), f is the goal function, and φ is the density of g. Identifying g ↔ t,
+
+χ ↔ ϕ∗, f (χ(g); g) ↔ − U (t, a ), (2) matches the designed-source task loss above. The task-oriented rate-distortion function is 
+
+Rtask (D) = min  
+
+> p(ˆ a|t):
+> E[ℓ(t, ˆA)] ≤D
+
+I(T ; ˆA), (3) where ˆA is the reproduction action. 23 Main Results 
+
+Proposition 1 (Curvature sandwich) . Under A0–A2, every reproduction action ˆA satisfies 
+
+α
+
+2 E∥ϕ∗(T ) − ˆA∥2 ≤ Eℓ(T, ˆA) ≤ β
+
+2 E∥ϕ∗(T ) − ˆA∥2. (4) 
+
+If U (t, a ) = u(t) − (γ/ 2) ∥a − ϕ∗(t)∥2, both inequalities are equalities with α = β = γ.Proof. Expand U (t, ·) around ϕ∗(t). The linear term vanishes by A0. The Hessian bounds in A1– A2 give the two pointwise quadratic bounds; taking expectations proves (4). The final assertion follows by direct substitution. 
+
+Proposition 2 (Rate–distortion sandwich) . Under A0–A2, 
+
+Rϕ∗
+
+> MSE
+
+ 2Dα
+
+
+
+≤ Rtask (D) ≤ Rϕ∗
+
+> MSE
+
+ 2Dβ
+
+
+
+(5) 
+
+where Rϕ∗
+
+> MSE
+
+(δ) is the standard MSE rate-distortion function for the source ϕ∗(T ). For the isotropic quadratic utility in Proposition 1, Rtask (D) = Rϕ∗
+
+> MSE
+
+(2 D/γ ).Proof. Every task-feasible test channel has MSE at most 2 D/α , giving the lower bound. Conversely, every test channel with MSE at most 2 D/β is task-feasible, giving the upper bound. Pointwise equality of the two distortions gives the last assertion. 
+
+Proposition 3 (Lloyd–Max surrogate guarantee) . Under A0–A2, let QLM be a globally MSE-optimal K-level quantizer of ϕ∗(T ), and let D∗ 
+
+> K
+
+be the minimum task distortion over all K-level encoders and decoders. Then 
+
+D(QLM ) ≤ βα D∗ 
+
+> K
+
+. (6) 
+
+For isotropic quadratic loss, QLM is task-optimal. Proof. For any task-optimal quantizer Q∗, MSE optimality and Proposition 1 give 
+
+D(QLM ) ≤ β
+
+2 M (QLM ) ≤ β
+
+2 M (Q∗) ≤ βα D(Q∗).
+
+Here M (Q) := E∥ϕ∗(T ) − ˆϕQ(C)∥2. The conditional-mean representatives used by QLM are MSE optimal Lloyd [1982], Gersho and Gray [1992]. In the isotropic quadratic case, task loss is a constant multiple of MSE, proving exact optimality. 
+
+Remark 1 (Reduction of GOQ to Lloyd-Max) . Zou et al. [2023] derive the GOQ algorithm (Algo-rithm 1) with a task-weighted nearest-neighbour condition using the matrix Ef,χ (g) = Bf,χ (g) + 
+
+Af,χ (g), where Af,χ = J⊤ 
+
+> χ
+
+Hf Jχ (Proposition 2), and a gradient-based representative update. They note (p. 48) that when the first-order optimality condition holds, Bf,χ = 0. Sun et al. [2024] state the conditions most cleanly, with the encoder assigning by task loss (Eq. 26) and the decoder minimizing task loss (Eq. 28). Under A0–A2, Euclidean Lloyd–Max on ϕ∗(t) is a controlled surrogate, not generally an exact rewriting of the task-weighted conditions. The exact reduction follows when task loss is isotropic quadratic in a − ϕ∗(t). Constraint activity also prevents the ordinary first-order cancellation, as the water-filling example below shows. 3Proposition 4 (Gaussian linear oracle) . Let T ∼ N (0 , σ 2Id), let ϕ∗(t) = At with AA ⊤ = Ir, and let task loss be ∥At − a∥2. At common per-coordinate distortion 0 < D < σ 2, the difference between reconstructing all d source coordinates and reconstructing the r task coordinates is 
+
+Rrecon (D) − Rtask (D) = d − r
+
+2 log σ2
+
+D nats/symbol . (7) 
+
+Proof. Since AT ∼ N (0 , σ 2Ir), the isotropic quadratic case of Proposition 2 reduces task coding to ordinary Gaussian rate–distortion coding of AT . Apply Rn(D) = ( n/ 2) log( σ2/D ) Cover and Thomas [2006] at dimensions d and r and subtract. 
+
+# 4 Examples 
+
+4.1 Gaussian Type, Linear Oracle 
+
+Let T ∼ N (0 , ΣT ) with Σ T ∈ Rd×d, and ϕ∗(t) = At where A ∈ Rr×d, r < d . Utility: U (t, a ) = 
+
+−(a − At )⊤(a − At ), so α = β = 2 (quadratic). 
+
+Standard derivation. Characterize the distortion-rate function for the task loss ℓ(t, a ) = ∥At −
+
+a∥2, optimizing over encoders and decoders with a non-standard distortion measure. The solution requires eigendecomposition of AΣT A⊤ and reverse water-filling in the eigenspace. 
+
+Reduction. 
+
+1. ϕ∗(T ) = AT ∼ N (0 , A ΣT A⊤), an r-dimensional Gaussian. 2. By Proposition 2 (tight for quadratic): Rtask (D) = Rϕ∗
+
+> MSE
+
+(D) = reverse water-filling on the eigenvalues of AΣT A⊤.3. The K-level task-quantization objective is exactly the standard vector-quantization objective on AT (Proposition 3). For the white, orthonormal specialization of Proposition 4, the rate saving is (( d − r)/2) log( σ2/D )nats per symbol. 
+
+4.2 Power Scheduling with Water-Filling Oracle 
+
+Consider the p = 2 power-scheduling testbed of Sun et al. [2024]. A scheduler observes baseline loads t = ( t1, . . . , t N ) ∈ RN 
+
+> ≥0
+
+over N time slots and allocates a controllable demand a ∈ RN 
+
+> ≥0
+
+in the simplex AE := {a ≥ 0 : 1⊤a = E}. The smoothing objective f (t, a ) = ∥t + a∥2 is minimised at 
+
+ϕ∗(t) =  λ(t)1 − t+, (8) where λ(t) makes the coordinates sum to E. The induced task loss is ℓ(t, a ) = f (t, a ) − f (t, ϕ ∗(t)). Although its Hessian in a is 2 I, A0 fails: the gradient at ϕ∗(t) is nonzero whenever the simplex constraint is active, as it always is here. 
+
+Proposition 5 (Exact constrained Lloyd conditions) . For any measurable K-cell partition {C k}
+
+with Pr( T ∈ C k) > 0, define μk = E[T | T ∈ C k]. The task-optimal action in cell k is 
+
+a∗ 
+
+> k
+
+= WF E (μk) =  λk1 − μk
+
++. (9) 410 −1 10 0
+
+# task distortion D (nats per dim, σ2 = 1 )0.0 2.5 5.0 7.5 10.0 12.5 rate (nats / symbol)    
+
+> d−r
+> 2
+
+## log 1 
+
+> D
+
+## nats 
+
+## D = 1/ ed = 8 , r = 4 
+
+## Rrecon (D) = d 
+
+> 2
+
+## log 1
+
+> D
+
+## Rtask (D) = r 
+
+> 2
+
+## log 1
+
+> D
+
+Figure 1: Rate-distortion curves for white Gaussian T ∼ N (0 , I ), d = 8, with linear oracle ϕ∗(t) = 
+
+At to an r = 4 dimensional action. The vertical gap is the rate saving from discarding the d − r
+
+task-irrelevant dimensions. 
+
+Conversely, for fixed feasible actions a1, . . . , a K , the optimal encoder assigns t to any minimizer of 
+
+2t⊤ak + ∥ak∥2. (10) 
+
+Consequently, each pairwise cell boundary is a hyperplane and the cells form an affine power diagram in load space. Proof. The oracle term in ℓ(t, a ) is independent of the quantizer. For a fixed cell, 
+
+E[f (T, a ) | C k] = E∥T ∥2 + 2 μ⊤ 
+
+> k
+
+a + ∥a∥2.
+
+Minimizing the last two terms over AE is the Euclidean projection of −μk onto the simplex, whose KKT solution is (9). For fixed actions, removing the common term ∥t∥2 from f (t, a k) gives (10). Comparing indices j and k gives an affine half-space. Alternating (9) and (10) cannot increase expected task distortion, because each update exactly minimizes it with the other block fixed. As with ordinary Lloyd iteration, this establishes monotone descent to a coordinatewise optimum, not global optimality from arbitrary initialization. The distinction from oracle-action quantization is exposed by the exact identity 
+
+ℓ(t, a ) = ∥a − ϕ∗(t)∥2 + 2 X 
+
+> n:tn>λ (t)
+
+ tn − λ(t)an. (11) The second term is nonnegative and is strictly positive when the decoded action allocates energy to a slot inactive for the true load. It vanishes for cells contained within one active-set region; there water-filling is affine and WF E (E[T | C k]) = E[ϕ∗(T ) | C k]. Across active-set boundaries, the two 54 8 16 64 Codebook size K
+
+10 0
+
+> Test task distortion
+
+Oracle-action Lloyd--Max Centroid water-filling Figure 2: Held-out task distortion for N = 8, E = 1 .6, and independent unit-mean exponential loads. Each point is the best of five matched initializations, trained on 5 ×10 4 samples and evaluated on 10 5 fresh samples. Oracle-action Lloyd–Max incurs respectively 1 .52, 2 .05, 2 .36, and 3 .78 times the distortion of centroid water-filling at K = 4 , 8, 16 , 64. representatives generally differ. For example, with N = 2, E = 1, t = (0 , 10), and a = (1 /2, 1/2), the task loss is 9 .5 whereas ∥a − ϕ∗(t)∥2 = 0 .5. Figure 2 compares the two alternating designs. The same water-filling implementation, samples, and k-means++ initial actions are used for both methods in each restart. The widening finite-K
+
+gap shows that MSE on the oracle action is not a task-distortion proxy in this constrained testbed. 
+
+# 5 Discussion 
+
+The zero-gradient condition, rather than determinism of the oracle alone, is what permits an oracle-space MSE reduction. Under A0–A2, Lloyd–Max supplies a β/α approximation and the rate– distortion sandwich in Proposition 2; exact equivalence requires the additional isotropic-quadratic structure. The Gaussian linear-oracle example has that structure and remains an exact standard rate–distortion problem. Budget-constrained scheduling falls outside A0. Its correct simplification is nevertheless ele-mentary and operational: compute centroids in load space, water-fill those centroids, and use the resulting actions to form power-diagram encoder cells. This keeps the standard alternating-design workflow while respecting the simplex KKT conditions. At high resolution, cells that remain inside one active-set region recover oracle-action Lloyd–Max locally; (11) quantifies why that approxima-6tion can fail at finite resolution. The present analysis concerns deterministic designed actions. General goal-oriented quantiza-tion remains necessary for latent stochastic tasks and for losses whose cell updates have no closed form Zou et al. [2023], G¨ und¨ uz et al. [2023]. Even in the quadratic scheduling case, the alternat-ing algorithm is nonconvex jointly in cells and actions, so initialization and empirical comparison remain important. 
+
+# References 
+
+Joss Armstrong. Information requirements for service allocation and aggregate verification, 2026. Stephen Boyd and Lieven Vandenberghe. Convex Optimization . Cambridge University Press, Cambridge, 2004. ISBN 9780521833783. Thomas M. Cover and Joy A. Thomas. Elements of Information Theory . Wiley-Interscience, Hoboken, NJ, 2nd edition, 2006. Allen Gersho and Robert M. Gray. Vector Quantization and Signal Compression . Springer, New York, 1992. Deniz G¨ und¨ uz, Zhijin Qin, I˜ naki Est´ ella Aguerri, Harpreet S. Dhillon, Zhaohui Yang, Aylin Yener, Kai Kit Wong, and Chan-Byoung Chae. Beyond transmitting bits: Context, semantics, and task-oriented communications. IEEE J. Sel. Areas Commun. , 41(1):5–30, 2023. doi: 10.1109/ JSAC.2022.3223408. Stuart P. Lloyd. Least squares quantization in PCM. IEEE Trans. Inf. Theory , 28(2):129–137, 1982. Nir Shlezinger, Yonina C. Eldar, and Miguel R. D. Rodrigues. Hardware-limited task-based quan-tization. IEEE Trans. Signal Process. , 67(20):5223–5238, 2019. doi: 10.1109/TSP.2019.2935861. Yifei Sun, Hang Zou, Chao Zhang, Samson Lasaulce, and Michel Kieffer. Goal-oriented compression for Lp-norm-type goal functions: Application to power consumption scheduling. J. Franklin Inst. ,361(10):106926, 2024. doi: 10.1016/j.jfranklin.2024.106926. Hang Zou, Chao Zhang, Samson Lasaulce, Lucas Saludjian, and H. Vincent Poor. Goal-oriented quantization: Analysis, design, and application to resource allocation. IEEE J. Sel. Areas Com-mun. , 41(1):42–54, 2023. doi: 10.1109/JSAC.2022.3221976. 7

@@ -1,0 +1,1636 @@
+Title: KV-COBRA: KV Cache Compression via Co-Optimized Bit-Rank Allocation
+
+URL Source: https://arxiv.org/pdf/2609.24298v1
+
+Published Time: Tue, 22 Sep 2026 02:21:42 GMT
+
+Number of Pages: 27
+
+Markdown Content:
+# KV-COBRA: KV Cache Compression via Co-Optimized Bit-Rank Allocation 
+
+Sihyeon Ha Jaeho Lee Yo-Seb Jeon ∗
+
+Pohang University of Science and Technology (POSTECH) 
+
+{sihyeon.ha, jaeho.lee, yoseb.jeon}@postech.ac.kr 
+
+Abstract 
+
+What limits KV-cache compression at extreme bit-rates? We argue that it is not the choice of compression scheme, but how its budget is allocated across attention heads. Existing methods apply rank and bit-width uniformly, ignoring that each head has a different optimal mix of rank truncation and quantization. We show that co-optimizing rank and bit-width per head —using only standard low-rank projection and scalar quantization—dominates uniform allocation, with the largest gains at low bit-rates. Our method, KV-COBRA (Co-Optimized Bit-Rank Allocation ), formalizes this as a resource-allocation problem: it balances rank-truncation loss against quantization loss within each head, then redistributes budget across heads to minimize total distortion. A fused Hadamard rotation equalizes per-channel variance, and reordering the SVD basis by attention-KL importance makes the solver query-aware. The same allocator extends to joint K+V compression. On perplexity, zero-shot, and long-context benchmarks from 0.5 to 4 bits per dimension (bpd), KV-COBRA shows the smallest accuracy degradation among evaluated methods at low bpd, with no per-token overhead. 
+
+1 Introduction 
+
+Generating each token with a large language model (LLM) requires loading the entire key-value (KV) cache. Under long-context scenarios, the size of these caches exceeds that of the model weights, rendering the decoding to be memory-bandwidth-bound : Loading the KV cache becomes the bottleneck, not computing on it [1, 2]. To alleviate this issue, two strategies to compress the KV cache have been proposed: Eviction discards KV for unimportant or redundant tokens [3–5]. Per-token compression , our focus, keeps every token but stores each at lower bits per dimension (bpd), via quantization [6–8], low-rank projection [9–11], or both. The strongest per-token compressors combine these, applying top-r SVD truncation followed by b-bit quantization on the retained coordinates. In these per-token compression methods, the rank r and quantization bit-width b are typically set as global hyperparameters, applied uniformly across all attention heads . Yet, heads differ dramatically in how their cache spectrum concentrates; some place most of their energy in a handful of directions, while others spread it widely (Figure 1). Thus, applying a single r is wasteful for concentrated heads and inadequate for diffuse ones. Likewise, using a uniform bit-width b across heads may be suboptimal. Such homogeneous allocation may limit accuracy, especially in low-bpd regimes. This raises two questions. First, how should the total rate budget be allocated across heads? Some heads may need higher precision, while others tolerate aggressive compression. Second, how should each head’s allotted rate split between r and b? The two questions are coupled, since the optimal r
+
+for a head depends on its b and vice versa, so optimizing one while holding the other fixed cannot reach the joint optimum.                               
+
+> ∗Corresponding author Preprint. arXiv:2609.24298v1 [cs.LG] 21 Sep 2026 050 100
+> SVD direction i
+> 10 5
+> 10 3
+> 10 1
+> 10 1
+> 10 3
+> eigenvalue  i
+> r= 56 ,b= 5
+> keep truncate other heads (n=7)
+> 0100 200
+> head index (layer ×head)
+> 0246
+> per-head distortion  D
+> median
+> max/min 123 ×
+> 010 20
+> retained channel i
+> 050 100 150 200
+> per-channel variance
+> mean
+> SVD basis (non-uniform) after Hadamard (flat)
+> (a) C1: joint (r,b)choice (b) Heads differ: Dunder uniform 2 bpd (c) Hadamard: flattens per-channel variance
+
+Figure 1: (a) Spectrum sets (r⋆, b ⋆): one head (dark) against the layer’s 7 others (grey). (b) Heads differ dramatically: per-head D at uniform 2 bpd spans 100 × across 256 KV heads. (c) Hadamard flattens variance: per-channel, retained subspace, before (beige) and after (red). We view this as a classical rate-distortion allocation problem [12, 13]. Each head has a per-head distortion curve—the best achievable reconstruction error at a given rate jointly over r and b—and the global problem is to distribute total rate across heads to minimize the sum of distortions. This is the setting in which information-theoretic water-filling applies [14]. The resulting first-order conditions yield a per-head rule for splitting the rate between r and b and a marginal-distortion-equalizing schedule across heads, both solvable by a few iterations at calibration time. We instantiate this view as KV-COBRA (Co-Optimized Bit-Rank Allocation ), a two-level optimizer that runs entirely at calibration time. The inner level ( C1 ) selects each head’s (r⋆, b ⋆) by equating the marginal costs of truncation and quantization on its eigenvalue spectrum (Figure 1a). The outer level (C2 ) redistributes the total budget across heads via marginal-slope equalization. A Hadamard rotation fused into the SVD basis [11, 15] equalizes the steeply non-uniform per-channel variance of the retained coordinates at zero cost (Figure 1c). To make the objective query-aware rather than purely reconstruction-driven, we derive a second-order attention-KL bound that weights each direction by how much the quantizer hurts it and how much the attention map cares about it; reordering the basis by this weight before running C1/C2 makes the allocation query-aware. KV-COBRA reuses the same compression kernel as prior methods; what changes is how the bit-budget is allocated. Across LLaMA-3.1-8B, Mistral-7B-v0.3, and Qwen2.5-7B-Instruct, KV-COBRA matches or beats every prior SVD- and rotation-based compressor at 0.5–2 bpd on Wikitext-2/PTB/C4 perplexity, LongBench F1, and zero-shot reasoning, and the gap widens at the lowest rates where allocation matters most. The takeaway is one line: the bottleneck of low-bit KV compression is allocation across heads, not the kernel itself .Our contributions can be summarized as follows: 1. A joint rank-bit optimizer with optimality conditions (Section 3). C1 selects each head’s 
+
+(r, b ) optimum, and C2 redistributes the total budget across heads. Both are gradient-free, run at calibration time, and add no per-token overhead. 2. A query-aware upgrade via attention-KL reordering (Section 4). A second-order bound on attention-KL yields a per-direction importance weight. Reordering the SVD basis by this weight before C1/C2 makes the solver optimize attention quality rather than reconstruction MSE. 3. Graceful sub-1 bpd compression with no new kernel (Section 6). KV-COBRA stays accurate down to 0.5 bpd where uniform-allocation baselines collapse, and the same allocator extends to joint K+V compression (Tables 4, 5). 
+
+2 Related work 
+
+KV cache quantization. Existing KV-cache quantization methods reduce memory footprint through improved quantization and reconstruction. KIVI [6] quantizes K per-channel and V per-token with grouped bit widths; KVQuant [7] adds outlier handling and pre-RoPE [16] key quantization; GEAR [8] supplements grouped uniform quantization with a power-iteration low-rank residual. AQUA-KV [17] predicts each layer’s cache from the previous one and quantizes the residual at 2–2.5
+
+bits per value. All of these methods operate at a uniform per-head bit budget. 2Table 1: Allocation taxonomy for KV-cache compressors. ✓ = optimized, fix = hyperparameter, eq. = equalized by rotation, — = N/A. ∆bpd is the per-(channel, token) metadata overhead (Appendix E).                                                        
+
+> Method Basis layer head channel rank ∆bpd
+> KIVI [6] identity fix fix fix —+1 .0
+> KVQuant [7] identity fix fix fix —+0 .16
+> GEAR [8] identity fix fix fix —+1 .0
+> TurboQuant [11] rand. rotation fix fix eq. —0
+> QuaRot [15] Hadamard (fused) fix fix eq. —0
+> SVDq [9] per-layer SVD fix fix fix fix 0
+> KQ-SVD [10] query-aware SVD ✓fix —adaptive ( ε)0
+> KV-COBRA KL (ours) per-head SVD + Had. ✓✓eq. ✓0
+
+Rotation-based quantization. A second family first projects the cache into a basis that concentrates variance before quantizing: SVDq [9] uses a per-layer SVD basis with an 8-group mixed-precision schedule; TurboQuant [11] applies a random rotation plus per-channel Lloyd–Max quantization [18, 19]; QuaRot [15] fuses Hadamard rotations into the weights. KQ-SVD [10] instead uses a query-aware basis derived from the joint K/Q statistics. All fix rank and per-head budget as hyperparameters. Random-rotation scalar quantization with distortion guarantees predates KV compression, with EDEN [20] for distributed mean estimation and RaBitQ [21] for nearest-neighbor search. KV-COBRA adopts this standard kernel unchanged. What it adds is the allocation on top. 
+
+Eviction. A complementary line of work reduces cache size by discarding entries rather than compressing them, using importance scores such as accumulated attention (H2O [3]) or context-reconstruction loss (KVzip [22]). These methods operate on the token axis and compose with per-token compressors. 
+
+Architectural KV-cache reduction. Grouped-query attention [23], multi-head latent attention [24], cross-layer attention [25], and dynamic memory compression [26] share, merge, or compress KV at training time, whereas KV-COBRA is post-training, drop-in. 
+
+Allocation taxonomy. Table 1 organizes prior work by which allocation axes each method ad-dresses; to our knowledge no prior method optimizes more than one. Throughout the paper we plot the effective bpd bpd eff = bpd nominal + ∆ method from the ∆ column (Appendix E). 
+
+3 KV-COBRA under reconstruction MSE 
+
+This section derives the two-level bit-allocation solver under L2 reconstruction MSE (Figure 2). Section 4 then upgrades the objective to attention-KL, making the solver query-aware. 
+
+Setup and notation. We consider a transformer with L layers, H KV heads with head dimension d.Given a context of length T , the model requires storing 2LHT d values as its KV cache. We denote by Kℓ,h , Vℓ,h ∈ RT ×d the per-(layer, head) K/V matrices, by λℓ,h, 1 ≥ · · · ≥ λℓ,h,d the descending eigenvalues of their centered covariances, and by Uℓ,h ∈ Rd×d the corresponding SVD eigenbases. We drop the side label when the argument applies to both K and V . We write bpd for the average bits per dimension and Btot = LHd bpd for the total bit budget. 
+
+Distortion model. KV-COBRA’s Hadamard rotation mixes the retained SVD coordinates, pushing each channel toward a Gaussian marginal. For a zero-mean Gaussian channel with variance σ2, a 
+
+b-bit uniform scalar quantizer has MSE σ2 
+
+> 12
+
+2−2b + o(2 −2b) (Bennett [27]; Appendix A.1). We adopt the leading-order distortion 
+
+q(b) := 112 · 2−2b, (1) However, a single fixed transform does not guarantee Gaussianity, and known bounds are asymptotic in dimension [28]. We therefore treat Gaussianity as a working assumption and validate it empirically at our head dimensions (Appendix A.3). 3① Calibration (once per model)      
+
+> Calibration corpus
+> new cache
+> heterogeneous cache
+> •per-head 𝑟 ∗, per-head 𝑏 ∗
+> •shared kernel for all heads
+> →allocation is what changes
+
+KV-COBRA 
+
+> Ours
+
+Per-head SVD 
+
+> head
+> head 1
+> head 2
+> head 3
+
+⋮        
+
+> head H
+> spectrum λ
+> different spectra →joint (𝑟 ⋆, 𝑏 ⋆)needed
+> covariance
+
+⋮ 
+
+> basis 𝑉
+> Ours
+
+Two-level (rank, bits) allocation          
+
+> C2 —cross-head budget
+> C1 —per-head trade-off
+> iterate 5×
+> freeze per-head parameters
+> basis V𝑙,ℎ H,rank 𝑟 𝑙,ℎ ∗, width 𝑏 𝑙,ℎ ∗
+
+⋯        
+
+> head 𝟏
+> b
+> r
+> head 𝟐
+> b
+> r
+> head 𝟑
+> b
+> r
+> head 𝑯
+> b
+> r
+> layer 𝒍 MHA
+> (one of 𝐿 layers)
+
+② Inference (per token) 
+
+⋮ ⋮                      
+
+> cache: 20 × 5-bit = 100 bits
+> head 1
+> 𝑟 ∗= 80 ,𝑏 ∗= 2
+> rotate + truncate quantize cache: 80 × 2-bit = 160 bits
+> head 2
+> 𝑟 ∗= 40 ,𝑏 ∗= 4
+> cache: 40 × 4-bit = 160 bits
+> rotate + truncate quantize
+> head 3
+> 𝑟 ∗= 32 ,𝑏 ∗= 3
+> rotate + truncate quantize cache: 32 × 3-bit = 96 bits
+> head H
+> 𝑟 ∗= 20 ,𝑏 ∗= 5
+> rotate + truncate quantize
+> LLM ( 𝑳 layers × 𝑯 heads)
+> 𝐿
+> ⋮
+> 𝑙
+> ⋮
+> 1
+
+prefill at layer  𝒍 
+
+> ⋮
+> ⋯
+> ⋯
+> ⋯
+> ⋯
+> ⋮
+
+per-head compression with frozen parameters 
+
+> same kernel, different (r ⋆, b ⋆) per head
+
+Figure 2: KV-COBRA pipeline. Calibration. Per-head SVD of prefill keys. A two-level C1+C2 allocator freezes (Vℓ,h , r ⋆h, b ⋆h). Inference. Each key uses Hr⋆ ·V ⊤
+
+ℓ,h and a b⋆h-bit quantizer. Projecting a head onto its top-r SVD directions discards variance P
+
+i>r λi (Eckart–Young [29]) and quantizing the r retained coordinates at ¯b bits adds q(¯b) P
+
+i≤r λi. At the per-head level the compressor’s effect on generation quality can be modeled by two natural distortion choices — the reconstruction MSE in the SVD basis, or the attention-KL divergence between clean and compressed softmax distributions — which both collapse to a common closed form 
+
+D(r, ¯b) = X
+
+i>r 
+
+wi
+
+| {z } 
+
+projection loss 
+
++ q(¯b) X
+
+i≤r
+
+wi
+
+| {z }
+
+quantization loss 
+
+, wi =
+
+(λi (MSE objective) ,σ2
+
+Q,i σ2
+
+K,i (attention-KL objective) , (2) differing only in whether each direction is weighted by the key eigenvalue or the query–key variance product (derivation of the KL form in Section 4). Both weightings plug into the same two-level C1/C2 solver; this section treats the MSE case (simpler, query-free), Section 4 upgrades to KL. 
+
+3.1 Problem formulation 
+
+KV-COBRA jointly optimizes the retained rank and bit budget of each head, rather than fixing them as global hyperparameters. Figure 1 illustrates this trade-off for LLaMA-3.1-8B. We use the MSE distortion DMSE of Eq. (2); the KL formulation in Section 4 differs only in replacing λℓ,h,i 7 → wℓ,h,i .The resulting optimization problem is 
+
+min 
+
+{(rℓ,h , ¯bℓ,h )}
+
+X
+
+ℓ,h 
+
+Dℓ,h 
+
+ rℓ,h , ¯bℓ,h 
+
+ s.t. X
+
+ℓ,h 
+
+rℓ,h ¯bℓ,h ≤ Btot , (3) with Dℓ,h from Eq. (2) (the MSE choice). Problem (3) has a natural two-level decomposition: 
+
+Inner, per head (C1). 
+
+Given the head’s budget Bℓ,h , jointly choose the retained rank rℓ,h and bit width ¯bℓ,h = Bℓ,h /r ℓ,h 
+
+that minimize Dℓ,h .
+
+Outer, across heads (C2). 
+
+Given the total budget Btot , distribute it across heads as {Bℓ,h } so that the total distortion P
+
+ℓ,h D⋆ℓ,h (Bℓ,h ) is minimized. Both levels admit first-order optimality conditions (Propositions B.1, C.2); we solve C1 by integer enumeration and C2 by a damped iteration that converges within five rounds on every tested model. 4The compression kernel is inherited from the rotate-and-quantize family [9, 11], so with both levers frozen KV-COBRA reduces to a basic SVD pipeline. Sections 3.2–3.4 derive each level in turn. 
+
+3.2 Per-head optimum: rank and bit width together 
+
+Fix a single (layer, head). With a budget r · ¯b ≤ B, increasing r reduces the projection loss P 
+
+> i>r
+
+λi
+
+but spreads the budget thinner; the optimum balances the two. Substituting ¯b = B/r in Eq. (2) reduces D to a one-dimensional discrete objective f (r) := D(r, B/r ), and on the even-integer rank grid (step 2) the forward difference is 
+
+∆f (r) = −(λr+1 +λr+2 ) 1 − q  Br+2 
+
+ +  q  Br+2 
+
+ − q  Br
+
+ X 
+
+> i≤r
+
+λi, (4) with any integer optimum r⋆ satisfying ∆f (r⋆ − 2) ≤ 0 ≤ ∆f (r⋆) (Proposition B.1): the projection-loss gain from two more directions matches the quantization-loss cost on the retained ones. We solve by enumerating r ∈ { 2, 4, . . . , min( d, ⌊B/b min ⌋)}, setting ¯b = round( B/r ) clipped to [2 , 8] , and returning the (r, ¯b) with the smallest D — an O(d/ 2) search per head, calibration-only. On typical calibration runs at 2 bpd, r⋆ spans ∼[16 , 100] and b⋆ ∈ [2 , 5] across heads (Fig. 3). 
+
+3.3 Cross-layer redistribution: sum-distortion minimization 
+
+Heads differ: heavy-tailed ones saturate their budget early, flat ones stay starved. C2 uses C1 as a black-box oracle D⋆ℓ,h (Bℓ,h ) := min rb ≤Bℓ,h Dℓ,h (r, b ) and redistributes so that every head sits at the same marginal distortion: 
+
+min 
+
+> {Bℓ,h }
+
+X
+
+> ℓ,h
+
+D⋆ℓ,h (Bℓ,h ) s.t. X
+
+> ℓ,h
+
+Bℓ,h = Btot , Bℓ,h ≥ Bmin . (5) Under standard convexity assumptions on D⋆ℓ,h (Appendix C, Assumption C.1), the Lagrangian stationarity reduces to (D⋆ℓ,h )′(Bℓ,h ) = −ν, i.e., marginal distortions equalize at the optimum. We solve (5) with a damped proportional update on Bℓ,h (Appendix C). An exact DP solver attains the same PPL within noise but at substantially higher cost (Appendix D); we adopt the damped update. 
+
+3.4 Per-channel equalization via Hadamard rotation 
+
+The r retained SVD coordinates have steeply decaying variances (up to 10 3×; Figure 1c), so a per-channel quantizer would need an L×H grid of step-size schedules. We instead fuse a Hadamard rotation Vr → Hr Vr , with Hr the r×r Walsh–Hadamard matrix and a fixed random sign flip drawn once at calibration and shared across all tokens [11, 15]. Absorbed into the same matrix–vector multiply ( zero latency ), it equalizes per-channel variance — the 10 3× spread collapses to O(1) , so a single uniform ¯b-bit quantizer suffices — and pushes each channel toward Gaussian, the regime where Bennett’s model (Appendix A.1) is tightest (validated in Appendix A.3). Table 2: KV-COBRA pipeline: one-time calibration (1–6), then per-token inference (7–8). 
+
+Calibration (once per model; input: calibration data, target bpd )1 Per-head K covariance → { λℓ,h,i }, {Vℓ,h }; query variance {σ2
+
+> Q,ℓ,h,i
+
+} in the SVD basis 2 wℓ,h,i ← σ2 
+
+> Q,ℓ,h,i
+
+· λℓ,h,i ; reorder Vℓ,h by wℓ,h,i descending [§4] 3 Bℓ,h ← bpd · d for all (ℓ, h )
+
+4 5 rounds: (r⋆ℓ,h , ¯b⋆ℓ,h ) ← C1 (wℓ,h , B ℓ,h ); Bℓ,h ← C2-update [§3.2, §3.3] 5 Fuse Hadamard: Vℓ,h ← Hr⋆ ·Vℓ,h [: , : r⋆] [§3.4] 6 Store {Vℓ,h , r ⋆ℓ,h , ¯b⋆ℓ,h } per head 
+
+Inference (per token, per head) 7 ˆzt ← quantize( V ⊤
+
+> ℓ,h
+
+Kt, ¯b⋆ℓ,h ) [project+Hadamard as one multiply] 8 Cache ˆzt; dequantize on attention read 
+
+54 KV-COBRA under attention-KL 
+
+The L2 formulation of Section 3 minimizes reconstruction error in the SVD basis, but downstream quality depends on what the attention layer does with the cache, not on the cache itself. The L2
+
+objective weights every direction by its K-eigenvalue λi, regardless of whether the query cares about it. Write the quantized key as ˜Kt = Kt + Et, the clean attention distribution as p = softmax( s)
+
+with logits st = ⟨Q, K t⟩/√d, and the quantized distribution as ˜p = softmax( s + ∆ s).
+
+Proposition 4.1 (Attention-KL upper bound) . Under the high-resolution additive-noise model (E[Et]=0 , channel-wise uncorrelated with Var[ Et,i ]= q(¯b) σ2
+
+> K,i
+
+, Q⊥Et), 
+
+EKL( p ∥ ˜p) ≤ 
+
+> (a)12
+
+E∆s⊤F (p) ∆ s ≤
+
+> (b)14
+> T
+
+X
+
+> t=1
+
+Var[∆ st] = 
+
+> (c)
+
+C
+
+> r
+
+X
+
+> i=1
+
+σ2 
+
+> Q,i
+
+σ2
+
+> K,i
+
+| {z } 
+
+> =: wi
+
+q(¯b), (6) 
+
+with C = T / (4 d). The relevant per-direction quality weight is therefore wi = σ2
+
+> Q,i
+
+σ2
+
+> K,i
+
+, not the 
+
+K-spectrum λi alone. 
+
+(a) Taylor expansion of softmax KL , with F (p) = diag( p) − pp ⊤ the softmax Fisher information. Used as a leading-order proxy; the cubic remainder is signed and absorbed into our weight ranking, not the absolute KL value. 
+
+(b) Fisher tight bound. F (p) ⪯ 12 I (Popoviciu on unit vectors), giving the 14 leading constant after combining with the Taylor 12 .
+
+(c) Query–key factorization. ∆st = Q·E⊤ 
+
+> t
+
+/√d; assuming Q ⊥ Et and channel-wise uncorrelated 
+
+εi gives Var[∆ st] = d−1 P 
+
+> i
+
+E[Q2 
+
+> i
+
+] E[ε2 
+
+> i
+
+], and with E[Q2 
+
+> i
+
+] =: σ2 
+
+> Q,i
+
+this yields the per-direction weight wi = σ2
+
+> Q,i
+
+σ2
+
+> K,i
+
+. Summing over the T tokens absorbs a factor of T into C.
+
+Reordering and plug-in. The weights wi are not monotone in λi: a direction with small λi but large σ2 
+
+> Q,i
+
+would be discarded by an MSE-ordered truncation the query actually attends to. Before running C1/C2 we reorder the SVD basis by wi descending (once at calibration, negligible cost), so “top-r” means the r directions with the largest attention-KL importance. These reordered weights replace λi in DKL of Eq. (2), and the forward difference of Eq. (4) and the cross-head sum-distortion envelope of Eq. (5) carry over verbatim. The resulting method is KV-COBRA KL (main); the L2
+
+version serves as ablation. Table 2 summarizes. The full C1+C2 calibration takes under 200 ms across all three models (Appendix D), comparable to generating a few dozen tokens at standard FP16 decode rates. 
+
+5 Experimental setup 
+
+Scope. We compress K pre-RoPE [16]; post-RoPE the per-head covariance is position-dependent and no static SVD basis captures it (Appendix G). The body focuses on k-only because the V
+
+spectrum is structurally flatter (Appendix F); joint K+V results follow in Tables 4 and 5. 
+
+Models. Three independently trained 7–8B grouped-query backbones: LLaMA-3.1-8B [30], Mistral-7B-v0.3 [31], and Qwen2.5-7B-Instruct [32], all loaded in fp16 .
+
+Benchmarks. (i) Perplexity on Wikitext-2 [33], PTB [34], and C4 [35] (sliding window 2,048 , 32 kevaluation tokens per dataset); (ii) zero-shot accuracy on ARC-c [36], HellaSwag [37], PIQA [38], WinoGrande [39], MMLU [40] (200 samples per task); (iii) LongBench [41] F1 on five tasks (NarrativeQA [42], QASPER [43], MultiFieldQA-en, HotpotQA [44], MuSiQue [45]; 50 samples per task). 
+
+Baselines and protocol. We compare against KIVI [6], KVQuant [7], GEAR [8], TurboQuant [11], SVDq [9], and KQ-SVD [10]. The pipeline (calibration, compression, evaluation) is deterministic given the seed; multi-seed cells (Table 3, Fig. 4) report mean ± 1 SD over 5 seeds. Per-baseline bit-width quirks, calibration details, and the full bit-rate scan are in Appendix H. 66 Results 
+
+Per-head (r⋆, b ⋆) optima spread across many operating points and shift with budget and model (Fig. 3). A single fixed (r, b ) cannot fit all heads, so per-head allocation is the axis on which the methods below differ. C2 then equalizes per-head distortion across heads. With uniform per-head budgets a few heads carry most of the residual error, while the C2 allocation flattens the curve and reduces the cross-head distortion std by 2–8×.25 50 75 100 125         
+
+> r*(rank)
+> 2468
+> b * (bits)
+> LLaMA-3.1-8B
+> 50 100
+> r*(rank)
+> Mistral-7B
+> 50 100
+> r*(rank)
+> Qwen2.5-7B
+> 0.5 bpd 1.0 bpd 2.0 bpd
+
+Figure 3: Per-head (r⋆, b ⋆) selected by C1 across three models, colored by target bpd ( 0.5, 1.0, 2.0). 0.5 1 2 3 46810 
+
+> Wikitext-2 PPL
+
+LLaMA-3.1-8B    
+
+> 0.5 1 23468
+
+Mistral-7B    
+
+> 0.5 1 2346810 12
+
+Qwen2.5-7B                       
+
+> 0.5 1 23440 45 50 55 60
+> Zero-shot Acc. (%)
+> 0.5 1 23440 45 50 55 60
+> 0.5 1 23430 40 50 60
+> 0.5 1 234
+> bits / dim
+> 510 15
+> LongBench F1
+> 0.5 1 234
+> bits / dim
+> 510
+> 0.5 1 234
+> bits / dim
+> 0.0 2.5 5.0 7.5 10.0
+> KIVI KVQuant SVDq KQ-SVD TurboQuant GEAR KV-COBRA (ours) KV-COBRA (ours) FP16
+
+Figure 4: Main k-only results. Dashed lines mark FP16; error bars are ±1 SD over 5 seeds. 
+
+Main comparison. Figure 4 sweeps the full 0.5–4 bpd range across KIVI, KVQuant, GEAR, TurboQuant, SVDq, and KQ-SVD. At ≥2 bpd the choice of allocator barely matters. At low bpd KV-COBRA KL is the most graceful overall, holding within range on all three metric averages. KIVI and GEAR are integer-only and cannot enter the regime, while SVDq and KQ-SVD degrade sharply: at 1 bpd KV-COBRA KL nearly doubles the LongBench F1 of integer-only baselines. Table 3 zooms in on 0.5 and 1.0 bpd, where PPL is the mean over Wikitext-2, PTB, and C4 and zero-shot and LongBench are each the mean over five tasks (multi-seed averages, Appendix H). KV-COBRA MSE 
+
+7wins on PPL (its direct objective), while KV-COBRA KL wins on LongBench and matches KV-COBRA MSE on zero-shot — the split predicted by the framing (PPL is reconstruction-aligned, LongBench attention-aligned). Table 3: Metric-group means at 0.5 and 1.0 bpd in k-only mode across the three models. PPL is the mean over Wikitext-2, PTB, and C4 ( 5 seeds). Zero-shot and LongBench are each the mean over five tasks ( 5 seeds). Bold marks the better of KV-COBRA MSE and KV-COBRA KL per cell. Per-task breakdown is in Appendix I. 
+
+0.5 bpd 1.0 bpd FP16 LL Mi Qw LL Mi Qw LL Mi Qw Metric MSE KL MSE KL MSE KL MSE KL MSE KL MSE KL PPL ( ↓) 31.17  
+
+> ±2.21
+
+37.31  
+
+> ±6.44
+
+36.50  
+
+> ±1.46
+
+36.24  
+
+> ±0.68
+
+16.33  
+
+> ±0.15
+
+17.17  
+
+> ±0.23
+
+24.76  
+
+> ±1.14
+
+20.26  
+
+> ±0.87
+
+27.18  
+
+> ±0.97
+
+15.90  
+
+> ±0.13
+
+12.97  
+
+> ±0.09
+
+13.20   
+
+> ±0.06
+
+7.67 13.15 9.50 Zero-shot ( ↑) 48.8  
+
+> ±1.0
+
+48.5  
+
+> ±0.5
+
+53.4  
+
+> ±0.9
+
+52.5  
+
+> ±0.3
+
+48.7  
+
+> ±0.9
+
+48.5  
+
+> ±0.7
+
+51.5  
+
+> ±0.6
+
+51.6  
+
+> ±0.7
+
+54.6  
+
+> ±0.5
+
+55.1  
+
+> ±0.5
+
+51.7  
+
+> ±0.7
+
+52.5   
+
+> ±0.7
+
+55.4 56.3 54.1 LongBench ( ↑) 6.83  
+
+> ±0.63
+
+6.75  
+
+> ±0.58
+
+7.02  
+
+> ±0.73
+
+8.73  
+
+> ±0.42
+
+7.69  
+
+> ±0.40
+
+8.30  
+
+> ±0.31
+
+9.25  
+
+> ±0.54
+
+11.36  
+
+> ±0.77
+
+9.55  
+
+> ±0.56
+
+10.72  
+
+> ±0.49
+
+9.10  
+
+> ±0.29
+
+9.53   
+
+> ±0.30
+
+15.80 11.54 10.64 
+
+Joint K+V compression. We hold the total budget T = Kbpd + Vbpd fixed and sweep both sides (Tables 4, 5). The V side uses a uniform per-head budget because its spectrum is too flat for cross-head redistribution to help (Appendix F). On PPL, V-heavy splits dominate and KV-COBRA KL takes the per-block optimum on 7 of 9 (model, T ) blocks; conversely, Vbpd =2 collapses on LLaMA and Mistral across all three methods (PPL >150 ). KQ-SVD’s failure on Qwen’s Kbpd =1 cells (PPL 
+
+∼10 4) reflects its halved KV-head count without per-head allocation. Table 5 reports the same sweep on LongBench F1. Table 4: K+V joint compression on Wikitext-2 PPL ( ↓). Each row scans splits (Kbpd , V bpd ) at fixed total T . Both sides are compressed (V uniform per-head, Appendix F). The FP16 column is the uncompressed reference. Shaded cell marks the best PPL within each (model, T ) block. 
+
+T = 5 T = 6 T = 7 
+
+Method (1 , 4) (2 , 3) (3 , 2) (1 , 5) (2 , 4) (3 , 3) (4 , 2) (1 , 6) (2 , 5) (3 , 4) (4 , 3) (5 , 2) FP16 
+
+LLaMA-3.1-8B 
+
+KV-COBRA MSE 17.35 38.84 732.1 15.79 17.88 19.17 550.4 15.21 15.48 6.69 17.26 505.7 5.71 KV-COBRA KL 14.63 24.79 490.7 13.54 8.86 16.55 465.1 13.35 7.74 6.52 16.80 541.3 KQ-SVD 26.14 50.82 528.1 15.19 15.01 27.36 559.5 13.31 12.50 6.83 25.21 551.7 
+
+Mistral-7B 
+
+KV-COBRA MSE 7.96 8.59 285.7 7.43 5.46 7.92 326.3 7.35 5.25 4.99 7.92 311.3 4.77 KV-COBRA KL 5.97 10.04 252.6 5.69 5.31 8.00 305.9 5.65 5.10 4.98 7.89 357.1 KQ-SVD 8.14 19.76 184.1 7.04 6.42 10.48 162.1 6.80 5.85 5.10 9.59 159.6 
+
+Qwen2.5-7B 
+
+KV-COBRA MSE 8.29 8.47 12.86 8.16 7.78 6.92 11.75 8.19 7.60 6.43 6.78 11.57 6.07 KV-COBRA KL 8.39 7.80 16.62 8.25 7.26 7.65 13.56 8.22 7.20 7.11 7.05 12.13 KQ-SVD 11137. 10.04 19.60 10812. 8.35 7.37 17.51 10932. 8.12 6.47 7.21 17.25 
+
+Table 5: K+V joint compression, LongBench F1 ( ↑, mean over NarrativeQA, QASPER, MultiFieldQA-en, HotpotQA, and MuSiQue at 50 samples per task). Shaded cell marks the best F1 within each (model, T ) block. 
+
+T = 5 T = 6 T = 7 
+
+Method (1 , 4) (2 , 3) (3 , 2) (1 , 5) (2 , 4) (3 , 3) (4 , 2) (1 , 6) (2 , 5) (3 , 4) (4 , 3) (5 , 2) FP16 
+
+LLaMA-3.1-8B 
+
+KV-COBRA MSE 8.64 6.75 3.25 9.86 8.31 9.71 3.73 8.08 8.89 13.59 8.98 3.66 15.80 KV-COBRA KL 11.06 7.78 2.81 10.67 11.25 8.62 3.32 12.16 12.10 12.35 8.95 3.19 KQ-SVD 6.21 6.63 3.59 8.23 8.14 7.02 3.42 8.78 9.23 11.55 7.66 3.38 
+
+Mistral-7B 
+
+KV-COBRA MSE 8.42 9.07 1.60 9.71 10.25 9.13 0.95 9.35 10.80 11.16 9.62 1.01 11.54 KV-COBRA KL 11.13 8.41 1.95 10.04 10.64 9.83 1.12 10.73 10.22 9.90 9.39 1.20 KQ-SVD 6.90 5.48 1.51 8.50 9.51 8.21 1.84 8.04 10.34 10.68 9.11 2.20 
+
+Qwen2.5-7B 
+
+KV-COBRA MSE 9.23 9.78 8.39 8.99 9.41 10.35 9.24 8.89 9.36 9.82 10.16 9.07 10.64 KV-COBRA KL 9.85 10.00 8.25 8.60 10.27 10.04 8.52 9.19 10.32 10.48 9.84 9.35 KQ-SVD 1.16 8.03 7.29 1.17 8.70 10.05 9.06 1.28 8.78 10.10 10.30 8.59 
+
+8Additional experiments. Appendix I reports the full per-dataset PPL and per-task zero-shot/LongBench breakdown (Tables A4 and A5) and a per-head attention-primitive wall-clock measurement showing KV-COBRA is 1.79 –1.89 × faster than FP16-SDPA at r=16 across T ∈{32k , 64k , 128k } (Table A6). Appendix G covers pre- versus post-RoPE, and Appendix J adds RULER long-context retrieval results. 
+
+7 Discussion and limitations 
+
+Allocation is the bottleneck, not the kernel. KV-COBRA reuses the same SVD-rotate-and-quantize kernel as prior work, and every gain we report comes from redirecting the same bits to better places. The C2 surrogate-optimality check (Appendix D) reinforces this point. Replacing our damped proportional update with an exact DP solver for the sum-distortion minimization reduces P D⋆ by 
+
+∼ 12 –16% but actually degrades PPL by ∼ 0.5 on average. The surrogate itself is the proxy at fault, not the solver — which is exactly why the attention-KL upgrade (Sec. 4) helps where any MSE-side refinement cannot. Appendix D pins the fault down by replacing the Bennett estimate with measured per-head distortion, after which the same exact solver improves on the shipped allocator. For practitioners, this means where bits are spent — which head, which direction — matters more at low bpd than how they are quantized. 
+
+When does the KL upgrade pay off? At ≥2 bpd L2 and attention-KL agree within noise. Below 
+
+1 bpd, KL typically improves LongBench F1 even when MSE wins on PPL (Table 3). KL also takes the per-block optimum on 7 of the 9 (model, T ) blocks in the K+V joint sweep (Table 4). 
+
+Asymmetric K/V budgets. V -heavy splits dominate the joint K+V sweep (Tables 4, 5), reflecting 
+
+V ’s flatter spectrum (Appendix F). The same (r⋆, b ⋆) allocator handles both sides without any K-specific assumption, generalizing the per-head principle to the asymmetric regime. Appendix I breaks the asymmetry down per task (Table A7). 
+
+Limitations. 
+
+• Scope. Our comparison is restricted to per-token compressors on the same (r, b ) axes. Two orthogonal families fall outside this scope: token-axis eviction (H2O [3], StreamingLLM [5]), which discards entries rather than compressing them, and entropy coding on top of a quantizer. Both compose with KV-COBRA in principle, but a fused evaluation is left for follow-up. • Wall-clock. We do not report end-to-end latency, but Appendix I reports primitive-level attention speedup over FP16-SDPA. • Calibration stationarity. (r⋆, b ⋆) and budgets are computed once from 32 Wikitext-2 samples. The allocation is insensitive to the calibration corpus and size and transfers across domains (Appendix I), but refresh-during-generation is not studied. • Distortion model. Bennett’s leading-order q(b) [27] assumes near-Gaussian channels. A single fixed Hadamard transform carries no distributional guarantee [28], so we rely on the empirical validation of Appendix A.3. The finite-rate correction at b=1 can alter the rank selected by C1 (Appendix A.1). 
+
+8 Conclusion 
+
+Every rotate-and-quantize KV-cache compressor hides two allocation decisions — per-head rank and per-head bit allocation — that prior work treats as fixed hyperparameters. KV-COBRA (Co-Optimized Bit-Rank Allocation ) solves them jointly through a two-level decomposition, a per-head 
+
+(r, b ) optimum (C1) and a cross-head budget distributor (C2), and adds an attention-KL reordering that makes both solvers query-aware. The pipeline is gradient-free and calibration-only, and across LLaMA-3.1-8B, Mistral-7B, and Qwen2.5-7B it shows the smallest accuracy degradation among evaluated methods at low bpd. The same allocator extends to the joint K+V regime, where V-heavy splits typically dominate. The takeaway is that bit allocation, not the quantization kernel, is where low-bpd gains live, and stronger rotations or entropy coding can layer on top without changing the allocator. Natural extensions include MLA and MoE architectures, refining the V side, and composing with token-axis eviction policies. 9References 
+
+[1] Reiner Pope, Sholto Douglas, Aakanksha Chowdhery, Jacob Devlin, James Bradbury, Jonathan Heek, Kefan Xiao, Shivani Agrawal, and Jeff Dean. Efficiently scaling transformer inference. 
+
+Proceedings of machine learning and systems , 5:606–624, 2023. [2] Zhihang Yuan, Yuzhang Shang, Yang Zhou, Zhen Dong, Zhe Zhou, Chenhao Xue, Bingzhe Wu, Zhikai Li, Qingyi Gu, Yong Jae Lee, et al. Llm inference unveiled: Survey and roofline model insights. arXiv preprint arXiv:2402.16363 , 2024. [3] Zhenyu Zhang, Ying Sheng, Tianyi Zhou, Tianlong Chen, Lianmin Zheng, Ruisi Cai, Zhao Song, Yuandong Tian, Christopher Ré, Clark Barrett, et al. H2o: Heavy-hitter oracle for efficient generative inference of large language models. Advances in Neural Information Processing Systems , 36:34661–34710, 2023. [4] Yuhong Li, Yingbing Huang, Bowen Yang, Bharat Venkitesh, Acyr Locatelli, Hanchen Ye, Tianle Cai, Patrick Lewis, and Deming Chen. Snapkv: Llm knows what you are looking for before generation. Advances in Neural Information Processing Systems , 37:22947–22970, 2024. [5] Guangxuan Xiao, Yuandong Tian, Beidi Chen, Song Han, and Mike Lewis. Efficient streaming language models with attention sinks. arXiv preprint arXiv:2309.17453 , 2023. [6] Zirui Liu, Jiayi Yuan, Hongye Jin, Shaochen Zhong, Zhaozhuo Xu, Vladimir Braverman, Beidi Chen, and Xia Hu. KIVI: A tuning-free asymmetric 2bit quantization for kv cache. Proceedings of Machine Learning Research , 235:32332–32344, 2024. [7] Coleman Hooper, Sehoon Kim, Hiva Mohammadzadeh, Michael W Mahoney, Yakun S Shao, Kurt Keutzer, and Amir Gholami. KVQuant: Towards 10 million context length llm inference with kv cache quantization. Advances in Neural Information Processing Systems , 37:1270–1303, 2024. [8] Hao Kang, Qingru Zhang, Souvik Kundu, Geonhwa Jeong, Zaoxing Liu, Tushar Krishna, and Tuo Zhao. Gear: An efficient kv cache compression recipe for near-lossless generative inference of llm. arXiv preprint arXiv:2403.05527 , 2024. [9] Yankun Hong, Xing Li, Hui-Ling Zhen, Xianzhi Yu, Wulong Liu, and Mingxuan Yuan. SVDq: 1.25-bit and 410x key cache compression for LLM attention. arXiv preprint arXiv:2502.15304 ,2025. [10] Damien Lesens, Beheshteh T Rakhshan, and Guillaume Rabusseau. Kq-svd: Compressing the kv cache with provable guarantees on attention fidelity. arXiv preprint arXiv:2512.05916 , 2025. [11] Amir Zandieh, Majid Daliri, Majid Hadian, and Vahab Mirrokni. Turboquant: Online vector quantization with near-optimal distortion rate. arXiv preprint arXiv:2504.19874 , 2025. [12] Claude E Shannon et al. Coding theorems for a discrete source with a fidelity criterion. IRE Nat. Conv. Rec , 4(142-163):1, 1959. [13] Toby Berger. Rate Distortion Theory: A Mathematical Basis for Data Compression . Prentice-Hall, 1971. [14] Thomas M. Cover and Joy A. Thomas. Elements of Information Theory . Wiley-Interscience, 2nd edition, 2006. [15] Saleh Ashkboos, Amirkeivan Mohtashami, Maximilian L Croci, Bo Li, Pashmina Cameron, Martin Jaggi, Dan Alistarh, Torsten Hoefler, and James Hensman. Quarot: Outlier-free 4-bit inference in rotated llms. Advances in Neural Information Processing Systems , 37:100213– 100240, 2024. [16] Jianlin Su, Murtadha Ahmed, Yu Lu, Shengfeng Pan, Wen Bo, and Yunfeng Liu. Roformer: Enhanced transformer with rotary position embedding. Neurocomputing , 568:127063, 2024. [17] Alina Shutova, Vladimir Malinovskii, Vage Egiazarian, Denis Kuznedelev, Denis Mazur, Nikita Surkov, Ivan Ermakov, and Dan Alistarh. Cache me if you must: Adaptive key-value quantization for large language models. arXiv preprint arXiv:2501.19392 , 2025. 10 [18] Stuart Lloyd. Least squares quantization in pcm. IEEE transactions on information theory , 28 (2):129–137, 1982. [19] Joel Max. Quantizing for minimum distortion. IRE Transactions on Information Theory , 6(1): 7–12, 1960. [20] Shay Vargaftik, Ran Ben Basat, Amit Portnoy, Gal Mendelson, Yaniv Ben Itzhak, and Michael Mitzenmacher. EDEN: Communication-efficient and robust distributed mean estimation for federated learning. In International Conference on Machine Learning , pages 21984–22014. PMLR, 2022. [21] Jianyang Gao and Cheng Long. RaBitQ: Quantizing high-dimensional vectors with a theoretical error bound for approximate nearest neighbor search. Proceedings of the ACM on Management of Data , 2(3):1–27, 2024. [22] Jang-Hyun Kim, Jinuk Kim, Sangwoo Kwon, Jae W Lee, Sangdoo Yun, and Hyun Oh Song. KVzip: Query-agnostic kv cache compression with context reconstruction. arXiv preprint arXiv:2505.23416 , 2025. [23] Joshua Ainslie, James Lee-Thorp, Michiel De Jong, Yury Zemlyanskiy, Federico Lebrón, and Sumit Sanghai. GQA: Training generalized multi-query transformer models from multi-head checkpoints. In Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing , pages 4895–4901, 2023. [24] Aixin Liu, Bei Feng, Bin Wang, Bingxuan Wang, Bo Liu, Chenggang Zhao, Chengqi Dengr, Chong Ruan, Damai Dai, Daya Guo, et al. Deepseek-v2: A strong, economical, and efficient mixture-of-experts language model. arXiv preprint arXiv:2405.04434 , 2024. [25] William Brandon, Mayank Mishra, Aniruddha Nrusimha, Rameswar Panda, and Jonathan Ragan-Kelley. Reducing transformer key-value cache size with cross-layer attention. Advances in Neural Information Processing Systems , 37:86927–86957, 2024. [26] Piotr Nawrot, Adrian Ła´ ncucki, Marcin Chochowski, David Tarjan, and Edoardo M Ponti. Dynamic memory compression: Retrofitting llms for accelerated inference. arXiv preprint arXiv:2403.09636 , 2024. [27] William Ralph Bennett. Spectra of quantized signals. The Bell System Technical Journal , 27(3): 446–472, 1948. [28] Ran Ben-Basat, William Kuszmaul, Michael Mitzenmacher, Amit Portnoy, and Shay Vargaftik. Quantizing with randomized hadamard transforms: Efficient heuristic now proven. arXiv preprint arXiv:2605.06014 , 2026. [29] Carl Eckart and Gale Young. The approximation of one matrix by another of lower rank. 
+
+Psychometrika , 1(3):211–218, 1936. [30] Aaron Grattafiori, Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten, Alex Vaughan, et al. The llama 3 herd of models. arXiv preprint arXiv:2407.21783 , 2024. [31] Albert Q. Jiang, Alexandre Sablayrolles, Arthur Mensch, Chris Bamford, Devendra Singh Chaplot, Diego de las Casas, Florian Bressand, Gianna Lengyel, Guillaume Lample, Lucile Saulnier, Lélio Renard Lavaud, Marie-Anne Lachaux, Pierre Stock, Teven Le Scao, Thibaut Lavril, Thomas Wang, Timothée Lacroix, and William El Sayed. Mistral 7B. arXiv preprint arXiv:2310.06825 , 2023. [32] An Yang, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chengyuan Li, Dayiheng Liu, Fei Huang, Haoran Wei, Huan Lin, Jian Yang, Jianhong Tu, Jianwei Zhang, Jianxin Yang, Jiaxi Yang, Jingren Zhou, Junyang Lin, Kai Dang, Keming Lu, Keqin Bao, Kexin Yang, Le Yu, Mei Li, Mingfeng Xue, Pei Zhang, Qin Zhu, Rui Men, Runji Lin, Tianhao Li, Tianyi Tang, Tingyu Xia, Xingzhang Ren, Xuancheng Ren, Yang Fan, Yang Su, Yichang Zhang, Yu Wan, Yuqiong Liu, Zeyu Cui, Zhenru Zhang, and Zihan Qiu. Qwen2.5 technical report, 2024. 11 [33] Stephen Merity, Caiming Xiong, James Bradbury, and Richard Socher. Pointer sentinel mixture models, 2016. [34] Mitch Marcus, Beatrice Santorini, and Mary Ann Marcinkiewicz. Building a large annotated corpus of english: The penn treebank. Computational linguistics , 19(2):313–330, 1993. [35] Colin Raffel, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael Matena, Yanqi Zhou, Wei Li, and Peter J Liu. Exploring the limits of transfer learning with a unified text-to-text transformer. Journal of machine learning research , 21(140):1–67, 2020. [36] Peter Clark, Isaac Cowhey, Oren Etzioni, Tushar Khot, Ashish Sabharwal, Carissa Schoenick, and Oyvind Tafjord. Think you have solved question answering? try arc, the ai2 reasoning challenge. arXiv preprint arXiv:1803.05457 , 2018. [37] Rowan Zellers, Ari Holtzman, Yonatan Bisk, Ali Farhadi, and Yejin Choi. Hellaswag: Can a machine really finish your sentence? In Proceedings of the 57th annual meeting of the association for computational linguistics , pages 4791–4800, 2019. [38] Yonatan Bisk, Rowan Zellers, Jianfeng Gao, Yejin Choi, et al. Piqa: Reasoning about phys-ical commonsense in natural language. In Proceedings of the AAAI conference on artificial intelligence , volume 34, pages 7432–7439, 2020. [39] Keisuke Sakaguchi, Ronan Le Bras, Chandra Bhagavatula, and Yejin Choi. Winogrande: An adversarial winograd schema challenge at scale. Communications of the ACM , 64(9):99–106, 2021. [40] Dan Hendrycks, Collin Burns, Steven Basart, Andy Zou, Mantas Mazeika, Dawn Song, and Jacob Steinhardt. Measuring massive multitask language understanding. In International Conference on Learning Representations , 2020. [41] Yushi Bai, Xin Lv, Jiajie Zhang, Hongchang Lyu, Jiankai Tang, Zhidian Huang, Zhengxiao Du, Xiao Liu, Aohan Zeng, Lei Hou, et al. Longbench: A bilingual, multitask benchmark for long context understanding. In Proceedings of the 62nd annual meeting of the association for computational linguistics (volume 1: Long papers) , pages 3119–3137, 2024. [42] Tomáš Koˇ cisk` y, Jonathan Schwarz, Phil Blunsom, Chris Dyer, Karl Moritz Hermann, Gábor Melis, and Edward Grefenstette. The narrativeqa reading comprehension challenge. Transac-tions of the Association for Computational Linguistics , 6:317–328, 2018. [43] Pradeep Dasigi, Kyle Lo, Iz Beltagy, Arman Cohan, Noah A Smith, and Matt Gardner. A dataset of information-seeking questions and answers anchored in research papers. In Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies , pages 4599–4610, 2021. [44] Zhilin Yang, Peng Qi, Saizheng Zhang, Yoshua Bengio, William Cohen, Ruslan Salakhutdinov, and Christopher D Manning. Hotpotqa: A dataset for diverse, explainable multi-hop question answering. In Proceedings of the 2018 conference on empirical methods in natural language processing , pages 2369–2380, 2018. [45] Harsh Trivedi, Niranjan Balasubramanian, Tushar Khot, and Ashish Sabharwal. Musique: Multihop questions via single-hop question composition. Transactions of the Association for Computational Linguistics , 10:539–554, 2022. [46] Roman Vershynin. High-Dimensional Probability: An Introduction with Applications in Data Science . Cambridge University Press, 2018. doi: 10.1017/9781108231596. [47] Robert M. Gray and David L. Neuhoff. Quantization. IEEE transactions on information theory ,44(6):2325–2383, 1998. [48] Leon Mirsky. Symmetric gauge functions and unitarily invariant norms. The quarterly journal of mathematics , 11(1):50–59, 1960. [49] Stephen Boyd and Lieven Vandenberghe. Convex optimization . Cambridge university press, 2004. 12 [50] Cheng-Ping Hsieh, Simeng Sun, Samuel Kriman, Shantanu Acharya, Dima Rekesh, Fei Jia, Yang Zhang, and Boris Ginsburg. Ruler: What’s the real context size of your long-context language models? arXiv preprint arXiv:2404.06654 , 2024. 13 A Distortion model and head-level D(r, b )
+
+This section establishes the per-head distortion function D(r, b ) that the main paper uses without proof. We need two ingredients: (i) the per-channel quantization MSE q(b)·σ2 (Lemma A.1); and (ii) the Eckart–Young identity for the residual MSE of an orthogonal projection (Lemma A.2). 
+
+A.1 The uniform scalar quantizer after Hadamard rotation 
+
+KV-COBRA applies a Hadamard rotation to the retained SVD coordinates before quantization. The rotation equalizes per-channel variance to the average ¯σ2 = r−1 P 
+
+> i≤r
+
+λi: with the scaling 
+
+Hr H⊤ 
+
+> r
+
+= I, Walsh–Hadamard rows have squared entries 1/r , so for any diagonal covariance 
+
+diag( λ1, . . . , λ r ) every rotated channel has variance r−1 P 
+
+> j
+
+λj . Let X ∼ N (0 , σ 2) and let Qb
+
+denote a uniform mid-tread quantizer at rate b bits, applied to X clipped to a range [−Lσ, Lσ ]
+
+with step ∆ = 2 Lσ/ 2b (the loading factor L is absorbed into α below). Bennett’s high-resolution formula [27] then gives 
+
+E(X − Qb(X)) 2 = α · 2−2b · σ2 + o(2 −2b), (7) where α > 0 depends on the loading factor L (the standard normalization α = 1 /12 corresponds to matching the granular term ∆2/12 ). Since D(r, b ) is the sum of an α-free truncation term and an 
+
+α-proportional quantization term under the product constraint rb ≤ B, the C1 and C2 optimizers only depend on α up to a ±1 rank-grid shift that is negligible at b ≳ 2. We therefore normalize 
+
+q(b) := 112 · 2−2b, (8) absorbing α into an overall scale. The Hadamard rotation produces each channel as a ±1/√r
+
+weighted sum of r retained coordinates, the entries of Y = Hr U ⊤ 
+
+> r
+
+X are uncorrelated and, for moderately large r, approximately Gaussian [46]. We verify this empirically (Appendix A.3): post-rotation channels track N (0 , 1) closely up to the tails. 
+
+Lemma A.1 (Per-channel quantization MSE) . Let X ∼ N (0 , σ 2) be quantized by a uniform mid-tread quantizer at b bits. Under the normalization of (8) , E[( X − Qb(X)) 2] = q(b) · σ2 + o(2 −2b).Proof. Standard Bennett high-resolution result [27, 47]; follows from partitioning R into cells of width ∆, Taylor-expanding the Gaussian density around each cell center, and summing the leading-order ∆2/12 contributions; absorbing the α prefactor into (8) gives the stated form. 
+
+A.2 Truncation in the SVD basis Lemma A.2 (Truncation distortion in the original basis; Eckart–Young 1936 [29], Mirsky 1960 [48]) .
+
+Let X be any zero-mean random vector in Rd with finite second moments, write its covariance as 
+
+Σ = U ΛU ⊤, and let Ur ∈ Rd×r be the first r columns of U . Define ˆX = Ur U ⊤ 
+
+> r
+
+X. Then 
+
+E∥X − ˆX∥2 = X
+
+> i>r
+
+λi.
+
+Proof. Rotate to the eigenbasis: Y := U ⊤X has diagonal covariance Λ, so Var[ Yi] = λi with the Yi
+
+uncorrelated. Projection onto the top-r directions zeros out Yr+1 , . . . , Y d, and U is an isometry, so 
+
+∥X − ˆX∥2 = P 
+
+> i>r
+
+Y 2 
+
+> i
+
+. Taking expectations, E∥X − ˆX∥2 = P 
+
+> i>r
+
+λi.
+
+A.3 Empirical post-Hadamard Gaussianity 
+
+Bennett’s formula and the high-resolution per-channel MSE assumption (Assumption A.3) require each post-Hadamard channel marginal to be approximately Gaussian. A single drawn-once sign pattern yields no distributional guarantee, and the known bounds for composed randomized Hadamard transforms vanish only asymptotically in the dimension [28], so at our retained ranks ( r as small as 16 ) the residual is not negligible a priori. We therefore validate this on the calibration set across all (layer , head , channel ) triples on three models: pre-rotation excess kurtosis is heavy-tailed (median κpre ≈ 0.30 ), post-rotation it concentrates sharply around zero (median |κpost | < 0.20 , 95 th percentile < 1.10 ; Fig. A1). Q–Q plots (Fig. A2) confirm the post-rotation channels track N (0 , 1) 
+
+where the pre-rotation channels show the standard heavy-tailed S-curve. 14 0 1  
+
+> excess kurtosis
+> 0500 1000 1500 2000
+> count
+> LLaMA-3.1-8B
+> pre (med 0.31) post (med 0.04) Gaussian
+> 01
+> excess kurtosis
+> 0500 1000 1500 2000
+> Mistral-7B
+> pre (med 0.29) post (med 0.04)
+> 01
+> excess kurtosis
+> 0200 400 600 800 1000
+> Qwen2.5-7B
+> pre (med 0.29) post (med 0.01)
+
+Figure A1: Excess kurtosis distribution across all (layer , head , channel ) triples (one panel per model). Pre-Hadamard (orange) is heavy-tailed (median κ ≈ 0.30 ); post-Hadamard (blue) collapses near zero (median |κ| < 0.20 ). 2.5 0.0 2.5 4                
+
+> 2
+> 024
+> LLaMA-3.1-8B standardized
+> ch 0
+> 2.5 0.0 2.5 4
+> 2
+> 024
+> ch r*/2
+> 2.5 0.0 2.5 4
+> 2
+> 024
+> ch r*-1
+> 2.5 0.0 2.5 4
+> 2
+> 024
+> Mistral-7B standardized
+> 2.5 0.0 2.5 4
+> 2
+> 024
+> 2.5 0.0 2.5 4
+> 2
+> 024
+> 2.5 0.0 2.5
+> theoretical N(0,1)
+> 4
+> 2
+> 024
+> Qwen2.5-7B standardized
+> 2.5 0.0 2.5
+> theoretical N(0,1)
+> 4
+> 2
+> 024
+> 2.5 0.0 2.5
+> theoretical N(0,1)
+> 4
+> 2
+> 024
+
+Figure A2: Q–Q grid against N (0 , 1) . Rows: three models; columns: representative channels (first, mid, last) of one “median-behavior” head per model. Post-Hadamard samples track the diagonal up to ±2.5σ with mild tail deviation, consistent with Bennett’s high-resolution regime. 
+
+A.4 Putting it together: head-level D(r, b )
+
+The full head-level distortion under the rotate-and-quantize pipeline (top-r SVD projection fol-lowed by per-channel uniform quantization) is the sum of the two independent contributions from Lemma A.2 (projection residual) and Lemma A.1 (uniform quantizer). 
+
+Assumption A.3 (High-resolution per-channel MSE) . Let Y ∈ Rr be the pre-quantization vector and 
+
+εi := Qb(Yi)−Yi the per-channel quantization error. We assume the marginal MSE matches Bennett’s high-resolution formula channel-wise: E[ε2
+
+i ] = q(b) · Var( Yi) + o(q(b)) for every i ∈ { 1, . . . , r }.This holds exactly as b → ∞ when Yi is approximately N (0 , Var( Yi)) ; the finite-b deviation is absorbed into the o(q(b)) remainder. 15 Lemma A.4 (Head-level reconstruction MSE) . Let X ∈ Rd be zero-mean with covariance Σ = 
+
+U ΛU ⊤, eigenvalues λ1 ≥ · · · ≥ λd ≥ 0. Let Ur be the first r columns of U and Hr ∈ Rr×r a scaled Walsh–Hadamard matrix ( Hr H⊤ 
+
+> r
+
+= I). Define the compressed reconstruction 
+
+ˆX = Ur H⊤ 
+
+> r
+
+Q⊗
+
+> b
+
+ Hr U ⊤ 
+
+> r
+
+X,
+
+where Q⊗ 
+
+> b
+
+applies a scalar uniform mid-tread quantizer at rate b to each of its r inputs. Under Assumption A.3, 
+
+D(r, b ) := E∥X − ˆX∥2 = X
+
+> i>r
+
+λi + q(b) X
+
+> i≤r
+
+λi + o q(b). (9) 
+
+Proof. Step 1 (orthogonal decomposition). Write 
+
+X − ˆX = (I − Ur U ⊤ 
+
+> r
+
+)X
+
+| {z }    
+
+> =: ξ1∈range( Ur)⊥
+
++ Ur H⊤
+
+> r
+
+ Hr U ⊤ 
+
+> r
+
+X − Q⊗ 
+
+> b
+
+(Hr U ⊤ 
+
+> r
+
+X)| {z }    
+
+> =: ξ2∈range( Ur)
+
+.
+
+The two subspaces are orthogonal deterministically, so ∥X− ˆX∥2 = ∥ξ1∥2+∥ξ2∥2 and E∥X− ˆX∥2 =
+
+E∥ξ1∥2 + E∥ξ2∥2.
+
+Step 2 (truncation term). By Lemma A.2, E∥ξ1∥2 = P 
+
+> i>r
+
+λi.
+
+Step 3 (quantization term). Let Y := Hr U ⊤ 
+
+> r
+
+X ∈ Rr and ε := Q⊗ 
+
+> b
+
+(Y ) − Y . Since Ur H⊤
+
+> r
+
+has orthonormal columns, ∥ξ2∥2 = ∥Ur H⊤ 
+
+> r
+
+ε∥2 = ∥ε∥2 = Pri=1 ε2 
+
+> i
+
+(Euclidean-norm definition, deterministic). By linearity of expectation and Assumption A.3, 
+
+E∥ξ2∥2 =
+
+> r
+
+X
+
+> i=1
+
+E[ε2 
+
+> i
+
+] = q(b)
+
+> r
+
+X
+
+> i=1
+
+Var( Yi) + o(q(b)) .
+
+Step 4 (variance equalization under Hadamard). Under the normalization Hr H⊤ 
+
+> r
+
+= I, Hadamard rows have squared entries 1/r , so every diagonal entry of Cov( Y ) = Hr diag( λ1, . . . , λ r ) H⊤
+
+> r
+
+equals ¯σ2 = 1
+
+> r
+
+P 
+
+> i≤r
+
+λi, and rX
+
+> i=1
+
+Var( Yi) = r¯σ2 = X
+
+> i≤r
+
+λi.
+
+Step 5 (combine). Steps 1–4 yield E∥X − ˆX∥2 = P 
+
+> i>r
+
+λi + q(b) P 
+
+> i≤r
+
+λi + o(q(b)) .Eq. (9) is the same D(r, b ) that the main paper uses without proof. Everything about KV-COBRA’s per-head decision is an optimization over this quantity. 
+
+B The per-head optimum (C1) 
+
+With D(r, b ) fully justified, we can now state the discrete-integer optimality conditions for the per-head joint (r, b ) optimizer under a product budget constraint. 
+
+Proposition B.1 (Per-head discrete first-order condition) . Let D(r, b ) be as in Lemma A.4, and consider the integer problem 
+
+min 
+
+> r∈{ rmin ,r min +2 ,...,d }
+> b∈{ bmin ,...,b max }
+
+D(r, b ) s.t. r · b ≤ B. 
+
+Substituting b = B/r reduces this to the one-dimensional discrete objective f (r) := D(r, B/r ),whose forward difference is 
+
+∆f (r) := f (r+2) − f (r) = − λr+1 + λr+2 
+
+  1 − q(B/ (r+2)) 
+
++  q(B/ (r+2)) − q(B/r ) X 
+
+> i≤r
+
+λi.
+
+Any integer optimum r⋆ on this grid satisfies the two-sided first-order condition 
+
+∆f (r⋆ − 2) ≤ 0 ≤ ∆f (r⋆),
+
+with the convention ∆f (rmin − 2) := −∞ and ∆f (d) := + ∞ at the boundary. 
+
+16 Proof. Compute 
+
+f (r+2) − f (r) = 
+
+h X 
+
+> i>r +2
+
+λi
+
+i
+
+−
+
+hX 
+
+> i>r
+
+λi
+
+i
+
++ q  Br+2 
+
+ X
+
+> i≤r+2
+
+λi − q  Br
+
+ X 
+
+> i≤r
+
+λi
+
+= −(λr+1 +λr+2 ) + q  Br+2 
+
+(λr+1 +λr+2 )+  q  Br+2 
+
+ − q  Br
+
+ X 
+
+> i≤r
+
+λi,
+
+which rearranges to the stated ∆f (r). At an integer minimizer r⋆ of f on the grid, the step-2 discrete first-order condition is ∆f (r⋆−2) ≤ 0 ≤ ∆f (r⋆) by definition of a discrete minimum. 
+
+Solver. The rank grid {rmin , r min +2 , . . . , d } is finite ( ≤ 32 candidates at d=128 with step 2), so a brute-force enumeration that sets b = round( B/r ), clips to [bmin , b max ], and returns arg min D(r, b )
+
+attains the global minimum on the integer feasible set. The step-2 rank grid loses no precision in practice: changing r by ±1 shifts b = B/r by at most ≈ 0.25 bits in our budget range, and we observed the step-1 optimum coinciding with the step-2 sub-grid optimum on the heads we sampled. 
+
+C Cross-layer sum-distortion minimization (C2) 
+
+Assumption C.1 (Discrete convexity of the head-level envelope) . For every (layer, head), the integer sequence B 7 → D⋆ℓ,h (B) of C1-optimal distortions is non-increasing and discrete-convex: 
+
+D⋆ℓ,h (B + 1) − 2D⋆ℓ,h (B) + D⋆ℓ,h (B − 1) ≥ 0 for every interior integer B.Strict discrete-convexity can locally fail at (r, b ) grid transitions, so we treat Assumption C.1 as a working approximation; the empirical impact on the surrogate optimum is small (§D). 
+
+Proposition C.2 (Cross-layer sub-gradient KKT under Assumption C.1; multi-channel sum-distortion minimization [14, 49]) . Under Assumption C.1, let eD⋆ℓ,h : R≥Bmin → R≥0 be the piecewise-linear envelope of D⋆ℓ,h (linear interpolation between consecutive integer grid points). eD⋆ℓ,h is then convex, non-increasing, and continuous, with sub-differential 
+
+∂ eD⋆ℓ,h (B) = D⋆ℓ,h (B) − D⋆ℓ,h (B − 1) , D ⋆ℓ,h (B + 1) − D⋆ℓ,h (B) at integer B
+
+(left and right difference quotients, in the standard order f ′−(B) ≤ f ′
+
+> +
+
+(B)). Consider the relaxation 
+
+min 
+
+> {Bℓ,h }∈ RLH
+> ≥Bmin
+
+X
+
+> ℓ,h
+
+eD⋆ℓ,h (Bℓ,h ) s.t. X
+
+> ℓ,h
+
+Bℓ,h = Btot . (10) 
+
+At any stationary point there exists ν⋆ ≥ 0 such that for all heads with B⋆ℓ,h > B min ,
+
+−ν⋆ ∈ ∂ eD⋆ℓ,h (B⋆ℓ,h ), (11) 
+
+and B⋆ℓ,h = Bmin for the remaining heads (complementary slackness). On interior points where eD⋆ℓ,h 
+
+is differentiable, this reduces to the classical statement that marginal distortions are equalized. Proof. Under Assumption C.1 the piecewise-linear envelope eD⋆ℓ,h is convex and continuous with the stated sub-gradients, so (10) is the minimization of a sum of closed convex functions subject to one affine equality and LH affine inequalities. Slater’s condition is trivially satisfied by Bℓ,h =
+
+Btot /(LH ) ≥ Bmin whenever Btot is large enough [49, Section 5.2.3]. The associated Lagrangian is 
+
+L({Bℓ,h }; ν, {ρℓ,h }) = X
+
+> ℓ,h
+
+eD⋆ℓ,h (Bℓ,h )+ ν·
+
+X 
+
+> ℓ,h
+
+Bℓ,h −Btot 
+
+
+
+−X
+
+> ℓ,h
+
+ρℓ,h ·(Bℓ,h −Bmin ), ρℓ,h ≥ 0,
+
+and the sub-gradient optimality conditions at a primal–dual saddle point are (a) primal feasibility, (b) ρℓ,h ≥ 0, (c) ρℓ,h (B⋆ℓ,h − Bmin ) = 0 , and (d) 0 ∈ ∂ eD⋆ℓ,h (B⋆ℓ,h ) + ν⋆ − ρℓ,h . Specializing (d) to 
+
+ρℓ,h = 0 gives Eq. (11). 17 0 2 4 60510 15 20 25 30                                  
+
+> LLaMA-3.1-8B layer
+> 0.5 bpd
+> 02460510 15 20 25 30
+> 1.0 bpd
+> 02460510 15 20 25 30
+> 2.0 bpd
+> 02460510 15 20 25 30
+> 3.0 bpd
+> 02460510 15 20 25 30
+> Mistral-7B layer
+> 02460510 15 20 25 30
+> 02460510 15 20 25 30
+> 02460510 15 20 25 30
+> 0123
+> kv head
+> 0510 15 20 25
+> Qwen2.5-7B layer
+> 0123
+> kv head
+> 0510 15 20 25
+> 0123
+> kv head
+> 0510 15 20 25
+> 0123
+> kv head
+> 0510 15 20 25
+> 100 200 300 400 500
+> 100 200 300 400 500
+> 200 400 600 800 1000
+
+Figure A3: C2 budget allocation B⋆ℓ,h on K for LLaMA-3.1-8B, Mistral-7B, Qwen2.5-7B at four target bpds. Cell color is the per-head bit budget (red high, blue low; scale normalized per panel). Non-flat pattern ⇒ heterogeneity worth exploiting across all three models. 
+
+Damped proportional update. Eq. (11) characterizes the optimum but does not specify a solver. We use a heuristic that targets a simpler condition, value equalization D⋆ℓ,h = ¯D with 
+
+¯D = 1
+
+LH 
+
+P
+
+ℓ,h D⋆ℓ,h . This is a first-order proxy for the KKT condition near uniform: under 
+
+D ∝ B−α, marginal equalization ∂D/∂B = −ν⋆ becomes αD ℓ,h /B ℓ,h = ν⋆, which reduces to value equalization Dℓ,h = ν⋆ ¯B/α exactly when all Bℓ,h ≈ ¯B. Damping the iteration keeps budgets close enough to ¯B for this approximation to remain accurate. Under the empirical scaling 
+
+α ≈ 2 (the 2−2b falloff of uniform quantization), heads above the mean require a budget boost roughly proportional to 
+
+q
+
+D⋆ℓ,h / ¯D. Damping by η = 0 .3 around the mean budget ¯B gives the update 
+
+B(t+1) 
+
+ℓ,h = max 
+
+
+
+Bmin , B (t)
+
+ℓ,h + η ¯B q
+
+D⋆ℓ,h / ¯D − 1
+
+, (12) followed by total-budget renormalization Bℓ,h ← Bℓ,h · Btot / P Bℓ,h . At the fixed point D⋆ℓ,h = ¯D
+
+for all heads (zero update at equality), the sign is always correct, and the per-iteration cost is one C1 call per head ( O(LH )). On every tested model the iteration reaches < 1% per-head budget change within five rounds, which we use as the default. The resulting per-head budgets are non-flat across all three models (Figure A3), confirming that cross-head heterogeneity is worth exploiting. 18 D C2 solver choice: proportional update vs. exact DP 
+
+The solver used throughout the paper is the damped proportional update of (12) (§C). It is not surrogate-optimal: it compares D⋆ℓ,h to the mean ¯D rather than to a subgradient, and the integer constraint is enforced only by the final rounding. A natural question is whether a more careful solver would measurably improve PPL. 
+
+Alternative solver: exact DP. The integer problem 
+
+min 
+
+> {Bℓ,h }∈ ZLH
+
+X
+
+> ℓ,h
+
+D⋆ℓ,h (Bℓ,h ) s.t. X
+
+> ℓ,h
+
+Bℓ,h = Btot , B ℓ,h ∈ [Bmin , B max ]
+
+is a separable knapsack and admits an exact O(LH · Btot · C) dynamic-programming solver, where 
+
+C = ( Bmax −Bmin )/∆ is the per-head candidate count at step ∆. This DP makes no convexity assumption on D⋆ℓ,h : it finds the surrogate-optimal integer allocation even when the head-level envelope has plateau-then-jump patterns that Assumption C.1 rules out. 
+
+PPL on real models. Table A1 reports Wikitext-2 PPL on LLaMA-3.1-8B, Mistral-7B, and Qwen2.5-7B ( k-only) for our solver and DP, with C1 identical across columns. Table A1: C2 solver sensitivity on Wikitext-2 PPL ( k-only, single seed). Ours is the damped proportional update used in the paper. DP-optimal solves the integer surrogate exactly without any convexity assumption. PPL: cells where one method beats the other are bolded. Rightmost column: wall-clock ratio of the C2 step ( tDP /t ours , single-CPU-thread, calibration excluded). At 1.0 bpd, our solver costs 130 ms on LLaMA / Mistral ( 256 heads each) and 58 ms on Qwen ( 112 heads); DP costs 
+
+5.3 s and 2.3 s. The ratio grows with bpd because DP’s table size is O(LH · ¯B) while our iteration count stays at 5.                                                    
+
+> Model bpd PPL ours PPL DP-optimal tDP /t ours
+> LLaMA-3.1-8B 0.5 15.56 17.02 25 ×
+> 1.0 15.55 15.71 40 ×
+> 2.0 6.78 7.38 49 ×
+> 3.0 5.98 5.93 50 ×
+> 4.0 5.80 5.76 51 ×
+> Mistral-7B 0.5 7.57 7.32 26 ×
+> 1.0 6.16 6.08 40 ×
+> 2.0 5.02 5.17 51 ×
+> 3.0 4.84 4.84 51 ×
+> 4.0 4.79 4.78 50 ×
+> Qwen2.5-7B 0.5 12.30 11.92 25 ×
+> 1.0 9.63 9.28 39 ×
+> 2.0 6.97 8.16 49 ×
+> 3.0 6.35 6.36 47 ×
+> 4.0 6.17 6.18 47 ×
+
+Takeaway. Across the 15 cells in Table A1, the two solvers give comparable PPL: the median per-cell gap is 0.01 , the mean is 0.52 , and individual gaps fall within the ±0.1–0.5 multi-seed noise. Wall-clock differs much more: 25 –51 × across the bpd range (one-time calibration cost). With no measurable PPL gain from DP we adopt the cheaper solver as the default; the DP solver ships alongside in the reference code and can be selected with a single flag. 
+
+Where the surrogate deviates. A natural follow-up is why surrogate optimality does not translate into PPL. To find out, we quantized every (layer, head)’s rotated calibration activations with the deployed quantizer at b = 1 , . . . , 4 and compared the measured MSE against the q(b) ∝ 2−2b model, normalized at b=4 so that only the shape matters (Table A2). The model is accurate at b ≥ 3 but underestimates the true distortion by 1.7× at b=2 , with a 30 –40% head-to-head spread. An allocator compares distortion across heads and bit widths, so what hurts is error that differs across the options being compared. An exact solver tends to pick the options whose cost is most underestimated. 19 Table A2: Measured quantizer MSE divided by the 2−2b model (shape only, normalized at b=4 , all three models). b=1 is below the deployed b ≥ 2 floor and is shown for the trend.                
+
+> b= 4 b= 3 b= 2 b= 1
+> median across heads 1.0 1.1 1.7 6.9 per-head spread (p95 −p05)/median 31 % 33 % 41 % 36 %
+
+Exact DP over measured distortion. Replacing the Bennett estimate with measured per-head distortion tables (quantizing the calibration activations once per candidate (r, b ) adds a few seconds to calibration) and re-running the same exact DP removes the degradation entirely (Table A3). The exact solver then improves on the shipped allocator on all three models, and the solution becomes nearly seed-invariant. The degradation therefore comes from the error of the assumed quantizer model, not from the solver or the objective. Once the estimate is measured instead of assumed, the same objective and the same solver behave well. Table A3: Wikitext-2 PPL at 1 bpd, k-only (mean ± SD over 3 seeds).                                 
+
+> LLaMA Mistral Qwen FP16 5.71 4.77 6.07 water-filling + Bennett estimate (shipped) 16.33 ±0.55 7.39 ±0.13 8.14 ±0.07 exact DP + Bennett estimate 17.55 ±1.49 7.17 ±0.19 7.98 ±0.06 exact DP + measured estimate 8.11 ±0.02 5.39 ±0.01 7.43 ±0.01
+
+E Effective bpd: per-method overhead derivations 
+
+Each method’s nominal bpd hides a different amount of per-token metadata. We add an overhead ∆
+
+to every cell, counting only storage paid per (channel, token) ; fixed per-head or per-layer bases are excluded as they amortize away at T =32768 . Head dimension d = 128 , raw bits (no entropy coding, applied uniformly to all methods). 
+
+KIVI [6]. Token-axis grouping with group_size = 32 ; each (group, channel) stores an fp16 
+
+(min , max) pair: ∆KIVI = 32 /32 = 1 .0 bpd. (the configuration used in standard reproductions); KIVI’s 128 -token fp16 residual contributes ≤ 0.07 bpd at T =32 ,768 (negligible at our sequence length). 
+
+KVQuant [7]. Per-channel quantization plus top-ρ=1% fp16 outliers, following KVQuant’s own convention (excluding CSR index overhead): ∆KVQuant = ρ · 16 = 0 .16 bpd. Sink tokens add 
+
+80 /T bpd, negligible at T ≥ 1000 .
+
+GEAR [8]. Group-wise quantization (group_size = 64 ) plus rank-r=4 residual QmP ⊤ with 
+
+Qm ∈ RT ×r : group meta 32 /64 = 0 .5, residual row r · 16 /d = 0 .5, basis P assumed shared across tokens (FlexGen-style convention; per-token P would double the residual cost). ∆GEAR = 1 .0 bpd. (excluding the sparse outlier component, which adds further overhead). 
+
+TurboQuant [11]. Random rotation + Lloyd–Max; metadata is a per-channel scale (fixed per-head). 
+
+∆TurboQuant = 0 .
+
+SVDq [9], KQ-SVD [10], KV-COBRA (ours). All three store a fixed SVD basis (per-layer for SVDq, per-head otherwise) and cache only the quantized latent of r channels at b bits. The per-(channel, token) cost is exactly the nominal r · b/d ; ∆ = 0 for all three. 
+
+Summary. KIVI and GEAR each pay +1 .0 bpd on top of their nominal b; KVQuant pays +0 .16 ;rotation-based methods pay 0. A KIVI or GEAR cell at nominal 2 bpd sits at the same effective operating point as our 3 bpd. 20 F Scope: V -side compression is structurally limited 
+
+Flatter spectra. Power-law fits λi ∝ i−α give median αV /α K ≈ 0.46 across the three models (Fig. A4, top row). The flatter V spectrum pins C1 at the ceiling r⋆=d on essentially every head at 
+
+2 bpd (bottom row), while on K the optimum is spread far below d so C1 has room to trade rank for bit width. 
+
+C2 and KL reordering add nothing. With per-head spectra nearly identical, each head’s D⋆(B)
+
+curve is nearly the same, so C2 has no free energy to redistribute. Empirically, the KL reordering provides no measurable gain on V , consistent with the flat-spectrum behavior. 0 1 2 3
+
+> power-law
+> 025 50 75 100
+> count
+
+LLaMA-3.1-8B      
+
+> K(med 1.50)
+> V(med 0.74)
+> 0123
+> power-law
+> 050 100
+
+Mistral-7B      
+
+> K(med 1.64)
+> V(med 0.71)
+> 0123
+> power-law
+> 010 20 30 40
+
+Qwen2.5-7B                
+
+> K(med 1.63)
+> V(med 0.74)
+> 050 100
+> r
+> 0100 200
+> r count at 2 bpd  K(med 102)
+> V(med 128)
+> 050 100
+> r
+> 0100 200
+> K(med 102)
+> V(med 128)
+> 050 100
+> r
+> 025 50 75 100 K(med 102)
+> V(med 128)
+
+Figure A4: V is structurally flatter than K. Top: per-(layer, head) power-law exponents α; median 
+
+αV /α K ≈ 0.46 . Bottom: C1-selected r⋆ at 2 bpd. On V , r⋆ = d=128 on nearly every head (dotted line); on K the distribution is broad. 
+
+Empirical check. Figure A5 compares KV-COBRA w/o C2 (C1 only) on K-only vs. V -only at matched bit budgets. On a log scale the V -only curve sits orders of magnitude above the K-only curve through sub-3 bpd and converges to FP16 only around 4–5 bpd: V is harder to compress at low rates because truncating its flat spectrum is expensive. 0.5 1 2 3 4 5 6 7
+
+> bits / dim
+> 10 1
+> 10 2
+> 10 3
+> 10 4
+> Wikitext-2 PPL (log)
+
+LLaMA-3.1-8B        
+
+> 0.5 1 234567
+> bits / dim
+> 10 1
+> 10 2
+> 10 3
+> 10 4
+
+Mistral-7B        
+
+> 0.5 1 234567
+> bits / dim
+> 10 1
+> 10 2
+> 10 3
+> 10 4
+
+Qwen2.5-7B   
+
+> KV-COBRA w/o C2 (ours) (K) KV-COBRA w/o C2 (ours) (V) FP16
+
+Figure A5: K-only vs. V -only Wikitext-2 PPL (log) for KV-COBRA w/o C2 on three models. Orange solid: K-only; grey dashed: V -only; dashed horizontal: FP16. V converges to FP16 only near 4–
+
+5 bpd. 21 What we do on V . Putting the three observations together, the V side reduces to plain bit allocation. The flat spectrum makes rank truncation lossy for any non-trivial savings, the per-head D⋆(B) curves are similar enough that cross-head redistribution buys nothing (so C2 is redundant), and the KL reordering coincides with the MSE one. We therefore reuse the same kernel as on K but skip C2, and the resulting pipeline is a plain rotate-and-quantize on the V projection. The Hadamard rotation still equalizes per-channel variance and so is kept, which is consistent with the joint K+V table where the V -side bits behave like a uniform quantizer (Tables 4, 5). Because the V side has no per-head allocation to optimize, we do not feature V -only as a primary evaluation track—the joint K+V
+
+sweep is the meaningful test, since it lets the K side absorb the rank budget that V cannot use. 
+
+G Post-RoPE experiments 
+
+We ran every tested method under both pre-RoPE and post-RoPE compression with the same calibration protocol. Post-RoPE requires a new harness because the attention forward has to be monkey- patched to inject the compressor after the rotary embedding is applied to K. Pre-RoPE remains uniformly better (Figure A6) because the per-head covariance is position-stationary pre-RoPE and position-dependent post-RoPE: a single static SVD basis captures the structure in the first case but not the second. The mechanism is worth spelling out. After RoPE, each position stores a differently rotated copy of the key distribution, so a static basis faces the average over positions, Ep
+
+R(p) Σ R(p)⊤, which is much closer to isotropic than Σ itself, with the high-frequency rotation planes flattening first. The low-rank structure the method relies on fades, so any static basis pays more truncation loss at the same rank. This matches the per-channel structure mixing reported by KVQuant [7]. Position-dependent bases could track the rotation in principle, at the cost of the one-shot calibration that keeps the method simple. We leave this as future work. pre-RoPE post-RoPE 10 1         
+
+> 10 2
+> 10 3
+> Wikitext-2 PPL (log)
+> LLaMA-3.1-8B
+> pre-RoPE post-RoPE 10 1
+> 10 2
+> Mistral-7B
+> pre-RoPE post-RoPE 10 1
+> 10 2
+> 10 3
+> 10 4
+> Qwen2.5-7B
+> KIVI GEAR TurboQuant KV-COBRA (ours) KV-COBRA (ours) FP16
+
+Figure A6: Pre-RoPE vs. post-RoPE PPL at the canonical bit rates, per baseline. Pre-RoPE is uniformly better: the per-head covariance is position-stationary and admits a good shared basis. 
+
+H Experimental setup in detail 
+
+This appendix expands Section 5 with the details omitted there for space. 
+
+Models. LLaMA-3.1-8B [30]; Mistral-7B-v0.3 [31]; Qwen2.5-7B-Instruct [32]. All three models use grouped-query attention and are loaded in fp16 with their default tokenizers, providing three independently trained 7–8B backbones from different labs. 
+
+Calibration. Each calibration run passes 32 text samples of 1,024 tokens each from the Wikitext-2 [33] training split through a single forward pass with hooks on every kproj and vproj output. The per-head activations are centered and eigendecomposed in float32 . Calibration is deterministic given the seed and the tokenized data; no gradient steps are taken at any point. 22 PPL evaluation. Perplexity is measured on Wikitext-2 [33], the Penn Treebank (PTB) [34], and the C4 English subset [35], each at 32 ,768 evaluation tokens using a sliding window of length 2,048 and stride 512 . These settings match the ones used by the KIVI [6] and KVQuant [7] evaluation scripts. 
+
+LongBench and zero-shot. We report mean F1 on the LongBench [41] English subset at 50 
+
+samples per task on NarrativeQA [42], QASPER [43], MultiFieldQA-en (introduced by [41]), HotpotQA [44], and MuSiQue [45]. Zero-shot accuracy is reported on ARC-Challenge [36], Hel-laSwag [37], PIQA [38], WinoGrande [39], and MMLU [40] at 200 samples per task. All scores in the paper are per-task means. 
+
+Baselines and bit-width support. Every baseline reported in the paper is ported directly from the reference implementation provided by the original authors, with only enough glue code to share our 
+
+KVCompressor dispatch. TurboQuant requires precomputed Lloyd–Max codebooks per bit-width and is restricted to {3, 4} bpd as in the official repository. KIVI and KVQuant use uniform integer quantization with per-(group, channel) statistics that is well-defined at any integer bit-width; we evaluate them at {1, 2, 3, 4} bpd in our sweep, while their original papers focus on {2, 4} bpd (KIVI) and {2, 3, 4} bpd (KVQuant). 
+
+Bit-rate sweep. Integer-only baselines run at the bit-widths supported by their official implementa-tions (see above). KV-COBRA MSE and KV-COBRA KL run at {0.5, 1} bpd in k-only mode for the multi-seed ablation (Table 3); the bit-rate scan in Fig. 4 additionally covers {1.5, 2, 2.5, 3, 4} bpd. The 
+
+K+V joint sweep runs at the (Kbpd , V bpd ) splits of Tables 4 and 5. We do not run K+V symmetric cells because the decomposition treats the two sides independently. 
+
+Seeds and variance. The pipeline (calibration, compression, evaluation) is deterministic given 
+
+torch , numpy , and the Walsh–Hadamard sign seed. Single-seed runs use a fixed seed. Table 3 and Fig. 4 report mean ± 1 SD over 5 seeds across all three models. Across these multi-seed cells the median relative SD is 0.51% and the maximum is 9.06% (at 0.5 bpd). 
+
+I Additional empirical results 
+
+Per-dataset / per-task breakdown at 0.5 and 1.0 bpd. Tables A4 and A5 expand the body-level summary (Table 3) into per-dataset PPL and per-task zero-shot / LongBench breakdowns, highlighting where each objective wins. KV-COBRA KL takes most zero-shot tasks on LLaMA, and dominates LongBench especially on Qasper, MultiFieldQA, and NarrativeQA on Mistral. KV-COBRA MSE 
+
+retains PPL advantage on LLaMA Wikitext-2 and on most Qwen metrics. 
+
+Wall-clock at the primitive level. KV-COBRA stores the cache as packed b-bit codes plus a fold-in of the Hadamard rotation into Vr, so the per-head attention primitive at decode dequantizes and applies the inverse rotation in a single fused pass. Table A6 reports the speedup of this primitive over FP16-SDPA at the same shapes ( Hq = 32 , d = 128 ), under CUDA graphs on an RTX 6000 Ada. At the retained-rank choice used in the paper ( r = 16 ), KV-COBRA is 1.79 –1.89 × faster than FP16 across T ∈ { 32k , 64k , 128k }; the speedup holds up to r = 64 and only inverts at r = 128 where the quantized path’s BMM cost overwhelms the bandwidth savings. 
+
+Task-dependence of the K/V asymmetry. Table A7 lists the best (Kbpd , V bpd ) split of KV-COBRA KL for each LongBench task at total budgets 5/6/7 bpd, per model. The V-heavy preference holds at the level of individual tasks, not only the suite mean. The per-task best split is V-heavy in 40 
+
+of 45 (model, task, budget) cells, and all five exceptions are QASPER or MultiFieldQA, the most extraction-flavored tasks, where the best split drifts from V-heavy through balanced to K-heavy as the budget grows. The pattern matches the two error paths. K distortion perturbs addressing (logit noise through the softmax, most damaging when attention must be peaked), while V distortion perturbs 
+
+content (entering the output linearly and degrading smoothly). At Vbpd =2 the flat V spectrum leaves no low-error directions to drop, which is why the collapse is abrupt. 
+
+Layer-position sensitivity. C1/C2 weight every head purely by the magnitude of its spectral distortion. A natural question is whether equal distortion is equally harmful at every depth. To test this we apply the full 1-bpd KV-COBRA KL allocation to one layer quartile at a time (all other layers 23 Table A4: Per-dataset / per-task breakdown at 0.5 bpd ( k-only). PPL ( ↓), zero-shot (%, ↑), LongBench F1 ( ↑), all aggregate 5 seeds; cells report mean ± std .
+
+LLaMA Mistral Qwen Metric MSE KL MSE KL MSE KL 
+
+Perplexity (↓)Wikitext-2 16.29 ± 0.94 17.60 ± 0.72 9.05 ± 0.31 8.08 ± 0.07 10.06 ± 0.12 10.37 ± 0.13 
+
+PTB 30.75 ± 3.11 34.74 ± 1.06 81.88 ± 4.66 86.20 ± 2.10 19.50 ± 0.27 20.37 ± 0.34 
+
+C4 46.46 ± 4.10 59.60 ± 19.14 18.57 ± 1.20 14.44 ± 0.20 19.45 ± 0.16 20.76 ± 0.30 
+
+mean 31.17 ± 2.21 37.31 ± 6.44 36.50 ± 1.46 36.24 ± 0.68 16.33 ± 0.15 17.17 ± 0.23 
+
+Zero-shot accuracy (%, ↑)ARC-C 32.0 ± 1.4 30.9 ± 1.0 36.1 ± 1.2 35.2 ± 1.1 33.0 ± 1.6 35.5 ± 1.4 
+
+HellaSwag 46.9 ± 0.8 46.6 ± 0.7 49.7 ± 0.4 49.7 ± 0.5 48.2 ± 0.9 48.1 ± 0.9 
+
+PIQA 74.3 ± 1.4 73.3 ± 1.4 76.3 ± 1.1 76.2 ± 0.6 73.3 ± 1.7 72.7 ± 1.9 
+
+WinoGrande 61.1 ± 3.2 61.7 ± 0.9 69.0 ± 2.7 66.9 ± 1.6 61.6 ± 1.9 58.2 ± 2.8 
+
+MMLU 29.5 ± 1.8 30.2 ± 1.8 35.9 ± 1.0 34.5 ± 1.0 27.5 ± 1.1 28.1 ± 1.0 
+
+mean 48.8 ± 1.0 48.5 ± 0.5 53.4 ± 0.9 52.5 ± 0.3 48.7 ± 0.9 48.5 ± 0.7 
+
+LongBench F1 (↑)NarrativeQA 8.16 ± 1.31 7.99 ± 1.16 4.25 ± 0.75 6.12 ± 1.22 6.99 ± 0.41 7.36 ± 0.43 
+
+Qasper 9.61 ± 0.54 9.69 ± 1.27 10.77 ± 0.51 11.17 ± 1.25 9.61 ± 0.46 11.27 ± 0.91 
+
+MultiFieldQA 11.51 ± 1.25 11.44 ± 0.58 14.38 ± 2.32 18.37 ± 1.03 15.94 ± 0.49 16.09 ± 0.42 
+
+HotpotQA 3.27 ± 1.19 2.76 ± 0.44 3.67 ± 1.40 5.02 ± 1.40 3.88 ± 0.83 4.72 ± 0.74 
+
+MuSiQue 1.61 ± 0.47 1.88 ± 0.39 2.02 ± 0.46 2.98 ± 0.53 2.01 ± 0.54 2.06 ± 0.19 
+
+mean 6.83 ± 0.63 6.75 ± 0.58 7.02 ± 0.73 8.73 ± 0.42 7.69 ± 0.40 8.30 ± 0.31 
+
+Table A5: Per-dataset / per-task breakdown at 1.0 bpd ( k-only). PPL ( ↓), zero-shot (%, ↑), LongBench F1 ( ↑), all aggregate 5 seeds; cells report mean ± std .
+
+LLaMA Mistral Qwen Metric MSE KL MSE KL MSE KL 
+
+Perplexity (↓)Wikitext-2 16.45 ± 0.51 13.27 ± 0.60 7.47 ± 0.15 5.65 ± 0.03 8.14 ± 0.05 8.17 ± 0.03 
+
+PTB 25.01 ± 1.68 21.12 ± 1.17 59.38 ± 2.65 32.86 ± 0.33 14.79 ± 0.15 15.07 ± 0.12 
+
+C4 32.83 ± 1.27 26.39 ± 1.08 14.70 ± 0.61 9.18 ± 0.07 15.99 ± 0.15 16.35 ± 0.10 
+
+mean 24.76 ± 1.14 20.26 ± 0.87 27.18 ± 0.97 15.90 ± 0.13 12.97 ± 0.09 13.20 ± 0.06 
+
+Zero-shot accuracy (%, ↑)ARC-C 34.8 ± 1.2 34.9 ± 1.2 39.1 ± 1.6 40.1 ± 2.0 38.1 ± 1.2 38.2 ± 2.0 
+
+HellaSwag 46.8 ± 0.7 46.6 ± 0.8 50.1 ± 0.5 50.9 ± 0.6 50.8 ± 1.1 51.6 ± 0.7 
+
+PIQA 75.9 ± 0.7 76.1 ± 1.4 78.1 ± 1.3 78.3 ± 0.8 77.6 ± 1.2 77.7 ± 0.9 
+
+WinoGrande 64.6 ± 2.0 67.2 ± 2.2 71.0 ± 1.5 71.0 ± 1.7 64.3 ± 2.8 66.2 ± 1.7 
+
+MMLU 35.4 ± 1.1 33.1 ± 1.2 34.4 ± 1.2 35.2 ± 0.5 27.5 ± 1.3 28.8 ± 1.7 
+
+mean 51.5 ± 0.6 51.6 ± 0.7 54.6 ± 0.5 55.1 ± 0.5 51.7 ± 0.7 52.5 ± 0.7 
+
+LongBench F1 (↑)NarrativeQA 9.38 ± 0.40 11.21 ± 0.39 6.37 ± 1.22 8.34 ± 1.16 7.46 ± 0.36 7.65 ± 0.34 
+
+Qasper 9.60 ± 1.25 11.12 ± 0.78 11.57 ± 1.47 12.57 ± 1.37 12.02 ± 0.71 13.25 ± 0.64 
+
+MultiFieldQA 18.70 ± 1.24 22.28 ± 1.85 20.45 ± 1.23 21.73 ± 1.06 18.70 ± 0.59 19.24 ± 0.82 
+
+HotpotQA 5.56 ± 1.39 8.36 ± 2.03 5.82 ± 0.80 7.18 ± 0.33 4.88 ± 0.35 5.10 ± 0.54 
+
+MuSiQue 3.04 ± 0.41 3.83 ± 0.43 3.53 ± 0.32 3.77 ± 0.59 2.45 ± 0.17 2.40 ± 0.17 
+
+mean 9.25 ± 0.54 11.36 ± 0.77 9.55 ± 0.56 10.72 ± 0.49 9.10 ± 0.29 9.53 ± 0.30 
+
+Table A6: Per-layer attention speedup at Hq = 32 , d = 128 , CUDA-graph captured. Each cell is FP16-SDPA latency / KV-COBRA latency at the same T (i.e. > 1× means KV-COBRA is faster); 
+
+bold marks > 1×.
+
+r = 16 r = 32 r = 64 r = 128 
+
+T b = 2 b = 4 b = 2 b = 4 b = 2 b = 4 b = 2 b = 4 
+
+32k 1.83 × 1.84 × 1.77 × 1.73 × 1.40 × 1.31 × 0.44 × 0.32 ×
+
+64k 1.79 × 1.85 × 1.82 × 1.74 × 1.48 × 1.40 × 0.43 × 0.36 ×
+
+128k 1.89 × 1.88 × 1.85 × 1.76 × 1.49 × 1.38 × 0.40 × 0.33 ×
+
+24 Table A7: Best (Kbpd , V bpd ) split of KV-COBRA KL per LongBench task at total budgets 5 / 6 / 7 bpd. 
+
+Bold marks the five non-V-heavy cells.                           
+
+> Task LLaMA-3.1-8B Mistral-7B Qwen2.5-7B NarrativeQA (1,4) / (1,5) / (1,6) (1,4) / (2,4) / (3,4) (1,4) / (2,4) / (3,4) QASPER (1,4) / (2,4) / (3,4) (1,4) / (3,3) /(4,3) (2,3) / (3,3) /(4,3)
+> MultiFieldQA (1,4) / (2,4) / (1,6) (1,4) / (2,4) / (3,4) (2,3) / (3,3) / (3,4) HotpotQA (1,4) / (1,5) / (2,5) (1,4) / (2,4) / (2,5) (1,4) / (1,5) / (2,5) MuSiQue (2,3) / (2,4) / (2,5) (1,4) / (2,4) / (3,4) (2,3) / (2,4) / (3,4)
+
+Table A8: Calibration robustness vs. the paper’s n=32 WikiText-2 calibration. Allocation columns give ranges over the three models and bpd ∈ { 0.5, 1, 2}. LongBench is the five-task F1 mean of KV-COBRA KL at 1 bpd ( 50 samples per task).                                                      
+
+> Allocation vs. paper LongBench F1 Calibration budget corr. identical b⋆mean |∆r⋆|LLaMA Mistral Qwen (reference, n=32 WikiText-2) ———10.8 10.6 9.4 Disjoint WikiText-2 draw 0.992–1.000 97–100 % 0.45–1.17 9.6 10.0 9.4 PTB 0.984–0.998 94–100 % 0.76–3.05 12.1 10.5 8.9 C4 0.990–0.999 94–100 % 0.42–2.30 9.0 9.8 9.4
+> n= 8 (4×less data) 0.991–0.999 91–100 % 0.30–3.31 10.6 10.1 9.2
+> n= 128 (4×more data) 0.993–0.999 96–100 % 0.37–1.79 10.3 9.8 9.4
+
+FP16) and normalize each quartile’s Wikitext-2 PPL increase by its share of the distortion surrogate at the deployed (r, b ) (mean over three calibration seeds). Depth does matter. Per unit of surrogate distortion, the most sensitive quartile does 2.5–5.9× more damage than the least sensitive one, and the profile is model-dependent (LLaMA is most sensitive in the first quartile, Mistral in the early half, Qwen in the mid-to-late layers). Errors also compound across depth. Compressing all layers at once costs more than the sum of the per-quartile costs ( +7 .72 vs. Σ=4 .03 PPL on LLaMA). The current objective captures part of the depth effect through each layer’s spectrum but does not reweight across layers. Folding a depth weight measured at calibration time into C2 is a natural extension. 
+
+Calibration robustness. We recomputed the full C1+C2 solution under five alternative calibrations and compared each against the paper’s n=32 WikiText-2 draw (Table A8). Per-head budgets, chosen bit widths, and downstream scores all stay in a narrow band, and changing the calibration size perturbs the allocation about as much as re-drawing a same-size set. Calibrating on Python source instead of WikiText-2 moves HumanEval pass@1 by at most 1.6 points, so the allocation also transfers across domains. 
+
+Scale and family check. Table A9 repeats the three-metric comparison at 1 bpd ( k-only) on LLaMA-3.1-70B, Qwen2.5-72B, and Mixtral-8x7B (a mixture-of-experts model whose attention and KV structure match Mistral-7B, with MoE only in the feed-forward blocks). The pattern from the 
+
+7–8B models carries over. KV-COBRA KL stays closest to FP16 on every metric in all three families, while a different integer-grid baseline collapses on perplexity in each. One-time calibration at 70B takes 18 .3 s on four 48 GB GPUs ( 14 .6 s calibration forward passes, 2.2 s eigendecomposition of all 
+
+640 KV heads, 0.4 s C1+C2 solve with Hadamard fold-in, 1.1 s KL reordering), so per-head SVD is not a bottleneck at scale. 25 Table A9: Scale and family check at 1 bpd ( k-only). PPL ( ↓) is the mean over Wikitext-2/PTB/C4. Zero-shot ( ↑) is the mean over ARC-C, HellaSwag, PIQA, WinoGrande, and MMLU ( 200 samples each, with mean ± SD over 3 seeds for KV-COBRA and seed-invariant single runs otherwise). LongBench ( ↑) is the five-task F1 mean ( 25 samples per task). Shaded cell marks the best compressed method per column. 
+
+Model Method PPL Zero-shot LongBench 
+
+LLaMA-3.1-70B 
+
+FP16 5.38 60.4 14.3 KV-COBRA KL 6.97 58.4 ± 0.6 13.5 KV-COBRA MSE 9.50 58.5 ± 0.9 10.5 KQ-SVD 9.79 57.0 11.2 KVQuant > 10 3 55.9 5.1 KIVI 163.8 52.6 3.7 GEAR 245.1 51.4 5.6 
+
+Qwen2.5-72B 
+
+FP16 6.27 58.0 16.3 KV-COBRA KL 7.62 56.7 ± 0.7 16.8 KV-COBRA MSE 7.97 57.1 ± 0.5 14.2 KQ-SVD 7.69 54.9 13.6 KVQuant 910.1 54.4 4.1 KIVI 17.8 52.2 10.0 GEAR 50.7 50.9 8.1 
+
+Mixtral-8x7B 
+
+FP16 7.95 53.4 11.3 KV-COBRA KL 13.19 52.3 ± 0.8 11.3 KV-COBRA MSE 13.36 51.8 ± 0.1 10.0 KQ-SVD 27.02 52.2 7.7 KVQuant 323.5 49.1 3.6 KIVI 58.0 44.7 6.6 GEAR 96.0 43.9 7.0 
+
+26 J Long-context retrieval on RULER 
+
+This appendix collects the RULER [50] results, mean accuracy over the 13 subtasks at T =4096 (k-only). RULER probes retrieval directly and separates the two objectives far more than PPL does. The KL reordering’s margin over MSE is largest here (Table A10), consistent with the attention-quality framing of Section 4. At 2 bpd KV-COBRA KL reaches 92 .5/90 .6/90 .9 (single seed), within 0.7–3.6
+
+points of FP16. Figure A7 sweeps the full bit-rate range. 0.5 1 2 3 4                
+
+> bits / dim
+> 20 40 60 80 100
+> RULER-4k (%)
+> LLaMA-3.1-8B
+> 0.5 1 234
+> bits / dim
+> 20 40 60 80 100
+> Mistral-7B
+> 0.5 1 234
+> bits / dim
+> 20 40 60 80 100
+> Qwen2.5-7B
+> KIVI KVQuant SVDq KQ-SVD TurboQuant GEAR KV-COBRA (ours) KV-COBRA (ours) FP16
+
+Figure A7: RULER-4k mean accuracy versus bit rate ( k-only). Dashed lines mark FP16. Error bars are ±1 SD where multi-seed data exist. Table A10: RULER-4k mean accuracy ( ↑, mean over the 13 RULER subtasks at T =4096 , k-only, mean ± SD over 5 seeds). 
+
+LLaMA-3.1-8B Mistral-7B Qwen2.5-7B bpd KV-COBRA MSE KV-COBRA KL KV-COBRA MSE KV-COBRA KL KV-COBRA MSE KV-COBRA KL 
+
+0.5 20.9 ± 1.1 44.3 ± 2.3 36.7 ± 1.1 52.0 ± 0.7 30.7 ± 0.8 44.0 ± 0.7 
+
+1.0 67.1 ± 1.7 76.0 ± 0.7 69.1 ± 1.2 79.3 ± 1.4 63.0 ± 0.7 64.9 ± 1.2 
+
+FP16 93.5 91.3 94.5 
+
+Joint K+V splits on RULER. Table A11 repeats the joint K+V sweep of Table 4 on RULER-4k. The K/V asymmetry reverses relative to PPL and LongBench. The best cells are balanced to K-heavy, and starving K (Kbpd =1 ) costs 15 –30 points, whereas on PPL the V-heavy splits dominate. This matches the two error paths of Section 7. Retrieval needs peaked attention on a single token, so the extra bits buy the most on the addressing side. Table A11: K+V joint compression, RULER-4k mean accuracy ( ↑). Same splits as Table 4. Shaded cell marks the best score within each (model, T ) block. KQ-SVD’s near-zero Qwen scores mirror its PPL divergence in Table 4. 
+
+T = 5 T = 6 T = 7 
+
+Method (1 , 4) (2 , 3) (3 , 2) (1 , 5) (2 , 4) (3 , 3) (4 , 2) (1 , 6) (2 , 5) (3 , 4) (4 , 3) (5 , 2) FP16 
+
+LLaMA-3.1-8B 
+
+KV-COBRA MSE 67.33 87.61 92.07 68.65 88.33 93.71 93.11 68.60 88.24 93.72 93.88 93.43 94.11 KV-COBRA KL 76.53 92.35 93.60 75.86 92.77 94.02 93.53 76.80 92.82 94.31 94.24 93.50 KQ-SVD 33.68 33.73 87.98 33.73 36.20 91.46 92.98 34.88 36.16 92.08 93.71 93.03 
+
+Mistral-7B 
+
+KV-COBRA MSE 67.87 86.74 90.06 67.11 87.47 90.75 90.93 67.63 87.28 90.49 91.50 90.75 91.52 KV-COBRA KL 79.66 88.99 90.34 80.40 89.46 91.21 91.04 80.86 89.35 91.08 91.22 91.15 KQ-SVD 35.58 42.12 86.37 35.86 42.86 89.33 90.04 36.34 43.47 89.99 91.53 90.42 
+
+Qwen2.5-7B 
+
+KV-COBRA MSE 62.32 78.01 93.18 61.79 78.05 93.89 93.85 62.76 78.26 93.94 94.22 93.92 94.50 KV-COBRA KL 63.31 91.41 90.79 64.79 91.09 93.26 93.16 63.95 91.28 93.66 94.41 93.66 KQ-SVD 0.06 0.05 0.05 0.10 0.00 0.01 0.00 0.11 0.01 0.03 0.02 1.43 
+
+27
