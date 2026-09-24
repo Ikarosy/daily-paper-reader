@@ -1,0 +1,298 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-24T22:00:36.075182+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 3,
+    "deep_cap": 7,
+    "deep_selected": 3,
+    "quick_candidates": 4,
+    "quick_skim_target": 12,
+    "quick_selected": 4
+  },
+  "deep_dive": [
+    {
+      "id": "2609.24875v1",
+      "source": "arxiv",
+      "title": "SPHQuant: Efficient extreme low bit weight quantization for Vision-Language Models",
+      "abstract": "Recent foundation models are moving toward native multimodal Vision-Language Models (VLMs), making VLMs a central form of next-generation foundation models. However, their large language backbones make edge deployment difficult due to high memory footprint and memory-bound autoregressive decoding. Weight-only post-training quantization is a practical solution, but pushing VLMs to extreme low bit-widths remains challenging: existing rotation-free methods suffer from outliers at 2-3 bits, while rotation-based methods improve accuracy at the cost of additional runtime overhead. We propose SPHQuant, a rotation-free spherical weight-only quantization framework for VLMs. Instead of quantizing weights directly in Cartesian coordinates, SPHQuant decomposes each 8D weight vector into coordinate signs, radius, and a positive unit direction. This representation isolates outlier magnitude into the radius while keeping directions bounded and statistically regular. Based on this insight, SPHQuant allocates extra precision to the radius to mitigate accuracy degradation induced by outliers. It further uses a compact positive-direction codebook and fine-tunes codebook entries through angular parameterization to preserve the unit-sphere constraint. We also design a hardware-friendly GEMV kernel that keeps the direction codebook small enough for shared-memory lookup and packs radial bits efficiently. Experiments show that SPHQuant matches the performance of state-of-the-art extreme low-bit quantization methods while improving decode throughput over QTIP by 30.3% on RTX A6000. Code will be released in https://github.com/Pushazf/SPHQuant.",
+      "authors": [
+        "Kewei Zhang",
+        "Zheng Chen",
+        "Haotong Qin",
+        "Yulun Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-21T16:46:46+00:00",
+      "link": "https://arxiv.org/pdf/2609.24875v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "extreme low-bit weight-only quantization at 2-3 bits for VLMs",
+      "llm_evidence_cn": "面向VLM的2-3比特极低比特权重量化",
+      "llm_evidence": "面向VLM的2-3比特极低比特权重量化",
+      "canonical_evidence": "面向VLM的2-3比特极低比特权重量化",
+      "llm_tldr_en": "SPHQuant proposes a rotation-free spherical weight-only post-training quantization framework that pushes vision-language models to 2-3 bit weights, avoiding outlier failures without rotation runtime overhead.",
+      "llm_tldr_cn": "视觉语言模型因语言主干庞大而难以边缘部署，权重仅量化是实用方案，但现有免旋转方法在2至3比特下受离群值困扰，旋转方法又带来额外运行时开销。SPHQuant提出免旋转的球面权重量化框架，不再在笛卡尔坐标下直接量化权重，而是将其映射到球面空间进行量化。实验表明该方法在极低比特下兼顾精度与效率，为VLM端侧部署提供了新的量化范式。",
+      "llm_tldr": "视觉语言模型因语言主干庞大而难以边缘部署，权重仅量化是实用方案，但现有免旋转方法在2至3比特下受离群值困扰，旋转方法又带来额外运行时开销。SPHQuant提出免旋转的球面权重量化框架，不再在笛卡尔坐标下直接量化权重，而是将其映射到球面空间进行量化。实验表明该方法在极低比特下兼顾精度与效率，为VLM端侧部署提供了新的量化范式。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "2 bit VQ",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.26425v1",
+      "source": "arxiv",
+      "title": "QuantWM: Temporally Consistent 2-Bit KV Cache Quantization for World Models and Video Generation",
+      "abstract": "KV cache memory has become a major deployment bottleneck for video generation and world models, which motivates low-bit quantization study for efficiency. Existing 2-bit KV cache quantization methods can achieve nearly lossless performance on video benchmarks such as VBench, however, we find that they still cause severe temporal flickering and visual degradation. Meanwhile, deeper investigates show that Key quantization produces smaller reconstruction errors than Value, but surprisingly leads to much larger output degradation. We trace this discrepancy to attention: small Key perturbations can change the attention logits, i.e., QK^\\top, and shift the temporal-spatial tokens selected by Queries. These observations motivate us to explicitly preserve attention logits and temporal-spatial token selection during KV cache quantization to alleviate the visual degradation problem. To address this issue, we present QuantWM, a training-free and strictly causal 2-bit KV cache quantization framework. QuantWM introduces two complementary techniques to mitigate the attention shifts. Firstly, quantization-sensitivity-aware clustering (QSAC) jointly considers historical Query sensitivity and residual ranges to select INT2-friendly Key centroids, which reduces quantization errors in channels that are more critical to attention. In addition, principal-subspace attention compensation (PSAC) restores the remaining Key errors along the dominant Query subspace using low-rank projections, which provides a direct and efficient correction to stabilize attention logits. Extensive experiments on Causal-Forcing, LingBot-World-v2, HY-World 1.5, Matrix-Game-2 and Longcat-Video demonstrate that QuantWM significantly improves visual quality and temporal consistency, while outperforming existing methods across image and video quality metrics with up to 6.20x KV cache memory compression and limited additional overhead.",
+      "authors": [
+        "Jiaqi Zhao",
+        "Xiaobin Hu",
+        "Bo Yin",
+        "Junpeng Jiang",
+        "Miao Zhang",
+        "Shuicheng Yan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-09-22T13:50:54+00:00",
+      "link": "https://arxiv.org/pdf/2609.26425v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "2-bit KV cache quantization for video generation and world models",
+      "llm_evidence_cn": "面向视频生成与世界模型的2比特KV缓存量化",
+      "llm_evidence": "面向视频生成与世界模型的2比特KV缓存量化",
+      "canonical_evidence": "面向视频生成与世界模型的2比特KV缓存量化",
+      "llm_tldr_en": "2-bit KV cache quantization for video generation is nearly lossless on VBench yet still causes temporal flickering. The authors trace this to Key quantization perturbing attention logits and token selection. QuantWM delivers temporally consistent 2-bit quantization.",
+      "llm_tldr_cn": "KV缓存显存已成为视频生成与世界模型部署的瓶颈，促使研究者探索极低比特量化；现有2比特KV缓存量化在VBench上近乎无损，却仍造成严重的时间闪烁与画面退化。作者发现Key量化重建误差更小却导致更大输出退化，根源在于Key扰动改变注意力logits QK^T，进而偏移查询选中的时空token。据此提出QuantWM，实现时间一致的2比特KV缓存量化。该工作揭示了极低比特量化中的注意力敏感性，对视频生成的低比特部署有实际价值。",
+      "llm_tldr": "KV缓存显存已成为视频生成与世界模型部署的瓶颈，促使研究者探索极低比特量化；现有2比特KV缓存量化在VBench上近乎无损，却仍造成严重的时间闪烁与画面退化。作者发现Key量化重建误差更小却导致更大输出退化，根源在于Key扰动改变注意力logits QK^T，进而偏移查询选中的时空token。据此提出QuantWM，实现时间一致的2比特KV缓存量化。该工作揭示了极低比特量化中的注意力敏感性，对视频生成的低比特部署有实际价值。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "2 bit VQ",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.26342v1",
+      "source": "arxiv",
+      "title": "Geometry-Aware Hyperbolic Residual Quantization",
+      "abstract": "Residual Vector Quantization turns continuous representations into discrete, multi-level token sequences. Yet most methods operate in Euclidean space, despite the coarse-to-fine structure of the resulting codes and the latent hierarchies present in many data domains. Hyperbolic geometry offers a natural alternative for hierarchical representations, but naive hyperbolic extensions introduce geometric inconsistencies: non-associative hyperbolic addition prevents consistent residual aggregation, while standard straight-through gradient estimation ignores the geometry of the latent space. We propose a geometry-aware hyperbolic residual quantization that addresses these issues in both the forward and backward passes. In the forward pass, Hyperbolic Residual Aggregation restores the telescoping behavior of residual quantization on the Poincare ball. In the backward pass, a discounted Hyperbolic Straight-Through Estimator routes the reconstruction gradient through the quantizer as a single geometric block, avoiding unstable recursive gradient transport across residual stages. Evaluations on hierarchical prediction, recommendation, image tokenization, and neural audio coding tasks show that our method improves the stability and structural organization of hyperbolic residual codes over naive hyperbolic baselines. At the same time, we observe a clear structure-compression trade-off: Euclidean residual quantization remains preferable for pure compression, while geometry-aware hyperbolic quantization is most useful for hierarchically organized discrete latent spaces.",
+      "authors": [
+        "Alessio Colombo",
+        "Melika Ayoughi"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-22T12:50:18+00:00",
+      "link": "https://arxiv.org/pdf/2609.26342v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "hyperbolic residual vector quantization with multi-level codebook structure",
+      "llm_evidence_cn": "双曲残差矢量量化与多级码本结构",
+      "llm_evidence": "双曲残差矢量量化与多级码本结构",
+      "canonical_evidence": "双曲残差矢量量化与多级码本结构",
+      "llm_tldr_en": "Residual vector quantization discretizes continuous representations into multi-level code sequences but is mostly Euclidean, ignoring latent hierarchies. This work proposes geometry-aware hyperbolic residual quantization fixing aggregation and gradient issues. It yields more consistent coarse-to-fine codes.",
+      "llm_tldr_cn": "残差矢量量化把连续表示转成离散多级码序列，但多数方法在欧氏空间中进行，忽略了码的由粗到细结构和数据中的潜在层次。直接做双曲扩展又会因双曲加法非结合、直通梯度忽略流形几何而产生不一致。本文提出几何感知的双曲残差量化，在前后向分别用双曲残差聚合与几何感知梯度修复上述问题。结果在保持层次结构的同时获得更一致的量化码，为极低比特矢量量化与码本设计提供了新几何方案。",
+      "llm_tldr": "残差矢量量化把连续表示转成离散多级码序列，但多数方法在欧氏空间中进行，忽略了码的由粗到细结构和数据中的潜在层次。直接做双曲扩展又会因双曲加法非结合、直通梯度忽略流形几何而产生不一致。本文提出几何感知的双曲残差量化，在前后向分别用双曲残差聚合与几何感知梯度修复上述问题。结果在保持层次结构的同时获得更一致的量化码，为极低比特矢量量化与码本设计提供了新几何方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.25916v1",
+      "source": "arxiv",
+      "title": "Beyond Scalar Sensitivity: Activation-Aware Mixed-Precision LLM Quantization with Cross-Layer Refinement",
+      "abstract": "Mixed-precision weight quantization is commonly formulated as a Multiple-Choice Knapsack Problem (MCKP), yet existing solvers rely on scalar sensitivity proxies that collapse each weight matrix's Hessian into a single number and treat every module independently. We prove that even the optimal scalar proxy incurs multiplicative distortion up to $\\sqrt{κ(\\mathbf{A})κ(\\mathbf{B})}$ relative to the full activation-aware quadratic, where $κ(\\mathbf{A})$ and $κ(\\mathbf{B})$ denote the condition numbers of the input- and output-side Hessian factors. This bound varies from $10^1$ to $10^{13}$ for typical LLM modules, making inter-module sensitivity ranking unreliable. To address these limitations, we propose Cross-layer Activation-aware Sensitivity Allocation (CASA), a two-phase method. In Stage 1, the scalar proxy is replaced by an activation-aware metric derived from the Kronecker-factored Hessian, reducing the MCKP to a form whose continuous relaxation admits a closed-form solution. In Stage 2, a cross-layer-aware local search evaluates bit-width updates using the end-to-end model loss. Experiments on multiple LLMs across different bit budgets show that CASA achieves lower perplexity than the latest scalar-proxy baselines, especially at ultra-low bit-widths ($<3$ bits per weight). Moreover, the performance gain in zero-shot accuracy tracks the per-model average condition-number over modules, confirming the distortion bound as a practical indicator of scalar-proxy failure.",
+      "authors": [
+        "Akihiro Yoshida",
+        "Yuma Ichikawa"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "stat.AP",
+        "stat.ME",
+        "stat.ML"
+      ],
+      "published": "2026-09-22T09:22:39+00:00",
+      "link": "https://arxiv.org/pdf/2609.25916v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "activation-aware mixed-precision LLM quantization beyond scalar sensitivity",
+      "llm_evidence_cn": "超越标量敏感度的激活感知混合精度量化",
+      "llm_evidence": "超越标量敏感度的激活感知混合精度量化",
+      "canonical_evidence": "超越标量敏感度的激活感知混合精度量化",
+      "llm_tldr_en": "The paper proves scalar sensitivity proxies distort the full activation-aware objective by up to sqrt of condition-number product, and proposes cross-layer activation-aware mixed-precision LLM quantization to fix unreliable module ranking.",
+      "llm_tldr_cn": "针对混合精度权重量化中现有求解器用标量敏感度把每个权重矩阵的Hessian塌缩成单一数值、并独立处理各模块的问题，论文证明即使最优标量代理也会相对完整激活感知二次型产生最高约√(κ(A)κ(B))的乘性失真。该上界在典型大模型模块上从10^1到10^13不等，导致模块间敏感度排序不可靠，作者据此提出跨层激活感知的量化细化方法。",
+      "llm_tldr": "针对混合精度权重量化中现有求解器用标量敏感度把每个权重矩阵的Hessian塌缩成单一数值、并独立处理各模块的问题，论文证明即使最优标量代理也会相对完整激活感知二次型产生最高约√(κ(A)κ(B))的乘性失真。该上界在典型大模型模块上从10^1到10^13不等，导致模块间敏感度排序不可靠，作者据此提出跨层激活感知的量化细化方法。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "papers provide SoTA/advanced results",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.24433v1",
+      "source": "arxiv",
+      "title": "FoldQuantVLA: Native Low-Bit Quantization of Vision-Language-Action Models via Consistent Folding",
+      "abstract": "Low-bit vision-language-action inference must reduce observation-to-action latency while preserving robot behavior. We present FoldQuantVLA, a post-training quantization framework that carries a consistent activation representation through calibration, weight rounding, and native integer execution. It combines channel scaling and block Hadamard transforms with dynamic per-token quantization, without policy retraining. Custom TensorRT plugins execute projections in both the language backbone and iterative action expert with four-bit weights and activations (W4A4) on Ada GPUs and Jetson AGX Orin. Evaluation spans LIBERO, SimplerEnv, and two robot platforms. Across three GR00T checkpoints and $π_{0.5}$, W4A4 achieves $1.20$ to $1.33\\times$ speedups over floating-point TensorRT on Orin and $1.25$ to $1.52\\times$ on desktop. Retaining language attention-output and feed-forward down projections at eight bits (W8A8) improves held-out action fidelity on all four checkpoints. Across four real-robot tasks, this configuration raises observed GR00T N1.7 success from $80.0\\%$ with uniform W4A4 to $92.5\\%$ over 80 trials per configuration, with a measured additional Orin latency of 1 ms.",
+      "authors": [
+        "Hung T. Ho",
+        "Khanh D. Nguyen",
+        "Quang D. Nguyen",
+        "Thanh Q. Duong",
+        "Ngan Le",
+        "Meng Guo",
+        "Vien A. Ngo",
+        "An T. Le"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "eess.SY"
+      ],
+      "published": "2026-09-21T11:28:41+00:00",
+      "link": "https://arxiv.org/pdf/2609.24433v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "native low-bit W4A4 post-training quantization with consistent folding",
+      "llm_evidence_cn": "原生低比特W4A4训练后量化与一致性折叠",
+      "llm_evidence": "原生低比特W4A4训练后量化与一致性折叠",
+      "canonical_evidence": "原生低比特W4A4训练后量化与一致性折叠",
+      "llm_tldr_en": "FoldQuantVLA is a post-training quantization framework for vision-language-action models that keeps a consistent activation representation across calibration and native integer execution, using W4A4 with channel scaling and Hadamard transforms to speed up robot policies without retraining.",
+      "llm_tldr_cn": "针对低比特视觉-语言-动作推理需兼顾低延迟与行为保持的问题，本文提出训练后量化框架FoldQuantVLA。该方法在标定、权重舍入与原生整数执行间保持一致的激活表示，融合通道缩放、块Hadamard变换与动态逐token量化，无需策略重训练。实验在Ada GPU与Jetson上以W4A4执行，跨三个GR00T检查点与π0.5取得1.20倍以上加速。该工作表明原生整数低比特推理可用于机器人策略部署。",
+      "llm_tldr": "针对低比特视觉-语言-动作推理需兼顾低延迟与行为保持的问题，本文提出训练后量化框架FoldQuantVLA。该方法在标定、权重舍入与原生整数执行间保持一致的激活表示，融合通道缩放、块Hadamard变换与动态逐token量化，无需策略重训练。实验在Ada GPU与Jetson上以W4A4执行，跨三个GR00T检查点与π0.5取得1.20倍以上加速。该工作表明原生整数低比特推理可用于机器人策略部署。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.26333v1",
+      "source": "arxiv",
+      "title": "Disaggregated Quantization: Specializing LLM Prefill and Decode",
+      "abstract": "Prefill and decode reward different approaches to quantization: low-precision arithmetic accelerates prompt processing, while compact weights reduce memory traffic during generation. We propose \"disaggregated quantization\" (DQ), which specializes computation formats, weights and storage placement to both of these phases. On Qwen 3 and Gemma 3, removing activation quantization specifically on decode improves accuracy on decode-heavy tasks without increasing inference cost. Training separate compute-native prefill weights accelerates prompt processing relative to weight-only inference while matching or exceeding its accuracy at 2-3-bit decode on both decode-heavy and prefill-heavy tasks. With released Qwen3.8-27B GGUF decoders, training an NVFP4 prefiller improves 1-bit accuracy by 32.5 points on MMLU-Pro and 35.3 on MMMU-Pro without modifying the decode checkpoint. To accommodate the additional checkpoint on a single device, offloaded disaggregated prefill (ODP) streams its weights from SSD, amortizing loading over prompt length. On the same 27B model, ODP delivers a 1.78x time-to-first-token speedup over the weight-only baseline at 8K prompt length in llama.cpp. We evaluate accuracy under disaggregated serving in vLLM and further validate shared-weight format disaggregation through post-training quantization on models up to 2.8T parameters.",
+      "authors": [
+        "Andrei Panferov",
+        "Maximilian Kleinegger",
+        "Sweta Priyadarshi",
+        "Tijmen Blankevoort",
+        "Dan Alistarh"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-22T12:44:16+00:00",
+      "link": "https://arxiv.org/pdf/2609.26333v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "specialized low-bit quantization with 2-3-bit decode for LLM deployment",
+      "llm_evidence_cn": "面向LLM部署的2-3比特解码专用低比特量化",
+      "llm_evidence": "面向LLM部署的2-3比特解码专用低比特量化",
+      "canonical_evidence": "面向LLM部署的2-3比特解码专用低比特量化",
+      "llm_tldr_en": "Disaggregated Quantization specializes computation formats, weights, and storage for LLM prefill versus decode. Removing activation quantization on decode improves accuracy at no extra cost, and 2-3-bit decode matches or exceeds weight-only inference on Qwen 3 and Gemma 3.",
+      "llm_tldr_cn": "针对预填充偏好低精度算术、解码偏好紧凑权重，而统一量化难以兼顾的问题，本文提出解耦量化（DQ）。该方法为两个阶段分别定制计算格式、权重表示与存储位置，并在解码端去除激活量化。在Qwen3与Gemma3上，DQ在解码密集任务上提升精度且不增加推理开销，2-3比特解码精度可匹配或超越权重仅量化，预填充速度也得到加速。该工作为按阶段定制低比特部署提供了实用方案。",
+      "llm_tldr": "针对预填充偏好低精度算术、解码偏好紧凑权重，而统一量化难以兼顾的问题，本文提出解耦量化（DQ）。该方法为两个阶段分别定制计算格式、权重表示与存储位置，并在解码端去除激活量化。在Qwen3与Gemma3上，DQ在解码密集任务上提升精度且不增加推理开销，2-3比特解码精度可匹配或超越权重仅量化，预填充速度也得到加速。该工作为按阶段定制低比特部署提供了实用方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.28270v1",
+      "source": "arxiv",
+      "title": "Predicting Quantization Price for Selecting PTQ Configurations Before Deployment",
+      "abstract": "Weight-space post-training quantization (PTQ) must choose finite formats, granularities, quantizer families, transformations, and bits before the completed quantized model reveals its output-distribution drift. Existing PTQ methods predict important pieces of this degradation, including reconstruction error, Hessian sensitivity, transformation effects, and downstream loss, but these pieces are usually scored after fixing the quantization geometry or inside separate configuration families. We formulate weight-space PTQ as pre-deployment configuration selection using priced layer-output error. Each admissible layer configuration is treated as an error generator with a deployment cost, which induces a layer-output error covariance $\\boldsymbolΣ_l(α_l)$, and the full-precision model prices that covariance by downstream curvature, $\\widehatρ_l(α_l)=\\frac{1}{2}\\operatorname{Tr}\\left(\\widehat{\\mathbf{H}}_l\\,\\widehat{\\boldsymbolΣ}_l(α_l)\\right)$. The price follows from full-precision-to-quantized forward KL, whose first-order term cancels at the reference model. It turns reconstruction and diagonal scores into reduced proxies that drop price factors, while finite formats, codebooks, granularities, and equivalent transformations become comparable candidates through the covariances they induce and the costs they pay. A trace reduction then yields a calibration-time price table and a budgeted price-guided selector, making fixed-geometry bit allocation a special case rather than the organizing problem.",
+      "authors": [
+        "Junbin Qiu",
+        "Jian Mu",
+        "Weitong Zhang",
+        "Yao Shu"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-09-23T15:25:44+00:00",
+      "link": "https://arxiv.org/pdf/2609.28270v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "pre-deployment selection of PTQ bit-widths, granularities and quantizer families",
+      "llm_evidence_cn": "部署前选择PTQ比特数、粒度与量化器族",
+      "llm_evidence": "部署前选择PTQ比特数、粒度与量化器族",
+      "canonical_evidence": "部署前选择PTQ比特数、粒度与量化器族",
+      "llm_tldr_en": "The paper formulates weight-space PTQ as pre-deployment configuration selection using priced layer-output error, treating each admissible layer configuration as an error generator with a deployment cost to choose bits and quantizers before deployment.",
+      "llm_tldr_cn": "针对权重量化PTQ必须在模型完成前选定格式、粒度、量化器族、变换与比特数的难题，论文提出以定价层输出误差为核心的部署前配置选择框架，把每个可允许的层配置看作带部署代价的误差生成器，并推导其层输出误差协方差。由此可在同一空间内统一比较不同量化几何与配置族，从而在部署前选出更优的PTQ方案。",
+      "llm_tldr": "针对权重量化PTQ必须在模型完成前选定格式、粒度、量化器族、变换与比特数的难题，论文提出以定价层输出误差为核心的部署前配置选择框架，把每个可允许的层配置看作带部署代价的误差生成器，并推导其层输出误差协方差。由此可在同一空间内统一比较不同量化几何与配置族，从而在部署前选出更优的PTQ方案。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "3 bit SQ",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
