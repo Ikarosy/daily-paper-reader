@@ -1,0 +1,330 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-25T22:41:13.849028+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 2,
+    "deep_cap": 7,
+    "deep_selected": 2,
+    "quick_candidates": 6,
+    "quick_skim_target": 12,
+    "quick_selected": 6
+  },
+  "deep_dive": [
+    {
+      "id": "2609.29727v1",
+      "source": "arxiv",
+      "title": "VQ-LIC: Shared Vector-Quantized Learned Image Compression on a Resource-Constrained FPGA",
+      "abstract": "Learned image compression (LIC) is hard to deploy on severely resource-constrained FPGAs, since how fast it actually runs depends not just on arithmetic count, but also on memory traffic, imbalance between different operations, and how the hardware batches its work. We present VQ-LIC, an asymmetric edge-cloud codec in which a compact INT8 depthwise (DW)-pointwise (PW) analysis transform and multi-codebook vector quantization (VQ) run at the edge on a reusable DW/PW engine pair, while reconstruction is handled by a larger cloud decoder. Since VQ codeword matching is expressible as a dot product, it is mapped directly onto the same PW engine, removing the need for a separate VQ compute array, to our knowledge a first for FPGA LIC. A novel latency model, derived from deterministic RTL cycle counts of an FPGA's read, DW, PW, and write costs, predicts an analysis transform's per-block latency; since VQ shares the same PW datapath, the model applies to VQ as well. Validated directly against silicon, the model predicts deployed analysis and VQ latency within 0.26\\% and 0.05\\%, and guides the selection of a three-block $16$-$48$-$64$ transform. Post-training codebook reduction then cuts VQ arithmetic and codebook storage by $4\\times$ and shrinks the fixed-width latent representation. On a 220-DSP Zynq-7020, VQ-LIC's mid-rate preset reaches 0.1398 bits per pixel at 28.69 dB PSNR and 13.06 dB MS-SSIM on CLIC~2017, outperforming a similarly sized neural encoder and reaching a rate-distortion range comparable to a codec three orders of magnitude larger. The complete 0.1945-kMAC/pixel analysis-VQ pipeline runs at 47.98 frames per second and 42.84 mJ per frame on silicon, using an order of magnitude fewer DSPs than comparable FPGA LIC accelerators while achieving lower bitrate, higher throughput, and lower energy per frame at a modest PSNR tradeoff.",
+      "authors": [
+        "Muhammad Fahd Ibrahim Bhatti",
+        "Abdullah Bin Faisal",
+        "Ahsan Usman",
+        "Naveed Anwar Bhatti",
+        "Muhammad Ali Siddiqi"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "eess.IV"
+      ],
+      "published": "2026-09-24T12:41:44+00:00",
+      "link": "https://arxiv.org/pdf/2609.29727v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "multi-codebook vector quantization with codeword matching mapped to a dot-product engine",
+      "llm_evidence_cn": "多码本矢量量化，码字匹配映射为点积引擎",
+      "llm_evidence": "多码本矢量量化，码字匹配映射为点积引擎",
+      "canonical_evidence": "多码本矢量量化，码字匹配映射为点积引擎",
+      "llm_tldr_en": "VQ-LIC runs a compact INT8 depthwise-pointwise analysis transform and multi-codebook vector quantization at the edge, mapping codeword matching as a dot product onto the same engine, avoiding a dedicated VQ array on resource-constrained FPGA.",
+      "llm_tldr_cn": "学习图像压缩在严重资源受限的FPGA上部署困难，实际速度取决于访存流量、算子间的负载失衡与硬件批处理方式，而不仅是算术运算量。本文提出VQ-LIC边云非对称编解码器，边缘端以紧凑的INT8深度可分离与逐点卷积引擎运行多码本矢量量化，云端负责重建；由于码字匹配可写成点积，VQ被直接映射到同一逐点引擎上，省去独立的VQ计算阵列。该设计据称是FPGA学习图像压缩的首次实现，为极低比特矢量量化与码本/LUT的高效硬件落地提供了可行路径。",
+      "llm_tldr": "学习图像压缩在严重资源受限的FPGA上部署困难，实际速度取决于访存流量、算子间的负载失衡与硬件批处理方式，而不仅是算术运算量。本文提出VQ-LIC边云非对称编解码器，边缘端以紧凑的INT8深度可分离与逐点卷积引擎运行多码本矢量量化，云端负责重建；由于码字匹配可写成点积，VQ被直接映射到同一逐点引擎上，省去独立的VQ计算阵列。该设计据称是FPGA学习图像压缩的首次实现，为极低比特矢量量化与码本/LUT的高效硬件落地提供了可行路径。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "Codebook/LUT",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.26342v1",
+      "source": "arxiv",
+      "title": "Geometry-Aware Hyperbolic Residual Quantization",
+      "abstract": "Residual Vector Quantization turns continuous representations into discrete, multi-level token sequences. Yet most methods operate in Euclidean space, despite the coarse-to-fine structure of the resulting codes and the latent hierarchies present in many data domains. Hyperbolic geometry offers a natural alternative for hierarchical representations, but naive hyperbolic extensions introduce geometric inconsistencies: non-associative hyperbolic addition prevents consistent residual aggregation, while standard straight-through gradient estimation ignores the geometry of the latent space. We propose a geometry-aware hyperbolic residual quantization that addresses these issues in both the forward and backward passes. In the forward pass, Hyperbolic Residual Aggregation restores the telescoping behavior of residual quantization on the Poincare ball. In the backward pass, a discounted Hyperbolic Straight-Through Estimator routes the reconstruction gradient through the quantizer as a single geometric block, avoiding unstable recursive gradient transport across residual stages. Evaluations on hierarchical prediction, recommendation, image tokenization, and neural audio coding tasks show that our method improves the stability and structural organization of hyperbolic residual codes over naive hyperbolic baselines. At the same time, we observe a clear structure-compression trade-off: Euclidean residual quantization remains preferable for pure compression, while geometry-aware hyperbolic quantization is most useful for hierarchically organized discrete latent spaces.",
+      "authors": [
+        "Alessio Colombo",
+        "Melika Ayoughi"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-22T12:50:18+00:00",
+      "link": "https://arxiv.org/pdf/2609.26342v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "residual vector quantization with codebook levels and geometric aggregation",
+      "llm_evidence_cn": "带多级码本的残差向量量化与几何聚合",
+      "llm_evidence": "带多级码本的残差向量量化与几何聚合",
+      "canonical_evidence": "带多级码本的残差向量量化与几何聚合",
+      "llm_tldr_en": "Residual VQ yields multi-level codes but usually in Euclidean space, ignoring hierarchies. The authors propose geometry-aware hyperbolic residual quantization with consistent hyperbolic aggregation and geometry-aware gradients for better hierarchical discrete codes.",
+      "llm_tldr_cn": "残差向量量化把连续表示转成多级离散码，但其码本多建立在欧氏空间，难以匹配数据固有的层次结构。该文提出几何感知的双曲残差量化，在前向通过双曲残差聚合保证多级码的一致聚合，在反向设计尊重双曲几何的梯度估计以替代普通直通估计。实验显示该方法缓解了非结合加法与几何失配问题，在层次化表示上优于欧氏基线。其意义在于把码本的粗到细结构显式建模，为层次化离散表示与超低比特编码提供新范式。",
+      "llm_tldr": "残差向量量化把连续表示转成多级离散码，但其码本多建立在欧氏空间，难以匹配数据固有的层次结构。该文提出几何感知的双曲残差量化，在前向通过双曲残差聚合保证多级码的一致聚合，在反向设计尊重双曲几何的梯度估计以替代普通直通估计。实验显示该方法缓解了非结合加法与几何失配问题，在层次化表示上优于欧氏基线。其意义在于把码本的粗到细结构显式建模，为层次化离散表示与超低比特编码提供新范式。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.24433v1",
+      "source": "arxiv",
+      "title": "FoldQuantVLA: Native Low-Bit Quantization of Vision-Language-Action Models via Consistent Folding",
+      "abstract": "Low-bit vision-language-action inference must reduce observation-to-action latency while preserving robot behavior. We present FoldQuantVLA, a post-training quantization framework that carries a consistent activation representation through calibration, weight rounding, and native integer execution. It combines channel scaling and block Hadamard transforms with dynamic per-token quantization, without policy retraining. Custom TensorRT plugins execute projections in both the language backbone and iterative action expert with four-bit weights and activations (W4A4) on Ada GPUs and Jetson AGX Orin. Evaluation spans LIBERO, SimplerEnv, and two robot platforms. Across three GR00T checkpoints and $π_{0.5}$, W4A4 achieves $1.20$ to $1.33\\times$ speedups over floating-point TensorRT on Orin and $1.25$ to $1.52\\times$ on desktop. Retaining language attention-output and feed-forward down projections at eight bits (W8A8) improves held-out action fidelity on all four checkpoints. Across four real-robot tasks, this configuration raises observed GR00T N1.7 success from $80.0\\%$ with uniform W4A4 to $92.5\\%$ over 80 trials per configuration, with a measured additional Orin latency of 1 ms.",
+      "authors": [
+        "Hung T. Ho",
+        "Khanh D. Nguyen",
+        "Quang D. Nguyen",
+        "Thanh Q. Duong",
+        "Ngan Le",
+        "Meng Guo",
+        "Vien A. Ngo",
+        "An T. Le"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "eess.SY"
+      ],
+      "published": "2026-09-21T11:28:41+00:00",
+      "link": "https://arxiv.org/pdf/2609.24433v1",
+      "tags": [
+        "keyword:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "native low-bit quantization of vision-language-action models",
+      "llm_evidence_cn": "视觉-语言-动作模型的低比特量化",
+      "llm_evidence": "视觉-语言-动作模型的低比特量化",
+      "canonical_evidence": "视觉-语言-动作模型的低比特量化",
+      "llm_tldr_en": "Low-bit VLA inference must cut observation-to-action latency while keeping robot behavior. FoldQuantVLA uses consistent activation folding, channel scaling and block Hadamard transforms for W4A4 native integer execution without retraining.",
+      "llm_tldr_cn": "视觉-语言-动作模型推理需在保持机器人行为的同时降低观测到动作的时延，低比特量化是关键途径。FoldQuantVLA提出后训练量化框架，通过一致的激活表示、通道缩放与分块Hadamard变换，实现四比特权重与激活的整型原生执行，无需策略再训练。作者定制TensorRT插件在Ada GPU与Jetson上部署，并在LIBERO、SimplerEnv及真实机器人平台上验证性能。该工作展示了极低比特量化在具身智能大模型上的实用可行性。",
+      "llm_tldr": "视觉-语言-动作模型推理需在保持机器人行为的同时降低观测到动作的时延，低比特量化是关键途径。FoldQuantVLA提出后训练量化框架，通过一致的激活表示、通道缩放与分块Hadamard变换，实现四比特权重与激活的整型原生执行，无需策略再训练。作者定制TensorRT插件在Ada GPU与Jetson上部署，并在LIBERO、SimplerEnv及真实机器人平台上验证性能。该工作展示了极低比特量化在具身智能大模型上的实用可行性。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.21834v1",
+      "source": "arxiv",
+      "title": "Beyond Shadow Weights: Quantization-Aware Training as Quantized-Endpoint Descent",
+      "abstract": "Quantization-aware training (QAT) updates a full-precision shadow weight $\\mathbf{x}$ but deploys the quantized endpoint $Q(\\mathbf{x})$. Existing explanations for QAT largely view its success through the lens of shadow weights: QAT can move $\\mathbf{x}$ toward flatter basins, gain robustness from quantization-induced oscillations, or balance the shadow loss $f(\\mathbf{x})$ against the quantization error $\\|\\mathbf{x}-Q(\\mathbf{x})\\|_2$. These perspectives do not directly explain the empirical observation that the deployed endpoint loss $f(Q(\\mathbf{x}))$ improves while the shadow loss $f(\\mathbf{x})$ does not, and can even increase substantially. In this paper, we offer a different explanation by treating QAT as finite-grid endpoint dynamics. Motivated by the approximate normality of rescaled pretrained weights, we propose an idealized model for the residual phase, which records where each shadow weight sits inside its quantization cell as a fraction of the cell width. This model leads to a crossing law that determines which coordinates cross quantization boundaries after a shadow update. Inspired by the idealized model and signal-imbalance phenomenon in QAT, we further propose QAR (Quantization with Amplified Routing), an algorithmic framework that directly operates on the quantization code. In contrast to QAT, QAR is both theoretically grounded and memory-efficient: it admits feasible-gradient bounds for a family of power amplifiers up to unavoidable finite-grid floors without retaining a full-precision shadow weight copy. Experiments on post-training of large language models provide evidence consistent with the endpoint view and show that QAR can be comparable to or better than QAT with smaller memory cost.",
+      "authors": [
+        "Sheng-An Xu",
+        "Hanyang Li",
+        "Jianhao Ma",
+        "Ying Cui"
+      ],
+      "primary_category": "math.OC",
+      "categories": [
+        "math.OC"
+      ],
+      "published": "2026-09-18T14:32:09+00:00",
+      "link": "https://arxiv.org/pdf/2609.21834v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Quantization-aware training, relevant to low-bit quantization",
+      "llm_evidence_cn": "量化感知训练，与低比特量化相关",
+      "llm_evidence": "量化感知训练，与低比特量化相关",
+      "canonical_evidence": "量化感知训练，与低比特量化相关",
+      "llm_tldr_en": "QAT updates full-precision shadow weights but deploys quantized endpoints. Existing shadow-weight explanations fail to explain why deployed loss improves while shadow loss does not. This paper reframes QAT as finite-grid endpoint dynamics, offering a new theoretical lens for quantization-aware training.",
+      "llm_tldr_cn": "量化感知训练（QAT）在训练时更新全精度影子权重，但部署的是量化后的端点权重。现有解释多从影子权重角度出发，却无法解释部署损失下降而影子损失不降甚至上升的现象。本文提出将QAT视为有限网格上的端点动力学，从量化端点下降的新视角解释其有效性。这一视角为理解QAT提供了更直接的理论框架，有助于设计更好的量化训练策略。",
+      "llm_tldr": "量化感知训练（QAT）在训练时更新全精度影子权重，但部署的是量化后的端点权重。现有解释多从影子权重角度出发，却无法解释部署损失下降而影子损失不降甚至上升的现象。本文提出将QAT视为有限网格上的端点动力学，从量化端点下降的新视角解释其有效性。这一视角为理解QAT提供了更直接的理论框架，有助于设计更好的量化训练策略。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "3 bit SQ",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.24042v1",
+      "source": "arxiv",
+      "title": "Q-DEQ: Discrete Solving and Quantization for Deep Equilibrium Models in Time Series Forecasting under Edge Deployment Coding Constraints",
+      "abstract": "Edge deployment motivates forecasting models with compact parameter storage and low-bit representations. Deep equilibrium models (DEQs) obtain implicit depth by repeatedly applying a shared layer, reducing the parameter cost of explicit layer stacking. Their usual Anderson solver, however, searches for update coefficients in the continuous real domain. We propose Q-DEQ, which formulates local updates in DEQ forward solving as discrete optimization problems. Candidate directions are constructed from the current state and iteration history, and a local quadratic residual model is used to evaluate their combinations. Binary encoding of the direction coefficients yields a quadratic unconstrained binary optimization (QUBO) problem that can be solved by simulated annealing (SA) or a coherent Ising machine (CIM). After fixed-point solving, a re-forward pass applies W8A8 fake quantization to the shared layer's weights and activations. We evaluate Q-DEQ with an iTransformer backbone on five multivariate time series forecasting datasets. Relative MSE differences from the explicit multi-layer baseline range from $-1.16\\%$ to $+2.90\\%$, with lower MSE on two datasets. DEQ parameter sharing reduces parameter counts by factors of $1.80\\times$--$3.82\\times$; combined with W8A8, static weight storage is reduced by factors of $4.3\\times$--$12.8\\times$. Local QUBO problems solved using CPU-based SA and the Kaiwu CIM physical backend produce closely matching downstream forecasts. These results establish local discrete solving as a viable component of DEQ time series forecasting and provide a route for executing fixed-point updates through different combinatorial optimization backends.",
+      "authors": [
+        "Ruotong Yang",
+        "Hongdong Zhu",
+        "Qi Gao",
+        "Yin Ma",
+        "Hai Wei",
+        "Kai Wen"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-21T03:16:37+00:00",
+      "link": "https://arxiv.org/pdf/2609.24042v1",
+      "tags": [
+        "keyword:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "low-bit quantization for deep equilibrium models under edge constraints",
+      "llm_evidence_cn": "边缘约束下深度平衡模型的低比特量化",
+      "llm_evidence": "边缘约束下深度平衡模型的低比特量化",
+      "canonical_evidence": "边缘约束下深度平衡模型的低比特量化",
+      "llm_tldr_en": "Edge deployment demands compact low-bit models. Q-DEQ reformulates DEQ forward solving as discrete optimization, using candidate directions and binary encoding of coefficients to enable low-bit quantization for time series forecasting, reducing parameter cost while maintaining performance.",
+      "llm_tldr_cn": "边缘部署需要紧凑参数存储和低比特表示，深度平衡模型（DEQ）通过共享层重复应用获得隐式深度，但其Anderson求解器在连续实数域搜索更新系数，不利于低比特部署。本文提出Q-DEQ，将DEQ前向求解中的局部更新形式化为离散优化问题，通过候选方向和局部二次残差模型评估组合，并对方向系数进行二进制编码。该方法在时间序列预测中实现了低比特表示，同时保持模型性能，为边缘部署提供了高效的量化求解方案。",
+      "llm_tldr": "边缘部署需要紧凑参数存储和低比特表示，深度平衡模型（DEQ）通过共享层重复应用获得隐式深度，但其Anderson求解器在连续实数域搜索更新系数，不利于低比特部署。本文提出Q-DEQ，将DEQ前向求解中的局部更新形式化为离散优化问题，通过候选方向和局部二次残差模型评估组合，并对方向系数进行二进制编码。该方法在时间序列预测中实现了低比特表示，同时保持模型性能，为边缘部署提供了高效的量化求解方案。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "3 bit SQ",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.24799v1",
+      "source": "arxiv",
+      "title": "When Quantization Preserves Accuracy but Not Evidence: Explanation-Aware Post-Training Quantization for Medical LLMs",
+      "abstract": "Post-training quantization (PTQ) enables efficient deployment of large language models, and PTQ methods are usually optimized and evaluated with generic reconstruction, perplexity, or answer accuracy. But in explanation-critical domains, preserving only the final answer may be insufficient, since users may also inspect generated rationales to judge whether a prediction is trustworthy. We study this issue in medical multiple-choice question answering, where rationales should provide evidence that supports the selected answer.   We propose an explanation-aware objective for transformation-based PTQ. Our method builds an offline faithfulness cache from full-precision teacher rationales and uses it during optimization to preserve answer-supporting evidence tokens and evidence-conditioned answer behavior. We instantiate it on OSTQuant under W4A4KV4 quantization and evaluate four 7B--8B medical and instruction-tuned LLMs on MedExQA, MedExpQA, and ChallengeClinicalQA. While a same-calibration OSTQuant baseline preserves task accuracy, it can substantially weaken answer-supporting rationales. Our objective is to preserve the full-precision model's answer-supporting behavior rather than improve gold-label accuracy, and our method better preserves the full-precision model's answer behavior and rationale-to-answer support. These results suggest that PTQ for explanation-critical settings should evaluate preservation of answer-supporting evidence, not only answer accuracy. Code and evaluation scripts are available at https://github.com/dut0817/EAQuant.",
+      "authors": [
+        "Yeji Kim",
+        "Mi-Young Kim",
+        "Randy Goebel"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-09-21T15:59:06+00:00",
+      "link": "https://arxiv.org/pdf/2609.24799v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "post-training quantization preserving explanations",
+      "llm_evidence_cn": "保解释的训练后量化",
+      "llm_evidence": "保解释的训练后量化",
+      "canonical_evidence": "保解释的训练后量化",
+      "llm_tldr_en": "PTQ is usually optimized for reconstruction or answer accuracy, but in explanation-critical domains rationales matter. The authors propose an explanation-aware objective for transformation-based PTQ using an offline faithfulness cache from full-precision teacher rationales.",
+      "llm_tldr_cn": "后训练量化通常以重构误差、困惑度或答案准确率为优化与评估目标，但在医疗问答等强调解释的领域，仅保持最终答案并不足够，用户还会查看推理依据是否可信。作者针对基于变换的PTQ提出解释感知目标，从全精度教师模型的推理链构建离线忠实度缓存并用于量化优化。该方法在保持量化效率的同时更好地保留了支撑答案的证据性推理。该工作拓展了低比特量化评估维度，对可信量化部署具有启发意义。",
+      "llm_tldr": "后训练量化通常以重构误差、困惑度或答案准确率为优化与评估目标，但在医疗问答等强调解释的领域，仅保持最终答案并不足够，用户还会查看推理依据是否可信。作者针对基于变换的PTQ提出解释感知目标，从全精度教师模型的推理链构建离线忠实度缓存并用于量化优化。该方法在保持量化效率的同时更好地保留了支撑答案的证据性推理。该工作拓展了低比特量化评估维度，对可信量化部署具有启发意义。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.25492v1",
+      "source": "arxiv",
+      "title": "RGSQ: Riemannian Geometry-Sensitive Quantization for Large Vision-Language Models",
+      "abstract": "Large vision-language models (VLMs) can be efficiently deployed under stringent memory and latency constraints through post training quantization (PTQ). However, most PTQ methods are designed for unimodal large language models (LLMs). These methods treat quantization errors as isotropic perturbations under the Euclidean assumption, which provides weak guidance on directions most sensitive to quantization in VLMs. Consequently, directly adapting unimodal PTQ approaches or solely employing modality-specific scaling often leads to uneven bit-width distribution and inconsistent performance in low-bit settings. To address these challenges, we propose Riemannian Geometry-Sensitive Quantization (RGSQ), which formulates quantization as a reconstruction problem under a unified Fisher-Riemannian metric. RGSQ identifies modality-specific sensitive directions via Riemannian manifold mappings built from modality-partitioned empirical Fisher factors and fused into a modality-aware Kronecker-structured metric. We then apply geometry-aligned rotations to reorient the local tangent frame, steering low-bit perturbations toward loss-insensitive axes. Finally, we apply a whitening transformation that maps the Riemannian objective to an equivalent Euclidean form, enabling standard unimodal PTQ methods to evaluate multimodal quantization error under their original assumptions. Across an extensive and diverse set of mainstream VLM benchmarks, RGSQ achieves the highest accuracy and stability under extremely low-bit settings (W2A8 and W3A8). It outperforms VLM-aware baselines, such as MBQ and MQuant, by up to 5.9% and surpasses single-modality improvements by up to 8.6%.",
+      "authors": [
+        "Zhiping Wu",
+        "Dongdong Ren",
+        "Yangchengyu Zhou",
+        "Zhengjie Zhang",
+        "Wenbin Li",
+        "Hongbing Pan",
+        "Yang Gao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-09-21T23:42:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.25492v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Low-bit post-training quantization for VLMs",
+      "llm_evidence_cn": "面向视觉语言模型的低比特量化",
+      "llm_evidence": "面向视觉语言模型的低比特量化",
+      "canonical_evidence": "面向视觉语言模型的低比特量化",
+      "llm_tldr_en": "RGSQ formulates VLM post-training quantization under Riemannian geometry to better capture sensitive directions, improving low-bit bit allocation and stability.",
+      "llm_tldr_cn": "现有训练后量化方法多面向单模态大语言模型，将量化误差视为欧氏空间下的各向同性扰动，对视觉语言模型在极低比特下最敏感的量化方向缺乏指导，导致比特分配不均、性能不稳定。本文提出黎曼几何敏感量化RGSQ，将量化建模为黎曼几何度量下的重构问题，从而更准确刻画对量化敏感的方向。实验表明该方法在低比特设定下可缓解比特宽度分布不均并取得更一致、更优的性能。其贡献在于为多模态模型的极低比特量化提供了几何敏感的建模视角。",
+      "llm_tldr": "现有训练后量化方法多面向单模态大语言模型，将量化误差视为欧氏空间下的各向同性扰动，对视觉语言模型在极低比特下最敏感的量化方向缺乏指导，导致比特分配不均、性能不稳定。本文提出黎曼几何敏感量化RGSQ，将量化建模为黎曼几何度量下的重构问题，从而更准确刻画对量化敏感的方向。实验表明该方法在低比特设定下可缓解比特宽度分布不均并取得更一致、更优的性能。其贡献在于为多模态模型的极低比特量化提供了几何敏感的建模视角。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.29032v1",
+      "source": "arxiv",
+      "title": "Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone",
+      "abstract": "Sparse activation reduces mixture-of-experts computation without eliminating the need to store all experts. We present Routide, a Swift/MLX runtime that executes the text path of a pinned public Qwen3.6-35B-A3B quantized checkpoint while keeping expert weights in iPhone storage and a byte-budgeted subset in memory. We characterize cache-policy sensitivity, numerical comparison boundaries, and measurement limits. Across five recorded 128-token workloads, fixed-route replay gives 0.00% demand hits with a 512 MiB LRU cache, 18.80% with seeded random eviction at the same budget, and 38.58% with 576 MiB LRU. The apparent capacity cliff is therefore a policy/workload interaction, not a universal memory requirement. Same-runtime Mac controls preserve generated sequences across eviction and asynchronous prefetch, including 2,560 exact token comparisons and 10,334 speculative loads. In contrast, complete resident-Python versus recorded-phone sequences disagree on all five tested cases, precluding a general numerical equivalence claim. Two separately scoped iOS 27 memory protocols observe sampled process-footprint peaks of 1.87-2.32 GiB on short prompts and 2.39-2.73 GiB on one longer prompt. We retain a thermal stopping event, negative timing comparisons, and a single qualified whole-device power estimate. These results establish bounded feasibility and identify limitations that a deployment claim must not hide.",
+      "authors": [
+        "Musa Shams"
+      ],
+      "primary_category": "cs.PF",
+      "categories": [
+        "cs.PF",
+        "cs.LG"
+      ],
+      "published": "2026-09-24T05:05:28+00:00",
+      "link": "https://arxiv.org/pdf/2609.29032v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "flash-backed MoE inference with a quantized MoE checkpoint on iPhone",
+      "llm_evidence_cn": "在iPhone上以量化MoE检查点进行闪存支撑的MoE推理",
+      "llm_evidence": "在iPhone上以量化MoE检查点进行闪存支撑的MoE推理",
+      "canonical_evidence": "在iPhone上以量化MoE检查点进行闪存支撑的MoE推理",
+      "llm_tldr_en": "Routide runs a quantized Qwen3 MoE checkpoint on iPhone by keeping expert weights in flash; it characterizes cache-policy sensitivity, showing demand-hit rates depend on eviction policy rather than a universal memory cliff.",
+      "llm_tldr_cn": "针对稀疏激活的MoE模型仍需存储全部专家权重、难以在手机端部署的问题，作者提出Routide运行时，将量化后的Qwen3.6-35B-A3B MoE检查点专家权重放在iPhone闪存中，内存仅保留字节预算内的子集。论文系统刻画了缓存策略敏感性、数值比较边界与测量限制，发现512MiB预算下命中率随驱逐策略从0%升至18.8%。结果表明所谓容量悬崖实为策略与负载的交互，而非普适内存需求，为端侧MoE推理提供了可复现基准。",
+      "llm_tldr": "针对稀疏激活的MoE模型仍需存储全部专家权重、难以在手机端部署的问题，作者提出Routide运行时，将量化后的Qwen3.6-35B-A3B MoE检查点专家权重放在iPhone闪存中，内存仅保留字节预算内的子集。论文系统刻画了缓存策略敏感性、数值比较边界与测量限制，发现512MiB预算下命中率随驱逐策略从0%升至18.8%。结果表明所谓容量悬崖实为策略与负载的交互，而非普适内存需求，为端侧MoE推理提供了可复现基准。",
+      "llm_tags": [
+        "query:moe-quant:composite"
+      ],
+      "matched_query_tag": "query:moe-quant:composite",
+      "matched_query_text": "Papers central to MoE 量化, especially work that connects or combines: P; M; MoE Quantization.",
+      "matched_requirement_id": "req-composite-moe-quant",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

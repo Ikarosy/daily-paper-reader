@@ -1,0 +1,534 @@
+Title: VQ-LIC: Shared Vector-Quantized Learned Image Compression on a Resource-Constrained FPGA
+
+URL Source: https://arxiv.org/pdf/2609.29727v1
+
+Published Time: Fri, 25 Sep 2026 01:31:43 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+> 1
+
+# VQ-LIC: Shared Vector-Quantized Learned Image Compression on a Resource-Constrained FPGA 
+
+Muhammad Fahd Ibrahim Bhatti ∗, Abdullah Bin Faisal ∗, Ahsan Usman, Naveed Anwar Bhatti, and Muhammad Ali Siddiqi 
+
+Abstract —Learned image compression (LIC) is hard to deploy on severely resource-constrained FPGAs, since how fast it actually runs depends not just on arithmetic count, but also on memory traffic, imbalance between different operations, and how the hardware batches its work. We present VQ-LIC, an asymmetric edge-cloud codec in which a compact INT8 depthwise (DW)-pointwise (PW) analysis transform and multi-codebook vector quantization (VQ) run at the edge on a reusable DW/PW engine pair, while reconstruction is handled by a larger cloud decoder. Since VQ codeword matching is expressible as a dot product, it is mapped directly onto the same PW engine, removing the need for a separate VQ compute array, to our knowledge a first for FPGA LIC. A novel latency model, derived from deterministic RTL cycle counts of an FPGA’s read, DW, PW, and write costs, predicts an analysis transform’s per-block latency; since VQ shares the same PW datapath, the model applies to VQ as well. Validated directly against silicon, the model predicts deployed analysis and VQ latency within 0.26% and 0.05%, and guides the selection of a three-block 16 -48 -64 transform. Post-training codebook reduction then cuts VQ arithmetic and codebook storage by 4× and shrinks the fixed-width latent representation. On a 220-DSP Zynq-7020, VQ-LIC’s mid-rate preset reaches 0.1398 bits per pixel at 28.69 dB PSNR and 13.06 dB MS-SSIM on CLIC 2017, outperforming a similarly sized neural encoder and reaching a rate-distortion range comparable to a codec three orders of magnitude larger. The complete 0.1945-kMAC/pixel analysis-VQ pipeline runs at 47.98 frames per second and 42.84 mJ per frame on silicon, using an order of magnitude fewer DSPs than comparable FPGA LIC accelerators while achieving lower bitrate, higher throughput, and lower energy per frame at a modest PSNR tradeoff. 
+
+Index Terms —FPGA accelerator, learned image compression, vector quantization, depthwise-separable convolution, compute– communication co-design, edge deployment. 
+
+I. I NTRODUCTION 
+
+# VISUAL sensing increasingly occurs on resource-constrained edge platforms, where transmitting raw im-agery can dominate bandwidth and energy. Learned image compression (LIC) replaces hand-designed transforms with neural representations optimized for rate–distortion perfor-mance [1], [2], but recent gains increasingly rely on larger transforms, hyperpriors, autoregressive context models, and attention mechanisms. Their arithmetic, storage, activation-traffic, and entropy-model costs make GPU-oriented codecs difficult to deploy on low-cost embedded devices even after numerical quantization. 
+
+> ∗
+
+These authors contributed equally to this work. All authors are with the School of Science and Engineering (SBASSE), Lahore University of Management Sciences (LUMS), Lahore, Pakistan. The machine-learning training and evaluation code, the latency model, and the RTL source code are publicly available at github.com/abdullahbinfaisal/VQ-LIC .
+
+FPGA accelerators have addressed this deployment gap through DPU (deep-learning processing unit) mapping [3], fine-grained pipelining [4], parameterized architectures [5], algorithm–architecture co-optimization [6], [7], and stream-oriented redesign [8]. These systems establish the value of hardware-aware LIC design but target substantially larger resource envelopes than severely resource-constrained platforms with limited multiplier counts and narrow external-memory interfaces. On such platforms, simply scaling down a larger accelerator is insufficient: arithmetic throughput, operator-specific streaming behavior, external-memory traffic, and finite output batching can each become the bottleneck, so MAC count alone does not reliably predict latency. The challenge is therefore to fit the complete edge encoding pipeline within a tightly limited hardware budget, which raises a central question: 
+
+can the latent representation be chosen so that encoding and quantization share the same scarce compute hardware? 
+
+VQ-LIC addresses this question with an asymmetric edge– cloud codec designed for a severely resource-constrained FPGA: the edge device only compresses, while a much larger model in the cloud handles reconstruction. The encoder compresses the image into a compact latent representation and applies vector quantization (VQ), matching pieces of the latent against small, predefined sets of learned patterns, or codebooks. The key insight is that the latent representation is chosen so that this matching step reuses the encoder’s own multiplier hardware, eliminating the need for a separate VQ compute engine. The resulting discrete indices are compressed with a rANS entropy coder using fixed, pre-shared probability tables rather than a learned hyperprior or autoregressive model, avoiding input-dependent entropy-model inference on the edge. Each encoder stage uses depthwise filtering (per-channel) followed by pointwise mixing (across channels); the final VQ stage reuses the pointwise mixing hardware. Beyond reuse, latency depends on balancing computation and memory traffic: a stage’s latency is set by whichever of reading, filtering, mixing, or writing is slowest, so fewer operations do not guarantee higher speed. We therefore guide the design using a latency model derived from the accelerator’s own behavior rather than from operation counts and validated against hardware measurements. The model is used first to size the accelerator, then to select the encoder, and finally to guide VQ design, all without implementing each candidate in hardware. The principal contributions of this work are: 1) A discrete-latent edge–cloud LIC architecture for severely resource-constrained encoding. A compact INT8 depthwise–pointwise transform, at only 4,491 arXiv:2609.29727v1 [cs.AR] 24 Sep 2026 2
+
+weights and 194.5 MAC/pixel, and multi-codebook VQ run on the FPGA’s programmable logic (PL). The result-ing indices are compressed using a table-driven rANS coder on the processing system (PS), removing learned hyperprior and autoregressive entropy-model inference from the edge path while relocating reconstruction capacity to the cloud. The complete edge pipeline sustains 47.98 frames/s at 720p on the 220-DSP Zynq-7020. 2) A novel compute–communication latency model for resource-aware accelerator provisioning. Competing read, depthwise, pointwise, and write costs are modeled from tensor geometry and hardware parallelism, provi-sioning resources by bottleneck rather than MAC share. Verified over more than 100 RTL configurations and against silicon, the model’s per-block latency predictions agree within 0.3% with no fitted correction term, correctly identifying the bottleneck in every deployed block. Applied before training to candidate tensor geometries without implementing any of them in hardware, it guides selection of the 16 –48 –64 encoder, cutting predicted latency by 24.0% relative to the six-block reference while improving proxy reconstruction quality. 3) Reuse of the validated pointwise engine for codeword scoring. Because VQ codeword scoring is expressible as pointwise MACs, it is mapped directly onto the analysis transform’s existing pointwise MAC array rather than a dedicated VQ compute engine, letting VQ run on already-instantiated hardware, to the best of our knowledge a first for FPGA learned image compression. Section II reviews LIC and FPGA-oriented co-design and positions VQ-LIC against the closest prior systems. Sections III and IV present the codec and the compute– communication model and accelerator, Section V defines the encoder-exploration and measurement methodology, and Section VI reports results and compares with prior FPGA LIC implementations. Section VII concludes the discussion. II. R ELATED WORK 
+
+A. Discrete-Latent and Efficient Learned Image Compression 
+
+Learned image compression replaces hand-designed trans-forms and probability models with neural components opti-mized for rate–distortion performance [9]. Transformer-based extensions can further improve compression efficiency, but at increased computational and memory cost [10], [11]. The dominant approach rounds a continuous latent representation to integers (scalar quantization) and entropy-codes it using a learned probability model [1], [2]. VQ-VAE [12] established a learned codebook of rep-resentations, allowing codebook indices to be transmitted instead of latent values. Later compression work built on this with entropy-aware soft-to-hard VQ [13], probabilistic multi-codebook quantization [14], product-quantized representations with learned entropy modeling [15], nonlinear and multi-stage vector transform coding [16], and quantized hierarchical latent models [17]. Separately, efficiency work has focused on reduced numerical precision through channel splitting [18] and rate–distortion-aware post-training quantization [19], and on reduced model capacity through slimmable configurations [20] or distilla-tion [21]. Asymmetric designs such as MCUCoder [22] shrink the encoder for edge deployment and keep a larger decoder. To our knowledge, however, such compact encoders have not been mapped onto multiplier-constrained FPGAs. 
+
+B. FPGA Acceleration of LIC 
+
+FPGA LIC accelerators span vendor overlays, dedicated pipelines, and explicit model–hardware co-design. FPX-NIC [3] maps neural coding through the Xilinx DPU, while F-LIC [4] uses a fine-grained interlayer pipeline with flexible channel parallelism and zero skipping. Sun et al. [6], [7] further co-optimize network channel dimensions with realizable FPGA parallelism, accounting for routing and activation-buffer con-straints that limit usable DSP concurrency across ZC706-, KU115-, and VCU118-class devices. StreamLIC [8] instead restructures transform and autoregres-sive processing into a row-streaming architecture, retaining hyperprior and context-model inference while reducing se-rialization cost. X-LIC [5] uses a parameterized accelerator to improve utilization across heterogeneous LIC operators, whereas Mazouz et al. [21], [23] combine model dimensioning, distillation, quantization, and hardware-friendly nonlinear pro-cessing for FPGA deployment. Collectively, these works adapt conventional learned-codec pipelines to the target hardware through dataflow, accelerator, or network-structure optimization, while predominantly retaining scalar-quantized transforms with learned entropy processing. Dedicated vector-quantizer hardware predates its use in learned compression, including full-search VLSI architec-tures [24] and FPGA designs based on partial-distance search [25]. These implement nearest-neighbor search as a dedicated compute array separate from any surrounding convolution or transform hardware, an additional resource cost that a severely multiplier-constrained platform can ill afford. Beyond LIC-specific designs, depthwise-separable convo-lution [26], [27] has also been accelerated on FPGAs [28], but reducing arithmetic does not determine how a small fixed multiplier budget should be divided between depthwise streaming and pointwise computation. Under limited external bandwidth, depthwise and pointwise operations place different demands on the hardware, so a good split between them cannot be inferred from MAC share alone. 
+
+C. Positioning of VQ-LIC 
+
+Hardware-aware neural architecture search already estab-lishes that arithmetic complexity is an imperfect proxy for realized cost: MnasNet [29], ProxylessNAS [30], and FB-Net [31] incorporate target-device performance into architecture selection, while FNAS [32] uses an FPGA performance model to avoid implementing every candidate. VQ-LIC therefore does not claim the general observation that MAC count can differ from hardware latency; the distinction is where that observation is derived from and how far it is carried. The closest FPGA LIC co-designs, Sun et al. [6], [7] and StreamLIC [8], improve hardware efficiency by adapting 3 
+
+> Fig. 1. End-to-end VQ-LIC codec. DWSConv: depthwise-separable convolu-tion (depthwise followed by pointwise).
+
+network structure and dataflow to the target FPGA. VQ-LIC instead derives its hardware model by deterministic cycle counting of the realized accelerator’s behavior, rather than fitting it to observed latency. This same model is then carried further: it guides the choice of encoder architecture, resolving depthwise–pointwise resource allocation. Because VQ codeword scoring reuses the same pointwise engine rather than a dedicated compute array, the latency model also applies directly to VQ, allowing the hardware cost of post-training codebook-complexity reduction to be evaluated without a separate quantizer-specific model. III. VQ-LIC C ODEC AND TRAINING METHODOLOGY 
+
+Fig. 1 shows the VQ-LIC codec: a compact INT8 depthwise– pointwise analysis transform and multi-codebook VQ on the edge, table-driven rANS coding, and a larger cloud-side decoder. 
+
+A. Analysis Transform 
+
+For a 1280 × 720 (720p) input image x, the selected analysis transform fθ, parameterized by encoder weights θ,produces the continuous latent ze ∈ R90 ×160 ×64 using three stride-2 depthwise–pointwise blocks with channel schedule 
+
+C⋆ = (16 , 48 , 64) . The transform contains 4,491 convolutional weights; each block applies a 3 × 3 depthwise convolution followed by a 1 × 1 pointwise convolution, with batch normal-ization folded into the preceding convolution for deployment. Intermediate activations are requantized to INT8, and the final 64-channel latent is stored in unsigned INT8, avoiding an additional conversion before quantization. The analysis transform executes in the programmable logic (PL). 
+
+B. Hardware-Aware Product-Codebook Vector Quantization 
+
+For a latent of dimension D = 64 , multi-codebook VQ, executed in the programmable logic (PL), partitions each spatial vector ze,u,v into M disjoint sub-vectors z(m) 
+
+> e,u,v
+
+, each of dimension Dm = D/M , and matches each sub-vector to the closest of K candidate codewords in its own codebook           
+
+> Fig. 2. Multi-codebook VQ on a D-dimensional latent vector ze,u,v at spatial position (u, v ). The vector is split into Mdisjoint sub-vectors of dimension
+> Dm=D/M , and each sub-vector is scored against its own K-entry sub-codebook by computing a dot product with every candidate codeword; the lowest-scoring candidate’s index is retained.
+
+E(m) = {e(m) 
+
+> j
+
+}K−1 
+
+> j=0
+
+(see Fig. 2). Rather than always choosing the closest codeword, we additionally bias this assignment toward codewords that are cheaper to entropy-code, using entropy-constrained vector quantization (ECVQ) [33] applied independently within each sub-codebook. The rate-aware codeword index assigned to latent position (u, v ) and sub-codebook m is 
+
+ku,v,m = arg min 
+
+> j
+
+
+
+z(m) 
+
+> e,u,v
+
+− e(m)
+
+> j
+> 22
+
+− βrate log 2 p(m)
+
+> j
+
+
+
+, (1) where p(m) 
+
+> j
+
+is an exponential-moving-average (EMA) estimate of the usage probability of codeword j in sub-codebook m,and βrate controls the rate pressure. The quantizer dimensions are fixed before co-design, tar-geting a 0.1 − 0.5 bpp regime that covers the FPGA LIC operating points in Table VI. The three stride-2 analysis blocks downsample by Q 
+
+> j
+
+sj = 8 , giving a D = 64 latent; with M = 4 sub-vectors of dimension Dm = 16 and a reference codebook of K0 = 256 entries, the uncoded rate is 
+
+M ⌈log 2 K0⌉/
+
+Q 
+
+> j
+
+sj
+
+2
+
+= 32 /64 = 0 .5 bpp, the upper end of the target range. A downsampling of 16 would instead give 0.125 bpp, and 4 would give 2 bpp with four times as many latent positions. This 32-bit index budget also sets a practical product-quantization balance for M [34]: fewer sub-codebooks sharply increase codebook size and search cost (M = 2 needs K = 65 ,536 , or 256 × more multiplies per latent position), while more sub-codebooks shrink Dm toward scalar quantization. Encoder exploration uses the capacity-rich reference quan-tizer with initial configuration (M0, K 0, D m, 0) = (4 , 256 , 16) .After topology selection, only the codebook cardinality K is refined post hoc, with M and Dm held fixed. For each candidate 
+
+K ∈ { 256 , 128 , 96 , 64 , 32 }, entries within each sub-codebook’s original K0 = 256 -entry pool are ranked by their EMA training-usage prior, and only the K highest-prior entries are retained; evaluation-set assignments are not used to choose the retained codes. The surviving prior is renormalized, and the resulting codec is evaluated jointly on reconstruction quality, entropy-coded rate, codebook storage, and modeled shared-engine VQ latency. This procedure selects the final configuration 
+
+(M ⋆, K ⋆, D ⋆m) = (4 , 64 , 16) . Because refinement only ever reduces K from K0, every deployed configuration remains 4
+
+within the 0.5 bpp ceiling set by K0; βrate then controls the entropy-coded operating points within it (Section III-C). The selected quantizer therefore represents each latent position using four 6-bit indices, or 24 uncoded bits per position. The resulting discrete indices are entropy-coded on the Cortex-A9 processing system (PS) using rANS with pre-shared conditional probability tables. Because the transform downsamples spatially by 8 × 8, the uncoded representation corresponds to a fixed-width rate of 24 /64 = 0 .375 bits per pixel (bpp) before entropy coding; the transmitted rate is instead measured from the final rANS payload. For integer deployment, let ˜z(m) 
+
+> e,u,v
+
+denote the unsigned-INT8 representation of encoder sub-vector z(m) 
+
+> e,u,v
+
+, and let ˜e(m) 
+
+> j
+
+denote the unsigned-INT8 representation of codeword e(m) 
+
+> j
+
+in the same domain with zero point z0. Expanding the rate-aware squared-distance objective in Eq. (1) and dropping the query-norm contribution common to all candidate codewords gives the deployed assignment index 
+
+k⋆u,v,m = arg min 
+
+> j
+
+"
+
+˜e(m) 
+
+> j
+
+− z0
+
+> 22
+
+− ˜βrate log 2 p(m)
+
+> j
+
+− 2
+
+
+
+˜z(m) 
+
+> e,u,v
+
+− z0
+
+T 
+
+˜e(m) 
+
+> j
+
+− z0
+
+ #
+
+.
+
+(2) Here, ˜βrate denotes the rate weight after deployment scaling. The codeword-norm and prior-dependent terms are precom-puted for each codeword, while the dot-product term is evaluated by the existing pointwise MAC array; bias addition and the comparison of resulting scores to find the lowest-scoring codeword use auxiliary logic detailed in Section IV. During floating-point training, codebooks are updated by exponential-moving-average statistics, and gradients are passed to the encoder through a straight-through estimator. 
+
+C. Cloud Decoder and Training Objective 
+
+At the reconstruction endpoint, decoded indices recover the quantized latent zq , and the cloud decoder gϕ, parameterized by weights ϕ, produces the reconstructed image ˆx = gϕ(zq ).It contains approximately 6.51 million parameters and lies outside the Zynq-7020 hardware boundary. It first projects the quantized latent to a 256-dimensional token representation and processes it using six Transformer layers with eight attention heads and a feed-forward dimension of 1024. Self-attention is restricted to fixed 14 × 14 -token windows, with the window partition shifted by seven tokens on alternating layers to exchange information across adjacent windows. A periodic two-dimensional sinusoidal positional encoding with the same 14 × 14 period ensures that the positional vocabulary is unchanged as image resolution increases. The complete latent grid is decoded in a single forward pass; windowing applies only within the self-attention operator, and the image itself is not spatially tiled or overlap-blended. After the Transformer, a convolutional synthesis head with three sub-pixel upsampling stages reconstructs the RGB image. The final Tanh output corresponds to the [−1, 1] image representation used during training. The encoder, VQ codebooks, and decoder are optimized jointly during floating-point training using an objective that combines the structural similarity index measure (SSIM), ℓ1
+
+reconstruction error, and latent commitment: 
+
+Ltrain = α (1 − SSIM( x, ˆx)) + (1 − α) ∥x − ˆx∥1
+
++ β ∥ze − sg[ zq ]∥22 , (3) where α = 0 .84 is the reconstruction weight balancing the SSIM and ℓ1 terms, following the setting reported to work best for this loss combination in [35], β = 0 .25 is the commitment weight, and sg[ ·] denotes stop gradient. Codebook vectors are updated through EMA rather than a separate gradient-based embedding loss. During training, the rate-aware assignment of Eq. (1) is used to obtain the codec’s operating points. The final low-rate preset, mid-rate preset, and high-rate preset are three independently trained models that use βrate = 1 .0, 0.4, and 0.3,respectively. During encoder exploration all candidates instead use the common (4 , 256 , 16) reference quantizer with βrate = 0 ,so the VQ rate term does not affect their hardware-latency ordering; post-training codebook refinement is performed only after selecting C⋆, as described in Section V-C. 
+
+D. Floating-Point and Quantization-Aware Training 
+
+Models are trained on Open Images V7 [36], a dataset of 1.7 million images, using 224 × 224 randomly augmented crops normalized to [−1, 1] . After architecture selection, the encoder, VQ codebooks, and cloud decoder are trained jointly in FP32 for 2 epochs using AdamW with an initial learning rate of 
+
+2.8 × 10 −4 and a decaying schedule, with batch size 32. The model is subsequently fine-tuned for 2 further epochs using quantization-aware training (QAT) for the encoder, with the codebook frozen during this stage to prevent quantization noise from corrupting the learned codes, while the decoder remains in FP32. Detailed optimizer schedules and framework-specific training settings are provided with the released implementation. The deployed encoder uses per-channel symmetric signed INT8 weights and per-tensor asymmetric unsigned INT8 activations, with convolution products accumulated at wider integer precision before requantization. Batch normalization is folded into the preceding convolution before deployment. The final stored latent and VQ codebooks use a common quantization domain with zero point z0 = 128 : latent values enter VQ as unsigned INT8, while codewords are stored in the pointwise weight memory as signed zero-point-centered INT8 values. In VQ mode, the existing pointwise MAC datapath evaluates the dot-product term of (2); score formation applies the precomputed codeword-dependent bias to the wide accu-mulator output before the lowest-scoring codeword is selected, while pointwise requantization, ReLU, and output clamping are bypassed for VQ results. The selected (M ⋆, K ⋆) = (4 , 64) 
+
+quantizer therefore produces four 6-bit indices per latent position. IV. VQ-LIC C OMPUTE –C OMMUNICATION CO-D ESIGN AND FPGA A RCHITECTURE 
+
+VQ-LIC treats accelerator provisioning, encoder topology, and latent quantization as a staged algorithm–architecture co-design problem: on a severely resource-constrained FPGA, 5 
+
+> Fig. 3. Overview of the staged co-design pipeline. A latency model, built from RTL cycle counts and validated on a reference encoder, is used to select the accelerator configuration, then to rank candidate encoders and select the deployed topology, and to guide post-training codebook refinement across the three rate presets, before being validated again on silicon.
+
+minimizing MAC count alone does not necessarily minimize latency, since latency also depends on tensor geometry, operator type, memory traffic, hardware parallelism, and finite batching. We distinguish the encoder topology C, the VQ configuration 
+
+(M, K, D m), and the reusable accelerator H, and evaluate their effects through reconstruction quality, coded rate, storage, and hardware latency. Rather than a monolithic joint search, we first model the latencies induced by candidate tensor geometries to establish and validate the accelerator operating point, then reuse the same model as a latency oracle for encoder exploration, and finally reuse it again, since codeword scoring shares the same pointwise datapath, to guide post-training codebook-cardinality refinement. Fig. 3 summarizes this staged co-design process. 
+
+A. Design Constraints and Workload 
+
+The target platform is the Zynq-7020, which provides 220 DSP48E1 slices and a 64-bit communication path between external DDR memory and the programmable logic (PL). Convolutional weights are represented as signed INT8 values and intermediate activations as unsigned INT8 values, while accumulation is performed at wider integer precision before requantization. The deployed VQ interface uses the same unsigned INT8 latent domain with zero point z0 = 128 ,allowing the pointwise MAC array to be reused for centered codeword dot products as described in Section IV-B. Within the specification of Section III-B, a candidate encoder is represented by its sequence of output-channel widths, 
+
+C = ( c1, c 2, . . . , c N ), where N = |C| denotes the number of depthwise–pointwise blocks and cout ,j is the output-channel width of block j. The corresponding input-channel count is 
+
+cin ,1 = 3 for the first block, and cin ,j = cout ,j −1 for j > 1.Since the final block’s output feeds the latent, cout ,N = D =64 , and reaching the required Q 
+
+> j
+
+sj = 8 downsampling needs three stride-2 blocks, so N ≥ 3. Our starting point is a six-block encoder, Cref = (16 , 32 , 32 , 32 , 64 , 64) , which bounds the explored depth at N ≤ 6 and provides the workload on which the accelerator is provisioned (Section IV-D). Intermediate widths are drawn from {16 , 32 , 48 , 64 }, bounded by D.Across the evaluated search space, the leading three stride-2 blocks reduce a 720p input to the common 160 ×90 latent grid; when N > 3, all subsequent blocks use unit stride and therefore operate at the latent spatial resolution. Consequently, different neural architectures present different tensor geometries to the same reusable accelerator. For candidate C, block j presents the workload descriptor 
+
+Wj (C) = ( Hj , W j , c in ,j , c out ,j , s j ) , (4) where Hj and Wj denote the input spatial dimensions of the block. We denote an accelerator configuration by 
+
+H(L, Q ), where L is the spatial stream width and Q is the number of pointwise output channels evaluated in parallel. The quantities in Wj (C) directly parameterize the external-memory, depthwise, pointwise, and output latencies developed in Section IV-C. Hence, for a fixed accelerator configuration, the neural architecture induces the per-block read, depthwise, pointwise, and write latencies 
+
+C −→ { Tread ,j , T DW ,j , T PW ,j , T write ,j }Nj=1 , (5) defined formally in Section IV-C. This mapping is the mech-anism by which the FPGA model later provides hardware feedback during structured encoder exploration. The imple-mented 64-bit interface fixes L = 8 spatial lanes. The pointwise datapath packs two spatial products into each DSP48E1 slice, so a pointwise multiplier array with spatial parallelism L and output-channel parallelism Q requires 
+
+DPW (L, Q ) = LQ 
+
+2 (6) DSP48E1 slices. Equation (6) counts only the structural packed pointwise multiplier grid and is not used as a predictor of complete post-synthesis DSP occupancy. Accumulation, requantization, and related arithmetic may be mapped between DSP48E1 and LUT resources by synthesis depending on the surrounding design and available device resources; complete resource feasibility is therefore established from synthesis in addition to the analytical latency model. Depthwise arithmetic width is not independently tunable: once L fixes the spatial lanes, the depthwise datapath is fixed accordingly, while its realized latency additionally depends on the input-stream and sliding-window-generator schedule developed in Section IV-C. Thus, Q is the independently tunable pointwise-parallelism parameter for the implemented datapath, while the learned channel dimensions determine the workload presented to it. Fig. 4 illustrates this depthwise–pointwise datapath and output-channel batching on a small worked example. 
+
+B. Accelerator Organization 
+
+The encoder blocks reuse a common depthwise–pointwise engine pair, allowing the two convolution operators to be provisioned independently (see Fig. 5). The pointwise engine is additionally reused after analysis for vector quantization, so its output-channel parallelism Q governs the latency of both 
+
+1 × 1 convolution and VQ codeword scoring. 
+
+1) Depthwise Engine: The depthwise engine parallelizes across spatial positions rather than channels: each cycle, it computes the full 3 × 3 filter for L adjacent pixels within one channel. This avoids underutilizing the engine in the three-channel first block, where channel-wise parallelism would leave most lanes idle, and it naturally matches the L-wide pixel stream. Line buffers and a sliding-window generator assemble 6                       
+
+> Fig. 4. Depthwise–pointwise datapath on a small example ( L= 2 ,Q= 2 ,
+> cin = 2 ,cout = 4 ,3×3filter, 3×4input). Each of the L= 2 streamed pixels is filtered per input channel to form the depthwise outputs, which are then combined across input channels using pointwise weights wcout ,c in to form each output channel. Because only Q= 2 output channels can be evaluated in parallel, the four output channels are produced across cout /Q = 2 batches, with the same pointwise datapath reused for the second batch.
+> Fig. 5. System-level organization. The Cortex-A9 configures the reusable accelerator and controls the 64-bit DMA paths between external DDR3 DRAM and the PL. Within each encoder block, the depthwise output streams directly into the pointwise engine; only the pointwise output is materialized in DDR between blocks. A single depthwise–pointwise engine pair is reused sequentially across the encoder blocks. After the final analysis-transform block, VQ is performed in the PL and the resulting discrete indices are transferred to the PS for rANS entropy coding.
+
+each 3 × 3 neighborhood from the streamed rows, generating zero-point padding on chip at image edges rather than storing padded data in memory. Wide-precision accumulation results are then requantized to INT8 by an L-lane post-processing unit (PPU), which keeps pace with the depthwise engine exactly and packs its output into the same 64-bit activation format the pointwise engine expects, so the two engines connect directly with no reformatting. 
+
+2) Pointwise Engine: The pointwise engine is output-stationary: each output accumulator stays fixed while inputs stream through it, so each cycle, the L activations of one input channel are broadcast to Q output-channel banks, which accumulate across all input channels. Input activations are staged through a ping-pong buffer so that one bank can feed the pointwise datapath while the other is refilled for the next activation group. Alternating the two banks overlaps input staging with computation and prevents buffer refill from unnecessarily interrupting the pointwise accumulation schedule. Two adjacent, zero-point-corrected activations sharing a common weight are combined into one wide operand and multiplied in a single DSP48E1 operation using standard INT8 DSP packing [37], recovering both exact signed products from the packed result with a small correction for negative operands. Thus, one DSP48E1 recovers two exact signed products, so the selected L = 8 , Q = 32 grid evaluates 256 products/cycle using 128 DSP48E1 slices. Because a batch’s outputs are not immediately consumed once finalized, they are copied to a second, shadow storage bank at two channels per cycle so that the next batch’s accumulation can begin immediately, while the L-lane PPU retires (reads out and requantizes to INT8) the preceding group from shadow storage in parallel. When the final batch has fewer than Q real output channels, this 
+
+split-shadow schedule retires only those valid channels rather than the full batch width. 
+
+3) Shared Pointwise VQ Mode: VQ reuses the pointwise engine by representing candidate codewords as output channels and storing centered codebook coefficients in the existing INT8 weight memories. For the selected (M, K, D m) = (4 , 64 , 16) 
+
+quantizer and Q = 32 , each 64-entry sub-codebook needs two passes to evaluate all its codewords, giving eight Q-wide batches across the four sub-codebooks, none shared with another sub-codebook. Because each batch belongs to a single sub-codebook, every codeword’s Dm = 16 values fill it completely, so no slots are wasted on zero-padding. The existing MAC array computes the dot-product term of Eq. (2) for each candidate codeword j; the remaining, codeword-dependent terms of that same equation are precom-puted and simply added to form the assignment score, with only bias storage, score/argmin logic, and index-packing control added around the reused datapath. The running minimum is updated as candidate scores retire. 
+
+4) Integer Post-Processing: Both convolution datapaths in-clude an L-lane integer PPU that requantizes wide accumulator outputs to the INT8 stream representation, but the two PPUs keep pace differently. The depthwise PPU can accept a new 
+
+L-pixel group every cycle, matching the depthwise engine’s own rate, so it never falls behind and adds no steady-state delay of its own. The pointwise PPU, however, finishes only one output channel per cycle, so with Q channels per batch, it takes Q cycles to clear a batch even if the engine could move faster; this delay is why it appears explicitly in the pointwise scheduling model of Section IV-C. 
+
+5) Depthwise–Pointwise Fusion and External Memory: 
+
+Within each encoder block, depthwise outputs feed directly into the pointwise engine on chip rather than being written to and read back from external memory, eliminating that write/read round trip. Outputs between blocks are still written to memory 7
+
+Algorithm 1 Compute–Communication Latency Oracle. BLOCK LATENCY returns the bottleneck latency among compet-ing read, depthwise, pointwise, and write demands; G ROUP LA-
+
+> TENCY
+
+, which models the pointwise scheduler, is additionally reused for vector quantization.                                                                                                                                                                    
+
+> Given: accelerator H(L, Q ); block workload Wjas in Eq. (4); latent sub-vector dimension Dm=D/M over Npos positions; evaluated VQ configurations satisfy Kmod Q= 0 .
+> Constants (deterministic cycle counts of the RTL scheduler; each a named RTL construct, none fitted):
+> L= 8 ,WDMA = 8 B/cyc, Rsh = 2
+> δacc = 6 ,δppu = 2 ,δtr = 1 ,δflush = 1 ,δrow = 4
+> 1: function GROUP LATENCY (cin , c out ,H)2: B← ⌈ cout /Q ⌉;Qlast ←cout −(B−1) Q
+> 3: Γ←cin +⌈Qlast /R sh ⌉+δacc
+> 4: if B= 1 then
+> 5: return max( cout +δppu ,Γ) ▷single-batch path 6: end if
+> 7: ∆←max( cin +δacc , Q +δppu )
+> 8: Tret ←cout +Bδ ppu ▷PPU retirement 9: Tacc ←cin +δacc + ( B−2)∆ + max(∆ + δtr ,Γ) ▷accumulation 10: return max( Tret , T acc )
+> 11: end function
+> 12: function BLOCK LATENCY (Wj,H)13: Pin ,j ←HjWj;Pj←Pin ,j /s 2
+> j;Gj← ⌈ Wj/L ⌉
+> 14: Tread ←Pin ,j cin ,j /W DMA
+> 15: TDW ←(Hj+ 1) [ cin ,j (Gj+δflush ) + δrow ]
+> 16: TPW ←(Pj/L )·GROUP LATENCY (cin ,j , c out ,j ,H)
+> 17: Twrite ←Pjcout ,j /W DMA
+> 18: return max( Tread , T DW , T PW , T write )▷bottleneck latency 19: end function
+> 20: function Tenc (C, H)▷analysis-transform latency, Eq. (11) 21: return P|C|
+> j=1 BLOCK LATENCY (Wj(C),H)
+> 22: end function
+> 23: function TVQ (M, K, H)▷VQ reuses the same pointwise scheduler 24: return (Npos /L )·GROUP LATENCY (Dm, M K, H)
+> 25: end function
+
+as before, so this saving applies only within a block, not between blocks. The depthwise engine computes one channel fully before moving to the next, but packages its output spatial position by spatial position across channels, matching what the pointwise engine needs next; the PS input packer and later blocks use this same packaging, so data never needs reshuffling between stages. The one exception is after the final block: the complete 
+
+90 × 160 × 64 latent is written to memory and read back through the pointwise engine’s own input path for VQ, so ordinary convolution and VQ compete for that same resource and cannot run at the same time; this contention is captured by the latency model below. 
+
+C. Compute–Communication Latency Model 
+
+For a candidate encoder C running on accelerator H(L, Q ),each block’s timing is modeled as the competition between its read, depthwise, pointwise, and write costs, determined by that block’s own tensor dimensions. The expressions below come from directly counting cycles in the real RTL design, not from fitting a formula to measured timing. For block j, because only Q output channels can be accumulated in parallel, the cout ,j outputs are processed in 
+
+Bj = ⌈cout ,j /Q ⌉ batches, with the final batch having valid width Qlast ,j = cout ,j − (Bj − 1) Q. We further define 
+
+∆j = max( cin ,j + δacc , Q + δppu ) ,
+
+Γj = cin ,j +
+
+ Qlast ,j 
+
+Rsh 
+
+
+
++ δacc . (7) Here, δacc = 6 is the RTL’s accumulation cycle count, 
+
+δppu = 2 is the cycles the L-lane PPU needs for a full batch, and Rsh = 2 is the shadow-storage transfer rate in output channels per cycle; ∆j is therefore the slower of the accumulation and retirement recurrences, while Γj captures final accumulation and shadow transfer. For two or more batches, the RTL schedule also exposes a fixed one-cycle control transition, δtr = 1 , during final-batch handling. G ROU -
+
+> P
+
+LATENCY (Algorithm 1) implements this: when all outputs fit in one batch, the group latency is simply the larger of the PPU’s readout time and the accumulation time. When multiple batches are needed, retirement and accumulation instead run as two parallel, overlapping processes, so the latency is set by whichever finishes last, not by their sum. We denote this group latency by Tgroup ,j = GROUP LATENCY (cin ,j , c out ,j , H). The corresponding steady-state pointwise latency, a cycle count like all latency quantities in this subsection, is 
+
+TPW ,j = Pj
+
+L Tgroup ,j . (8) Here, Pin ,j = Hj Wj is the block’s total input spatial positions, and Pj = Pin ,j /s 2 
+
+> j
+
+is the number of output spatial positions the pointwise engine processes once the stride has downsampled the input by sj in each direction. Because activations are INT8 and the implemented AXI4-Stream datapath is 64 bits wide, 
+
+WDMA = 8 activation bytes are transferred per cycle. The remaining latencies are 
+
+Tread ,j = Pin ,j cin ,j 
+
+WDMA 
+
+,TDW ,j = ( Hj + 1) [ cin ,j (Gj + δflush ) + δrow ] ,Twrite ,j = Pj cout ,j 
+
+WDMA 
+
+,
+
+(9) where Gj = ⌈Wj /L ⌉ is the number of spatial input groups per row. The sliding-window generator adds two small fixed delays: δflush = 1 cycle after each channel’s row to flush it out, and δrow = 4 cycles to drain each spatial row. It also runs one extra, input-free row at the very end to flush the last row through, giving Hj + 1 row passes in total. The depthwise PPU keeps pace with one L-activation group per cycle, so it adds no delay of its own; TDW ,j therefore reflects this streaming schedule rather than the depthwise layer’s raw MAC count. 
+
+Tblock ,j (C, H) = max( Tread ,j , T DW ,j , T PW ,j , T write ,j ) .
+
+(10) 
+
+Tblock ,j , the block’s overall latency, is set by whichever of these four costs is largest, its bottleneck. This determines whether adding more arithmetic parallelism can actually reduce block latency: once a different cost dominates, increasing pointwise capacity no longer reduces Tblock ,j . Because the encoder blocks execute sequentially with inter-block outputs materialized in 8
+
+DDR, no cross-block compute overlap is assumed, and the total analysis-transform latency is 
+
+Tenc (C, H) = 
+
+> N
+
+X
+
+> j=1
+
+Tblock ,j (C, H). (11) Finite startup and termination contribute at most 91 cycles over the deployed blocks ( < 0.2% of pointwise latency) and are omitted, together with host turnaround, DMA-launch overhead, per-frame codebook reloads, and transient FIFO effects. Because VQ mode follows the same pointwise load– accumulate–drain schedule as ordinary convolution, its timing is obtained by mapping the quantizer geometry onto an equivalent pointwise workload, rather than deriving a separate accelerator model. In all VQ configurations evaluated in this work, K is an integer multiple of Q, so each sub-codebook occupies an integer number of Q-wide output batches, and the total number of such batches per latent position is BVQ (M, K, Q ) = M K/Q .Because sub-codebook boundaries always line up exactly with batch boundaries, every batch scores candidates from just one sub-codebook, using that sub-codebook’s own Dm-dimensional codewords in full, with no wasted, zero-padded slots. This lets the same pointwise scheduling formula be reused for VQ by substituting Dm (the codeword dimension) in place of the channel count cin , and M K (the total number of codewords across all sub-codebooks) in place of the channel count cout , even though these VQ quantities are not literally channel counts. Substituting these dimensions into the same pointwise scheduler, and taking Npos = 90 ×160 as the number of spatial positions in the latent, gives the VQ group latency and total latency as 
+
+Tgroup ,VQ = GROUP LATENCY (Dm, M K, H),TVQ (M, K, H) = Npos 
+
+L Tgroup ,VQ . (12) Reading the latent in and writing out the chosen indices reuse the existing 64-bit streaming ports and finish faster than the pointwise engine’s own group latency, so they add no extra time. Likewise, forming the bias and finding the best score happen during the normal accumulator retirement step, adding no separate cycle cost. The shared-engine formulation exposes a more general quantizer-design rule. Exhaustive codeword scoring requires 
+
+Nmul ,VQ = M KD m = DK (13) useful scalar multiplies per latent position, and the learned codebook stores the same DK scalar values, while the fixed-width index representation needs M ⌈log 2 K⌉ bits. At fixed 
+
+D = 64 and fixed (M, D m) = (4 , 16) , reducing K therefore decreases arithmetic and codebook storage linearly, and also decreases the number of bits needed per index. This hardware benefit is coupled to rate–distortion behavior: reducing K
+
+helps only while the retained codewords still represent the learned latent adequately. We therefore treat K as a post-training deployment variable, with the resulting tradeoff and selection reported in Section VI-B. For a selected encoder and VQ configuration, the serial PL compute latency is therefore 
+
+TPL ,serial (C, M, K, H) = Tenc (C, H)+ TVQ (M, K, H), (14) the total time to run analysis and then VQ back to back on the shared engine, since the two cannot execute simultaneously; this sum therefore describes single-frame occupancy rather than sustained frame initiation interval. It also overstates the true minimum: whenever a block is depthwise-bound, the pointwise engine sits idle while depthwise finishes, and an ideal, finer-grained scheduler could fill that idle time with VQ work instead. Doing so would achieve the lower architectural bound II frame ≥ PNj=1 TPW ,j + TVQ on the frame initiation interval, which counts only actual pointwise occupancy rather than each block’s full latency. Reaching this lower bound would require such fine-grained interleaving, whereas the deployed scheduler instead uses coarse-grained analysis and VQ phases. Section VI-C reports both the modeled bound and measured initiation interval for the selected implementation. 
+
+D. Reference-Workload Hardware Provisioning 
+
+How large to build a compute engine depends on how much work the workload actually demands from it. We therefore use the original encoder Cref as a representative workload for sizing the hardware, without specializing the accelerator to that one network: the same reusable depthwise–pointwise engine supports any channel dimensions and tensor shapes at runtime, and the latency equations are validated over a much broader set of configurations. This reference workload is used only to find the practical balance between depthwise, pointwise, and communication costs on the target device. Doubling L from 8 to 16 would double the datapath from 64 to 128 bits, a full interface redesign rather than a simple parallelism tweak. Holding Q = 32 fixed, it would also double the structural pointwise DSP requirement from LQ/ 2 = 128 
+
+to 256 DSP48E1 slices, exceeding the device’s 220-slice budget before depthwise and post-processing resources are even counted. We therefore hold L = 8 fixed and instead search over pointwise parallelism, Q ∈ { 8, 16 , 32 }, choosing 
+
+Q⋆ ∈ arg min 
+
+> Q∈{ 8,16 ,32 }
+
+Tenc (Cref , H(L = 8 , Q )) , (15) subject to the device’s resource limits, which gives Q⋆ = 32 .Eq. (6) gives the DSP count for the packed multiplier array itself, but complete DSP usage also depends on how synthesis maps other arithmetic to DSP48E1 versus LUT resources, so we do not extend this formula to configurations we have not actually synthesized. 
+
+E. Hardware Cost Oracles and Quantizer Selection 
+
+After sizing the reusable accelerator, we fix H⋆ = H(L =8, Q = 32) . For candidate encoder Ci, substituting its tensor geometry into Eqs. (7)–(11) gives the platform-specific cost 
+
+THW (Ci) = Tenc (Ci, H⋆) , (16) which requires no candidate-specific training or hardware implementation to evaluate. Section V-B describes how this oracle guides encoder selection. The same approach is reused for VQ: with (M, D m) = (4 , 16) already fixed, the model predicts hardware speed for each candidate K, while separate experiments measure reconstruction quality and entropy-coded 9
+
+rate for that same K. Section V-C combines predicted speed with measured quality and rate to choose the deployed cardinality. V. E XPERIMENTAL METHODOLOGY 
+
+With the latency model and accelerator design from Sec-tion IV fixed, this section validates that model against silicon before using it to run the encoder search and VQ refinement, and closes with the evaluation protocol used to report results. 
+
+A. Latency Model Validation 
+
+The accelerator is implemented in SystemVerilog on an XC7Z020CLG484-1 Zynq-7020, using Vivado 2020.2 at 100 MHz. The timed edge path covers group-major input packing, the depthwise–pointwise analysis transform, shared-pointwise VQ, and PS rANS coding, and excludes image acquisition and the cloud decoder. Board timings come from the ARM Global Timer after warm-up. We report modeled and measured analysis and VQ latency. The pointwise scheduler is checked against 100 RTL con-figurations spanning Q ∈ { 8, 16 , 32 } and varying channel geometries, while the depthwise scheduler is checked against 100 configurations across strides, channel counts, spatial dimensions, and ragged widths; both are then compared against Zynq-7020 measurements. Hardware ablations compare serialized versus split-shadow pointwise retirement, and fused versus DDR-materialized depthwise–pointwise execution. Shared-pointwise VQ is checked against the software quantizer on random, exact-tie, and INT8-extreme inputs, then verified index-for-index across full frames. 
+
+B. Encoder Exploration 
+
+With the accelerator H⋆ = H(L = 8 , Q = 32) validated above, we rank candidate encoder schedules C = ( c1, . . . , c N )
+
+by modeled latency THW (Eq. (16)) before training any of them. Because proxy training dominates exploration cost, candidates are trained at two matched modeled-latency levels: that of Cref 
+
+(≈17.7 ms) and a faster level near 13.4–14.0 ms. Search A holds the six-block depth of Cref and redistributes channel width between the early, high-resolution blocks and the later, low-resolution ones; Search B varies depth from three to six blocks. Depth and channel placement are thus compared at matched modeled latency. All candidates use the reference VQ setting (M0, K 0, D m, 0) = (4 , 256 , 16) , so VQ does not affect ranking. After identical short proxy training, we compare candidates on image quality (MS-SSIM and PSNR) and THW ; since every candidate shares the same rate preset, rate is not a selection criterion. The winning topology is then compared with Cref 
+
+and trained as prescribed in Section III-D. 
+
+C. VQ Codebook Refinement 
+
+With C⋆ = (16 , 48 , 64) and H⋆ fixed, we independently refine the codebook cardinality for each of the three rate presets over K ∈ { 256 , 128 , 96 , 64 , 32 }, holding M = 4 and Dm =                               
+
+> TABLE I PER -B LOCK LATENCY -M ODEL VALIDATION OF THE 16 –48 –64
+> TRANSFORM
+> Block Predicted (cyc) Measured (cyc) Error Bottleneck 1518,400 519,904 −0.289% PW 2469,300 470,279 −0.208% DW 3356,932 357,990 −0.296% DW Analysis total 1,344,632 1,348,173 −0.263% –VQ 489,600 489,840 −0.049% PW Combined 1,834,232 1,838,013 −0.206% –
+
+16 constant. For each K, we rank each sub-codebook’s original 256 entries by how often they were used during training (their EMA usage estimate) and keep only the top K. Each candidate 
+
+K is then scored on reconstruction quality, entropy-coded rate, codebook storage, and modeled VQ latency TVQ (Eq. (12)). Section VI-B reports the findings and the selected cardinality. 
+
+D. Evaluation Metrics and Protocol 
+
+For the finalized codec, we evaluate reconstruction quality with two traditional distortion metrics, PSNR and MS-SSIM, and two perceptual metrics, LPIPS and BRISQUE. PSNR is reported for comparability with prior FPGA LIC work, though it correlates poorly with perceived visual quality. MS-SSIM captures structural similarity. LPIPS is a learned perceptual metric, while BRISQUE is a reference-free perceptual quality metric. The coded rate is Rcoded = 8 Nbytes /(Himg Wimg ) bpp, where Nbytes is the total encoded payload plus header, in bytes. Rate–distortion is evaluated at native resolution on the CLIC 2017 and Kodak test suites. For hardware efficiency, we report useful convolutional arithmetic per block as NMAC ,j = Pj (9 cin ,j + cin ,j cout ,j ), the 
+
+9cin ,j term from the 3 × 3 depthwise filter and the cin ,j cout ,j 
+
+term from the pointwise stage; totals are reported per frame, and, where noted, normalized by input pixel count, separately from modeled shared-engine latency and VQ work. VI. E XPERIMENTAL RESULTS AND CO-D ESIGN ANALYSIS 
+
+The evaluation follows the staged co-design developed above. We first validate the compute–communication model and the provisioned accelerator, then evaluate how the resulting latency oracle supports target-platform-aware construction and selection of encoder candidates and whether its predicted-latency ordering differs from useful-MAC ordering. We next evaluate post-training codebook-cardinality refinement and the resulting analysis–VQ workload on the shared pointwise engine, before reporting shared-engine system behavior and rate–distortion performance. 
+
+A. Hardware-Model Validation and Encoder Selection 
+
+Across more than one hundred pointwise RTL tensor configurations spanning Q ∈ { 8, 16 , 32 }, the analytical sched-ule reproduces implemented cycle counts to within 0.05 cycle/group, while independent pointwise-bound measurements agree with model predictions to approximately 1%. The 10      
+
+> Fig. 6. Latency-model validation on the six-block reference workload Cref
+> at L= 8 , Q = 32 . Bars show the modeled read, depthwise, pointwise, and write latencies per block. The bold bar marks each block’s bottleneck, and the percentage above it is the amount by which the measured block latency exceeds the predicted one.
+
+depthwise schedule was independently verified over 100 RTL configurations spanning channel counts, image widths, ragged widths, and both supported strides; its error is a small, constant offset from pipeline fill and drain, confirming that the model correctly captures the ongoing per-cycle rate. Table I provides an independent silicon check on the final 16 –48 –64 transform, for which the aggregate prediction differs from measurement by only 0.264% and the model identifies the bottleneck correctly in every block. Fig. 6 further shows that the model tracks changes in the bottleneck across the six-block reference workload. Hardware provisioning on this workload selects L = 8, Q = 32 :increasing pointwise parallelism from Q = 16 to Q = 32 
+
+and introducing split-shadow accumulator retirement together reduce measured PL/DMA latency by 35.6%, while depthwise– pointwise fusion reduces external activation traffic from 26.266 to 18.432 MB/frame. These measurements establish the reusable accelerator configuration on which the latency model is frozen before encoder exploration. Table II reports the structured encoder candidates evaluated under the same short proxy-training budget (Section V-B) using this fixed latency oracle. The predicted-latency ordering is not equivalent to useful-MAC ordering: the six-block 16 –16 –16 –
+
+16 –32 –64 candidate has 21.1% fewer useful MACs than the selected 16 –48 –64 encoder, yet higher modeled latency. Thus, arithmetic count alone does not preserve latency ordering when the bottleneck changes with tensor geometry. Among the evaluated candidates, 16 –48 –64 simultaneously achieves the highest proxy PSNR and lowest modeled hard-ware latency and is therefore selected. Relative to the six-block 16 –32 –32 –32 –64 –64 reference, it reduces convolutional weights from 10,363 to 4,491 (56.7%), modeled latency by 24.0%, and modeled external activation traffic from 18.432 to 16.589 MB/frame (10.0%). 
+
+B. Codebook Refinement and Shared-Engine Selection 
+
+With the encoder topology C⋆ = (16 , 48 , 64) fixed, assign-ment statistics from the trained quantizers show substantial codebook under-utilization, motivating post-training cardinality refinement. Table III reports the resulting latency–storage– quality tradeoff for the mid-rate preset while holding M = 4 
+
+and Dm = 16 fixed.                                                                                                 
+
+> TABLE II HARDWARE -M ODEL -G UIDED ENCODER EXPLORATION RESULTS
+> Encoder P
+> jNMAC ,j THW PSNR MS-SSIM (MMAC/frame) (ms) (dB) (dB)
+> 16–48–64 120.269 13.446 23.405 9.475
+> 16–16–64–64 124.416 13.909 22.394 7.925 16–64–64–64 219.110 17.645 22.727 8.465 16–16–48–32–64 115.430 13.988 21.927 7.142 16–48–48–48–64 199.066 17.766 22.283 7.890 16–32–32–32–64–64 193.766 17.695 21.768 7.119 16–32–48–64–32–64 203.213 17.695 21.708 7.420 16–16–16–16–32–64 94.925 13.952 20.957 6.245 TABLE III REPRESENTATIVE POST -T RAINING CODEBOOK -C ARDINALITY
+> REFINEMENT FOR THE MID -R ATE PRESET
+> KUncoded index bits PSNR (dB) MS-SSIM (dB) Codebook (KiB) Useful mult./pos.
+> TVQ
+> (ms) 256 32 29.29 13.38 16 16,384 19.584 128 28 29.21 13.33 88,192 9.792 96 28 29.10 13.28 66,144 7.344
+> 64 24 28.69 13.06 44,096 4.896
+> 32 20 27.39 12.35 22,048 2.448 TABLE IV RESOURCE UTILIZATION OF THE FINAL ACCELERATOR
+> Resource Used Available Utilization Slice LUTs 33,994 53,200 63.90% Slice registers 32,353 106,400 30.41% Block RAM tiles 82.5 140 58.93% DSP48E1 220 220 100.00%
+
+Across all three independently trained rate presets, reducing 
+
+K produced the same qualitative quality trend, with a clear quality knee at K = 64 . Table III reports the mid-rate preset as a representative sweep. Reducing K from 256 to 64 cuts exhaustive-search arithmetic, codebook storage, and modeled shared-engine VQ latency by roughly 4×, while retaining most of the reconstruction quality; reducing further to K = 32 
+
+produces a substantially larger quality loss. We therefore select 
+
+K⋆ = 64 for all three rate presets. We then re-evaluate pointwise width using this final analysis– VQ workload. Increasing to an analytical Q = 64 improves combined modeled analysis–VQ latency by under 1% while exceeding the implemented device’s pointwise DSP budget, so 
+
+Q⋆ = 32 remains the selected operating point. 
+
+C. Final FPGA Implementation and System Performance 
+
+Post-place utilization of the final accelerator is summarized in Table IV. The implementation uses all 220 DSP48E1 slices, leaving 36.1% of LUTs, 69.6% of registers, and 41.1% of BRAM capacity available for control and system integration. Table I confirms the latency model also remains accurate for VQ and for the combined analysis–VQ workload. The deployed implementation additionally reloads the VQ codebook into the shared weight memory once per frame, adding a measured 0.9599 ms, giving a measured serial analysis–reload– VQ latency of 19.3400 ms. 11                             
+
+> Fig. 7. Measured multi-frame execution schedule. Input packing for frame
+> N+1 and PS (Cortex-A9) rANS coding for frame N−1overlap with the analysis stage of frame N, followed by the VQ stage for that same frame, so a new frame starts every 20.84 ms rather than after the sum of all four stage latencies. Stage-level timings include associated PS-side control and data-movement overheads, whereas Table I reports accelerator-only PL cycle counts used for latency-model validation. TABLE V DEPLOYMENT COMPARISON BETWEEN VQ-LIC AND A COMMERCIAL EDGE -ACCELERATOR PLATFORM .
+> Metric VQ-LIC (Zynq-7020) Coral TPU + Raspberry Pi 5
+> Analysis-transform latency (ms) 13.48 24.80 Complete edge frame interval (ms) 20.84 27.80 Throughput (frame/s) 47.98 35.97 Platform power (W) 2.06 a7.80 b
+> Energy per frame (mJ) 42.84 a216.84 b
+> VQ execution PL PW engine RPi 5 Entropy coding (rANS) Cortex-A9 RPi 5
+> aMeasured at the monitored regulator outputs, excluding regulator conversion losses and the unmonitored 5-V USB rail. bCoral I/O and invocation (24.80 ms), Pi 5 VQ (1.20 ms), and rANS (1.80 ms) are measured latencies, summed in series to give the 27.80 ms frame interval. Power (7.80 W) is the gross system power draw.
+
+As shown in Fig. 7, host-side work is overlapped across adjacent frames rather than added serially to PL execution. Under this schedule, the complete edge pipeline sustains a measured frame initiation interval of 20.8405 ms, corresponding to 47.98 frames/s at 720p. PS entropy coding, including index unpacking, rANS coding, and payload assembly, requires 5.3730 ms of CPU time but is 99.9% overlapped with PL analysis, leaving under 0.004 ms combined exposed; host-side entropy coding therefore does not determine steady-state throughput. PMBus measurements give 2.0567 ± 0.0053 W of moni-tored board-rail power. An independent power-measurement loop reports a 20.8287-ms frame period, agreeing with the timing measurement to within 0.06% , and yields an energy cost of 42.84 mJ/frame. These values are regulator-output measurements and exclude regulator conversion losses and the unmonitored 5-V USB rail. Finally, the shared-pointwise latency model gives a 16.416-ms ideal compute-only initiation-interval floor, compared with 18.342 ms for coarse-grained analysis–VQ execution, leaving roughly 10.5% of compute-level scheduling headroom unexploited by the deployed coarse-grained schedule. 
+
+D. Rate–Distortion Performance 
+
+Fig. 8 evaluates VQ-LIC on unseen CLIC 2017 validation and Kodak images at their native resolutions across three independently trained low-, mid-, and high-rate presets. VQ-LIC closes much of the rate–distortion gap on structural and perceptual metrics. It outperforms JPEG, JPEG 2000, and WebP on MS-SSIM, LPIPS, and BRISQUE, which fits the structurally weighted training objective in Section III-C, and it also outright outperforms the similarly sized MCUCoder across all four metrics, while narrowing, though not closing, the gap to the far larger Ball´ e hyperprior codec on the perceptual metrics. Fig. 9 illustrates this qualitatively on a representative image, where VQ-LIC’s reconstruction preserves more perceptible structure than the conventional codecs at a matched bitrate. BPG still leads VQ-LIC in raw PSNR. However, it is worth noting that BPG also leads Ball´ e et al.’s hyperprior codec [1], which uses a 5.08M-parameter encoder, 1,130 × larger than VQ-LIC’s, and still falls short of BPG’s PSNR by 0.15–0.35 dB; even a far larger neural codec pays a real compute cost to get near BPG. On the other end, MCUCoder’s encoder has about 10.5K parameters, close to VQ-LIC’s own size, yet VQ-LIC outperforms it in PSNR by 0.97–2.59 dB at equal or lower bpp every time. VQ-LIC therefore outperforms a similarly sized encoder (MCUCoder) while reaching a rate–distortion range similar to a model three orders of magnitude larger (the Ball´ ehyperprior codec), running at just 0.1945 kMAC/pixel on a severely resource-constrained platform. 
+
+E. Comparison Against a Commodity Edge Platform 
+
+To contextualize the benefits of application-specific FPGA co-design, we additionally deployed the analysis transform on a Google Coral Edge TPU with a Raspberry Pi 5 host executing VQ and entropy coding. Table V summarizes the comparison. The Zynq-7020 implementation completes the analysis stage nearly 2× faster and sustains roughly 
+
+1.3× higher throughput, while drawing under a third of the commercial platform’s power and under a fifth of its energy per frame. The comparison illustrates the benefit of tailoring the accelerator beyond convolution alone: VQ scoring executes on the same programmable pointwise datapath used by the analysis transform, avoiding a separate host-side quantization stage that the commodity platform requires. 
+
+F. Comparison with Prior FPGA Accelerators 
+
+Table VI compares representative FPGA LIC implementa-tions reported at approximately 720p. Since platforms, codecs, and test conditions differ, the values are each source’s own reported numbers, meant to show general scale rather than a precise, apples-to-apples comparison. The principal distinction in Table VI is the hardware resource regime. VQ-LIC sustains a measured complete edge-path throughput of 47.98 frames/s using 220 DSP48E1 slices on the Zynq-7020, while StreamLIC and F-LIC report 2992 and 4146 DSPs, respectively; these counts should not be read as efficiency ratios across devices, but they show that real-time learned analysis and vector quantization can run within a much smaller multiplier budget than the other implementations considered here. At a modest PSNR tradeoff, VQ-LIC also reaches a substantially lower bitrate, higher throughput, and lower energy per frame than its closest competitors in reconstruction quality, 12 
+
+Fig. 8. Rate–distortion and perceptual-quality comparison of VQ-LIC (three independently trained rate presets, shown for the final INT8/QAT and pre-QAT floating-point models) against BPG, WebP, JPEG 2000, JPEG, the Ball´ e hyperprior codec, and MCUCoder, on CLIC 2017 and Kodak at native resolution. Metrics shown are LPIPS, BRISQUE, PSNR, and MS-SSIM; arrows indicate whether lower ( ↓) or higher ( ↑) is better. 
+
+Fig. 9. Rate–distortion and perceptual-quality comparison of VQ-LIC (mid-rate preset, final INT8/QAT model) against traditional baselines. TABLE VI COMPARISON OF 720 P FPGA L EARNED -I MAGE -C OMPRESSION IMPLEMENTATIONS 
+
+Work Platform Precision Clock (MHz) LUTs DSPs BRAM Throughput (fps) Energy/frame (J) PSNR d
+
+(dB) MS-SSIM d
+
+(dB) bpp d Encoder kMAC/px 
+
+VQ-LIC (This work) Zynq-7020 INT8 100 34.0k 220 82.5 47.98 0.043 25.99 12.00 0.2158 0.195 X-LIC [5] ZCU102 INT8 200 150.3k 1522 792 32.95 0.060 27.02 a N/R N/R 11.224 c
+
+StreamLIC [8] Alveo U50 INT12 250 N/R 2992 N/R 41.4 b N/R N/R N/R N/R 19.30 c
+
+Sun et al. [6] KU115 INT8 200 N/R 4160 N/R 37.74 N/R 30.06 N/R 0.2531 41.030 c
+
+F-LIC [4] VCU118 Fix8 200 339.9k 4146 672 40.69 1.410 29.94 N/R 0.2542 40.332 c
+
+FPX-NIC [3] ZCU104 INT8 350 N/R N/R N/R 3.90 1.680 29.89 15.09 0.2565 178.743 ca X-LIC PSNR corresponds to the operating point reported for the 720p implementation. b StreamLIC throughput is estimated from hardware synthesis and simulation for 720p inputs below 0.5 bpp; a corresponding PSNR–bpp operating point was not available for this configuration. c Encoder complexity counts neural MACs required along the encoding path, including hyper-analysis/hyper-synthesis or VQ where applicable, and excludes arithmetic/range/rANS coding. Values not directly reported are calculated from the published network or component dimensions. d PSNR, MS-SSIM, and bpp are reported for Kodak. 
+
+underscoring that VQ-LIC’s resource savings come at only a modest cost to rate–distortion, not speed or energy. VII. C ONCLUSION 
+
+This work presented VQ-LIC, a staged algorithm– architecture co-design for learned image encoding on aseverely resource-constrained FPGA. A validated compute– communication model captures the competing read, depthwise, pointwise, and write latencies of the realized accelerator and is reused as a target-platform latency oracle during encoder exploration. The resulting 16 –48 –64 transform reduces modeled latency by 24.0% relative to the six-block reference while improving proxy reconstruction quality. The same pointwise datapath is subsequently reused for entropy-constrained VQ codeword scoring, eliminating a dedicated VQ compute engine, and post-training cardinality refinement reduces exhaustive-search arithmetic and codebook storage by 4×. With pre-shared conditional rANS tables, the selected codec achieves 0.1398 bpp at 28.69 dB PSNR and 13.06 dB MS-SSIM on the mid-rate CLIC operating point, outperforming a similarly sized 13 
+
+neural encoder and reaching a rate–distortion range comparable to a model three orders of magnitude larger. On silicon, measured analysis and VQ latencies agree with the latency model’s predictions within 0.26% and 0.05%, respectively. The complete 0.1945-kMAC/pixel analysis–VQ workload is realized within all 220 DSP48E1 slices of the Zynq-7020, an order of magnitude fewer than comparable FPGA LIC accelerators, which VQ-LIC also outpaces in bitrate, throughput, and energy per frame at a modest PSNR tradeoff; the deployed 720p edge pipeline sustains 47.98 frames/s at 42.84 mJ/frame. ACKNOWLEDGMENT 
+
+The authors used a large language model to generate the initial scaffolding of Algorithm 1 and Tables I–VI, and for grammar and prose-flow editing. All technical content and data are the authors’ own or drawn from cited work; the AI system generated no results, claims, or scientific content. REFERENCES [1] Johannes Ball´ e, David Minnen, Saurabh Singh, Sung Jin Hwang, and Nick Johnston. Variational image compression with a scale hyperprior. In Int. Conf. Learn. Represent. (ICLR) , 2018. [2] David Minnen, Johannes Ball´ e, and George D. Toderici. Joint autore-gressive and hierarchical priors for learned image compression. In Adv. Neural Inf. Process. Syst. (NeurIPS) , volume 31, pages 10794–10803, 2018. [3] Chuanmin Jia, Xinyu Hang, Shanshe Wang, Yaqiang Wu, Siwei Ma, and Wen Gao. FPX-NIC: An FPGA-accelerated 4k ultra-high-definition neural video coding system. IEEE Trans. Circuits Syst. Video Technol. ,32(9):6385–6399, 2022. [4] Heming Sun, Qingyang Yi, Fangzheng Lin, Lu Yu, Jiro Katto, and Masahiro Fujita. F-LIC: FPGA-based learned image compression with a fine-grained pipeline. In IEEE Asian Solid-State Circuits Conf. (A-SSCC) ,pages 1–3, 2022. [5] Chen Chen et al. Exploring efficient hardware accelerator for learning-based image compression. IEEE Trans. Comput.-Aided Design Integr. Circuits Syst. , 44(6):2204–2217, 2025. [6] Heming Sun, Qingyang Yi, and Masahiro Fujita. FPGA codec system of learned image compression with algorithm–architecture co-optimization. 
+
+IEEE J. Emerg. Sel. Topics Circuits Syst. , 14(2):334–347, 2024. [7] Heming Sun, Jing Wang, Silu Liu, Shinji Kimura, and Masahiro Fujita. Learned image codec on FPGA: Algorithm, architecture and system design. In Proc. Asia South Pacific Design Autom. Conf. (ASP-DAC) ,pages 328–331, 2025. [8] Hanlun Zhang and Li Chen. Streamlic: A lightweight learned image compression model for stream processing on FPGA. In Proc. IEEE Int. Conf. Vis. Commun. Image Process. (VCIP) , pages 1–5, 2025. [9] Johannes Ball´ e, Valero Laparra, and Eero P. Simoncelli. End-to-end optimized image compression. In Int. Conf. Learn. Represent. (ICLR) ,2017. [10] Jinming Liu, Heming Sun, and Jiro Katto. Learned image compression with mixed transformer–CNN architectures. In Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR) , pages 14388–14397, 2023. [11] Wenhong Duan et al. Learned image compression using cross-component attention mechanism. IEEE Trans. Image Process. , 32:5478–5493, 2023. [12] Aaron van den Oord, Oriol Vinyals, and Koray Kavukcuoglu. Neural discrete representation learning. In Adv. Neural Inf. Process. Syst. (NeurIPS) , volume 30, pages 6306–6315, 2017. [13] Eirikur Agustsson et al. Soft-to-hard vector quantization for end-to-end learning compressible representations. In Adv. Neural Inf. Process. Syst. (NeurIPS) , volume 30, pages 1141–1151, 2017. [14] Xiaosu Zhu, Jingkuan Song, Lianli Gao, Feng Zheng, and Heng Tao Shen. Unified multivariate gaussian mixture for efficient neural image compression. In Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR) , pages 17591–17600, 2022. [15] Alaaeldin El-Nouby, Matthew J. Muckley, Karen Ullrich, Ivan Laptev, Jakob Verbeek, and Herv´ e J´ egou. Image compression with product quantized masked image modeling. Trans. Mach. Learn. Res. , 2023. [16] Runsen Feng, Zongyu Guo, Weiping Li, and Zhibo Chen. Nvtc: Nonlinear vector transform coding. In Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR) , pages 6101–6110, 2023. [17] Zhihao Duan, Ming Lu, Zhan Ma, and Fengqing Zhu. Lossy image compression with quantized hierarchical VAEs. In Proc. IEEE/CVF Winter Conf. Appl. Comput. Vis. (WACV) , pages 198–207, 2023. [18] Heming Sun, Lu Yu, and Jiro Katto. Q-LIC: Quantizing learned image compression with channel splitting. IEEE Trans. Circuits Syst. Video Technol. , 35(4):3798–3811, 2025. [19] Junqi Shi, Ming Lu, and Zhan Ma. Rate-distortion optimized post-training quantization for learned image compression. IEEE Trans. Circuits Syst. Video Technol. , 34(5):3082–3095, 2024. [20] Fei Yang, Luis Herranz, Yongmei Cheng, and Mikhail G. Mozerov. Slimmable compressive autoencoders for practical neural image compres-sion. In Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR) ,pages 4996–5005, 2021. [21] Alaa Mazouz, Sumanta Chaudhuri, Marco Cagnazzo, Mihai Mitrea, Enzo Tartaglione, and Attilio Fiandrotti. RD efficient FPGA deployment of learned image compression: Knowledge distillation and hybrid quantization. arXiv preprint arXiv:2503.04832 , 2025. [22] Ali Hojjat, Janek Haberer, and Olaf Landsiedel. MCUCoder: Adaptive bitrate learned video compression for IoT devices. In German Conference on Pattern Recognition (GCPR) , pages 123–138, 2025. [23] Alaa Eddine Mazouz et al. Security and real-time FPGA integration for learned image compression. IEEE Trans. Multimedia , 2026. [24] Heonchul Park and Viktor K. Prasanna. Modular VLSI architectures for real-time full-search-based vector quantization. IEEE Trans. Circuits Syst. Video Technol. , 3(4):309–317, 1993. [25] Wen-Jyi Hwang, Wen-Kang Wei, and Yao-Jung Yeh. FPGA implemen-tation of full-search vector quantization based on partial distance search. 
+
+Microprocess. Microsyst. , 31(8):516–528, 2007. [26] Andrew G. Howard et al. MobileNets: Efficient convolutional neural networks for mobile vision applications. arXiv preprint arXiv:1704.04861 ,2017. [27] Franc ¸ois Chollet. Xception: Deep learning with depthwise separable convolutions. In Proc. IEEE Conf. Comput. Vis. Pattern Recognit. (CVPR) ,pages 1800–1807, 2017. [28] Lin Bai, Yiming Zhao, and Xinming Huang. A CNN accelerator on FPGA using depthwise separable convolution. IEEE Trans. Circuits Syst. II, Exp. Briefs , 65(10):1415–1419, 2018. [29] Mingxing Tan et al. Mnasnet: Platform-aware neural architecture search for mobile. In Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR) , pages 2820–2828, 2019. [30] Han Cai, Ligeng Zhu, and Song Han. Proxylessnas: Direct neural architecture search on target task and hardware. In Int. Conf. Learn. Represent. (ICLR) , 2019. [31] Bichen Wu et al. FBNet: Hardware-aware efficient ConvNet design via differentiable neural architecture search. In Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR) , pages 10726–10734, 2019. [32] Weiwen Jiang et al. Accuracy vs. efficiency: Achieving both through FPGA-implementation aware neural architecture search. In Proc. 56th Annu. Design Autom. Conf. (DAC) , pages 1–6, 2019. [33] Philip A. Chou, Tom Lookabaugh, and Robert M. Gray. Entropy-constrained vector quantization. IEEE Transactions on Acoustics, Speech, and Signal Processing , 37(1):31–42, 1989. [34] Herv´ e J´ egou, Matthijs Douze, and Cordelia Schmid. Product quantization for nearest neighbor search. IEEE Trans. Pattern Anal. Mach. Intell. ,33(1):117–128, 2011. [35] Hang Zhao, Orazio Gallo, Iuri Frosio, and Jan Kautz. Loss functions for image restoration with neural networks. IEEE Trans. Comput. Imag. ,3(1):47–57, 2017. [36] Alina Kuznetsova, Hassan Rom, Neil Alldrin, Jasper Uijlings, Ivan Krasin, Jordi Pont-Tuset, Shahab Kamali, Stefan Popov, Matteo Malloci, Alexander Kolesnikov, Tom Duerig, and Vittorio Ferrari. The open images dataset V4: Unified image classification, object detection, and visual relationship detection at scale. International Journal of Computer Vision , 128(7):1956–1981, 2020. [37] Xilinx, Inc. Deep learning with INT8 optimization on Xilinx devices. Technical Report WP486, Xilinx, Inc., 2017. White paper.

@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-24</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-25</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 7 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 8 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>4</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>6</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-24 22:04:04 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-25 22:45:13 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日筛完7篇，精读聚焦VLM极低位权重量化和几何感知双曲残差量化，速读覆盖混合精度、分离式预填充/解码量化与PTQ配置预测。</p>
-<p>最值得看的是《SPHQuant》（9.0）对VLM极端低比特量化的效率突破，以及《Geometry-Aware Hyperbolic Residual Quantization》（8.0）用双曲几何做残差量化。</p>
-<p>普通读者可先读这两篇精读，再挑《Beyond Scalar Sensitivity》或《Disaggregated Quantization》了解LLM混合精度与部署拆分。</p>
+<p>今天筛完8篇量化与压缩相关论文，精读2篇、速读6篇，重点落在高效表示与边缘部署。</p>
+<p>最值得看的是两篇8分精读：双曲几何感知残差量化，以及资源受限FPGA上的共享向量量化图像压缩。</p>
+<p>普通读者可先读这两篇，再顺着FoldQuantVLA等速读工作理解低比特量化在视觉-语言-动作与边缘场景的落地。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -73,12 +73,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">3 篇</strong>
+    <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="SPHQuant: Efficient extreme low bit weight quantization for Vision-Language Models">SPHQuant: Efficient extreme low bit weight quantization for Vision-Language Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="Geometry-Aware Hyperbolic Residual Quantization">Geometry-Aware Hyperbolic Residual Quantization</span></li><li><span class="dpr-home-dashboard-paper-title" title="QuantWM: Temporally Consistent 2-Bit KV Cache Quantization for World Models and Video Generation">QuantWM: Temporally Consistent 2-Bit KV Cache Quantization for World Models and Video Generation</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Geometry-Aware Hyperbolic Residual Quantization">Geometry-Aware Hyperbolic Residual Quantization</span></li><li><span class="dpr-home-dashboard-paper-title" title="VQ-LIC: Shared Vector-Quantized Learned Image Compression on a Resource-Constrained FPGA">VQ-LIC: Shared Vector-Quantized Learned Image Compression on a Resource-Constrained FPGA</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>3</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -86,12 +86,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">4 篇</strong>
+    <strong class="dpr-home-dashboard-count">6 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Beyond Scalar Sensitivity: Activation-Aware Mixed-Precision LLM Quantization with Cross-Layer Refinement">Beyond Scalar Sensitivity: Activation-Aware Mixed-Precision LLM Quantization with Cross-Layer Refinement</span></li><li><span class="dpr-home-dashboard-paper-title" title="Disaggregated Quantization: Specializing LLM Prefill and Decode">Disaggregated Quantization: Specializing LLM Prefill and Decode</span></li><li><span class="dpr-home-dashboard-paper-title" title="Predicting Quantization Price for Selecting PTQ Configurations Before Deployment">Predicting Quantization Price for Selecting PTQ Configurations Before Deployment</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="FoldQuantVLA: Native Low-Bit Quantization of Vision-Language-Action Models via Consistent Folding">FoldQuantVLA: Native Low-Bit Quantization of Vision-Language-Action Models via Consistent Folding</span></li><li><span class="dpr-home-dashboard-paper-title" title="Beyond Shadow Weights: Quantization-Aware Training as Quantized-Endpoint Descent">Beyond Shadow Weights: Quantization-Aware Training as Quantized-Endpoint Descent</span></li><li><span class="dpr-home-dashboard-paper-title" title="Q-DEQ: Discrete Solving and Quantization for Deep Equilibrium Models in Time Series Forecasting under Edge Deployment Coding Constraints">Q-DEQ: Discrete Solving and Quantization for Deep Equilibrium Models in Time Series Forecasting under Edge Deployment Coding Constraints</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>4</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>5</strong></span><span class="dpr-home-dashboard-tag">moe-quant <strong>1</strong></span></div>
 </section>
 </div>
 

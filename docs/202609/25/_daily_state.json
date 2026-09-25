@@ -1,0 +1,137 @@
+{
+  "date": "20260925",
+  "date_label": "",
+  "generated_at": "2026-09-25 22:45:13 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.26342v1",
+      "route": "202609/25/2609.26342v1-geometry-aware-hyperbolic-residual-quantization",
+      "title": "Geometry-Aware Hyperbolic Residual Quantization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "带多级码本的残差向量量化与几何聚合",
+      "first_seen_at": "2026-09-25 22:45:13 UTC",
+      "updated_at": "2026-09-25 22:45:13 UTC"
+    },
+    {
+      "paper_id": "2609.29727v1",
+      "route": "202609/25/2609.29727v1-vq-lic-shared-vector-quantized-learned-image-compression-on-a-resource-constrained-fpga",
+      "title": "VQ-LIC: Shared Vector-Quantized Learned Image Compression on a Resource-Constrained FPGA",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "多码本矢量量化，码字匹配映射为点积引擎",
+      "first_seen_at": "2026-09-25 22:45:13 UTC",
+      "updated_at": "2026-09-25 22:45:13 UTC"
+    },
+    {
+      "paper_id": "2609.24433v1",
+      "route": "202609/25/2609.24433v1-foldquantvla-native-low-bit-quantization-of-vision-language-action-models-via-consistent-folding",
+      "title": "FoldQuantVLA: Native Low-Bit Quantization of Vision-Language-Action Models via Consistent Folding",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "视觉-语言-动作模型的低比特量化",
+      "first_seen_at": "2026-09-25 22:45:13 UTC",
+      "updated_at": "2026-09-25 22:45:13 UTC"
+    },
+    {
+      "paper_id": "2609.21834v1",
+      "route": "202609/25/2609.21834v1-beyond-shadow-weights-quantization-aware-training-as-quantized-endpoint-descent",
+      "title": "Beyond Shadow Weights: Quantization-Aware Training as Quantized-Endpoint Descent",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "量化感知训练，与低比特量化相关",
+      "first_seen_at": "2026-09-25 22:45:13 UTC",
+      "updated_at": "2026-09-25 22:45:13 UTC"
+    },
+    {
+      "paper_id": "2609.24042v1",
+      "route": "202609/25/2609.24042v1-q-deq-discrete-solving-and-quantization-for-deep-equilibrium-models-in-time-series-forecasting-under-edge-deployment-coding-constraints",
+      "title": "Q-DEQ: Discrete Solving and Quantization for Deep Equilibrium Models in Time Series Forecasting under Edge Deployment Coding Constraints",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "边缘约束下深度平衡模型的低比特量化",
+      "first_seen_at": "2026-09-25 22:45:13 UTC",
+      "updated_at": "2026-09-25 22:45:13 UTC"
+    },
+    {
+      "paper_id": "2609.24799v1",
+      "route": "202609/25/2609.24799v1-when-quantization-preserves-accuracy-but-not-evidence-explanation-aware-post-training-quantization-for-medical-llms",
+      "title": "When Quantization Preserves Accuracy but Not Evidence: Explanation-Aware Post-Training Quantization for Medical LLMs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "保解释的训练后量化",
+      "first_seen_at": "2026-09-25 22:45:13 UTC",
+      "updated_at": "2026-09-25 22:45:13 UTC"
+    },
+    {
+      "paper_id": "2609.25492v1",
+      "route": "202609/25/2609.25492v1-rgsq-riemannian-geometry-sensitive-quantization-for-large-vision-language-models",
+      "title": "RGSQ: Riemannian Geometry-Sensitive Quantization for Large Vision-Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向视觉语言模型的低比特量化",
+      "first_seen_at": "2026-09-25 22:45:13 UTC",
+      "updated_at": "2026-09-25 22:45:13 UTC"
+    },
+    {
+      "paper_id": "2609.29032v1",
+      "route": "202609/25/2609.29032v1-paging-the-experts-a-reproducible-characterization-of-flash-backed-moe-inference-on-iphone",
+      "title": "Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "在iPhone上以量化MoE检查点进行闪存支撑的MoE推理",
+      "first_seen_at": "2026-09-25 22:45:13 UTC",
+      "updated_at": "2026-09-25 22:45:13 UTC"
+    }
+  ]
+}

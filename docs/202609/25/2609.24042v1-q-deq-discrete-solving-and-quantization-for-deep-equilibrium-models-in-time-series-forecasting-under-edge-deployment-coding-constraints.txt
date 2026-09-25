@@ -1,0 +1,308 @@
+Title: Q-DEQ: Discrete Solving and Quantization for Deep Equilibrium Models in Time Series Forecasting under Edge Deployment Coding Constraints
+
+URL Source: https://arxiv.org/pdf/2609.24042v1
+
+Published Time: Tue, 22 Sep 2026 02:02:53 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+# Q-DEQ: Discrete Solving and Quantization for Deep Equilibrium Models in Time Series Forecasting under Edge Deployment Coding Constraints 
+
+Ruotong Yang Hongdong Zhu Qi Gao Yin Ma Hai Wei Kai Wen 
+
+Abstract 
+
+Edge deployment motivates forecasting models with compact parameter storage and low-bit representations. Deep equilibrium models (DEQs) obtain implicit depth by repeatedly applying a shared layer, reducing the parameter cost of explicit layer stacking. Their usual Anderson solver, however, searches for update coefficients in the continuous real domain. We propose Q-DEQ, which formulates local updates in DEQ forward solving as discrete optimization problems. Candidate directions are constructed from the current state and iteration history, and a local quadratic resid-ual model is used to evaluate their combinations. Binary encoding of the direction coefficients yields a quadratic unconstrained binary optimization (QUBO) problem that can be solved by simulated annealing (SA) or a coherent Ising machine (CIM). After fixed-point solving, a re-forward pass applies W8A8 fake quantization to the shared layer’s weights and activations. We evaluate Q-DEQ with an iTransformer backbone on five multivariate time series forecasting datasets. Relative MSE dif-ferences from the explicit multi-layer baseline range from −1.16% to +2 .90%, with lower MSE on two datasets. DEQ parameter sharing reduces parameter counts by factors of 1 .80 ×–3 .82 ×; combined with W8A8, static weight storage is reduced by factors of 4 .3×–12 .8×. Local QUBO problems solved using CPU-based SA and the Kaiwu CIM physical backend produce closely matching downstream forecasts. These results establish local discrete solving as a viable component of DEQ time series forecasting and provide a route for executing fixed-point updates through different combinatorial optimization backends. 
+
+Keywords: deep equilibrium models; QUBO; coherent Ising machine; low-bit cod-ing; time series forecasting 
+
+# 1 Introduction 
+
+Transformers use attention to model relationships among variables and are widely used for multivariate time series forecasting. Deploying these models on edge devices requires attention to parameter storage and computational resources as well as prediction accuracy. Adding layers can increase representational capacity, but also increases the number of independent parameters that must be stored. Deep equilibrium models offer another way to organize network depth: a single shared layer repeatedly updates a hidden state until 1arXiv:2609.24042v1 [cs.LG] 21 Sep 2026 an approximate fixed point is obtained. This structure allows multiple computation steps without a corresponding increase in parameters, making it a useful basis for forecasting under resource constraints. Parameter sharing addresses the network structure, while the solver offers further scope for design. Anderson acceleration, commonly used in DEQs, combines historical states and residuals by computing mixing coefficients in the continuous real domain. Motivated by the use of low-bit integer representations in edge computing, we extend this design question to the update decision itself: can direction coefficients be represented by discrete variables and selected through combinatorial optimization? To investigate this question, we propose Q-DEQ. Drawing on Anderson’s use of history, Q-DEQ constructs candidate update directions from the current residual and previous iterations. A local quadratic model approximates how combinations of these directions affect the residual, and binary encoding turns the coefficient search into a QUBO problem. The resulting local update can be solved using SA or a CIM. We also apply W8A8 fake quantization in a re-forward pass after fixed-point solving, connecting discrete update decisions with a low-bit representation of the shared network layer. We study this design using iTransformer for multivariate time series forecasting. Ex-periments compare an explicit multi-layer network, an Anderson DEQ, a DEQ with local QUBO solving, and the same solver with W8A8, examining forecasting accuracy, param-eter count and weight storage. A further CIM experiment evaluates execution of the local optimization problem on a physical backend. Our main contributions are: 1. A local discrete solver for DEQ forward computation. Candidate direction construc-tion, quadratic residual modeling and binary encoding turn the direction-coefficient search into a QUBO problem within a complete fixed-point update procedure. 2. An integration of this solver with a shared iTransformer layer and a W8A8 re-forward pass. Evaluation on five multivariate forecasting benchmarks across three random seeds yields accuracy close to the explicit multi-layer baseline, while retaining the storage benefits of DEQ parameter sharing and low-bit weights. 3. Execution of local QUBO problems using both CPU-based SA and a physical CIM backend. The two backends produce closely matching downstream forecasts, demon-strating that the proposed discrete representation can be used with different com-binatorial optimization backends. 4. A reusable, architecture-agnostic PyTorch plugin implementing this fixed-point solv-ing and quantization-orchestration pipeline independently of the underlying net-work, with interchangeable forward and backward solvers, so the same discrete-solving design can be attached to other weight-tied models beyond iTransformer. 
+
+# 2 Related Work 
+
+Prediction and analysis on resource-constrained hardware require a balance between model performance and deployment cost. Remaining useful life prediction for industrial equip-ment [13] and time series analysis on embedded FPGAs [14] illustrate this need. Parameter sharing reduces the number of weights to be stored, while low-bit representations reduce their storage width. Our design builds on both approaches. 2Bai et al. [1] introduced DEQs, replacing explicit layer stacking with a shared function, obtaining hidden representations through fixed-point solving and computing gradients by implicit differentiation. On WikiText-103, this approach reduced memory use by up to 88% relative to explicit models of comparable parameter scale. Multiscale DEQ [2] subsequently extended the structure to image classification and semantic segmentation. Bai et al. [15] used fixed-point solving in optical flow estimation to replace multi-step recurrent refinement. Together, these studies show how shared computation modules can support different architectures and tasks while controlling model overhead. We adopt this modeling approach with a shared iTransformer encoder layer for multivariate forecasting and investigate its forward solver. A related line of work examines quantization when shared modules are applied repeat-edly. Ingolfsson et al. [10] study low-bit quantization and block-level scaling in recursive reasoning; Fang et al. [11] propose trajectory-aware quantization for recurrently reused Transformers; and Jim et al. [12] compare low-bit schemes for recursive reasoning and edge deployment. These studies primarily address the weights and activations of shared modules and the behavior of quantization error across repeated computation. Q-DEQ instead develops a discrete formulation of the solver’s direction-coefficient search through local modeling, with W8A8 applied in a re-forward pass after solving. Coefficient encod-ing and weight–activation quantization act at different stages, leaving room to combine the proposed solver with these quantization methods. 
+
+# 3 Method: Q-DEQ 
+
+3.1 DEQ: Fixed-Point Modeling 
+
+Given an input x and a parameter-shared function Fθ, DEQ solves for the hidden state 
+
+z∗ that satisfies 
+
+z∗ = Fθ(z∗, x ) (1) Figure 1 contrasts an explicitly stacked multi-layer network with the weight-tied DEQ structure, which solves for the fixed point iteratively. 
+
+Figure 1: Comparison between an explicit multi-layer network and the weight-tied fixed-point iteration of DEQ. Starting from an initial state, each iteration evaluates the shared function and uses 3the solver to determine a state update. Iteration stops when the relative residual falls below the prescribed tolerance or the maximum number of iterations is reached. The returned state serves as a numerical approximation to the fixed point; the residual need not decrease monotonically at every step. For time series forecasting, the shared function Fθ is a single iTransformer Encoder-Layer. The encoded input x is fixed across iterations. At each step, it is re-injected through LayerNorm( z + x) to keep the state update conditioned on the original input. Plain fixed-point iteration takes the form z(k+1) = Fθ(z(k), x ). This paper uses Ander-son acceleration as the continuous solving baseline, maintaining at every step the most recent m sets of state and residual information: min 
+
+> α∈Rm
+
+X
+
+> j
+
+αj r(j)
+
+> 22
+
+s.t. X
+
+> j
+
+αj = 1 (2) Anderson uses the mixing coefficients α to update the state through a combination of historical function values. Q-DEQ draws on the same idea of using history to guide updates, but defines its search over local step-size coefficients associated with candidate directions. The following section describes this local model and its discrete representation. 
+
+3.2 An Anderson-Inspired Local QUBO Solver 
+
+Q-DEQ constructs a local update problem around the current state. Once a set of can-didate directions is given, selecting a step-size coefficient for each direction determines the next update. We evaluate these combinations by approximating their effect on the residual and minimizing the squared norm of the resulting local residual model. At step k, the current residual r(k) = Fθ(z(k), x ) − z(k), together with historical residu-als, state differences and residual differences, is used to construct m candidate directions 
+
+V = [ v1, . . . , v m]. Rademacher random directions fill any remaining slots when history is insufficient. The coefficients a determine the contribution of each direction, with their search range set by the binary encoding below. For the residual map r(z) = Fθ(z, x ) − z,the directional derivative pi along vi is approximated by finite differences: 
+
+pi ≈ Fθ(z(k) + ηv i, x ) − Fθ(z(k), x )
+
+η − vi (3) Here, η is the finite-difference step size, and pi approximates the change in the residual along vi. For coefficients a, the residual after the update is locally approximated by 
+
+r(k) + P 
+
+> i
+
+aipi. Its squared norm gives a quadratic objective in a. Estimating each pi
+
+requires one additional evaluation of Fθ, adding m network forward computations per iteration. The local objective is 
+
+E(a) = 12 r(k) + X
+
+> i
+
+aipi
+
+> 22
+
+= 12a⊤Ga + h⊤a + const , Gij = ⟨pi, p j ⟩, h i = ⟨pi, r (k)⟩ (4) Each continuous local coefficient ai is represented as a bounded 8-bit binary code 
+
+ai = offset i + Bi · xi with xi ∈ { 0, 1}8. The main experiments take m = 8 and an 8-bit code per coefficient, which yields n = 64 binary variables in total. Substituting 
+
+a = offset + Bx into the local quadratic energy gives 
+
+E(x) = x⊤Qx + q⊤x + const , Q = 12 B⊤GB, q = B⊤(G · offset + h) (5) 4G is the Gram matrix, and the diagonal entries of the quadratic term Q are merged into the linear term according to x2 
+
+> i
+
+= xi.
+
+H(s) = s⊤Js + b⊤s + const ′, J = 14 Q, b = 12 (q + Q1) (6) This formulation delegates coefficient selection to a discrete optimization backend. The returned binary configuration is decoded into local coefficients a, which define a com-bination of candidate directions for updating z. A new local problem is then constructed at the updated state. The main training experiments use Kaiwu SA, while CIM execution is evaluated separately. Figure 2 summarizes the transformation from the local coefficient search to an Ising representation. 
+
+Figure 2: Transformation pipeline from the continuous coefficient search to the Ising problem. 
+
+3.3 W8A8 Quantization-Aware Re-Forward Pass 
+
+Coefficient encoding governs the local update decision, while W8A8 quantizes the shared layer’s weights and activations. We apply these operations at different stages: fixed-point solving retains continuous precision to avoid accumulating quantization error across iterations, and W8A8 fake quantization is enabled for a re-forward pass at the approximate fixed point. Weights use per-channel symmetric quantization: ˆW = round 
+
+
+
+clip 
+
+ W
+
+∆W
+
+, −128 , 127 
+
+ 
+
+· ∆W , ∆W = max |W |
+
+127 (per channel) (7) Activations adopt per-tensor symmetric quantization: ˆA = round 
+
+
+
+clip 
+
+ A
+
+∆A
+
+, −128 , 127 
+
+ 
+
+· ∆A, ∆A = max |A|
+
+127 (8) During training, a straight-through estimator is used: the gradient is approximated as the identity within the clipping range and set to zero outside it. Quantization acts on the re-forward stage only. 
+
+3.4 Training Procedure 
+
+Each training iteration consists of fixed-point solving, a quantized re-forward pass and implicit backpropagation. First, the local QUBO solver obtains an approximate fixed 5point without recording gradients. W8A8 is then enabled to recompute the shared func-tion at this state and produce the task output. Gradients are computed through the DEQ implicit differentiation formulation, by solving the local gradient equation rather than unrolling the solver’s iteration history. Figure 3 and Algorithm 1 summarize this procedure. 
+
+Figure 3: Overview of a single Q-DEQ training iteration. 6Algorithm 1 Q-DEQ training iteration 
+
+Require: Input x, shared layer Fθ, history buffer H
+
+Ensure: Task output ˆ y, parameter gradients g 
+
+> 1:
+
+z ← initial state  
+
+> 2:
+
+while relative residual ≥ threshold and maximum number of iterations not reached 
+
+do  
+
+> 3:
+
+r ← Fθ(z, x ) − z 
+
+> 4:
+
+V ← ConstructCandidateDirections( H, r ) ▷ historical residuals / state differences / residual differences, padded with Rademacher random directions when insufficient  
+
+> 5:
+
+for i = 1 , . . . , m do  
+
+> 6:
+
+pi ← [Fθ(z + ηv i, x ) − Fθ(z, x )] /η − vi 
+
+> 7:
+
+end for  
+
+> 8:
+
+Q, q ← LocalQuadraticEnergy( {pi}, r ) ▷ QUBO coefficients after binary coding  
+
+> 9:
+
+s∗ ← SA Solve( Q, q ) 
+
+> 10:
+
+a∗ ← Decode( s∗) 
+
+> 11:
+
+z ← z + P 
+
+> i
+
+a∗ 
+
+> i
+
+· vi 
+
+> 12:
+
+Update the history buffer H 
+
+> 13:
+
+end while  
+
+> 14:
+
+z∗ ← z ▷ approximate fixed point  
+
+> 15:
+
+ˆy ← W8A8 Forward( Fθ, z ∗, x ) ▷ a single re-forward pass after fixed-point solving  
+
+> 16:
+
+g ← ImplicitGradient(ˆ y, z ∗, F θ) 
+
+> 17:
+
+return ˆy, g 
+
+# 4 Experimental Setup 
+
+We use iTransformer [4] as the backbone to compare network structures and solvers for multivariate long-sequence forecasting. The explicit baseline retains multiple Encoder-Layers, while the DEQ configurations use a single shared EncoderLayer and update the hidden representation through fixed-point iteration. The same forecasting setting is used to examine how these design choices affect accuracy and model storage. Experiments use five multivariate forecasting benchmarks: Weather, ETTh1, ETTh2, ECL and Traffic [8, 9]. They cover meteorology, electricity transformer temperature, electricity load and traffic flow, with 7 to 862 variates. The input sequence length is 96 throughout, and the main experiments use a forecasting horizon of 96. 7Table 1: Descriptions of the four experimental configurations 
+
+Group Solver Precision Description A (Baseline) Explicit multi-layer forward FP32 Standard iTransformer B (DEQ base-line) Anderson accelera-tion FP32 Continuous solving baseline with a single shared Encoder-Layer C (Solver abla-tion) Local QUBO + SA FP32 Q-DEQ-FP32, used to examine the change brought by the dis-crete solver D (Proposed method) Local QUBO +SA; CIM valida-tion W8A8 Q-DEQ-INT8, adding W8A8 quantization of the re-forward pass on top of the discrete solver 
+
+The four configurations follow the progression from the explicit network to Q-DEQ. Groups A and B examine the effect of introducing a shared-parameter DEQ. Groups B and C compare Anderson with the local QUBO solver as complete solving methods. Groups C and D differ only in whether W8A8 is enabled during the re-forward pass, isolating the effect of this quantization step. The main evaluation concerns forecasting accuracy and static weight storage; the CIM experiment separately examines physical execution of the local optimization problem. 
+
+# 5 Experimental Results 
+
+5.1 Forecasting Accuracy (mean ± standard deviation over 3 seeds, forecasting horizon 96) 
+
+Table 2: Comparison of forecasting accuracy (mean ± standard deviation over 3 seeds, forecasting horizon 96)                   
+
+> Dataset Baseline (MSE ↓/MAE ↓)Q-DEQ-INT8 (ours) Gap between ours and Baseline (MSE) Weather 0.1754 ±0.0005 / 0.2157 ±0.0005 0.1753 ±0.0004 / 0.2155 ±0.0004 −0.06% ETTh1 0.3866 ±0.0009 / 0.4047 ±0.0003 0.3978 ±0.0035 / 0.4105 ±0.0022 +2 .90% ETTh2 0.3013 ±0.0004 / 0.3508 ±0.0009 0.2978 ±0.0001 / 0.3499 ±0.0000 −1.16% ECL 0.1480 ±0.0004 / 0.2397 ±0.0004 0.1490 ±0.0003 / 0.2401 ±0.0003 +0 .68% Traffic 0.3930 ±0.0009 / 0.2687 ±0.0007 0.3986 ±0.0018 / 0.2709 ±0.0008 +1 .42%
+
+Q-DEQ-INT8 achieves mean MSE close to the explicit baseline on all five datasets, with relative differences ranging from −1.16% to +2 .90%. Weather is nearly unchanged, and ETTh2 improves by 1.16%. MSE increases by 0.68%, 1.42% and 2.90% on ECL, Traffic and ETTh1, respectively. Thus, the combination of parameter sharing, local discrete solving and quantization preserves forecasting accuracy close to the explicit baseline in these tasks, although its effect varies across datasets, with the largest increase on ETTh1. 
+
+5.2 Ablation Study: Solver and Quantization 
+
+The main results reflect the combined effects of network structure, solver choice and quan-tization. To examine the latter two components, Table 3 reports all four configurations. 8We first compare Anderson and Q-DEQ under FP32, then examine the change when W8A8 is enabled in Q-DEQ. Table 3: Ablation results for the solver and quantization                               
+
+> Dataset Baseline Anderson Q-DEQ-FP32 Q-DEQ-INT8 (ours) Gap between ours and baseline (MSE) Weather 0.1754 ±0.0005/0.2157 ±0.0005 0.1773 ±0.0022/0.2165 ±0.0020 0.1736 ±0.0011/0.2135 ±0.0004 0.1753 ±0.0004/0.2155 ±0.0004 −0.06% ETTh1 0.3866 ±0.0009/0.4047 ±0.0003 0.3940 ±0.0043/0.4084 ±0.0029 0.3978 ±0.0034/0.4104 ±0.0021 0.3978 ±0.0035/0.4105 ±0.0022 +2 .90% ETTh2 0.3013 ±0.0004/0.3508 ±0.0009 0.2982 ±0.0007/0.3494 ±0.0003 0.2978 ±0.0001/0.3499 ±0.0000 0.2978 ±0.0001/0.3499 ±0.0000 −1.16% ECL 0.1480 ±0.0004/0.2397 ±0.0004 0.1509 ±0.0004/0.2424 ±0.0004 0.1489 ±0.0002/0.2399 ±0.0003 0.1490 ±0.0003/0.2401 ±0.0003 +0 .68% Traffic 0.3930 ±0.0009/0.2687 ±0.0007 0.3994 ±0.0012/0.2712 ±0.0008 0.3978 ±0.0005/0.2701 ±0.0003 0.3986 ±0.0018/0.2709 ±0.0008 +1 .42%
+
+(Cells report MSE / MAE; boldface indicates only the best mean and does not imply statistical significance.) 
+
+Replacing Anderson with Q-DEQ-FP32 reduces mean MSE by approximately 2.09%, 0.13%, 1.33% and 0.40% on Weather, ETTh2, ECL and Traffic, respectively, and increases it by 0.96% on ETTh1. The local discrete solver therefore does not show a consistent accuracy penalty: it yields lower mean error on four datasets, with a small degrada-tion on ETTh1. This comparison reflects the combined behavior of candidate direction construction, local modeling and discrete optimization. Adding W8A8 increases MSE relative to Q-DEQ-FP32 by approximately 0.98% on Weather, 0.07% on ECL and 0.20% on Traffic. ETTh1 and ETTh2 remain unchanged at the reported precision. Weather shows the clearest response to quantization, which gives back part of the improvement obtained by replacing the solver. Changes on the other four datasets are small. Figure 4 presents the MSE and MAE of the four configurations side by side. 
+
+Figure 4: Comparison of forecasting accuracy across the four configurations: (a) MSE, (b) MAE. 
+
+5.3 Parameter Count and Storage Compression 
+
+Table 4: Comparison of parameter counts Dataset Baseline DEQ (backbone shared by Anderson/Q-DEQ) Compression ratio Weather 4,833,888 1,678,944 2.88 ×
+
+ETTh1 841,568 446,304 1.89 ×
+
+ETTh2 224,224 124,896 1.80 ×
+
+ECL 4,833,888 1,678,944 2.88 ×
+
+Traffic 6,411,872 1,678,944 3.82 ×
+
+9Table 5: Static model weight storage compression (MiB, 1 MiB = 2 20 bytes) Dataset Baseline DEQ-Anderson Q-DEQ-INT8 Compression ratio (vs Baseline) Weather 18.44 6.41 1.91 9.65 ×
+
+ETTh1 3.21 1.70 0.58 5.53 ×
+
+ETTh2 0.86 0.48 0.20 4.30 ×
+
+ECL 18.44 6.41 1.91 9.65 ×
+
+Traffic 24.46 6.41 1.91 12 .80 ×
+
+Tables 4 and 5 separate the two sources of storage reduction. Replacing explicit layers with a single shared layer reduces parameter counts by factors of 1 .80 ×–3 .82 ×. Anderson and Q-DEQ use the same backbone, so changing the solver leaves the parameter count unchanged. W8A8 then reduces the storage width of the quantized weights, providing a further static storage reduction of approximately 2 .4×–3 .4× relative to DEQ-Anderson. Together, these two steps reduce weight storage by factors of 4 .30 ×–12 .80 × relative to the explicit baseline. Read alongside the forecasting results, these measurements describe the accuracy–storage trade-off achieved by Q-DEQ in the evaluated tasks. Figure 5 plots parameter counts and weight storage on a logarithmic scale. 
+
+Figure 5: Parameter count and static weight storage compression (logarithmic scale): (a) parameter count, (b) weight storage. 
+
+5.4 Validation on the CIM Physical Solver Backend 
+
+Expressing local coefficient selection as a QUBO allows the problem to be executed by different combinatorial optimization backends. With a fixed training checkpoint, we use CPU-based SA and the Kaiwu CIM cloud physical solver for local optimization, comparing the downstream forecasts obtained on the same QUBO problem. Table 6 reports one run per backend to examine execution of the discrete formulation on physical hardware. 10 Table 6: Comparison of the results obtained with CIM and SA Dataset SA (MSE/MAE) CIM (MSE/MAE) Weather 0.2568 / 0.3044 0.2568 / 0.3043 ETTh1 0.2873 / 0.3511 0.2873 / 0.3511 ETTh2 0.0896 / 0.2095 0.0897 / 0.2090 ECL 0.1123 / 0.2101 0.1123 / 0.2101 Traffic 0.4099 / 0.2356 0.4099 / 0.2356 For ETTh1, ECL and Traffic, both MSE and MAE match at the reported precision. Weather has the same MSE and an MAE difference of 0.0001, while ETTh2 has relative differences of 0.11% in MSE and 0.24% in MAE. The Kaiwu CIM backend handles the 64-variable QUBO instances used in this experiment and returns solutions that can be decoded for subsequent state updates. This extends local discrete solving from CPU-based SA to a physical CIM backend, with closely matching downstream forecasts in this comparison. 
+
+5.5 Multiple Forecasting Horizons 
+
+The main experiments use a forecasting horizon of 96. To examine longer forecasting windows, we additionally evaluate horizons of 192 and 336 and compare them with the 96-step results. One run is performed for each horizon, focusing on how the MSE gap between Q-DEQ-INT8 and the explicit baseline changes as the forecasting window grows. 
+
+Figure 6: MSE of Baseline and Q-DEQ-INT8 under the three forecasting horizons (96/192/336, single run). The average relative MSE gap across the five datasets remains approximately 0.5% when the horizon increases from 96 to 192. At 336, Q-DEQ-INT8 has higher MSE than the baseline on all five datasets, and the average gap grows to approximately 2.1%. The accuracy gap thus widens for the longest window in this experiment; understanding its source requires further examination of solver behavior. 
+
+# 6 Future Work 
+
+Q-DEQ expresses local DEQ update coefficients as a QUBO and combines discrete solving with a W8A8 re-forward pass. The forecasting experiments characterize the accuracy and storage of this combination, while the CIM experiment demonstrates physical execution of the local problem. Several further steps would advance this approach toward resource-constrained deployment. 11 Validation on real hardware. The current fixed-point iteration, candidate direction construction and local derivative estimation use continuous precision; QUBO coupling coefficients and biases are also submitted to the optimization backend in floating point. Deployment on MCUs, FPGAs or edge SoCs will require integrating these computations with discrete solving in one system. Measuring latency, power consumption and runtime memory for QUBO construction, backend solving, data transfer and overall inference would show how each stage contributes to deployment cost. 
+
+Systematic evaluation at the solver level. Forecasting error measures task per-formance, while convergence rate, final relative residual and average iteration count can help explain the solving process. These metrics could clarify differences across datasets, including the larger accuracy gap at a forecasting horizon of 336. Repeated CIM experi-ments with a fixed checkpoint and inputs, together with comparisons of objective values, solution agreement and solving latency, would further characterize the behavior of the two backends. 
+
+Combination with existing quantization work. Encoding the solver’s coefficients and quantizing the shared network’s weights and activations act at different stages. Ex-isting block-wise and trajectory-aware quantization methods [10, 11, 12] provide a basis for studying joint designs, including their effect on accuracy and computational cost. 
+
+# Appendix: Solver Validation on a Graph Matching Task 
+
+The main experiments focus on iTransformer forecasting. Because the local solver con-structs updates from states and residuals rather than directly from the task’s output rep-resentation, we also examine its use in a graph matching model with a different weight-tied Transformer architecture. We use an NMT-style graph matching backbone in which self-attention, cross-attention and an MLP form a weight-tied Transformer decoder. A single training and evaluation run is performed on the five-category Willow ObjectClass keypoint matching benchmark. All four configurations start from the same explicit multi-layer baseline checkpoint. Q-DEQ-FP32 uses the same eight candidate directions and 8-bit coefficient coding as the time series task, with Kaiwu SA as the solver. 
+
+Figure 7: Comparison of the matching accuracy of each category of Willow ObjectClass. 12 In this run from a shared initialization checkpoint, mean matching accuracy ranges from 0.974 to 0.980 across the four configurations: 0.9796 for Baseline, 0.9780 for DEQ-Anderson, 0.9743 for Q-DEQ-FP32 and 0.9781 for Q-DEQ-INT8. Accuracy on the Duck category ranges from 0.9148 to 0.9388. These results show that the local discrete solver can be integrated into this graph matching architecture and obtains average matching accuracy close to the other configurations in this run. 
+
+# References 
+
+[1] Bai, S., Kolter, J. Z., Koltun, V. (2019). Deep Equilibrium Models. NeurIPS .[2] Bai, S., Koltun, V., Kolter, J. Z. (2020). Multiscale Deep Equilibrium Models. 
+
+NeurIPS .[3] Anderson, D. G. (1965). Iterative Procedures for Nonlinear Integral Equations. Jour-nal of the ACM , 12(4), 547–560. [4] Liu, Y., Hu, T., Zhang, H., Wu, H., Wang, S., Ma, L., Long, M. (2024). iTransformer: Inverted Transformers Are Effective for Time Series Forecasting. ICLR .[5] Rol´ ınek, M., Swoboda, P., Zietlow, D., Paulus, A., Musil, V., Martius, G. (2020). Deep Graph Matching via Blackbox Differentiation of Combinatorial Solvers. ECCV .[6] Jacob, B., Kligys, S., Chen, B., Zhu, M., Tang, M., Howard, A., Adam, H., Kalenichenko, D. (2018). Quantization and Training of Neural Networks for Efficient Integer-Arithmetic-Only Inference. CVPR .[7] Bengio, Y., L´ eonard, N., Courville, A. (2013). Estimating or Propagating Gradients Through Stochastic Neurons for Conditional Computation. arXiv:1308.3432 .[8] Zhou, H., Zhang, S., Peng, J., Zhang, S., Li, J., Xiong, H., Zhang, W. (2021). Informer: Beyond Efficient Transformer for Long Sequence Time-Series Forecasting. 
+
+AAAI .[9] Wu, H., Xu, J., Wang, J., Long, M. (2021). Autoformer: Decomposition Transformers with Auto-Correlation for Long-Term Series Forecasting. NeurIPS .[10] Ingolfsson, T. M., Tahir, W., Tegon, A., Kesting, L., ˙Islamo˘ glu, G., Benini, L. (2026). Quantizing Recursive Reasoning Models. arXiv:2607.16237 .[11] Fang, R., Chen, H.-W., Chen, M.-S. (2026). LoopQ: Quantization for Recursive Transformers. arXiv:2605.16343 .[12] Jim, P., Kolawole, S., Busoye, O. M., Bagai, G., Smith, V. (2026). What Survives When You Compress a Recursive Reasoner for the Edge? arXiv:2606.26488 .[13] Wang, L., Li, Y., Liu, H., Liu, T. (2025). A Lightweight Transformer Edge Intelligence Model for RUL Prediction Classification. Sensors , 25. [14] Ling, T., Qian, C., Haßler, L. J., Schiele, G. (2025). Automating Versatile Time-Series Analysis with Tiny Transformers on Embedded FPGAs. IEEE Computer Society Annual Symposium on VLSI (ISVLSI) .13 [15] Bai, S., Geng, Z., Savani, Y., Kolter, J. Z. (2022). Deep Equilibrium Optical Flow Estimation. CVPR , 620–630. 14
