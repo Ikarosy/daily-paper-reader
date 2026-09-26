@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-25</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-26</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 8 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 3 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>6</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>3</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-25 22:45:13 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-26 21:59:07 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今天筛完8篇量化与压缩相关论文，精读2篇、速读6篇，重点落在高效表示与边缘部署。</p>
-<p>最值得看的是两篇8分精读：双曲几何感知残差量化，以及资源受限FPGA上的共享向量量化图像压缩。</p>
-<p>普通读者可先读这两篇，再顺着FoldQuantVLA等速读工作理解低比特量化在视觉-语言-动作与边缘场景的落地。</p>
+<p>今日速读 3 篇大模型高效推理论文，聚焦量化与端侧部署。最值得看的是视觉语言模型的黎曼几何敏感量化（RGSQ，7.0）与 iPhone 上 Flash 加速 MoE 推理的可复现测试（均 7.0）；普通读者可先读这两篇了解低比特量化与端侧加速思路，再按需查阅分离式 prefill/decode 量化（6.0）。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -73,12 +71,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">2 篇</strong>
+    <strong class="dpr-home-dashboard-count">0 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Geometry-Aware Hyperbolic Residual Quantization">Geometry-Aware Hyperbolic Residual Quantization</span></li><li><span class="dpr-home-dashboard-paper-title" title="VQ-LIC: Shared Vector-Quantized Learned Image Compression on a Resource-Constrained FPGA">VQ-LIC: Shared Vector-Quantized Learned Image Compression on a Resource-Constrained FPGA</span></li></ul>
+<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span></div>
+
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -86,12 +84,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">6 篇</strong>
+    <strong class="dpr-home-dashboard-count">3 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="FoldQuantVLA: Native Low-Bit Quantization of Vision-Language-Action Models via Consistent Folding">FoldQuantVLA: Native Low-Bit Quantization of Vision-Language-Action Models via Consistent Folding</span></li><li><span class="dpr-home-dashboard-paper-title" title="Beyond Shadow Weights: Quantization-Aware Training as Quantized-Endpoint Descent">Beyond Shadow Weights: Quantization-Aware Training as Quantized-Endpoint Descent</span></li><li><span class="dpr-home-dashboard-paper-title" title="Q-DEQ: Discrete Solving and Quantization for Deep Equilibrium Models in Time Series Forecasting under Edge Deployment Coding Constraints">Q-DEQ: Discrete Solving and Quantization for Deep Equilibrium Models in Time Series Forecasting under Edge Deployment Coding Constraints</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="RGSQ: Riemannian Geometry-Sensitive Quantization for Large Vision-Language Models">RGSQ: Riemannian Geometry-Sensitive Quantization for Large Vision-Language Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone">Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone</span></li><li><span class="dpr-home-dashboard-paper-title" title="Disaggregated Quantization: Specializing LLM Prefill and Decode">Disaggregated Quantization: Specializing LLM Prefill and Decode</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>5</strong></span><span class="dpr-home-dashboard-tag">moe-quant <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span><span class="dpr-home-dashboard-tag">moe-quant <strong>1</strong></span></div>
 </section>
 </div>
 

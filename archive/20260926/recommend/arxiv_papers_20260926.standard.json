@@ -1,0 +1,138 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-26T21:58:36.289875+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 0,
+    "deep_cap": 7,
+    "deep_selected": 0,
+    "quick_candidates": 3,
+    "quick_skim_target": 12,
+    "quick_selected": 3
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2609.25492v1",
+      "source": "arxiv",
+      "title": "RGSQ: Riemannian Geometry-Sensitive Quantization for Large Vision-Language Models",
+      "abstract": "Large vision-language models (VLMs) can be efficiently deployed under stringent memory and latency constraints through post training quantization (PTQ). However, most PTQ methods are designed for unimodal large language models (LLMs). These methods treat quantization errors as isotropic perturbations under the Euclidean assumption, which provides weak guidance on directions most sensitive to quantization in VLMs. Consequently, directly adapting unimodal PTQ approaches or solely employing modality-specific scaling often leads to uneven bit-width distribution and inconsistent performance in low-bit settings. To address these challenges, we propose Riemannian Geometry-Sensitive Quantization (RGSQ), which formulates quantization as a reconstruction problem under a unified Fisher-Riemannian metric. RGSQ identifies modality-specific sensitive directions via Riemannian manifold mappings built from modality-partitioned empirical Fisher factors and fused into a modality-aware Kronecker-structured metric. We then apply geometry-aligned rotations to reorient the local tangent frame, steering low-bit perturbations toward loss-insensitive axes. Finally, we apply a whitening transformation that maps the Riemannian objective to an equivalent Euclidean form, enabling standard unimodal PTQ methods to evaluate multimodal quantization error under their original assumptions. Across an extensive and diverse set of mainstream VLM benchmarks, RGSQ achieves the highest accuracy and stability under extremely low-bit settings (W2A8 and W3A8). It outperforms VLM-aware baselines, such as MBQ and MQuant, by up to 5.9% and surpasses single-modality improvements by up to 8.6%.",
+      "authors": [
+        "Zhiping Wu",
+        "Dongdong Ren",
+        "Yangchengyu Zhou",
+        "Zhengjie Zhang",
+        "Wenbin Li",
+        "Hongbing Pan",
+        "Yang Gao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-09-21T23:42:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.25492v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "post-training low-bit quantization for large models with bit-width distribution analysis",
+      "llm_evidence_cn": "面向大模型的低比特训练后量化与比特宽度分配",
+      "llm_evidence": "面向大模型的低比特训练后量化与比特宽度分配",
+      "canonical_evidence": "面向大模型的低比特训练后量化与比特宽度分配",
+      "llm_tldr_en": "RGSQ addresses low-bit post-training quantization for vision-language models, arguing Euclidean isotropic error assumptions give weak guidance; it formulates quantization as a Riemannian geometry-sensitive reconstruction problem and improves low-bit performance.",
+      "llm_tldr_cn": "该文针对视觉语言模型在低比特训练后量化中表现不一致的问题，指出多数方法沿用欧氏各向同性误差假设，对量化敏感方向缺乏有效引导，直接套用单模态大模型量化方法会导致比特宽度分布不均。作者提出RGSQ，将量化建模为黎曼几何敏感的误差重构问题，以几何信息指导量化方向与尺度。实验表明该方法在低比特设定下取得更均衡的比特宽度与更稳定的性能，为跨模态极低比特量化提供了新视角。",
+      "llm_tldr": "该文针对视觉语言模型在低比特训练后量化中表现不一致的问题，指出多数方法沿用欧氏各向同性误差假设，对量化敏感方向缺乏有效引导，直接套用单模态大模型量化方法会导致比特宽度分布不均。作者提出RGSQ，将量化建模为黎曼几何敏感的误差重构问题，以几何信息指导量化方向与尺度。实验表明该方法在低比特设定下取得更均衡的比特宽度与更稳定的性能，为跨模态极低比特量化提供了新视角。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.26333v1",
+      "source": "arxiv",
+      "title": "Disaggregated Quantization: Specializing LLM Prefill and Decode",
+      "abstract": "Prefill and decode reward different approaches to quantization: low-precision arithmetic accelerates prompt processing, while compact weights reduce memory traffic during generation. We propose \"disaggregated quantization\" (DQ), which specializes computation formats, weights and storage placement to both of these phases. On Qwen 3 and Gemma 3, removing activation quantization specifically on decode improves accuracy on decode-heavy tasks without increasing inference cost. Training separate compute-native prefill weights accelerates prompt processing relative to weight-only inference while matching or exceeding its accuracy at 2-3-bit decode on both decode-heavy and prefill-heavy tasks. With released Qwen3.8-27B GGUF decoders, training an NVFP4 prefiller improves 1-bit accuracy by 32.5 points on MMLU-Pro and 35.3 on MMMU-Pro without modifying the decode checkpoint. To accommodate the additional checkpoint on a single device, offloaded disaggregated prefill (ODP) streams its weights from SSD, amortizing loading over prompt length. On the same 27B model, ODP delivers a 1.78x time-to-first-token speedup over the weight-only baseline at 8K prompt length in llama.cpp. We evaluate accuracy under disaggregated serving in vLLM and further validate shared-weight format disaggregation through post-training quantization on models up to 2.8T parameters.",
+      "authors": [
+        "Andrei Panferov",
+        "Maximilian Kleinegger",
+        "Sweta Priyadarshi",
+        "Tijmen Blankevoort",
+        "Dan Alistarh"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-22T12:44:16+00:00",
+      "link": "https://arxiv.org/pdf/2609.26333v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "specialized 2-3-bit decode quantization for LLM prefill and decode phases",
+      "llm_evidence_cn": "面向预填充与解码阶段的2-3比特低比特量化",
+      "llm_evidence": "面向预填充与解码阶段的2-3比特低比特量化",
+      "canonical_evidence": "面向预填充与解码阶段的2-3比特低比特量化",
+      "llm_tldr_en": "Disaggregated Quantization specializes computation formats and weight placement for the prefill and decode phases separately, enabling accurate 2-3-bit decode with a compute-native prefill path, improving both accuracy and prompt-processing speed.",
+      "llm_tldr_cn": "预填充与解码阶段对量化的需求不同：前者受益于低精度算术加速，后者依赖紧凑权重降低内存访问。本文提出分解量化（DQ），分别为两个阶段特化计算格式、权重与存储位置，并在解码时去除激活量化。在Qwen 3与Gemma 3上，解码阶段2-3比特量化精度提升且推理成本不增，独立训练的预填充权重进一步加速提示处理。该工作属于低比特量化方法，可迁移至极低比特压缩与MoE量化场景，但未专门针对码本或专家混合。",
+      "llm_tldr": "预填充与解码阶段对量化的需求不同：前者受益于低精度算术加速，后者依赖紧凑权重降低内存访问。本文提出分解量化（DQ），分别为两个阶段特化计算格式、权重与存储位置，并在解码时去除激活量化。在Qwen 3与Gemma 3上，解码阶段2-3比特量化精度提升且推理成本不增，独立训练的预填充权重进一步加速提示处理。该工作属于低比特量化方法，可迁移至极低比特压缩与MoE量化场景，但未专门针对码本或专家混合。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "3 bit SQ",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.29032v1",
+      "source": "arxiv",
+      "title": "Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone",
+      "abstract": "Sparse activation reduces mixture-of-experts computation without eliminating the need to store all experts. We present Routide, a Swift/MLX runtime that executes the text path of a pinned public Qwen3.6-35B-A3B quantized checkpoint while keeping expert weights in iPhone storage and a byte-budgeted subset in memory. We characterize cache-policy sensitivity, numerical comparison boundaries, and measurement limits. Across five recorded 128-token workloads, fixed-route replay gives 0.00% demand hits with a 512 MiB LRU cache, 18.80% with seeded random eviction at the same budget, and 38.58% with 576 MiB LRU. The apparent capacity cliff is therefore a policy/workload interaction, not a universal memory requirement. Same-runtime Mac controls preserve generated sequences across eviction and asynchronous prefetch, including 2,560 exact token comparisons and 10,334 speculative loads. In contrast, complete resident-Python versus recorded-phone sequences disagree on all five tested cases, precluding a general numerical equivalence claim. Two separately scoped iOS 27 memory protocols observe sampled process-footprint peaks of 1.87-2.32 GiB on short prompts and 2.39-2.73 GiB on one longer prompt. We retain a thermal stopping event, negative timing comparisons, and a single qualified whole-device power estimate. These results establish bounded feasibility and identify limitations that a deployment claim must not hide.",
+      "authors": [
+        "Musa Shams"
+      ],
+      "primary_category": "cs.PF",
+      "categories": [
+        "cs.PF",
+        "cs.LG"
+      ],
+      "published": "2026-09-24T05:05:28+00:00",
+      "link": "https://arxiv.org/pdf/2609.29032v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "MoE inference with quantized expert weights and memory budget",
+      "llm_evidence_cn": "MoE 推理中使用量化专家权重与内存预算",
+      "llm_evidence": "MoE 推理中使用量化专家权重与内存预算",
+      "canonical_evidence": "MoE 推理中使用量化专家权重与内存预算",
+      "llm_tldr_en": "Routide is a Swift/MLX runtime that runs a quantized Qwen3.6-35B-A3B MoE on iPhone, keeping expert weights in flash storage and a byte-budgeted subset in memory, and characterizes cache-policy sensitivity and measurement limits.",
+      "llm_tldr_cn": "稀疏激活的混合专家模型虽降低计算量，但全部专家权重仍需存储，边缘设备部署面临内存瓶颈。本文提出 Routide，一个 Swift/MLX 运行时，将量化后的 Qwen3.6-35B-A3B 专家权重存于 iPhone 闪存，并在内存中保留受字节预算约束的子集。在五组 128 token 负载上，固定路由复现得到 0% 命中率，而相同预算下随机淘汰为 18.8%，576MiB LRU 达 38.58%。研究表明所谓容量悬崖实为缓存策略与负载的交互结果，而非普适内存需求。",
+      "llm_tldr": "稀疏激活的混合专家模型虽降低计算量，但全部专家权重仍需存储，边缘设备部署面临内存瓶颈。本文提出 Routide，一个 Swift/MLX 运行时，将量化后的 Qwen3.6-35B-A3B 专家权重存于 iPhone 闪存，并在内存中保留受字节预算约束的子集。在五组 128 token 负载上，固定路由复现得到 0% 命中率，而相同预算下随机淘汰为 18.8%，576MiB LRU 达 38.58%。研究表明所谓容量悬崖实为缓存策略与负载的交互结果，而非普适内存需求。",
+      "llm_tags": [
+        "query:moe-quant:composite"
+      ],
+      "matched_query_tag": "query:moe-quant:composite",
+      "matched_query_text": "Papers central to MoE 量化, especially work that connects or combines: P; M; MoE Quantization.",
+      "matched_requirement_id": "req-composite-moe-quant",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
