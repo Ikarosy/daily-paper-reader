@@ -1,0 +1,57 @@
+{
+  "date": "20260927",
+  "date_label": "",
+  "generated_at": "2026-09-27 21:59:23 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.24433v1",
+      "route": "202609/27/2609.24433v1-foldquantvla-native-low-bit-quantization-of-vision-language-action-models-via-consistent-folding",
+      "title": "FoldQuantVLA: Native Low-Bit Quantization of Vision-Language-Action Models via Consistent Folding",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "原生W4A4低比特训练后量化，结合块Hadamard变换与逐token量化",
+      "first_seen_at": "2026-09-27 21:59:23 UTC",
+      "updated_at": "2026-09-27 21:59:23 UTC"
+    },
+    {
+      "paper_id": "2609.25492v1",
+      "route": "202609/27/2609.25492v1-rgsq-riemannian-geometry-sensitive-quantization-for-large-vision-language-models",
+      "title": "RGSQ: Riemannian Geometry-Sensitive Quantization for Large Vision-Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "视觉语言模型低比特后训练量化",
+      "first_seen_at": "2026-09-27 21:59:23 UTC",
+      "updated_at": "2026-09-27 21:59:23 UTC"
+    },
+    {
+      "paper_id": "2609.29032v1",
+      "route": "202609/27/2609.29032v1-paging-the-experts-a-reproducible-characterization-of-flash-backed-moe-inference-on-iphone",
+      "title": "Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "MoE 量化检查点推理与专家分页",
+      "first_seen_at": "2026-09-27 21:59:23 UTC",
+      "updated_at": "2026-09-27 21:59:23 UTC"
+    }
+  ]
+}

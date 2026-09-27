@@ -1,0 +1,141 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-27T21:57:10.489068+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 1,
+    "deep_cap": 7,
+    "deep_selected": 1,
+    "quick_candidates": 2,
+    "quick_skim_target": 12,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2609.24433v1",
+      "source": "arxiv",
+      "title": "FoldQuantVLA: Native Low-Bit Quantization of Vision-Language-Action Models via Consistent Folding",
+      "abstract": "Low-bit vision-language-action inference must reduce observation-to-action latency while preserving robot behavior. We present FoldQuantVLA, a post-training quantization framework that carries a consistent activation representation through calibration, weight rounding, and native integer execution. It combines channel scaling and block Hadamard transforms with dynamic per-token quantization, without policy retraining. Custom TensorRT plugins execute projections in both the language backbone and iterative action expert with four-bit weights and activations (W4A4) on Ada GPUs and Jetson AGX Orin. Evaluation spans LIBERO, SimplerEnv, and two robot platforms. Across three GR00T checkpoints and $π_{0.5}$, W4A4 achieves $1.20$ to $1.33\\times$ speedups over floating-point TensorRT on Orin and $1.25$ to $1.52\\times$ on desktop. Retaining language attention-output and feed-forward down projections at eight bits (W8A8) improves held-out action fidelity on all four checkpoints. Across four real-robot tasks, this configuration raises observed GR00T N1.7 success from $80.0\\%$ with uniform W4A4 to $92.5\\%$ over 80 trials per configuration, with a measured additional Orin latency of 1 ms.",
+      "authors": [
+        "Hung T. Ho",
+        "Khanh D. Nguyen",
+        "Quang D. Nguyen",
+        "Thanh Q. Duong",
+        "Ngan Le",
+        "Meng Guo",
+        "Vien A. Ngo",
+        "An T. Le"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "eess.SY"
+      ],
+      "published": "2026-09-21T11:28:41+00:00",
+      "link": "https://arxiv.org/pdf/2609.24433v1",
+      "tags": [
+        "keyword:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "native W4A4 low-bit post-training quantization with block Hadamard transforms and per-token quantization",
+      "llm_evidence_cn": "原生W4A4低比特训练后量化，结合块Hadamard变换与逐token量化",
+      "llm_evidence": "原生W4A4低比特训练后量化，结合块Hadamard变换与逐token量化",
+      "canonical_evidence": "原生W4A4低比特训练后量化，结合块Hadamard变换与逐token量化",
+      "llm_tldr_en": "FoldQuantVLA is a post-training W4A4 quantization framework for vision-language-action models that keeps a consistent activation representation via channel scaling, block Hadamard transforms and per-token quantization.",
+      "llm_tldr_cn": "论文针对视觉-语言-动作模型推理中观测到动作延迟过高、低比特量化易破坏机器人行为的问题，提出FoldQuantVLA训练后量化框架，在标定、权值舍入与原生整数执行之间保持一致的激活表示，并结合通道缩放、块Hadamard变换与逐token动态量化。在LIBERO、SimplerEnv与两个机器人平台上，该方法以W4A4精度实现1.20倍以上加速并保持策略行为。其贡献在于无需重训练即可把极低比特量化落地到真实机器人推理。",
+      "llm_tldr": "论文针对视觉-语言-动作模型推理中观测到动作延迟过高、低比特量化易破坏机器人行为的问题，提出FoldQuantVLA训练后量化框架，在标定、权值舍入与原生整数执行之间保持一致的激活表示，并结合通道缩放、块Hadamard变换与逐token动态量化。在LIBERO、SimplerEnv与两个机器人平台上，该方法以W4A4精度实现1.20倍以上加速并保持策略行为。其贡献在于无需重训练即可把极低比特量化落地到真实机器人推理。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.25492v1",
+      "source": "arxiv",
+      "title": "RGSQ: Riemannian Geometry-Sensitive Quantization for Large Vision-Language Models",
+      "abstract": "Large vision-language models (VLMs) can be efficiently deployed under stringent memory and latency constraints through post training quantization (PTQ). However, most PTQ methods are designed for unimodal large language models (LLMs). These methods treat quantization errors as isotropic perturbations under the Euclidean assumption, which provides weak guidance on directions most sensitive to quantization in VLMs. Consequently, directly adapting unimodal PTQ approaches or solely employing modality-specific scaling often leads to uneven bit-width distribution and inconsistent performance in low-bit settings. To address these challenges, we propose Riemannian Geometry-Sensitive Quantization (RGSQ), which formulates quantization as a reconstruction problem under a unified Fisher-Riemannian metric. RGSQ identifies modality-specific sensitive directions via Riemannian manifold mappings built from modality-partitioned empirical Fisher factors and fused into a modality-aware Kronecker-structured metric. We then apply geometry-aligned rotations to reorient the local tangent frame, steering low-bit perturbations toward loss-insensitive axes. Finally, we apply a whitening transformation that maps the Riemannian objective to an equivalent Euclidean form, enabling standard unimodal PTQ methods to evaluate multimodal quantization error under their original assumptions. Across an extensive and diverse set of mainstream VLM benchmarks, RGSQ achieves the highest accuracy and stability under extremely low-bit settings (W2A8 and W3A8). It outperforms VLM-aware baselines, such as MBQ and MQuant, by up to 5.9% and surpasses single-modality improvements by up to 8.6%.",
+      "authors": [
+        "Zhiping Wu",
+        "Dongdong Ren",
+        "Yangchengyu Zhou",
+        "Zhengjie Zhang",
+        "Wenbin Li",
+        "Hongbing Pan",
+        "Yang Gao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-09-21T23:42:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.25492v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "post-training low-bit quantization for VLMs",
+      "llm_evidence_cn": "视觉语言模型低比特后训练量化",
+      "llm_evidence": "视觉语言模型低比特后训练量化",
+      "canonical_evidence": "视觉语言模型低比特后训练量化",
+      "llm_tldr_en": "Most post-training quantization methods target unimodal LLMs and treat errors as isotropic Euclidean perturbations, giving weak guidance for VLMs. RGSQ reformulates quantization as a reconstruction problem in Riemannian geometry to identify sensitive directions, yielding more even bit allocation and stable low-bit performance for vision-language models.",
+      "llm_tldr_cn": "大型视觉语言模型在内存与延迟受限场景下难以部署，而现有后训练量化方法多针对单模态大语言模型，将量化误差视为欧氏空间中的各向同性扰动，难以刻画多模态模型中真正敏感的方向，导致低比特下位宽分配不均、性能不稳定。为此作者提出黎曼几何敏感量化RGSQ，把量化建模为重构问题，并在黎曼几何框架下度量对量化最敏感的方向。实验表明该方法在低比特设置下能更均衡地分配位宽并取得更稳定的性能，为多模态模型的高效部署提供了新的几何视角。",
+      "llm_tldr": "大型视觉语言模型在内存与延迟受限场景下难以部署，而现有后训练量化方法多针对单模态大语言模型，将量化误差视为欧氏空间中的各向同性扰动，难以刻画多模态模型中真正敏感的方向，导致低比特下位宽分配不均、性能不稳定。为此作者提出黎曼几何敏感量化RGSQ，把量化建模为重构问题，并在黎曼几何框架下度量对量化最敏感的方向。实验表明该方法在低比特设置下能更均衡地分配位宽并取得更稳定的性能，为多模态模型的高效部署提供了新的几何视角。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.29032v1",
+      "source": "arxiv",
+      "title": "Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone",
+      "abstract": "Sparse activation reduces mixture-of-experts computation without eliminating the need to store all experts. We present Routide, a Swift/MLX runtime that executes the text path of a pinned public Qwen3.6-35B-A3B quantized checkpoint while keeping expert weights in iPhone storage and a byte-budgeted subset in memory. We characterize cache-policy sensitivity, numerical comparison boundaries, and measurement limits. Across five recorded 128-token workloads, fixed-route replay gives 0.00% demand hits with a 512 MiB LRU cache, 18.80% with seeded random eviction at the same budget, and 38.58% with 576 MiB LRU. The apparent capacity cliff is therefore a policy/workload interaction, not a universal memory requirement. Same-runtime Mac controls preserve generated sequences across eviction and asynchronous prefetch, including 2,560 exact token comparisons and 10,334 speculative loads. In contrast, complete resident-Python versus recorded-phone sequences disagree on all five tested cases, precluding a general numerical equivalence claim. Two separately scoped iOS 27 memory protocols observe sampled process-footprint peaks of 1.87-2.32 GiB on short prompts and 2.39-2.73 GiB on one longer prompt. We retain a thermal stopping event, negative timing comparisons, and a single qualified whole-device power estimate. These results establish bounded feasibility and identify limitations that a deployment claim must not hide.",
+      "authors": [
+        "Musa Shams"
+      ],
+      "primary_category": "cs.PF",
+      "categories": [
+        "cs.PF",
+        "cs.LG"
+      ],
+      "published": "2026-09-24T05:05:28+00:00",
+      "link": "https://arxiv.org/pdf/2609.29032v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "MoE inference with quantized checkpoint and expert paging",
+      "llm_evidence_cn": "MoE 量化检查点推理与专家分页",
+      "llm_evidence": "MoE 量化检查点推理与专家分页",
+      "canonical_evidence": "MoE 量化检查点推理与专家分页",
+      "llm_tldr_en": "Sparse activation cuts MoE compute but all experts must still be stored, limiting on-device deployment. Routide is a Swift/MLX runtime that runs a pinned Qwen3.6-35B-A3B quantized checkpoint on iPhone, keeping expert weights in flash with a byte-budgeted in-memory subset. Cache-policy sensitivity and hit rates reveal the capacity cliff is a policy-workload interaction, not a fixed memory need.",
+      "llm_tldr_cn": "稀疏激活降低了混合专家模型的计算量，但所有专家仍需存储，导致端侧部署受限。作者提出Routide，一个Swift/MLX运行时，在iPhone上运行Qwen3.6-35B-A3B量化检查点的文本通路，将专家权重放在闪存中，仅在内存保留按字节预算的子集。实验对五种128词元负载进行刻画，发现512MiB缓存下固定路由命中率为0，而相同预算下随机驱逐可达18.80%，576MiB LRU可达38.58%，说明容量断崖是缓存策略与负载的交互而非普遍内存需求，为端侧MoE推理提供了可复现的分析。",
+      "llm_tldr": "稀疏激活降低了混合专家模型的计算量，但所有专家仍需存储，导致端侧部署受限。作者提出Routide，一个Swift/MLX运行时，在iPhone上运行Qwen3.6-35B-A3B量化检查点的文本通路，将专家权重放在闪存中，仅在内存保留按字节预算的子集。实验对五种128词元负载进行刻画，发现512MiB缓存下固定路由命中率为0，而相同预算下随机驱逐可达18.80%，576MiB LRU可达38.58%，说明容量断崖是缓存策略与负载的交互而非普遍内存需求，为端侧MoE推理提供了可复现的分析。",
+      "llm_tags": [
+        "query:moe-quant:composite"
+      ],
+      "matched_query_tag": "query:moe-quant:composite",
+      "matched_query_text": "Papers central to MoE 量化, especially work that connects or combines: P; M; MoE Quantization.",
+      "matched_requirement_id": "req-composite-moe-quant",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

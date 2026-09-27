@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-26</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-27</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 3 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>3</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>2</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-26 21:59:07 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-27 21:59:23 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,7 +62,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日速读 3 篇大模型高效推理论文，聚焦量化与端侧部署。最值得看的是视觉语言模型的黎曼几何敏感量化（RGSQ，7.0）与 iPhone 上 Flash 加速 MoE 推理的可复现测试（均 7.0）；普通读者可先读这两篇了解低比特量化与端侧加速思路，再按需查阅分离式 prefill/decode 量化（6.0）。</p>
+<p>今日3篇论文聚焦低比特量化与端侧推理，精读1篇、速读2篇。</p>
+<p>最值得看的是8.0分的《FoldQuantVLA》，它用一致折叠实现视觉-语言-动作模型的原生低比特量化；速读可关注RGSQ的黎曼几何敏感量化，以及iPhone上Flash-backed MoE推理的可复现刻画。</p>
+<p>普通读者建议先读《FoldQuantVLA》掌握核心思路，再按兴趣选读两篇6分速读。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -71,12 +73,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="FoldQuantVLA: Native Low-Bit Quantization of Vision-Language-Action Models via Consistent Folding">FoldQuantVLA: Native Low-Bit Quantization of Vision-Language-Action Models via Consistent Folding</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -84,12 +86,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">3 篇</strong>
+    <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="RGSQ: Riemannian Geometry-Sensitive Quantization for Large Vision-Language Models">RGSQ: Riemannian Geometry-Sensitive Quantization for Large Vision-Language Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone">Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone</span></li><li><span class="dpr-home-dashboard-paper-title" title="Disaggregated Quantization: Specializing LLM Prefill and Decode">Disaggregated Quantization: Specializing LLM Prefill and Decode</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="RGSQ: Riemannian Geometry-Sensitive Quantization for Large Vision-Language Models">RGSQ: Riemannian Geometry-Sensitive Quantization for Large Vision-Language Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone">Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span><span class="dpr-home-dashboard-tag">moe-quant <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">moe-quant <strong>1</strong></span><span class="dpr-home-dashboard-tag">wbv <strong>1</strong></span></div>
 </section>
 </div>
 
