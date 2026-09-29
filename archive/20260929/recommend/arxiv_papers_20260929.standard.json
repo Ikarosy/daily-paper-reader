@@ -1,52 +1,89 @@
 {
   "mode": "standard",
-  "generated_at": "2026-09-29T00:29:43.151648+00:00",
+  "generated_at": "2026-09-29T22:55:37.521790+00:00",
   "stats": {
     "mode": "standard",
     "tag_count": 2,
-    "deep_divecandidates": 1,
+    "deep_divecandidates": 2,
     "deep_cap": 7,
-    "deep_selected": 1,
-    "quick_candidates": 4,
+    "deep_selected": 2,
+    "quick_candidates": 6,
     "quick_skim_target": 12,
-    "quick_selected": 4
+    "quick_selected": 6
   },
   "deep_dive": [
     {
-      "id": "2609.30950v1",
+      "id": "2609.33923v1",
       "source": "arxiv",
-      "title": "Low-Bit Recurrent States in Hybrid Language Models",
-      "abstract": "Hybrid language models maintain fixed-size recurrent states, but existing quantizers typically use eight bits or more. Quantization errors persist according to channel decay rates. We derive distortion weights from the observability Gramian and combine them with normalized state ranges for mixed-precision bit allocation, without calibration data, rotation, or training. We also quantize decay rates logarithmically. With per-token state quantization, a four-bit mean payload reduces excess negative log-likelihood by factors of 3.3--27.9 relative to the best of seven baselines across three hybrid models; metadata costs vary. At six bits, negative log-likelihood differs from the FP32-state baseline by less than 0.005 nats. Ablations separate gains from variable bit widths, decay weighting, and range normalization. With less frequent write-backs, gains diminish and depend on the model and budget.",
+      "title": "Quantization Error Is Spectrally Flat: A Single Random Probe Is a Calibrated, Data-Free Sensitivity Estimator, with Application to Budget-Targeted Mixed-Precision Quantization",
+      "abstract": "A single random Gaussian probe gives an unbiased estimate of the squared Frobenius norm of a layer's quantization error. The estimator is well-behaved because round-to-nearest error is spectrally flat. Across 1,683 tensors from a 35B MoE and a 9B dense model, effective dimensionality is 0.93 to 0.96 times the i.i.d. noise value of the same shape, and on the MoE the median is unchanged from 2-bit to 8-bit. The probe coefficient of variation is predictable from tensor shape. One probe measures per-tensor sensitivity to within 4 to 7%; twenty probes reach 1.3 to 1.4%.RAM applies the propagated form of this estimator to budget-targeted mixed-precision quantization with no calibration data. Gaussian probes carrying the network's own input statistics score every tensor at six bit-widths. A knapsack solver allocates bits under an exact byte budget, with guardrails against catastrophic 2-bit assignments. One probe pass serves any budget. Isolated and propagated scores rank tensors independently on Qwen3.5-35B-A3B (Spearman -0.01), yet the propagated probe rank-correlates 0.81 to 0.83 with the GPTQ layer objective from real activations, while the isolated estimator is uncorrelated with it. That objective is the wrong allocation target: at matched bytes on Qwen3.8-27B, a block-output probe beats a vendor IQ3_M mix and an oracle that allocates from the real-activation objective.On Qwen3-8B the propagated probe ties HAWQ-V2 at matched bytes. Across seven architectures from 8B to 122B, with probe timing up to a 400B model in nine minutes on one workstation, RAM reaches 3.5 to 13.6% lower median WikiText-2 perplexity than size-comparable uniform 4-bit builds on the tested MoE models",
       "authors": [
-        "Hongren Chen",
-        "Jiayang He"
+        "I Kennedy",
+        "T Kennedy"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-27T21:03:53+00:00",
+      "link": "https://arxiv.org/pdf/2609.33923v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "data-free sensitivity estimator applied to budget-targeted mixed-precision quantization of a 35B MoE",
+      "llm_evidence_cn": "面向35B MoE的混合精度量化与逐层敏感度估计",
+      "llm_evidence": "面向35B MoE的混合精度量化与逐层敏感度估计",
+      "canonical_evidence": "面向35B MoE的混合精度量化与逐层敏感度估计",
+      "llm_tldr_en": "A single random Gaussian probe gives a data-free, calibrated estimate of per-layer quantization error, applied to budget-targeted mixed-precision quantization across 1683 tensors from a 35B MoE and a 9B dense model.",
+      "llm_tldr_cn": "针对混合精度量化中逐层敏感度估计依赖校准数据、开销较大的问题，论文发现舍入误差在频谱上平坦，因而单个随机高斯探测即可无偏估计每层量化误差的Frobenius范数平方。作者据此构建标定化、无需数据的敏感度估计器，并将其传播形式用于预算导向的混合精度量化。在35B MoE与9B稠密模型的1683个张量上，单次探测即可把逐张量敏感度误差控制在4%至7%，二十次探测降至约1.4%。该结果为大模型与MoE的极低比特量化提供了高效、无需校准的比特分配依据。",
+      "llm_tldr": "针对混合精度量化中逐层敏感度估计依赖校准数据、开销较大的问题，论文发现舍入误差在频谱上平坦，因而单个随机高斯探测即可无偏估计每层量化误差的Frobenius范数平方。作者据此构建标定化、无需数据的敏感度估计器，并将其传播形式用于预算导向的混合精度量化。在35B MoE与9B稠密模型的1683个张量上，单次探测即可把逐张量敏感度误差控制在4%至7%，二十次探测降至约1.4%。该结果为大模型与MoE的极低比特量化提供了高效、无需校准的比特分配依据。",
+      "llm_tags": [
+        "query:moe-quant"
+      ],
+      "matched_query_tag": "query:moe-quant",
+      "matched_query_text": "MoE Quantization",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.35465v1",
+      "source": "arxiv",
+      "title": "Tetra: Serving Leech-Lattice Quantized LLMs at 2.7 Bits per Parameter",
+      "abstract": "Leech-lattice quantization gives good quality at two bits per weight, but its codebooks hold more than 10^14 points, too many for a lookup table. Our earlier kernel expanded the codes at load time and read 4.804 bits per weight from GPU memory for 2 bits of code. We present Tetra, a new codebook on the same lattice. A 24-weight block still takes 48 bits, most of which index a 64-state trellis of the Golay code and one shared 16 KiB table. The kernel decodes a block with six table loads and two small lookups inside the matrix-vector product, and reads 2.148 bits per weight. For full models, we retrain one scale per matrix row, store the matrices that lose the most as 4-bit integers, and pay for them with 4-bit embedding tables. Our Qwen3-4B, 8B and 14B files hold 2.73, 2.70 and 2.73 bits per parameter over the whole model. They score 63.37, 69.58 and 75.66 on the full MMLU test set, 4.76, 4.21 and 2.46 points below 4-bit AWQ at 5.3 to 6.0 bits per parameter. They generate 113.8, 95.0 and 57.2 tokens per second in our engine. On GSM8K, through the served kernel, they lose 9.63, 4.62 and 3.26 points to FP16. At 4B our file scores 23.6 points above llama.cpp's IQ2_XXS (2.48 bits per parameter). Every number we measured for a table or figure comes from one NVIDIA L40S GPU. We preregistered the main experiments.",
+      "authors": [
+        "Pier-Jean Malandrino"
       ],
       "primary_category": "cs.LG",
       "categories": [
         "cs.LG"
       ],
-      "published": "2026-09-25T08:01:56+00:00",
-      "link": "https://arxiv.org/pdf/2609.30950v1",
+      "published": "2026-09-28T15:51:56+00:00",
+      "link": "https://arxiv.org/pdf/2609.35465v1",
       "tags": [
         "keyword:MoE-Quant",
         "keyword:wbv",
         "query:MoE-Quant",
         "query:wbv"
       ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "low-bit quantization of recurrent states with mixed-precision bit allocation",
-      "llm_evidence_cn": "循环状态低比特量化与混合精度比特分配",
-      "llm_evidence": "循环状态低比特量化与混合精度比特分配",
-      "canonical_evidence": "循环状态低比特量化与混合精度比特分配",
-      "llm_tldr_en": "Hybrid language models keep fixed-size recurrent states but existing quantizers use eight bits or more. Using observability-Gramian distortion weights with normalized state ranges, the method performs mixed-precision bit allocation without calibration or training, cutting excess NLL by 3.3-27.9x at 4 bits.",
-      "llm_tldr_cn": "混合语言模型依赖固定大小的循环状态，但现有量化器通常需要8比特以上，且量化误差会随通道衰减率持续累积。该工作从可观测性格拉姆矩阵推导失真权重，结合归一化状态范围进行混合精度比特分配，并对衰减率做对数量化，全程无需校准数据、旋转或训练。实验表明，逐token状态量化在4比特平均负载下把超额负对数似然较七个基线中的最优者降低3.3至27.9倍，6比特时与FP32状态基线差距小于0.005 nats，为循环状态的低比特压缩提供了免训练方案。",
-      "llm_tldr": "混合语言模型依赖固定大小的循环状态，但现有量化器通常需要8比特以上，且量化误差会随通道衰减率持续累积。该工作从可观测性格拉姆矩阵推导失真权重，结合归一化状态范围进行混合精度比特分配，并对衰减率做对数量化，全程无需校准数据、旋转或训练。实验表明，逐token状态量化在4比特平均负载下把超额负对数似然较七个基线中的最优者降低3.3至27.9倍，6比特时与FP32状态基线差距小于0.005 nats，为循环状态的低比特压缩提供了免训练方案。",
+      "llm_score": 9.0,
+      "llm_evidence_en": "Leech-lattice 2-bit codebook, shared lookup table, 2.7 bits per parameter",
+      "llm_evidence_cn": "Leech格2比特码本与共享查找表，2.7比特每参数",
+      "llm_evidence": "Leech格2比特码本与共享查找表，2.7比特每参数",
+      "canonical_evidence": "Leech格2比特码本与共享查找表，2.7比特每参数",
+      "llm_tldr_en": "Tetra introduces a new Leech-lattice codebook and kernel for 2-bit weight quantization, replacing a huge lookup table with a Golay trellis plus a shared table to reach 2.148 bits per weight.",
+      "llm_tldr_cn": "Leech格量化能在每权重2比特下保持较好质量，但其码本含逾10^14个点，无法直接查表，早期内核需在加载时展开码字，实际从显存读取4.804比特。本文提出新码本Tetra，24权重块占48比特，大部分用于索引Golay码的64状态网格及一张共享16 KiB表，内核以六次查表与两次小查找完成解码，每权重仅读2.148比特。在Qwen3-4B/8B/14B上验证，实现了接近2比特的极低比特权重存储与高效推理。",
+      "llm_tldr": "Leech格量化能在每权重2比特下保持较好质量，但其码本含逾10^14个点，无法直接查表，早期内核需在加载时展开码字，实际从显存读取4.804比特。本文提出新码本Tetra，24权重块占48比特，大部分用于索引Golay码的64状态网格及一张共享16 KiB表，内核以六次查表与两次小查找完成解码，每权重仅读2.148比特。在Qwen3-4B/8B/14B上验证，实现了接近2比特的极低比特权重存储与高效推理。",
       "llm_tags": [
-        "query:wbv:composite"
+        "query:wbv"
       ],
-      "matched_query_tag": "query:wbv:composite",
-      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
-      "matched_requirement_id": "req-composite-wbv",
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "2 bit VQ",
+      "matched_requirement_id": "req-6",
       "selection_source": "fresh_fetch"
     }
   ],
@@ -78,13 +115,13 @@
         "keyword:wbv"
       ],
       "llm_score": 6.0,
-      "llm_evidence_en": "native low-bit W4A4 post-training quantization of VLA models",
-      "llm_evidence_cn": "视觉-语言-动作模型的W4A4原生低比特训练后量化",
-      "llm_evidence": "视觉-语言-动作模型的W4A4原生低比特训练后量化",
-      "canonical_evidence": "视觉-语言-动作模型的W4A4原生低比特训练后量化",
-      "llm_tldr_en": "Low-bit vision-language-action inference must cut latency while preserving robot behavior. FoldQuantVLA carries a consistent activation representation through calibration and native integer execution, using W4A4 with TensorRT plugins.",
-      "llm_tldr_cn": "视觉-语言-动作模型的推理需要降低观测到动作的延迟，同时保持机器人行为不变，这对极低比特量化提出了挑战。本文提出FoldQuantVLA训练后量化框架，在校准、权重量化取整与原生整数执行之间保持一致的激活表示，结合通道缩放、块Hadamard变换与动态逐token量化，无需策略重训练。作者通过自定义TensorRT插件在语言主干与迭代动作专家中以W4A4执行，并在LIBERO、SimplerEnv及真实机器人平台上评测。结果显示在多个GR00T检查点与π0.5上实现显著加速且保持行为，为极低比特具身模型部署提供了实用方案。",
-      "llm_tldr": "视觉-语言-动作模型的推理需要降低观测到动作的延迟，同时保持机器人行为不变，这对极低比特量化提出了挑战。本文提出FoldQuantVLA训练后量化框架，在校准、权重量化取整与原生整数执行之间保持一致的激活表示，结合通道缩放、块Hadamard变换与动态逐token量化，无需策略重训练。作者通过自定义TensorRT插件在语言主干与迭代动作专家中以W4A4执行，并在LIBERO、SimplerEnv及真实机器人平台上评测。结果显示在多个GR00T检查点与π0.5上实现显著加速且保持行为，为极低比特具身模型部署提供了实用方案。",
+      "llm_evidence_en": "native low-bit quantization, W4A4 post-training quantization",
+      "llm_evidence_cn": "原生低比特量化与W4A4后训练量化",
+      "llm_evidence": "原生低比特量化与W4A4后训练量化",
+      "canonical_evidence": "原生低比特量化与W4A4后训练量化",
+      "llm_tldr_en": "FoldQuantVLA is a post-training quantization framework for vision-language-action models that keeps a consistent activation representation through calibration and native integer execution at W4A4.",
+      "llm_tldr_cn": "低比特视觉-语言-动作推理需要在保持机器人行为的同时降低观测到动作的延迟。本文提出FoldQuantVLA训练后量化框架，将一致的激活表示贯穿校准、权重量化与原生整数执行，结合通道缩放、块Hadamard变换与动态逐token量化，无需策略重训练。在LIBERO、SimplerEnv及两个机器人平台上，W4A4通过自定义TensorRT插件在Ada GPU与Jetson上执行并保持性能。该工作展示了VLA模型原生低比特部署的可行性。",
+      "llm_tldr": "低比特视觉-语言-动作推理需要在保持机器人行为的同时降低观测到动作的延迟。本文提出FoldQuantVLA训练后量化框架，将一致的激活表示贯穿校准、权重量化与原生整数执行，结合通道缩放、块Hadamard变换与动态逐token量化，无需策略重训练。在LIBERO、SimplerEnv及两个机器人平台上，W4A4通过自定义TensorRT插件在Ada GPU与Jetson上执行并保持性能。该工作展示了VLA模型原生低比特部署的可行性。",
       "llm_tags": [
         "query:wbv:composite"
       ],
@@ -115,19 +152,19 @@
         "query:MoE-Quant"
       ],
       "llm_score": 6.0,
-      "llm_evidence_en": "MoE inference with a quantized checkpoint, expert weights stored on device",
-      "llm_evidence_cn": "使用量化检查点的MoE推理，专家权重存储于设备",
-      "llm_evidence": "使用量化检查点的MoE推理，专家权重存储于设备",
-      "canonical_evidence": "使用量化检查点的MoE推理，专家权重存储于设备",
-      "llm_tldr_en": "Sparse MoE activation cuts compute but still requires storing all experts, hampering on-device deployment. Routide runs a quantized Qwen3.6-35B-A3B on iPhone with flash-backed experts, showing cache-policy sensitivity.",
-      "llm_tldr_cn": "混合专家模型的稀疏激活虽能减少计算量，却无法免除存储全部专家权重的需求，在手机等内存受限设备上部署依然困难。本文提出Routide运行时，用Swift与MLX执行Qwen3.6-35B-A3B量化检查点，将专家权重保存在iPhone存储中，并按字节预算把子集缓存在内存。在五个128词元负载上刻画缓存策略敏感性：512MiB LRU命中率为0.00%，随机驱逐为18.80%，576MiB LRU达38.58%。结果表明所谓容量悬崖实为缓存策略与负载的交互，而非普遍的内存需求，为MoE端侧推理提供了可复现的量化部署刻画。",
-      "llm_tldr": "混合专家模型的稀疏激活虽能减少计算量，却无法免除存储全部专家权重的需求，在手机等内存受限设备上部署依然困难。本文提出Routide运行时，用Swift与MLX执行Qwen3.6-35B-A3B量化检查点，将专家权重保存在iPhone存储中，并按字节预算把子集缓存在内存。在五个128词元负载上刻画缓存策略敏感性：512MiB LRU命中率为0.00%，随机驱逐为18.80%，576MiB LRU达38.58%。结果表明所谓容量悬崖实为缓存策略与负载的交互，而非普遍的内存需求，为MoE端侧推理提供了可复现的量化部署刻画。",
+      "llm_evidence_en": "MoE inference with a quantized checkpoint and expert weight paging",
+      "llm_evidence_cn": "混合专家量化检查点推理与专家权重分页",
+      "llm_evidence": "混合专家量化检查点推理与专家权重分页",
+      "canonical_evidence": "混合专家量化检查点推理与专家权重分页",
+      "llm_tldr_en": "Routide is a Swift/MLX runtime that runs a quantized Qwen3.6-35B-A3B MoE checkpoint on iPhone by paging expert weights from storage into a byte-budgeted memory cache, characterizing cache-policy sensitivity.",
+      "llm_tldr_cn": "稀疏激活虽能减少混合专家模型的计算量，但仍需在设备上存储全部专家权重，端侧部署面临内存瓶颈。作者提出Routide运行时，在iPhone上以分页方式执行量化后的Qwen3.6-35B-A3B检查点，将专家权重存于存储、按字节预算缓存部分到内存。在五组128词元负载上，固定路由重放命中率为零，而带种子随机淘汰可达18.8%，576MiB LRU达38.58%。结果表明所谓容量悬崖实为缓存策略与负载的交互，而非普适内存需求。",
+      "llm_tldr": "稀疏激活虽能减少混合专家模型的计算量，但仍需在设备上存储全部专家权重，端侧部署面临内存瓶颈。作者提出Routide运行时，在iPhone上以分页方式执行量化后的Qwen3.6-35B-A3B检查点，将专家权重存于存储、按字节预算缓存部分到内存。在五组128词元负载上，固定路由重放命中率为零，而带种子随机淘汰可达18.8%，576MiB LRU达38.58%。结果表明所谓容量悬崖实为缓存策略与负载的交互，而非普适内存需求。",
       "llm_tags": [
-        "query:moe-quant"
+        "query:moe-quant:composite"
       ],
-      "matched_query_tag": "query:moe-quant",
-      "matched_query_text": "MoE Quantization",
-      "matched_requirement_id": "req-10",
+      "matched_query_tag": "query:moe-quant:composite",
+      "matched_query_text": "Papers central to MoE 量化, especially work that connects or combines: P; M; MoE Quantization.",
+      "matched_requirement_id": "req-composite-moe-quant",
       "selection_source": "fresh_fetch",
       "quick_tier": "6"
     },
@@ -152,56 +189,148 @@
         "query:MoE-Quant"
       ],
       "llm_score": 6.0,
-      "llm_evidence_en": "low-bit post-training quantization of looped transformers",
-      "llm_evidence_cn": "循环Transformer的低比特训练后量化",
-      "llm_evidence": "循环Transformer的低比特训练后量化",
-      "canonical_evidence": "循环Transformer的低比特训练后量化",
-      "llm_tldr_en": "Looped transformers reuse weights across recurrence, making low-bit quantization attractive. This work identifies feedback exposure and calibration blindness as two failure modes of standard INT4 post-training quantization and analyzes them.",
-      "llm_tldr_cn": "循环Transformer因跨递归步复用权重而特别适合低比特量化，但标准训练后量化存在失效模式。本文在Huginn-3.5B上发现逐通道INT4主要失效于非残差的循环入口适配器，并将该现象命名为反馈暴露：被量化的层在没有恒等通路时扰动循环状态，误差在后续步被反复回馈。作者在线性滤波器和Mamba状态空间模型上验证该现象不限于Transformer，同时指出分组INT4还存在校准盲区，即单步GPTQ仅用第0步激活构建Hessian。该分析为极低比特递归模型量化提供了失效机理与改进方向。",
-      "llm_tldr": "循环Transformer因跨递归步复用权重而特别适合低比特量化，但标准训练后量化存在失效模式。本文在Huginn-3.5B上发现逐通道INT4主要失效于非残差的循环入口适配器，并将该现象命名为反馈暴露：被量化的层在没有恒等通路时扰动循环状态，误差在后续步被反复回馈。作者在线性滤波器和Mamba状态空间模型上验证该现象不限于Transformer，同时指出分组INT4还存在校准盲区，即单步GPTQ仅用第0步激活构建Hessian。该分析为极低比特递归模型量化提供了失效机理与改进方向。",
+      "llm_evidence_en": "low-bit post-training quantization of looped transformers with INT4 and GPTQ",
+      "llm_evidence_cn": "循环Transformer的INT4低比特训练后量化",
+      "llm_evidence": "循环Transformer的INT4低比特训练后量化",
+      "canonical_evidence": "循环Transformer的INT4低比特训练后量化",
+      "llm_tldr_en": "Looped transformers reuse weights, making low-bit quantization attractive, but PTQ fails in two ways: feedback exposure at non-residual loop-entry adapters and calibration blindness in grouped INT4 GPTQ.",
+      "llm_tldr_cn": "循环Transformer因跨递归步复用权重而适合低比特量化，但标准训练后量化会出现特有失效模式。作者在Huginn-3.5B上发现逐通道INT4主要失败于非残差的循环入口适配器，并将该现象命名为反馈暴露，因为量化误差在无恒等通路时被反复回灌。分组INT4还暴露校准盲区，即单步GPTQ仅基于第0步激活构建Hessian。线性滤波器与Mamba状态空间模型的对照实验表明反馈暴露不限于Transformer，为循环结构低比特量化提供诊断依据。",
+      "llm_tldr": "循环Transformer因跨递归步复用权重而适合低比特量化，但标准训练后量化会出现特有失效模式。作者在Huginn-3.5B上发现逐通道INT4主要失败于非残差的循环入口适配器，并将该现象命名为反馈暴露，因为量化误差在无恒等通路时被反复回灌。分组INT4还暴露校准盲区，即单步GPTQ仅基于第0步激活构建Hessian。线性滤波器与Mamba状态空间模型的对照实验表明反馈暴露不限于Transformer，为循环结构低比特量化提供诊断依据。",
       "llm_tags": [
-        "query:wbv:composite"
+        "query:wbv"
       ],
-      "matched_query_tag": "query:wbv:composite",
-      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
-      "matched_requirement_id": "req-composite-wbv",
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "2 bit VQ",
+      "matched_requirement_id": "req-6",
       "selection_source": "fresh_fetch",
       "quick_tier": "6"
     },
     {
-      "id": "2609.31560v1",
+      "id": "2609.33601v1",
       "source": "arxiv",
-      "title": "Generalization behavior of OPTQ and the role of regularization",
-      "abstract": "Large neural networks can be compressed by rounding or \"quantizing\" their weights to numbers that admit representations with fewer bits. One algorithm for quantization, OPTQ, progressively quantizes the weights of a neural network so that the squared quantization error on a specified calibration dataset is as small as possible. We study the performance of OPTQ and a variant algorithm, stochastic OPTQ, in a generalization setting and derive bounds for the expected squared error accrued by the algorithm when a test point is drawn from a fixed distribution. We prove two results. One result relates the generalization error to the error on a calibration dataset comprising independent samples from the same distribution as the test distribution. The other result bounds the generalization error of stochastic OPTQ for all sufficiently nice distributions, regardless of the calibration dataset. In both of these results, the regularization term $λ$ plays an important role. We use insights from these results to make a new recommendation for the choice of $λ$ and see that this choice of $λ$ preforms favorably in experiments when compared to prior recommendations in the literature.",
+      "title": "JustQuant: You Don't Need Smoothing, SVD, or Rotation for 4-Bit Activation Quantization",
+      "abstract": "Recent generative models have become increasingly powerful, but their inference cost continues to grow. Model quantization offers a promising way to compress these models and accelerate inference. However, at 4 bits, activation quantization is substantially more challenging than weight quantization. Recent post-training quantization (PTQ) and quantization-aware training (QAT) methods have made progress in 4-bit activation quantization by introducing smoothing, SVD branches, rotations, mixed precision, or advanced formats such as NVFP4. These additional operators and data types impose demanding requirements on inference engines and hardware, limiting the broad adoption of low-precision models. Can quantization be achieved using only plain low-bit operators? To answer this question, we propose JustQuant, a simple yet effective framework that moves the complexity of low-bit quantization from deployment-time operators into the training process. We first revisit model quantization from the perspective of knowledge distillation and show that a key reason existing PTQ and QAT methods fail is that they typically exploit supervision at only a single level. We then introduce Theseus QAD, a quantization-aware distillation method that progressively applies multi-level supervision, analogous to the gradual replacement process in the Ship of Theseus. Extensive experiments on DiT and diffusion large language models show two distinct regimes. For smaller models, Theseus QAD can serve as a lightweight warm-up stage that substantially improves subsequent QAT with plain operators, while naive QAD may collapse in the same setting. For larger models, Theseus QAD provides a stronger distillation training path than ordinary QAD. Across both regimes, JustQuant improves low-bit quantization quality while avoiding the complex operators required by many existing PTQ methods.",
       "authors": [
-        "Erin George",
-        "Rayan Saab"
+        "Kaicheng Yang",
+        "Kaisen Yang",
+        "Chunyu Liu",
+        "Xianglong Yan",
+        "Haotong Qin",
+        "Junyi Wu",
+        "Tianao Zhang",
+        "Xun Zhang",
+        "Shaoqiu Zhang",
+        "Youbang Sun",
+        "Yulun Zhang"
       ],
-      "primary_category": "cs.LG",
+      "primary_category": "cs.AI",
       "categories": [
-        "cs.LG"
+        "cs.AI"
       ],
-      "published": "2026-09-25T17:27:18+00:00",
-      "link": "https://arxiv.org/pdf/2609.31560v1",
+      "published": "2026-09-27T14:17:24+00:00",
+      "link": "https://arxiv.org/pdf/2609.33601v1",
       "tags": [
+        "keyword:MoE-Quant",
         "keyword:wbv",
         "query:MoE-Quant",
         "query:wbv"
       ],
       "llm_score": 6.0,
-      "llm_evidence_en": "quantization of network weights and error bounds",
-      "llm_evidence_cn": "神经网络权重量化与误差界",
-      "llm_evidence": "神经网络权重量化与误差界",
-      "canonical_evidence": "神经网络权重量化与误差界",
-      "llm_tldr_en": "Studies the generalization behaviour of OPTQ weight quantization, deriving bounds on expected squared quantization error and relating generalization error to calibration-set error.",
-      "llm_tldr_cn": "论文关注低比特权重量化算法缺乏泛化理论保证这一问题，以逐步最小化校准集平方量化误差的OPTQ及其随机变体为对象，在测试点服从固定分布的设定下推导期望平方量化误差的上界。作者证明泛化误差可由同分布校准集上的误差控制，并给出另一项上界结果。该分析揭示了校准数据质量对低比特量化可靠性的关键作用，为压缩算法的实际部署提供理论依据。",
-      "llm_tldr": "论文关注低比特权重量化算法缺乏泛化理论保证这一问题，以逐步最小化校准集平方量化误差的OPTQ及其随机变体为对象，在测试点服从固定分布的设定下推导期望平方量化误差的上界。作者证明泛化误差可由同分布校准集上的误差控制，并给出另一项上界结果。该分析揭示了校准数据质量对低比特量化可靠性的关键作用，为压缩算法的实际部署提供理论依据。",
+      "llm_evidence_en": "4-bit activation quantization without smoothing, SVD or rotation",
+      "llm_evidence_cn": "无需平滑、SVD或旋转的4比特激活量化",
+      "llm_evidence": "无需平滑、SVD或旋转的4比特激活量化",
+      "canonical_evidence": "无需平滑、SVD或旋转的4比特激活量化",
+      "llm_tldr_en": "4-bit activation quantization usually needs smoothing, SVD, rotations or NVFP4. JustQuant shows simple uniform quantization suffices, easing hardware and inference-engine adoption.",
+      "llm_tldr_cn": "生成模型推理成本不断上升，量化是压缩与加速的关键手段，但在4比特下激活量化远比权重量化困难。已有PTQ与QAT方法依赖平滑、SVD分支、旋转、混合精度或NVFP4等额外算子与格式，给推理引擎和硬件带来负担。本文提出JustQuant，证明仅使用简单的逐元素/均匀量化即可实现4比特激活量化，无需上述复杂组件。实验显示其在保持精度的同时简化了部署，有利于低精度模型的广泛采用。",
+      "llm_tldr": "生成模型推理成本不断上升，量化是压缩与加速的关键手段，但在4比特下激活量化远比权重量化困难。已有PTQ与QAT方法依赖平滑、SVD分支、旋转、混合精度或NVFP4等额外算子与格式，给推理引擎和硬件带来负担。本文提出JustQuant，证明仅使用简单的逐元素/均匀量化即可实现4比特激活量化，无需上述复杂组件。实验显示其在保持精度的同时简化了部署，有利于低精度模型的广泛采用。",
       "llm_tags": [
         "query:wbv"
       ],
       "matched_query_tag": "query:wbv",
-      "matched_query_text": "3 bit SQ",
-      "matched_requirement_id": "req-7",
+      "matched_query_text": "papers provide SoTA/advanced results",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.34765v1",
+      "source": "arxiv",
+      "title": "Beyond Reconstruction Loss in Post-Training Quantization: Balanced Fitting for Large Vision-Language Models",
+      "abstract": "Post-training quantization (PTQ) enables efficient deployment of large vision-language models (LVLMs), but is typically calibrated on a small set while expected to generalize across diverse downstream tasks. Although recent PTQ methods for LVLMs incorporate sensitivity signals, they still minimize reconstruction loss with respect to the full-precision model, potentially over-preserving FP behavior and calibration-specific bias. Rather than treating quantization solely as an error to be minimized, we observe that it can also provide beneficial regularization for certain layers and modalities. Motivated by this observation, we propose Balanced Fitting, a quantization effect-based framework that balances precision and regularization beyond reconstruction-based optimization. By measuring layer- and component-wise quantization effects for weights, vision activations, and text activations, Balanced Fitting combines fine-grained fitting for sensitive components with coarser fitting to exploit potential regularization benefits. Experiments on multiple LVLMs show that our method consistently outperforms prior PTQ approaches under both weight-only and weight-activation quantization, while lower reconstruction loss does not reliably translate into better downstream performance. The source code is publicly available at https://github.com/kmc3661/BFQ",
+      "authors": [
+        "Minchan Kang",
+        "Kyeonghye Park",
+        "Seungyeon Sa",
+        "Seoyoung Cho",
+        "Daeshik Kim",
+        "Yucheol Cho"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-09-28T09:48:10+00:00",
+      "link": "https://arxiv.org/pdf/2609.34765v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "post-training quantization for large vision-language models beyond reconstruction loss",
+      "llm_evidence_cn": "超越重构损失的大型视觉语言模型训练后量化",
+      "llm_evidence": "超越重构损失的大型视觉语言模型训练后量化",
+      "canonical_evidence": "超越重构损失的大型视觉语言模型训练后量化",
+      "llm_tldr_en": "PTQ for LVLMs over-fits reconstruction and calibration bias. Balanced Fitting treats quantization as beneficial regularization, balancing precision and quantization effect across layers and modalities.",
+      "llm_tldr_cn": "训练后量化可高效部署大型视觉语言模型，但其通常只在少量校准集上拟合，却需泛化到多样下游任务，现有方法仍以最小化对全精度模型的重构损失为目标，可能过度保留浮点行为与校准偏差。本文观察到量化对某些层与模态还具有正则化益处，据此提出Balanced Fitting框架，在精度与量化效应之间取得平衡。实验表明该框架在多种任务上取得更稳健的量化性能，为LVLM的PTQ提供了新视角。",
+      "llm_tldr": "训练后量化可高效部署大型视觉语言模型，但其通常只在少量校准集上拟合，却需泛化到多样下游任务，现有方法仍以最小化对全精度模型的重构损失为目标，可能过度保留浮点行为与校准偏差。本文观察到量化对某些层与模态还具有正则化益处，据此提出Balanced Fitting框架，在精度与量化效应之间取得平衡。实验表明该框架在多种任务上取得更稳健的量化性能，为LVLM的PTQ提供了新视角。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "papers provide SoTA/advanced results",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.34866v1",
+      "source": "arxiv",
+      "title": "From Attention Sensitivity to Layer Role: Revisiting Mixed-Precision Quantization of Transformers",
+      "abstract": "Most post-training quantization pipelines fit each weight matrix to its pretrained counterpart, one matrix at a time. Whether that proxy tracks what an attention block actually computes, or how errors in the Q, K and V projections compound inside the softmax, is rarely checked. We write the objective on the attention output instead, over all three projections at once, and reuse it throughout the pipeline. JAB defines one scalar loss over the joint Q, K, V weights of a block, evaluated against the block's real causally-masked attention output, and uses it twice: to fit the quantized weights (GPTQ warm start, then STE with learnable scales), and to score the block for a multiple-choice knapsack allocation.   On attention-only quantization of Mistral-7B this works. At 3 bits JAB recovers 77-90% of the gap between uniform GPTQ and full precision, and its sensitivity estimate tracks an oracle costing 73 forward passes to within a fraction of a point. It stops working once MLP layers enter the allocation. A role-aware offset rule needing no sensitivity estimate at all beats JAB on GPT-2's MLP and on the full Mistral-7B model: with a 3-bit floor it quantizes 96.4% of the weights to 4.5 bits per parameter at 6.933 perplexity, within 4.4% of full precision (6.643) at 3.56x compression, against 7.158 for JAB at the same budget. Which matrix a weight sits in matters more than any sensitivity estimate we computed.   Two things came out sideways. Block-local reconstruction is an unreliable proxy for end-to-end perplexity: one run improved a block's own objective 4.6x while perplexity rose 32x, which is why every allocation here is validated end-to-end. And on attention-only quantization, fine-tuning moved weights farther from their pretrained values while pulling attention outputs closer, with net gains. Post-training seems to recover attention behavior, not weights.",
+      "authors": [
+        "Nafiseh HosseinpourFardi",
+        "Negar Alihadi",
+        "Mahmoudreza Babaei",
+        "Milad Hosseini",
+        "Adrian Weller"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-28T10:53:49+00:00",
+      "link": "https://arxiv.org/pdf/2609.34866v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "mixed-precision transformer quantization using joint QKV attention-output loss",
+      "llm_evidence_cn": "基于联合QKV注意力输出的Transformer混合精度量化",
+      "llm_evidence": "基于联合QKV注意力输出的Transformer混合精度量化",
+      "canonical_evidence": "基于联合QKV注意力输出的Transformer混合精度量化",
+      "llm_tldr_en": "Per-matrix PTQ fitting rarely checks attention computation. JAB defines one loss over joint Q,K,V weights against the real attention output and reuses it for fitting and knapsack allocation.",
+      "llm_tldr_cn": "现有训练后量化流程通常逐个权重矩阵地拟合预训练参数，但这一代理目标是否能反映注意力块的真实计算、以及Q、K、V投影误差在softmax中的累积，很少被检验。本文提出JAB，直接在注意力输出上定义单一标量损失，同时覆盖一个块内Q、K、V的联合权重，并将其复用于权重拟合与混合精度分配的块打分。实验在仅注意力量化设置下验证了该目标的有效性，为Transformer混合精度量化提供了更贴近计算本质的准则。",
+      "llm_tldr": "现有训练后量化流程通常逐个权重矩阵地拟合预训练参数，但这一代理目标是否能反映注意力块的真实计算、以及Q、K、V投影误差在softmax中的累积，很少被检验。本文提出JAB，直接在注意力输出上定义单一标量损失，同时覆盖一个块内Q、K、V的联合权重，并将其复用于权重拟合与混合精度分配的块打分。实验在仅注意力量化设置下验证了该目标的有效性，为Transformer混合精度量化提供了更贴近计算本质的准则。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "papers provide SoTA/advanced results",
+      "matched_requirement_id": "req-8",
       "selection_source": "fresh_fetch",
       "quick_tier": "6"
     }

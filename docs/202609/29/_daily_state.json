@@ -1,10 +1,42 @@
 {
   "date": "20260929",
   "date_label": "",
-  "generated_at": "2026-09-29 00:31:00 UTC",
+  "generated_at": "2026-09-29 22:58:20 UTC",
   "recommend_exists": true,
-  "run_count": 1,
+  "run_count": 2,
   "papers": [
+    {
+      "paper_id": "2609.33923v1",
+      "route": "202609/29/2609.33923v1-quantization-error-is-spectrally-flat-a-single-random-probe-is-a-calibrated-data-free-sensitivity-estimator-with-application-to-budget-targeted-mixed-precision-quantization",
+      "title": "Quantization Error Is Spectrally Flat: A Single Random Probe Is a Calibrated, Data-Free Sensitivity Estimator, with Application to Budget-Targeted Mixed-Precision Quantization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向35B MoE的混合精度量化与逐层敏感度估计",
+      "first_seen_at": "2026-09-29 22:58:20 UTC",
+      "updated_at": "2026-09-29 22:58:20 UTC"
+    },
+    {
+      "paper_id": "2609.35465v1",
+      "route": "202609/29/2609.35465v1-tetra-serving-leech-lattice-quantized-llms-at-27-bits-per-parameter",
+      "title": "Tetra: Serving Leech-Lattice Quantized LLMs at 2.7 Bits per Parameter",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "Leech格2比特码本与共享查找表，2.7比特每参数",
+      "first_seen_at": "2026-09-29 22:58:20 UTC",
+      "updated_at": "2026-09-29 22:58:20 UTC"
+    },
     {
       "paper_id": "2609.30950v1",
       "route": "202609/29/2609.30950v1-low-bit-recurrent-states-in-hybrid-language-models",
@@ -35,7 +67,7 @@
       "score": 6.0,
       "evidence": "视觉-语言-动作模型的W4A4原生低比特训练后量化",
       "first_seen_at": "2026-09-29 00:31:00 UTC",
-      "updated_at": "2026-09-29 00:31:00 UTC"
+      "updated_at": "2026-09-29 22:58:20 UTC"
     },
     {
       "paper_id": "2609.29032v1",
@@ -51,7 +83,7 @@
       "score": 6.0,
       "evidence": "使用量化检查点的MoE推理，专家权重存储于设备",
       "first_seen_at": "2026-09-29 00:31:00 UTC",
-      "updated_at": "2026-09-29 00:31:00 UTC"
+      "updated_at": "2026-09-29 22:58:20 UTC"
     },
     {
       "paper_id": "2609.30820v1",
@@ -67,7 +99,55 @@
       "score": 6.0,
       "evidence": "循环Transformer的低比特训练后量化",
       "first_seen_at": "2026-09-29 00:31:00 UTC",
-      "updated_at": "2026-09-29 00:31:00 UTC"
+      "updated_at": "2026-09-29 22:58:20 UTC"
+    },
+    {
+      "paper_id": "2609.33601v1",
+      "route": "202609/29/2609.33601v1-justquant-you-dont-need-smoothing-svd-or-rotation-for-4-bit-activation-quantization",
+      "title": "JustQuant: You Don't Need Smoothing, SVD, or Rotation for 4-Bit Activation Quantization",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "无需平滑、SVD或旋转的4比特激活量化",
+      "first_seen_at": "2026-09-29 22:58:20 UTC",
+      "updated_at": "2026-09-29 22:58:20 UTC"
+    },
+    {
+      "paper_id": "2609.34765v1",
+      "route": "202609/29/2609.34765v1-beyond-reconstruction-loss-in-post-training-quantization-balanced-fitting-for-large-vision-language-models",
+      "title": "Beyond Reconstruction Loss in Post-Training Quantization: Balanced Fitting for Large Vision-Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "超越重构损失的大型视觉语言模型训练后量化",
+      "first_seen_at": "2026-09-29 22:58:20 UTC",
+      "updated_at": "2026-09-29 22:58:20 UTC"
+    },
+    {
+      "paper_id": "2609.34866v1",
+      "route": "202609/29/2609.34866v1-from-attention-sensitivity-to-layer-role-revisiting-mixed-precision-quantization-of-transformers",
+      "title": "From Attention Sensitivity to Layer Role: Revisiting Mixed-Precision Quantization of Transformers",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "基于联合QKV注意力输出的Transformer混合精度量化",
+      "first_seen_at": "2026-09-29 22:58:20 UTC",
+      "updated_at": "2026-09-29 22:58:20 UTC"
     },
     {
       "paper_id": "2609.31560v1",
