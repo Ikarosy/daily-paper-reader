@@ -1,0 +1,209 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-29T00:29:43.151648+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 1,
+    "deep_cap": 7,
+    "deep_selected": 1,
+    "quick_candidates": 4,
+    "quick_skim_target": 12,
+    "quick_selected": 4
+  },
+  "deep_dive": [
+    {
+      "id": "2609.30950v1",
+      "source": "arxiv",
+      "title": "Low-Bit Recurrent States in Hybrid Language Models",
+      "abstract": "Hybrid language models maintain fixed-size recurrent states, but existing quantizers typically use eight bits or more. Quantization errors persist according to channel decay rates. We derive distortion weights from the observability Gramian and combine them with normalized state ranges for mixed-precision bit allocation, without calibration data, rotation, or training. We also quantize decay rates logarithmically. With per-token state quantization, a four-bit mean payload reduces excess negative log-likelihood by factors of 3.3--27.9 relative to the best of seven baselines across three hybrid models; metadata costs vary. At six bits, negative log-likelihood differs from the FP32-state baseline by less than 0.005 nats. Ablations separate gains from variable bit widths, decay weighting, and range normalization. With less frequent write-backs, gains diminish and depend on the model and budget.",
+      "authors": [
+        "Hongren Chen",
+        "Jiayang He"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-25T08:01:56+00:00",
+      "link": "https://arxiv.org/pdf/2609.30950v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "low-bit quantization of recurrent states with mixed-precision bit allocation",
+      "llm_evidence_cn": "循环状态低比特量化与混合精度比特分配",
+      "llm_evidence": "循环状态低比特量化与混合精度比特分配",
+      "canonical_evidence": "循环状态低比特量化与混合精度比特分配",
+      "llm_tldr_en": "Hybrid language models keep fixed-size recurrent states but existing quantizers use eight bits or more. Using observability-Gramian distortion weights with normalized state ranges, the method performs mixed-precision bit allocation without calibration or training, cutting excess NLL by 3.3-27.9x at 4 bits.",
+      "llm_tldr_cn": "混合语言模型依赖固定大小的循环状态，但现有量化器通常需要8比特以上，且量化误差会随通道衰减率持续累积。该工作从可观测性格拉姆矩阵推导失真权重，结合归一化状态范围进行混合精度比特分配，并对衰减率做对数量化，全程无需校准数据、旋转或训练。实验表明，逐token状态量化在4比特平均负载下把超额负对数似然较七个基线中的最优者降低3.3至27.9倍，6比特时与FP32状态基线差距小于0.005 nats，为循环状态的低比特压缩提供了免训练方案。",
+      "llm_tldr": "混合语言模型依赖固定大小的循环状态，但现有量化器通常需要8比特以上，且量化误差会随通道衰减率持续累积。该工作从可观测性格拉姆矩阵推导失真权重，结合归一化状态范围进行混合精度比特分配，并对衰减率做对数量化，全程无需校准数据、旋转或训练。实验表明，逐token状态量化在4比特平均负载下把超额负对数似然较七个基线中的最优者降低3.3至27.9倍，6比特时与FP32状态基线差距小于0.005 nats，为循环状态的低比特压缩提供了免训练方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.24433v1",
+      "source": "arxiv",
+      "title": "FoldQuantVLA: Native Low-Bit Quantization of Vision-Language-Action Models via Consistent Folding",
+      "abstract": "Low-bit vision-language-action inference must reduce observation-to-action latency while preserving robot behavior. We present FoldQuantVLA, a post-training quantization framework that carries a consistent activation representation through calibration, weight rounding, and native integer execution. It combines channel scaling and block Hadamard transforms with dynamic per-token quantization, without policy retraining. Custom TensorRT plugins execute projections in both the language backbone and iterative action expert with four-bit weights and activations (W4A4) on Ada GPUs and Jetson AGX Orin. Evaluation spans LIBERO, SimplerEnv, and two robot platforms. Across three GR00T checkpoints and $π_{0.5}$, W4A4 achieves $1.20$ to $1.33\\times$ speedups over floating-point TensorRT on Orin and $1.25$ to $1.52\\times$ on desktop. Retaining language attention-output and feed-forward down projections at eight bits (W8A8) improves held-out action fidelity on all four checkpoints. Across four real-robot tasks, this configuration raises observed GR00T N1.7 success from $80.0\\%$ with uniform W4A4 to $92.5\\%$ over 80 trials per configuration, with a measured additional Orin latency of 1 ms.",
+      "authors": [
+        "Hung T. Ho",
+        "Khanh D. Nguyen",
+        "Quang D. Nguyen",
+        "Thanh Q. Duong",
+        "Ngan Le",
+        "Meng Guo",
+        "Vien A. Ngo",
+        "An T. Le"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "eess.SY"
+      ],
+      "published": "2026-09-21T11:28:41+00:00",
+      "link": "https://arxiv.org/pdf/2609.24433v1",
+      "tags": [
+        "keyword:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "native low-bit W4A4 post-training quantization of VLA models",
+      "llm_evidence_cn": "视觉-语言-动作模型的W4A4原生低比特训练后量化",
+      "llm_evidence": "视觉-语言-动作模型的W4A4原生低比特训练后量化",
+      "canonical_evidence": "视觉-语言-动作模型的W4A4原生低比特训练后量化",
+      "llm_tldr_en": "Low-bit vision-language-action inference must cut latency while preserving robot behavior. FoldQuantVLA carries a consistent activation representation through calibration and native integer execution, using W4A4 with TensorRT plugins.",
+      "llm_tldr_cn": "视觉-语言-动作模型的推理需要降低观测到动作的延迟，同时保持机器人行为不变，这对极低比特量化提出了挑战。本文提出FoldQuantVLA训练后量化框架，在校准、权重量化取整与原生整数执行之间保持一致的激活表示，结合通道缩放、块Hadamard变换与动态逐token量化，无需策略重训练。作者通过自定义TensorRT插件在语言主干与迭代动作专家中以W4A4执行，并在LIBERO、SimplerEnv及真实机器人平台上评测。结果显示在多个GR00T检查点与π0.5上实现显著加速且保持行为，为极低比特具身模型部署提供了实用方案。",
+      "llm_tldr": "视觉-语言-动作模型的推理需要降低观测到动作的延迟，同时保持机器人行为不变，这对极低比特量化提出了挑战。本文提出FoldQuantVLA训练后量化框架，在校准、权重量化取整与原生整数执行之间保持一致的激活表示，结合通道缩放、块Hadamard变换与动态逐token量化，无需策略重训练。作者通过自定义TensorRT插件在语言主干与迭代动作专家中以W4A4执行，并在LIBERO、SimplerEnv及真实机器人平台上评测。结果显示在多个GR00T检查点与π0.5上实现显著加速且保持行为，为极低比特具身模型部署提供了实用方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.29032v1",
+      "source": "arxiv",
+      "title": "Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone",
+      "abstract": "Sparse activation reduces mixture-of-experts computation without eliminating the need to store all experts. We present Routide, a Swift/MLX runtime that executes the text path of a pinned public Qwen3.6-35B-A3B quantized checkpoint while keeping expert weights in iPhone storage and a byte-budgeted subset in memory. We characterize cache-policy sensitivity, numerical comparison boundaries, and measurement limits. Across five recorded 128-token workloads, fixed-route replay gives 0.00% demand hits with a 512 MiB LRU cache, 18.80% with seeded random eviction at the same budget, and 38.58% with 576 MiB LRU. The apparent capacity cliff is therefore a policy/workload interaction, not a universal memory requirement. Same-runtime Mac controls preserve generated sequences across eviction and asynchronous prefetch, including 2,560 exact token comparisons and 10,334 speculative loads. In contrast, complete resident-Python versus recorded-phone sequences disagree on all five tested cases, precluding a general numerical equivalence claim. Two separately scoped iOS 27 memory protocols observe sampled process-footprint peaks of 1.87-2.32 GiB on short prompts and 2.39-2.73 GiB on one longer prompt. We retain a thermal stopping event, negative timing comparisons, and a single qualified whole-device power estimate. These results establish bounded feasibility and identify limitations that a deployment claim must not hide.",
+      "authors": [
+        "Musa Shams"
+      ],
+      "primary_category": "cs.PF",
+      "categories": [
+        "cs.PF",
+        "cs.LG"
+      ],
+      "published": "2026-09-24T05:05:28+00:00",
+      "link": "https://arxiv.org/pdf/2609.29032v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "MoE inference with a quantized checkpoint, expert weights stored on device",
+      "llm_evidence_cn": "使用量化检查点的MoE推理，专家权重存储于设备",
+      "llm_evidence": "使用量化检查点的MoE推理，专家权重存储于设备",
+      "canonical_evidence": "使用量化检查点的MoE推理，专家权重存储于设备",
+      "llm_tldr_en": "Sparse MoE activation cuts compute but still requires storing all experts, hampering on-device deployment. Routide runs a quantized Qwen3.6-35B-A3B on iPhone with flash-backed experts, showing cache-policy sensitivity.",
+      "llm_tldr_cn": "混合专家模型的稀疏激活虽能减少计算量，却无法免除存储全部专家权重的需求，在手机等内存受限设备上部署依然困难。本文提出Routide运行时，用Swift与MLX执行Qwen3.6-35B-A3B量化检查点，将专家权重保存在iPhone存储中，并按字节预算把子集缓存在内存。在五个128词元负载上刻画缓存策略敏感性：512MiB LRU命中率为0.00%，随机驱逐为18.80%，576MiB LRU达38.58%。结果表明所谓容量悬崖实为缓存策略与负载的交互，而非普遍的内存需求，为MoE端侧推理提供了可复现的量化部署刻画。",
+      "llm_tldr": "混合专家模型的稀疏激活虽能减少计算量，却无法免除存储全部专家权重的需求，在手机等内存受限设备上部署依然困难。本文提出Routide运行时，用Swift与MLX执行Qwen3.6-35B-A3B量化检查点，将专家权重保存在iPhone存储中，并按字节预算把子集缓存在内存。在五个128词元负载上刻画缓存策略敏感性：512MiB LRU命中率为0.00%，随机驱逐为18.80%，576MiB LRU达38.58%。结果表明所谓容量悬崖实为缓存策略与负载的交互，而非普遍的内存需求，为MoE端侧推理提供了可复现的量化部署刻画。",
+      "llm_tags": [
+        "query:moe-quant"
+      ],
+      "matched_query_tag": "query:moe-quant",
+      "matched_query_text": "MoE Quantization",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.30820v1",
+      "source": "arxiv",
+      "title": "Quantizing Looped Transformers: Feedback Exposure and Calibration Blindness",
+      "abstract": "Looped transformers reuse weights across recurrence steps, making low-bit quantization especially attractive. We identify two distinct failure modes of standard post-training quantization. On Huginn-3.5B, per-channel INT4 fails primarily at the non-residual loop-entry adapter, while quantizing the residual core is much less damaging. We call this feedback exposure: a quantized layer perturbs the recurrent state without an identity path, and the resulting error is fed back at later steps. Controlled experiments on linear filters and Mamba state-space models show that feedback exposure also occurs outside transformers. Grouped INT4 reveals a separate failure, calibration blindness: our one-step GPTQ baseline builds its Hessian from step-0 activations, leaving input directions used later in the recurrence nearly unweighted. Across nine checkpoints from seven looped architectures, one-step GPTQ is worse than round-to-nearest (RTN) on the primary task metric for five checkpoints. Accumulating the GPTQ Hessian across recurrence steps outperforms both one-step GPTQ and RTN on all nine checkpoints and recovers bf16-level accuracy on Huginn. These results separate two questions for PTQ on looped models: where quantization error enters the recurrence, and which states calibration sees.",
+      "authors": [
+        "Nux Li"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-09-25T04:57:33+00:00",
+      "link": "https://arxiv.org/pdf/2609.30820v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "low-bit post-training quantization of looped transformers",
+      "llm_evidence_cn": "循环Transformer的低比特训练后量化",
+      "llm_evidence": "循环Transformer的低比特训练后量化",
+      "canonical_evidence": "循环Transformer的低比特训练后量化",
+      "llm_tldr_en": "Looped transformers reuse weights across recurrence, making low-bit quantization attractive. This work identifies feedback exposure and calibration blindness as two failure modes of standard INT4 post-training quantization and analyzes them.",
+      "llm_tldr_cn": "循环Transformer因跨递归步复用权重而特别适合低比特量化，但标准训练后量化存在失效模式。本文在Huginn-3.5B上发现逐通道INT4主要失效于非残差的循环入口适配器，并将该现象命名为反馈暴露：被量化的层在没有恒等通路时扰动循环状态，误差在后续步被反复回馈。作者在线性滤波器和Mamba状态空间模型上验证该现象不限于Transformer，同时指出分组INT4还存在校准盲区，即单步GPTQ仅用第0步激活构建Hessian。该分析为极低比特递归模型量化提供了失效机理与改进方向。",
+      "llm_tldr": "循环Transformer因跨递归步复用权重而特别适合低比特量化，但标准训练后量化存在失效模式。本文在Huginn-3.5B上发现逐通道INT4主要失效于非残差的循环入口适配器，并将该现象命名为反馈暴露：被量化的层在没有恒等通路时扰动循环状态，误差在后续步被反复回馈。作者在线性滤波器和Mamba状态空间模型上验证该现象不限于Transformer，同时指出分组INT4还存在校准盲区，即单步GPTQ仅用第0步激活构建Hessian。该分析为极低比特递归模型量化提供了失效机理与改进方向。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.31560v1",
+      "source": "arxiv",
+      "title": "Generalization behavior of OPTQ and the role of regularization",
+      "abstract": "Large neural networks can be compressed by rounding or \"quantizing\" their weights to numbers that admit representations with fewer bits. One algorithm for quantization, OPTQ, progressively quantizes the weights of a neural network so that the squared quantization error on a specified calibration dataset is as small as possible. We study the performance of OPTQ and a variant algorithm, stochastic OPTQ, in a generalization setting and derive bounds for the expected squared error accrued by the algorithm when a test point is drawn from a fixed distribution. We prove two results. One result relates the generalization error to the error on a calibration dataset comprising independent samples from the same distribution as the test distribution. The other result bounds the generalization error of stochastic OPTQ for all sufficiently nice distributions, regardless of the calibration dataset. In both of these results, the regularization term $λ$ plays an important role. We use insights from these results to make a new recommendation for the choice of $λ$ and see that this choice of $λ$ preforms favorably in experiments when compared to prior recommendations in the literature.",
+      "authors": [
+        "Erin George",
+        "Rayan Saab"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-25T17:27:18+00:00",
+      "link": "https://arxiv.org/pdf/2609.31560v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "quantization of network weights and error bounds",
+      "llm_evidence_cn": "神经网络权重量化与误差界",
+      "llm_evidence": "神经网络权重量化与误差界",
+      "canonical_evidence": "神经网络权重量化与误差界",
+      "llm_tldr_en": "Studies the generalization behaviour of OPTQ weight quantization, deriving bounds on expected squared quantization error and relating generalization error to calibration-set error.",
+      "llm_tldr_cn": "论文关注低比特权重量化算法缺乏泛化理论保证这一问题，以逐步最小化校准集平方量化误差的OPTQ及其随机变体为对象，在测试点服从固定分布的设定下推导期望平方量化误差的上界。作者证明泛化误差可由同分布校准集上的误差控制，并给出另一项上界结果。该分析揭示了校准数据质量对低比特量化可靠性的关键作用，为压缩算法的实际部署提供理论依据。",
+      "llm_tldr": "论文关注低比特权重量化算法缺乏泛化理论保证这一问题，以逐步最小化校准集平方量化误差的OPTQ及其随机变体为对象，在测试点服从固定分布的设定下推导期望平方量化误差的上界。作者证明泛化误差可由同分布校准集上的误差控制，并给出另一项上界结果。该分析揭示了校准数据质量对低比特量化可靠性的关键作用，为压缩算法的实际部署提供理论依据。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "3 bit SQ",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
