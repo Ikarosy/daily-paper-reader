@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-29</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-30</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 10 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 5 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
-    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>2 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>7</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>5</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-29 22:58:20 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-30 22:40:46 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,10 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日共生成 10 篇推荐（精读 3 篇，速读 7 篇）</p>
-<p>精读：《Quantization Error Is Spectrally Flat: A Single Random Probe Is a Calibrated, Data-Free Sensitivity Estimator, with Application to Budget-Targeted Mixed-Precision Quantization》（9.0/10）, 《Tetra: Serving Leech-Lattice Quantized LLMs at 2.7 Bits per Parameter》（9.0/10）</p>
-<p>速读：《FoldQuantVLA: Native Low-Bit Quantization of Vision-Language-Action Models via Consistent Folding》（6.0/10）, 《Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone》（6.0/10）, 《Quantizing Looped Transformers: Feedback Exposure and Calibration Blindness》（6.0/10）</p>
-<p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
+<p>今日无精读、速读5篇，主线集中在大模型量化与端侧推理效率。</p>
+<p>最值得看的是 RGSQ（7.0/10）用黎曼几何敏感量化优化大型视觉语言模型，其次是两篇 6 分工作：iPhone 上 Flash-backed MoE 推理的可复现刻画，以及用动作子空间保护做世界动作模型的 4-bit 量化。</p>
+<p>普通读者可先读 RGSQ 建立量化直觉，再按&quot;端侧部署&quot;或&quot;具身模型&quot;兴趣挑一篇速读跟进。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -81,12 +80,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">3 篇</strong>
+    <strong class="dpr-home-dashboard-count">0 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Quantization Error Is Spectrally Flat: A Single Random Probe Is a Calibrated, Data-Free Sensitivity Estimator, with Application to Budget-Targeted Mixed-Precision Quantization">Quantization Error Is Spectrally Flat: A Single Random Probe Is a Calibrated, Data-Free Sensitivity Estimator, with Application to Budget-Targeted Mixed-Precision Quantization</span></li><li><span class="dpr-home-dashboard-paper-title" title="Tetra: Serving Leech-Lattice Quantized LLMs at 2.7 Bits per Parameter">Tetra: Serving Leech-Lattice Quantized LLMs at 2.7 Bits per Parameter</span></li><li><span class="dpr-home-dashboard-paper-title" title="Low-Bit Recurrent States in Hybrid Language Models">Low-Bit Recurrent States in Hybrid Language Models</span></li></ul>
+<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span><span class="dpr-home-dashboard-tag">moe-quant <strong>1</strong></span></div>
+
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -94,12 +93,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">7 篇</strong>
+    <strong class="dpr-home-dashboard-count">5 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="FoldQuantVLA: Native Low-Bit Quantization of Vision-Language-Action Models via Consistent Folding">FoldQuantVLA: Native Low-Bit Quantization of Vision-Language-Action Models via Consistent Folding</span></li><li><span class="dpr-home-dashboard-paper-title" title="Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone">Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone</span></li><li><span class="dpr-home-dashboard-paper-title" title="Quantizing Looped Transformers: Feedback Exposure and Calibration Blindness">Quantizing Looped Transformers: Feedback Exposure and Calibration Blindness</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="RGSQ: Riemannian Geometry-Sensitive Quantization for Large Vision-Language Models">RGSQ: Riemannian Geometry-Sensitive Quantization for Large Vision-Language Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone">Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone</span></li><li><span class="dpr-home-dashboard-paper-title" title="Q-WAM: 4-Bit Quantization of World Action Models with Action-Subspace Protection">Q-WAM: 4-Bit Quantization of World Action Models with Action-Subspace Protection</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>6</strong></span><span class="dpr-home-dashboard-tag">moe-quant <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>4</strong></span><span class="dpr-home-dashboard-tag">moe-quant <strong>1</strong></span></div>
 </section>
 </div>
 

@@ -1,0 +1,1338 @@
+Title: Q-WAM: 4-Bit Quantization of World Action Models with Action-Subspace Protection
+
+URL Source: https://arxiv.org/pdf/2609.33269v1
+
+Published Time: Tue, 29 Sep 2026 01:49:26 GMT
+
+Number of Pages: 22
+
+Markdown Content:
+Preprint 
+
+# Q-WAM: 4-B IT QUANTIZATION OF WORLD ACTION 
+
+# MODELS WITH ACTION -S UBSPACE PROTECTION 
+
+Arash Akbari 1∗† Arman Akbari 1∗ Jingwu Luo 1 Yuhao Lei 1 Yi Gao 1
+
+Weiwei Chen 2 Xuan Zhang 1 Zhenman Fang 4 Geng Yuan 3 Yanzhi Wang 11Northeastern University 2EmbodyX 3University of Georgia 
+
+> 4
+
+University of Minnesota - Twin Cities 
+
+## ABSTRACT 
+
+World Action Models (WAMs) jointly generate video and robot actions through iterative diffusion and perform strongly in robotic manipulation. However, their prohibitive compute and memory costs pose substantial deployment challenges. Post-training quantization (PTQ) can reduce these costs, but existing PTQ meth-ods such as smoothing and rotation are insufficient to maintain the precision of action generation. To overcome this limitation, we propose Q-WAM , a new 4-bit weight-activation quantization for WAMs that preserves the actions the model generates. Specifically, we introduce the Action Observability Gramian (AOG) ,which measures how much rounding errors in each weighted combination of a layer’s input channels change the final action through all denoising steps. We also develop Action-Subspace Protection (ASP) , which keeps the few most action-sensitive channel combinations in a tiny 16-bit low-rank branch and quantizes the complementary weights and activations to 4 bits, both as dense matrix multipli-cations that run efficiently on GPUs. Finally, to preserve action quality with min-imal overhead, we identify the experts that matter most for the generated action by aggregating the AOG-derived action mass across the layers of each expert and apply ASP only to those experts. We evaluate Q-WAM on three WAMs, both in simulation and in real-world deployment. On the RoboTwin 2.0 benchmark, it reaches 89.6–93.0% average success rate, within 1.1 percentage points of the 16-bit models, while reducing the memory of the quantized blocks by 3.1–3.4 ×.Our method outperforms the strongest baseline, SVDQuant, by 2.5–8.7 percent-age points. On a Unitree G1 humanoid and a bimanual UR3 robot, it improves success over SVDQuant by 12.8–17.6 percentage points. 
+
+## 1 INTRODUCTION 
+
+World Action Models (WAMs) couple action generation with prediction of future visual states to learn manipulation policies (Li et al., 2026; Ye et al., 2026b; Yuan et al., 2026). Despite strong task performance, their large backbones and iterative denoising make deployment costly. Recent efforts accelerate inference by removing test-time future generation (Yuan et al., 2026), simplifying action modules (Ma et al., 2026), and distilling denoising steps (Akbari et al., 2026b; Lyu et al., 2026). Memory demand remains a deployment bottleneck; for example, running ImageWAM (Zhang et al., 2026b) in bf16 requires 19.9 GB of GPU memory. Post-training quantization complements these advances by reducing weight and activation precision without retraining the full model. Achieving these savings requires keeping the generated actions accurate for reliable closed-loop control. Mixed-precision quantization balances compression and accuracy by keeping sensitive components at higher precision and quantizing the rest more aggressively. Existing VLA methods allocate precision across weight tensors or individual channels (Akbari et al., 2026a; Xu et al., 2026). SVDQuant (Li et al., 2025) instead keeps a small low-rank part of each layer in 16 bits. This moves activation outliers into the weights and stores the dominant components of each weight in a 16-bit low-rank branch, so that only the residual is quantized to 4 bits. This works well for text-to-image 
+
+> *
+
+Equal contribution. 
+
+> †
+
+Corresponding author: akbari.ara@northeastern.edu .
+
+1arXiv:2609.33269v1 [cs.RO] 27 Sep 2026 Preprint 13072 
+
+> channels tokens |x|
+> (a) The activation
+> 13072
+> channels tokens |x|
+> (b) Smoothed and rotated
+> no outliers left
+> 32
+> AOG directions tokens action error
+> (c) Plain W4A4
+> 4 bits everywhere
+> 32
+> AOG directions tokens action error
+> (d) With ASP
+> still 4 bits 16 bits: error gone
+> smooth + rotate round to 4 bits ASP
+
+Figure 1: Removing outliers is not enough. (a) The activation entering a layer has a few outliers. 
+
+(b) Smoothing and rotation remove them. (c) Quantizing the layer still damages the action, through a few AOG directions. (d) Our proposed ASP protects those directions and the damage is gone. diffusion models, but like most post-training methods, SVDQuant decides what to protect by reduc-ing the quantization error of each linear layer’s output on its own. In a WAM, however, what matters is the generated action, and a layer’s own output error says little about how much the action changes once that error passes through the rest of the network and the remaining denoising steps. Because vi-sual world modeling and action generation are tightly coupled through iterative denoising, choosing what to keep in higher precision requires tracing how quantization errors propagate through the full action-generation process. Our analysis shows that this downstream action sensitivity concentrates in compact activation subspaces, motivating the central question: which activation directions should retain higher precision to keep the generated action accurate? 
+
+A natural first question is whether reducing activation outliers suffices to preserve action fidelity. Smoothing (Xiao et al., 2023) and rotation (Ashkboos et al., 2024) reduce these outliers, but round-ing the resulting activations to 4 bits still introduces considerable error, leaving existing quantization methods unsuitable for WAMs. Figure 1 illustrates the distinction between activation magnitude and action sensitivity: smoothing and rotation make activation magnitudes more uniform (Figure 1b), yet the resulting quantization errors can still distort the final action along a few sensitive directions (Figure 1c). In the examined layers, a compact subspace accounts for much of the final-action sen-sitivity, motivating selective protection of these directions (Figure 1d). This suggests keeping the action-sensitive subspace in higher precision and the complementary computation in W4A4. Building on these observations, we propose Q-WAM , a post-training quantization framework for W4A4 world-action models. Q-WAM estimates an Action Observability Gramian (AOG), a per-layer sensitivity matrix measuring how activation errors affect the final action, using label-free randomized probes through the unrolled denoising process during calibration. Furthermore, we introduce Action-Subspace Protection (ASP), which splits each protected linear layer into two par-allel computations whose outputs are summed. A low-dimensional branch projects activations onto the AOG’s most action-sensitive directions and applies the corresponding projected weights in 16-bit precision, while the complementary computation uses 4-bit weights and activations. Since the selected subspace is fixed during inference, the 16-bit branch is small and adds negligible computa-tional overhead. For a fixed protection rank, we show that the selected subspace minimizes a local approximation to action distortion when activation rounding errors have equal variance in all direc-tions. For WAMs with Mixture-of-Transformers architecture, Q-WAM aggregates AOG sensitivity scores to concentrate protection on experts with high estimated action sensitivity. We evaluate Q-WAM on three WAMs across 50 RoboTwin 2.0 tasks (Chen et al., 2026) and five real-world tasks on bimanual UR3 arms and a Unitree G1 humanoid. In simulation, Q-WAM limits the success rate drop from bf16 to at most 1.03 points while reducing targeted-block memory by 68–71%, and on physical robots it improves success over SVDQuant, the strongest prior method, by 12.8–17.6 points. Our contributions are as follows: • We introduce the Action Observability Gramian (AOG), a per-layer matrix predicting how much a rounding error in each weighted combination of the layer’s input channels changes the final action. We estimate it label-free with random probes. • We propose Action-Subspace Protection (ASP), which keeps the most action-sensitive channel combinations of each layer in a small 16-bit branch and quantizes the rest to W4A4. Moreover, we introduced a method to use the AOG to decide which experts to protect. 2Preprint • Across Fast-WAM, ImageWAM, and LingBot-VA, Q-WAM preserves near-bf16 success on RoboTwin 2.0 with substantially reduced memory. Evaluation on Unitree G1 and bi-manual UR3 demonstrates improved physical task success over SVDQuant, while ablations examine subspace protection, weight quantization, and expert selection. 
+
+## 2 RELATED WORKS 
+
+World Action Models World Action Models couple action generation with prediction of future visual states, using world modeling to learn representations for control. UWM (Zhu et al., 2025) couples video and action diffusion, WorldVLA (Cen et al., 2025) unifies autoregressive image and action generation, and DreamZero (Ye et al., 2026b) and LingBot-VA (Li et al., 2026) jointly model video and actions for manipulation. Motus (Bi et al., 2026) combines understanding, video, and action experts in a Mixture-of-Transformers, and Cosmos Policy (Kim et al., 2026) adds actions, future observations, and values to a pretrained video model’s latent diffusion. Recent work reduces deployment cost: Fast-WAM (Yuan et al., 2026) and GigaWorld-Policy (Ye et al., 2026a) keep video prediction only as training supervision, ImageWAM (Zhang et al., 2026b) conditions actions on image-editing representations, and Flash-WAM (Akbari et al., 2026b) distills sampling steps. 
+
+Post-Training Quantization PTQ reaches W4A4 in language models by smoothing (Xiao et al., 2023) or rotating (Ashkboos et al., 2024; Liu et al., 2025) activation outliers, and in diffusion models by handling timestep-dependent activations (Li et al., 2023; Wu et al., 2024; Zhao et al., 2025) or absorbing outliers into a 16-bit low-rank branch (Li et al., 2025), whose subspace is chosen from a local statistic, the weight’s singular vectors. For robot policies, QVLA (Xu et al., 2026) and ActQuant (Akbari et al., 2026a) use action sensitivity but allocate precision to channels or whole tensors, while QuantVLA (Zhang et al., 2026a) calibrates scales for the action head. Q-WAM instead selects the protected subspace by the sensitivity of the generated action through the full denoising process. 
+
+Concurrent Work QuantWAMs (Zhou et al., 2026) studies WAM quantization through shared-basis outlier calibration, joint video–action saliency for layer-wise precision allocation, and rollout-guided denoising-step protection. Q-WAM focuses on protecting dense activation subspaces se-lected from the sensitivity of the final generated action through the unrolled sampler. 
+
+## 3 PRELIMINARIES 
+
+World Action Models At each control step t, a policy receives an observation ot, made of camera views and, for some policies, the robot’s proprioceptive state, together with a language instruction 
+
+l. It outputs an action chunk a = at:t+h ∈ Rm of h future steps of a da-dimensional control, with 
+
+m = h d a. A World Action Model produces this chunk through a world model. The observation and the instruction are encoded once into a cached conditioning z(ot, l ), which an action head reads at every denoising step. Some WAMs implement the world model and the action head as a Mixture-of-Transformers (Liang et al., 2025), in which per-modality experts hold separate weights and interact only through joint attention. Others share a single backbone between video and action (Li et al., 2026). The action head is trained by flow matching (Lipman et al., 2023). At inference it starts from 
+
+a(0) ∼ N (0 , I ) and integrates the learned velocity field vθ over T Euler steps, 
+
+a(s+1) = a(s) + ηs vθ
+
+
+
+a(s), τ s, z
+
+
+
+, s = 0 , . . . , T − 1, (1) and returns a = a(T ). Each step is one transformer pass over the h action tokens, one per future step. 
+
+Post-Training Quantization A linear layer ℓ maps an activation xℓ ∈ Rdℓ to yℓ = W ⊤ 
+
+> ℓ
+
+xℓ with 
+
+Wℓ ∈ Rdℓ×d′ 
+
+> ℓ
+
+. Given a tensor X, b-bit quantization maps X onto a scaled integer grid, 
+
+Qb(X) = ς · round( X/ς ) , ς = max |X| / (2 b−1 − 1) , (2) with one scale ς per group of consecutive entries. Weights are quantized once offline and activations per token at run time, and with 4-bit weights and activations the layer computes Q4(Wℓ)⊤Q4(xℓ) as 3Preprint (a) Action Observability Gramian (AOG)   
+
+> 1A 4-bit residual at layer
+
+ℓ travels to the action                        
+
+> step s=0step s=1
+> …
+> step s=T−11
+> ℓLlayers action chunk
+> aaδ
+> Jℓ(i)=∂a/∂x ℓ(i)
+> for each i= (token, step) activations residual δcarries error no error
+> 2Diagonal blocks
+
+→Gℓ           
+
+> 𝔼 [J
+> ⊤J]over all pairs (ℓ,i)
+> 11
+> ℓℓLL
+> layer ℓ:
+> h·Tpairs i
+> off-diagonal: dropped
+> ++=
+> Gℓ
+> layer ℓblocks kept dropped
+> 3What
+
+Gℓ measures         
+
+> v1
+> vd
+> δ=0 δA
+> δB
+> δ
+> ⊤Gℓδlow high
+> v1,vd: eigenvectors of Gℓ
+> Jℓ
+> Jℓ
+> aδmoves a lot
+> aδ≈a
+
+(b) Action-Subspace Protection (ASP)                
+
+> 1Eigendecomposition of the AOG
+> =
+> G̃ ℓ[v1…vd]diag( λj)[v1…vd]
+> ⊤
+> AOG V= top-rΠ=VV
+> ⊤
+> r=32
+> λj (log) protected eigen-index j
+> 2Split the layer along
+
+V                     
+
+> x̃
+> smoothed + Hadamard
+> V
+> ⊤(·) (I−Π)(·)
+> V
+> ⊤x̃
+> h×r
+> ·
+> V
+> ⊤W̃
+> r×dout
+> Q4(x̃
+> ⊥)
+> h×d
+> ·
+> Q4(W̃
+> ⊥)
+> W̃
+> ⊥=(I−Π) W̃ , of fl ine 16-bit GEMM INT4 GEMM
+> y
+> 3Which expert gets ASP?
+> action mass μE=Σℓtr G̃ ℓ
+> video expert
+> 83% of params mass 5%
+> aδ≈a
+> 4-bit only
+> action expert
+> 17% of params mass 95%
+> aδmoves a lot
+> + 16-bit ASP
+
+Figure 2: Overview of Q-WAM. (a) The AOG Gℓ measures how far a rounding error in each weighted combination of layer ℓ’s input channels moves the action in later denoising steps. (b) 
+
+ASP keeps the most sensitive of these combinations in a 16-bit branch and quantizes the deflated remainder to 4 bits; the action mass decides which experts receive it. one integer general matrix multiplication (GEMM). The largest entry of a group sets ς, so a single outlier coarsens the grid for the whole group, and activation outliers reach one to two orders of magnitude above typical values and move with the input. We therefore apply two exact transforms before quantization. SmoothQuant (Xiao et al., 2023) migrates outlier magnitude from the activation to the weight with a per-channel factor γ ∈ Rdℓ , and a block Hadamard rotation H (Ashkboos et al., 2024) spreads the remaining outliers across coordinates, 
+
+˜x = H diag( γ)−1x, fW = H diag( γ) W, fW ⊤ ˜x = W ⊤x. (3) A WAM block generates its normalization parameters at run time, so we apply H online with the fast Walsh–Hadamard transform (Fino & Algazi, 1976). The deployed layer computes Q4(fW )⊤Q4(˜ x),and Section 4 works in these transformed coordinates. 
+
+## 4 METHOD 
+
+We propose Q-WAM, a post-training W4A4 quantization method for World Action Models that allo-cates activation precision by the sensitivity of the generated action. Section 4.1 defines and estimates this sensitivity, the Action Observability Gramian (AOG). Section 4.2 introduces Action-Subspace Protection (ASP), which keeps the activation directions that the AOG marks as most sensitive in 16 bits and quantizes the remaining weights and activations to 4 bits. Section 4.3 aggregates the AOG over the layers of each expert to select the experts that receive this protection. 4.1 THE ACTION OBSERVABILITY GRAMIAN 
+
+Within one action prediction, layer ℓ runs once for each of the h action tokens at each of the T steps of Equation 1. We index these token–step pairs by i ∈ I ℓ, write x(i) 
+
+> ℓ
+
+for the input activation at pair i,and write δ(i) 
+
+> ℓ
+
+= Q4(x(i) 
+
+> ℓ
+
+) − x(i) 
+
+> ℓ
+
+for its quantization residual. The residual changes with the input, so we treat it as random vector over calibration inputs (ot, l ). Let A be the action chunk a generated by the full-precision model and Aδ the chunk generated when the activations carry the residuals 
+
+δ = ( δ(i) 
+
+> ℓ
+
+)ℓ,i . A first-order Taylor expansion gives 
+
+Aδ − A = X
+
+> ℓ
+
+X
+
+> i∈I ℓ
+
+J(i) 
+
+> ℓ
+
+δ(i) 
+
+> ℓ
+
++ O(∥δ∥2), J(i) 
+
+> ℓ
+
+= ∂a ∂x (i)
+
+> ℓ
+
+∈ Rm×dℓ , (4) 4Preprint The Jacobian J(i) 
+
+> ℓ
+
+says how the final action responds to a small change in the input of layer ℓ at pair 
+
+i. It accounts for everything that happens after that point: the rest of the block, and all remaining denoising steps. Our goal is that the quantized model generates the same action as the full-precision model, so we minimize the expected squared change of the action caused by the rounding errors. Inserting Equation 4 into this squared change gives one term for every layer and token–step pair, plus cross terms between different pairs. We treat the rounding errors as zero-mean, uncorrelated with each other, and uncorrelated with the Jacobians (Appendix A.2 states these approximations precisely). The cross terms then vanish, and since all token–step pairs of a layer share one error distribution, what remains is a sum with one term per layer: 
+
+E Aδ − A 2 ≈ X
+
+> ℓ
+
+Eδ⊤ 
+
+> ℓ
+
+Gℓ δℓ
+
+, Gℓ = E
+
+h X 
+
+> i∈I ℓ
+
+J(i)⊤ 
+
+> ℓ
+
+J(i)
+
+> ℓ
+
+i
+
+∈ Rdℓ×dℓ . (5) We call Gℓ the Action Observability Gramian (AOG) of layer ℓ. Equation 5 says what the AOG measures: if the input of layer ℓ carries a rounding error δ, then δ⊤Gℓ δ approximates the expected squared change this error causes in the final action. This is useful for two reasons. First, it turns a question about the whole model, how far quantization moves the robot’s action, into one matrix per layer that we compute once during calibration. Second, because Gℓ is a matrix and not a single score, it tells how sensitive the action is to errors in every direction of the layer’s input, that is, in every weighted combination of its channels. For each layer, this quadratic form is also exact to second order: at the full-precision model, Gℓ is the Hessian of 12 E∥A δ − A∥ 2 with respect to the layer’s input (Appendix A.1). 
+
+Estimating the AOG Gℓ. Computing Gℓ exactly is expensive: J(i) 
+
+> ℓ
+
+has one row per action coordi-nate, hd a in total, and each row needs its own backward pass through all denoising steps. We avoid this with random probes u ∼ N (0 , I m). A single backward pass of ⟨a, u ⟩ returns J(i)⊤ 
+
+> ℓ
+
+u for every layer and token–step pair at once (Baydin et al., 2018), and since E[uu ⊤] = Im, the expectation of 
+
+(J⊤u)( J⊤u)⊤ over probes equals J⊤J for every Jacobian J. Averaging over N calibration inputs with P probes each therefore gives the unbiased estimate 
+
+bGℓ = 1
+
+N P 
+
+> N
+
+X
+
+> n=1
+> P
+
+X
+
+> p=1
+
+X
+
+> i∈I ℓ
+
+ J(i)⊤ 
+
+> ℓ,n
+
+unp 
+
+  J(i)⊤ 
+
+> ℓ,n
+
+unp 
+
+⊤, (6) where J(i) 
+
+> ℓ,n
+
+is the Jacobian at input n. Each input then costs P backward passes instead of hd a;we use P =12 , about 37 × fewer than the exact computation on Fast-WAM. Appendix A.4 gives the procedure and bounds the error of the trace and of the leading subspace of bGℓ.
+
+The AOG predicts quantization damage. We check this prediction on Fast-WAM. For each of the linear layers in its action expert, we quantize that layer alone to W4A4 and measure the normal-ized root-mean-square error (NRMSE) of the generated action, which is the damage from quantizing the layer. Figure 3a compares this damage with two per-layer criteria. Each point is one layer, placed by its damage and by its score under a criterion, and each score is divided by its median over the layers so that both criteria share one axis. The first is the local error ∥δℓ∥2, the squared quanti-zation error of the layer input. Round-to-nearest minimizes it by construction, and widely used post-training methods (Lin et al., 2024; Frantar et al., 2023; Li et al., 2025) calibrate each layer or block from local quantities of this kind, the error or statistics of its own input and output, without looking at the generated action. The second is the AOG prediction E[δ⊤ 
+
+> ℓ
+
+Gℓδℓ]. The AOG prediction tracks the damage with a Pearson correlation ρ=0 .95 , while the local error reaches ρ=0 .04 .4.2 ACTION -S UBSPACE PROTECTION 
+
+The AOG weighs each direction of the activation by its effect on the action. A residual δℓ costs 
+
+E[δ⊤ 
+
+> ℓ
+
+Gℓ δℓ], and we keep the few most costly directions in 16 bits. We find these directions in three steps. First, we apply the smoothing and rotation of Section 3, so the layer quantizes 
+
+˜x = H diag( γ)−1x instead of x. Second, we express the AOG in these coordinates. Since 
+
+x = diag( γ)H ˜x, a rounding error δ of ˜x shifts x by diag( γ)Hδ and therefore costs δ⊤ eGℓ δ, with 
+
+eGℓ = H diag( γ) Gℓ diag( γ)H. Third, since eGℓ is symmetric and positive semidefinite, it has 5Preprint 0.01× 1× 100×                      
+
+> score relative to the median layer
+> 10 2
+> action error (NRMSE)
+> (a) which layers break
+> local error 2(0.04)
+> AOG [G](0.95)
+> 032 64 128
+> eigen-index j
+> 10 5
+> 10 4
+> 10 3
+> 10 2
+> 10 1
+> 10 0
+> j/ 1
+> r= 32
+> 6 action-expert layers
+> (b) how many directions
+> FastWAM ImageWAM
+> 050 100%
+> share of the model
+> 89%
+> 17%
+> 100%
+> 14%
+> (c) which expert
+> action mass parameters
+
+Figure 3: Deciding what to protect with the AOG. (a) Action error from quantizing a single layer, against the layer’s local error and its AOG score. (b) The first 128 eigenvalues of the rotated AOG for several action-expert layers, which fall quickly; the dashed line marks the rank we keep. (c) The action expert’s share of the action mass and of the parameters in each model. orthonormal eigenvectors vj , eGℓ = P 
+
+> j
+
+λj vj v⊤ 
+
+> j
+
+, and 
+
+δ⊤ eGℓ δ = X
+
+> j
+
+λj
+
+ v⊤ 
+
+> j
+
+δ2, λ1 ≥ λ2 ≥ · · · ≥ 0. (7) The cost splits into one term per eigenvector: the component v⊤ 
+
+> j
+
+δ of the residual contributes 
+
+λj (v⊤ 
+
+> j
+
+δ)2. A large eigenvalue marks a direction in which rounding changes the action strongly, and a small eigenvalue marks a direction to which the action barely reacts. The eigenvalues fall by orders of magnitude within a few dozen directions (Figure 3b), so only a few directions of each activation are sensitive. Each direction mixes many channels and is set by the action’s response to errors, not by activation values, so we protect directions rather than channels. We call the span of the top r eigenvectors the layer’s action subspace, keep the component of ˜x inside it in 16 bits, and quantize the rest to 4 bits. 
+
+Splitting the layer. Let V ∈ Rdℓ×r hold the top-r eigenvectors of eGℓ, so that V ⊤V = Ir , and let 
+
+Π = V V ⊤ project onto the action subspace. We split every activation into a protected component inside the action subspace and a remainder orthogonal to it, 
+
+˜x = Π˜ x + ( I − Π)˜ x = V  V ⊤ ˜x| {z }
+
+> protected component
+
++ ˜x⊥
+
+|{z} 
+
+> remainder
+
+, ˜x⊥ = ( I − Π)˜ x. (8) Since W ⊤x = fW ⊤ ˜x, multiplying Equation 8 by fW ⊤ splits the output of the layer into two products. The first, fW ⊤V (V ⊤ ˜x) = ( V ⊤ fW )⊤(V ⊤ ˜x), runs over only r ≪ dℓ dimensions. In the second, 
+
+I − Π is a symmetric projection, so it leaves ˜x⊥ unchanged and can be moved onto the weight, 
+
+fW ⊤ ˜x⊥ = fW ⊤(I − Π)˜ x⊥ =  (I − Π) fW ⊤ ˜x⊥ = fW ⊤⊥ ˜x⊥, where fW⊥ = ( I − Π) fW is the weight with its protected component removed. We keep the first product in 16 bits and quantize both factors of the second to 4 bits, 
+
+W ⊤x = fW ⊤ ˜x =  V ⊤ fW ⊤ V ⊤ ˜x + fW ⊤⊥ ˜x⊥ ≈  V ⊤ fW ⊤ V ⊤ ˜x| {z }
+
+> low-rank 16-bit branch
+
++ Q4(fW⊥)⊤Q4(˜ x⊥)
+
+| {z }
+
+> 4-bit deflated path
+
+. (9) We call this construction Action-Subspace Protection (ASP). Projecting ˜x before Q4 keeps the pro-tected component out of the 4-bit grid, and deflating the weight to fW⊥ lets the rounding error δ
+
+reach the output only as (I − Π) δ, up to the product of the weight and activation rounding errors. Both paths are dense GEMMs that run efficiently on GPUs, and the thin rank-r branch adds little overhead (Appendix B.2). By Equation 7, the damage along vj depends on how strongly the action reacts to that direction ( λj )and how much rounding error lands on it. After the rotation, the rounding error has roughly the same mean square σ2 in every direction, i.e., it is isotropic , so the expected damage along vj is σ2λj . The top-r eigenvectors are therefore the best r directions to protect, which Appendix A.3 proves. 6Preprint Table 1: RoboTwin 2.0 results. BPW is the weight cost; Mem is the targeted-block memory.                                                                                                  
+
+> Model Method Precision BPW Clean Randomized Avg. Mem (GB)
+> Fast-WAM ( 2-expert MoT, video generation backbone)
+> bf16 (upper bound) W16A16 16 .00 92 .28 91 .34 91 .81 11 .85
+> SmoothQuant W4A4 4.00 21 .98 16 .48 19 .23 2.98
+> ViDiT-Q W4A4 4.41 82 .00 80 .48 81 .24 3.61
+> SVDQuant W4A4 4.84 89 .12 87 .38 88 .25 3.60
+> Q-WAM (Ours) W4A4 4.62 91 .62 89 .94 90 .78 3.44
+> ImageWAM ( 2-expert MoT, image editing backbone)
+> bf16 (upper bound) W16A16 16 .00 92 .82 93 .70 93 .26 9.11
+> SmoothQuant W4A4 4.00 59 .04 59 .36 59 .20 2.36
+> ViDiT-Q W4A4 4.76 78 .76 82 .08 80 .42 3.05
+> SVDQuant W4A4 4.75 84 .34 84 .22 84 .28 2.78
+> Q-WAM (Ours) W4A4 4.58 93 .00 92 .94 92 .97 2.69
+> LingBot-VA (shared backbone, not an MoT)
+> bf16 (upper bound) W16A16 16 .00 90 .84 90 .20 90 .52 10 .16
+> SmoothQuant W4A4 4.00 81 .68 72 .24 76 .96 2.80
+> ViDiT-Q W4A4 4.41 80 .82 74 .04 77 .43 3.18
+> SVDQuant W4A4 4.76 85 .84 83 .12 84 .48 3.27
+> Q-WAM (Ours) W4A4 4.76 90 .20 88 .92 89 .56 3.27
+
+4.3 WHERE TO PROTECT : T HE ACTION MASS OF AN EXPERT 
+
+Each protected layer carries a 16-bit branch, so in a Mixture-of-Transformers we protect only the experts whose rounding errors damage the action most. We denote an expert by E, the set of layers that process one modality, and score it by the expected damage its 4-bit rounding does to the action. With the isotropic rounding error of Section 4.2, every direction of a layer receives error σ2, so the layer’s term in Equation 5 is σ2 times the sum of its eigenvalues, E[δ⊤ 
+
+> ℓ
+
+eGℓδℓ] = σ2 tr eGℓ. Taking the same σ2 for all layers and summing over the layers of E, the expert contributes σ2μE , where 
+
+μE = X
+
+> ℓ∈E
+
+tr   eGℓ
+
+ (10) is the action mass of E. Protecting a layer removes the damage along its top-r eigenvectors, which is the most that any rank-r branch can remove; Appendix A.3 proves this. As depicted in Figure 3b, the eigenvalues fall steeply, so the protected directions carry nearly all of a layer’s damage, and the gain from protecting an expert grows with its action mass. ASP therefore protects the experts with the largest action mass per added 16-bit value. As depicted in Figure 3c, on both Mixture-of-Transformers models the action expert holds under a fifth of the parameters yet carries 89 .3% of the action mass on Fast-WAM (Appendix C.2 visualize it per layer) and 99 .99% on ImageWAM, so ASP protects the action expert alone. LingBot-VA shares one backbone, so ASP covers all of its layers. Furthermore, table 4 shows that protecting the other expert changes the success rate by less than the run-to-run RoboTwin variation. 
+
+## 5 EXPERIMENTS 
+
+Experimental Setup We evaluate Q-WAM on three WAM designs: Fast-WAM (Yuan et al., 2026) and ImageWAM (Zhang et al., 2026b) add an action expert to a video-generation and an image-editing backbone in a Mixture-of-Transformers, and the released open-sourced LingBot-VA (Li et al., 2026) uses one shared backbone for video and action. We use a protection rank of r = 32 
+
+and group-wise W4A4 quantization with a group size of 32, retaining the protected branches in 16-bit precision. Calibration runs on NVIDIA H100 GPUs, simulation evaluation on NVIDIA L40S GPUs, and real-world inference on an NVIDIA RTX 5090. Implementation details are provided in Appendix B. 
+
+Benchmarks and Baselines We evaluate all three models on RoboTwin 2.0 (Chen et al., 2026) simulation under clean and randomized conditions, with 100 demonstrations. Real-world evaluation covers Fast-WAM and ImageWAM on five tasks across two embodiments (Figure 4). The Unitree 7Preprint Unitree G1 time  
+
+> (a) Tool Sorting
+> (b) Item Classi fi cation
+> Bimanual UR3 time
+> (c) Table Cleaning
+> (d) Cube Stacking
+> (e) Drawer Manipulation
+
+Figure 4: Real-world evaluation tasks. Frames progress from left to right within each task. Table 2: Real-world results (successes/trials) on two embodiments and five tasks. 
+
+Unitree G1 UR3 Bimanual Model Method Tool Sort Item Cls. Table Clean Drawer Cube Stacking Avg. (%) bf16 19/25 13/25 17/25 20/25 12/25 64.8 SVDQuant 16/25 10/25 12/25 12/25 4/25 43.2 Fast-WAM 
+
+Q-WAM (Ours) 18/25 11/25 14/25 19/25 8/25 56.0 
+
+bf16 21/25 17/25 22/25 23/25 21/25 83.2 SVDQuant 15/25 12/25 19/25 22/25 5/25 58.4 ImageWAM 
+
+Q-WAM (Ours) 19/25 14/25 21/25 22/25 19/25 76.0 
+
+G1 performs tool sorting and item classification , and a bimanual UR3 arm performs table cleaning ,
+
+cube stacking , and drawer manipulation , with 25 trials per task. We report task success rates and compare against bf16 policies, SmoothQuant (Xiao et al., 2023), ViDiT-Q (Zhao et al., 2025), and SVDQuant (Li et al., 2025) in simulation, and bf16 and SVDQuant on physical robots. Quantized methods use W4A4, with effective bits per weight (BPW) accounting for storage overhead. 5.1 MAIN RESULTS 
+
+Simulation Results Table 1 shows that Q-WAM achieves the highest success rates among the quantized methods in both clean and randomized conditions across all three models. Its average success reaches 90.78% on Fast-WAM, 92.97% on ImageWAM, and 89.56% on LingBot-VA, trail-ing the respective bf16 baselines by only 1.03, 0.29, and 0.96 percentage points. Compared with SVDQuant, Q-WAM improves average success by 2.53, 8.69, and 5.08 percentage points, respec-tively. These improvements come at lower storage cost on the two multi-expert models. BPW decreases from 4.84 to 4.62 on Fast-WAM and from 4.75 to 4.58 on ImageWAM. On LingBot-VA, Q-WAM achieves its gain at the same 4.76 BPW and 3.27 GB of memory as SVDQuant. The improvements persist under randomized conditions, where Q-WAM exceeds SVDQuant by 2.56, 8.72, and 5.80 points across the three models. In comparison, SmoothQuant and ViDiT-Q exhibit substantial model-dependent degradation, particularly on ImageWAM, where their average success rates fall to 59.20% and 80.42%, versus 92.97% for Q-WAM. Overall, Q-WAM preserves near-bf16 task performance across both multi-expert and shared-backbone WAMs while reducing the mem-ory of the targeted blocks by 68–71% (Table 1). Figure 5 reports latency with real 4-bit kernels on one NVIDIA L40S: the quantized layers that process the action tokens run 1.06 ×, 1.56 × and 
+
+1.41 × faster than bf16 on Fast-WAM, ImageWAM and LingBot-VA. These layers handle short ac-tion chunks, so their cost is dominated by loading weights, which 4-bit storage reduces. 
+
+Real-World Experiments Table 2 evaluates whether these gains extend to physical execution across two embodiments. Q-WAM achieves average success rates of 56.0% on Fast-WAM and 76.0% on ImageWAM, exceeding SVDQuant by 12.8 and 17.6 percentage points, respectively. It matches or exceeds SVDQuant on every model–task pair. The largest improvement occurs on Im-8Preprint Table 3: Component ablation on RoboTwin 2.0 at a fixed weight group size.                                                                         
+
+> Model Method BPW Clean Randomized Avg. Mem (GB) bf16 (upper bound) 16.00 92.28 91.34 91.81 11.85 per-group W4A4 4.50 82.60 81.80 82.20 3.35
+> +smoothing and rotation 4.50 87.78 87.32 87.55 3.35
+> Fast-WAM
+> +ASP (Ours) 4.62 91.62 89.94 90.78 3.44 bf16 (upper bound) 16.00 92.82 93.70 93.26 9.11 per-group W4A4 4.50 21.16 20.14 20.65 2.64
+> +smoothing and rotation 4.50 86.78 88.06 87.42 2.64
+> ImageWAM
+> +ASP (Ours) 4.58 93.00 92.94 92.97 2.69 bf16 (upper bound) 16.00 90.84 90.20 90.52 10.16 per-group W4A4 4.50 83.44 78.24 80.84 3.11
+> +smoothing and rotation 4.50 87.52 82.64 85.08 3.11
+> LingBot-VA
+> +ASP (Ours) 4.76 90.20 88.92 89.56 3.27
+
+Table 4: Adding ASP to the second expert on top of the action expert. † The expert Q-WAM selects by action mass.                           
+
+> model ASP applied to BPW clean randomized Avg. Fast-WAM action expert †4.62 91.62 89.94 90.78
+> +video expert 4.80 91.04 90.68 90.86 ImageWAM action expert †4.58 93.00 92.94 92.97
+> +editing expert 4.75 93.52 93.46 93.49 FastWAM ImageWAM LingBot
+> 10 1
+> 10 2
+> 10 3
+> latency (ms)
+> 1.06 ×1.56 ×
+> 1.41 ×bf16 Q-WAM
+
+Figure 5: Block-level latency. ageWAM cube stacking, where Q-WAM succeeds in 19/25 trials, compared with 5/25 for SVDQuant and 21/25 for bf16. While gaps of 8.8 and 7.2 points to bf16 remain, the results demonstrate im-proved closed-loop performance under quantization on physical robots. 5.2 ABLATION ANALYSIS 
+
+Table 3 adds smoothing and rotation, then ASP, to per-group W4A4 at a fixed group size. Smoothing and rotation raise average success by 5.35, 66.77, and 4.24 points on Fast-WAM, ImageWAM, and LingBot-VA without changing BPW, but still leave gaps of 4.26, 5.84, and 5.44 points to bf16. ASP recovers 3.23, 5.55, and 4.48 of these points (76–95% of the remaining gap) under both clean and randomized conditions, for only 0.08–0.26 additional BPW (0.05–0.16 GB). Removing outliers is therefore not enough; protecting the action-sensitive subspace is what brings W4A4 close to bf16. Appendix C.1 shows that adding SVDQuant’s low-rank weight protection on top of ASP costs extra bits without improving success. Moreover, Appendix C.3 provides a further ablation on the sensitivity to the calibration data. On the two multi-expert models, the results above apply ASP only to the action expert, which the action mass μE selects (Section 4.3). Table 4 tests whether the other expert (video or image editing) also needs it. Extending ASP to it adds 0.17–0.18 BPW, more than ASP on the action expert itself costs, yet changes average success by only +0 .08 and +0 .52 , less than the 1.12 -point gap between two calibration sets (Appendix C.3). The action expert alone therefore captures the benefit of ASP, and μE correctly identifies where protection is needed. 
+
+## 6 CONCLUSION 
+
+In this work, we present Q-WAM, a post-training W4A4 quantization method for WAMs. To address the gap between a layer’s local error and its effect on the action, we propose the Action Observability Gramian, which measures how much a rounding error in each weighted combination of a layer’s input channels moves the action. To address the action’s sensitivity to a few of these combinations, we propose Action-Subspace Protection, which keeps them in a small 16-bit branch and quantizes 9Preprint the rest to 4 bits. On three WAMs, Q-WAM stays within 1.1 points of bf16 on RoboTwin 2.0, reduces the memory of the quantized blocks by 3.1–3.4×, and outperforms SVDQuant in simulation and on two physical robots. AI USE STATEMENT 
+
+In this work, we used large language models (LLMs) to implement some parts of the experiments. The methodology and the experiments were not designed with generative AI tools, and the structure of the paper was not generated by AI. Additionally, we used LLMs for grammar checking and polishing the writing of the paper, and to find relevant papers for the literature review. We have reviewed all AI-assisted work: two of the authors checked the LLM-assisted implementation, and the literature review was also checked manually. To minimize the risk of factual inaccuracies or citation errors, every model-edited sentence underwent human review, and all references were carefully cross-checked with their primary sources. We take responsibility for the final content of this work, including text, claims or artifacts produced with the aid of generative AI. 
+
+## REFERENCES 
+
+Arash Akbari, Arman Akbari, Masih Eskandar, Qitao Tan, Yixiao Chen, Jingwu Luo, Bertha Pan-garibuan, Liyun Zhang, Jennifer Dy, Geng Yuan, Xue Lin, Gaowen Liu, Stratis Ioannidis, and Yanzhi Wang. ActQuant: Sub-4-bit action-guided quantization for vision-language-action mod-els, 2026a. URL https://arxiv.org/abs/2605.24011 .Arman Akbari, Ci Zhang, Arash Akbari, Lin Zhao, Yixiao Chen, Weiwei Chen, Xuan Zhang, Geng Yuan, and Yanzhi Wang. Flash-WAM: Modality-aware distillation for world action models, 2026b. URL https://arxiv.org/abs/2606.05254 .Saleh Ashkboos, Amirkeivan Mohtashami, Maximilian L. Croci, Bo Li, Pashmina Cameron, Martin Jaggi, Dan Alistarh, Torsten Hoefler, and James Hensman. QuaRot: Outlier-free 4-bit infer-ence in rotated LLMs. In Advances in Neural Information Processing Systems (NeurIPS) , 2024. arXiv:2404.00456. Haim Avron and Sivan Toledo. Randomized algorithms for estimating the trace of an implicit sym-metric positive semi-definite matrix. Journal of the ACM , 58(2):8:1–8:34, 2011. Atılım G¨ unes ¸ Baydin, Barak A. Pearlmutter, Alexey Andreyevich Radul, and Jeffrey Mark Siskind. Automatic differentiation in machine learning: a survey. Journal of Machine Learning Research ,18(153):1–43, 2018. Hongzhe Bi, Hengkai Tan, Shenghao Xie, Zeyuan Wang, Shuhe Huang, Haitian Liu, Ruowen Zhao, Yao Feng, Chendong Xiang, Yinze Rong, Hongyan Zhao, Hanyu Liu, Zhizhong Su, Lei Ma, Hang Su, and Jun Zhu. Motus: A unified latent action world model. In IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pp. 35101–35113, 2026. arXiv:2512.13030. Jun Cen, Chaohui Yu, Hangjie Yuan, Yuming Jiang, Siteng Huang, Jiayan Guo, Xin Li, Yibing Song, Hao Luo, Fan Wang, Deli Zhao, and Hao Chen. WorldVLA: Towards autoregressive action world model, 2025. URL https://arxiv.org/abs/2506.21539 .Tianxing Chen, Zanxin Chen, Baijun Chen, Zijian Cai, Yibin Liu, Zixuan Li, Qiwei Liang, Xian-liang Lin, Yiheng Ge, Zhenyu Gu, Weiliang Deng, Yubin Guo, Tian Nian, Xuanbing Xie, Qiangyu Chen, Kailun Su, Tianling Xu, Guodong Liu, Mengkang Hu, Huan-ang Gao, Kaixuan Wang, Zhixuan Liang, Yusen Qin, Xiaokang Yang, Ping Luo, and Yao Mu. RoboTwin 2.0: A scalable data generator and benchmark with strong domain randomization for robust bimanual robotic ma-nipulation. In International Conference on Machine Learning (ICML) , 2026. arXiv:2506.18088. Ky Fan. On a theorem of Weyl concerning eigenvalues of linear transformations I. Proceedings of the National Academy of Sciences , 35(11):652–655, 1949. Bernard J. Fino and V. Ralph Algazi. Unified matrix treatment of the fast Walsh–Hadamard trans-form. IEEE Transactions on Computers , C-25(11):1142–1146, 1976. 10 Preprint Elias Frantar, Saleh Ashkboos, Torsten Hoefler, and Dan Alistarh. GPTQ: Accurate post-training quantization for generative pre-trained transformers. In International Conference on Learning Representations (ICLR) , 2023. arXiv:2210.17323. Nathan Halko, Per-Gunnar Martinsson, and Joel A. Tropp. Finding structure with randomness: Probabilistic algorithms for constructing approximate matrix decompositions. SIAM Review , 53 (2):217–288, 2011. Michael F. Hutchinson. A stochastic estimator of the trace of the influence matrix for Laplacian smoothing splines. Communications in Statistics–Simulation and Computation , 18(3):1059– 1076, 1989. Moo Jin Kim, Yihuai Gao, Tsung-Yi Lin, Yen-Chen Lin, Yunhao Ge, Grace Lam, Percy Liang, Shu-ran Song, Ming-Yu Liu, Chelsea Finn, and Jinwei Gu. Cosmos Policy: Fine-tuning video models for visuomotor control and planning. In International Conference on Learning Representations (ICLR) , 2026. arXiv:2601.16163. Frederik Kunstner, Lukas Balles, and Philipp Hennig. Limitations of the empirical Fisher approx-imation for natural gradient descent. In Advances in Neural Information Processing Systems (NeurIPS) , volume 32, 2019. Lin Li, Qihang Zhang, Yiming Luo, Shuai Yang, Ruilin Wang, Fei Han, Mingrui Yu, Zelin Gao, Nan Xue, Xing Zhu, Yujun Shen, and Yinghao Xu. Causal world modeling for robot control, 2026. URL https://arxiv.org/abs/2601.21998 .Muyang Li, Yujun Lin, Zhekai Zhang, Tianle Cai, Xiuyu Li, Junxian Guo, Enze Xie, Chenlin Meng, Jun-Yan Zhu, and Song Han. SVDQuant: Absorbing outliers by low-rank component for 4-bit diffusion models. In International Conference on Learning Representations (ICLR) , pp. 97831– 97858, 2025. arXiv:2411.05007. Xiuyu Li, Yijiang Liu, Long Lian, Huanrui Yang, Zhen Dong, Daniel Kang, Shanghang Zhang, and Kurt Keutzer. Q-Diffusion: Quantizing diffusion models. In IEEE/CVF International Conference on Computer Vision (ICCV) , pp. 17535–17545, 2023. arXiv:2302.04304. Yuhang Li, Ruihao Gong, Xu Tan, Yang Yang, Peng Hu, Qi Zhang, Fengwei Yu, Wei Wang, and Shi Gu. BRECQ: Pushing the limit of post-training quantization by block reconstruction. In 
+
+International Conference on Learning Representations (ICLR) , 2021. arXiv:2102.05426. Weixin Liang, Lili Yu, Liang Luo, Srinivasan Iyer, Ning Dong, Chunting Zhou, Gargi Ghosh, Mike Lewis, Wen-tau Yih, Luke Zettlemoyer, and Xi Victoria Lin. Mixture-of-Transformers: A sparse and scalable architecture for multi-modal foundation models. Transactions on Machine Learning Research (TMLR) , 2025. arXiv:2411.04996. Ji Lin, Jiaming Tang, Haotian Tang, Shang Yang, Wei-Ming Chen, Wei-Chen Wang, Guangxuan Xiao, Xingyu Dang, Chuang Gan, and Song Han. AWQ: Activation-aware weight quantization for on-device LLM compression and acceleration. In Conference on Machine Learning and Systems (MLSys) , pp. 87–100, 2024. arXiv:2306.00978. Yaron Lipman, Ricky T. Q. Chen, Heli Ben-Hamu, Maximilian Nickel, and Matt Le. Flow matching for generative modeling. In International Conference on Learning Representations (ICLR) , 2023. arXiv:2210.02747. Zechun Liu, Changsheng Zhao, Igor Fedorov, Bilge Soran, Dhruv Choudhary, Raghuraman Krish-namoorthi, Vikas Chandra, Yuandong Tian, and Tijmen Blankevoort. SpinQuant: LLM quantiza-tion with learned rotations. In International Conference on Learning Representations (ICLR) , pp. 92009–92032, 2025. arXiv:2405.16406. Jing Lyu, Shuanghao Bai, Runze Xiao, Zhenyu Liao, Wenxing Tan, Zihan Tang, Ruochuan Shi, Cheng Peng, Yuheng Ji, Yihao Wang, Badong Chen, Pengwei Wang, Zhongyuan Wang, and Xiaoguang Zhao. DIDO: Distilling interaction-centric dynamics into one-step denoising for world action models, 2026. URL https://arxiv.org/abs/2609.15570 .11 Preprint Liheng Ma, Rui Heng Yang, Zhanguang Zhang, Mateo Clemente, Ziwen Hu, Tongtong Cao, and Yingxue Zhang. Faster-WAM: Do world action models need deep action modules?, 2026. URL 
+
+https://arxiv.org/abs/2608.02365 .James Martens. New insights and perspectives on the natural gradient method. Journal of Machine Learning Research , 21(146):1–76, 2020. James Martens and Roger Grosse. Optimizing neural networks with Kronecker-factored approxi-mate curvature. In International Conference on Machine Learning (ICML) , volume 37 of Pro-ceedings of Machine Learning Research , pp. 2408–2417, 2015. Raphael A. Meyer, Cameron Musco, Christopher Musco, and David P. Woodruff. Hutch++: Optimal stochastic trace estimation. In Symposium on Simplicity in Algorithms (SOSA) , pp. 142–155. SIAM, 2021. Farbod Roosta-Khorasani and Uri Ascher. Improved bounds on sample size for implicit matrix trace estimators. Foundations of Computational Mathematics , 15(5):1187–1212, 2015. Nicol N. Schraudolph. Fast curvature matrix-vector products for second-order gradient descent. 
+
+Neural Computation , 14(7):1723–1738, 2002. Junyi Wu, Haoxuan Wang, Yuzhang Shang, Mubarak Shah, and Yan Yan. PTQ4DiT: Post-training quantization for diffusion transformers. In Advances in Neural Information Processing Systems (NeurIPS) , 2024. arXiv:2405.16005. Guangxuan Xiao, Ji Lin, Mickael Seznec, Hao Wu, Julien Demouth, and Song Han. SmoothQuant: Accurate and efficient post-training quantization for large language models. In International Conference on Machine Learning (ICML) , 2023. arXiv:2211.10438. Yuhao Xu, Yantai Yang, Zhenyang Fan, Yufan Liu, Yuming Li, Bing Li, and Zhipeng Zhang. QVLA: Not all channels are equal in vision-language-action model’s quantization. In International Con-ference on Learning Representations (ICLR) , 2026. arXiv:2602.03782. Angen Ye, Boyuan Wang, Chaojun Ni, Guan Huang, Guosheng Zhao, Hao Li, Hengtao Li, Jie Li, Jindi Lv, Jingyu Liu, Min Cao, Peng Li, Qiuping Deng, Wenjun Mei, Xiaofeng Wang, Xinze Chen, Xinyu Zhou, Yang Wang, Yifan Chang, Yifan Li, Yukun Zhou, Yun Ye, Zhichao Liu, and Zheng Zhu. GigaWorld-Policy: An efficient action-centered world–action model, 2026a. URL 
+
+https://arxiv.org/abs/2603.17240 .Seonghyeon Ye, Yunhao Ge, Kaiyuan Zheng, Shenyuan Gao, Sihyun Yu, George Kurian, Suneel Indupuru, You Liang Tan, Chuning Zhu, Jiannan Xiang, Ayaan Malik, Kyungmin Lee, William Liang, Nadun Ranawaka, Jiasheng Gu, Yinzhen Xu, Guanzhi Wang, Fengyuan Hu, Avnish Narayan, Johan Bjorck, Jing Wang, Gwanghyun Kim, Dantong Niu, Ruijie Zheng, Yuqi Xie, Jimmy Wu, Qi Wang, Ryan Julian, Danfei Xu, Yilun Du, Yevgen Chebotar, Scott Reed, Jan Kautz, Yuke Zhu, Linxi “Jim” Fan, and Joel Jang. World action models are zero-shot policies, 2026b. URL https://arxiv.org/abs/2602.15922 .Tianyuan Yuan, Zibin Dong, Yicheng Liu, and Hang Zhao. Fast-WAM: Do world action models need test-time future imagination?, 2026. URL https://arxiv.org/abs/2603.16666 .Jingxuan Zhang, Yunta Hsieh, Zhongwei Wan, Haokun Lin, Xin Wang, Ziqi Wang, Yingtie Lei, and Mi Zhang. QuantVLA: Scale-calibrated post-training quantization for vision-language-action models. In IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pp. 39539–39549, 2026a. arXiv:2602.20309. Yuyang Zhang, Wenyao Zhang, Zekun Qi, He Zhang, Haitao Lin, Jingbo Zhang, Yao Mu, Xiaokang Yang, Wenjun Zeng, and Xin Jin. ImageWAM: Do world action models really need video gener-ation, or just image editing?, 2026b. URL https://arxiv.org/abs/2606.19531 .Tianchen Zhao, Tongcheng Fang, Haofeng Huang, Rui Wan, Widyadewi Soedarmadji, Enshu Liu, Shiyao Li, Zinan Lin, Guohao Dai, Shengen Yan, Huazhong Yang, Xuefei Ning, and Yu Wang. ViDiT-Q: Efficient and accurate quantization of diffusion transformers for image and video gener-ation. In International Conference on Learning Representations (ICLR) , pp. 65811–65841, 2025. arXiv:2406.02540. 12 Preprint Jiacheng Zhou, Jinfan Lv, Ruixuan Li, Longtai Zhang, Yan Wang, Wenqiang Zhang, and Lizhe Qi. QuantWAMs: Calibrating at the right granularity for world action models, 2026. URL 
+
+https://arxiv.org/abs/2607.28405 .Chuning Zhu, Raymond Yu, Siyuan Feng, Benjamin Burchfiel, Paarth Shah, and Abhishek Gupta. Unified world models: Coupling video and action diffusion for pretraining on large robotic datasets. In Proceedings of Robotics: Science and Systems (RSS) , 2025. 
+
+## A DERIVATIONS FOR THE ACTION OBSERVABILITY GRAMIAN 
+
+Throughout, Aℓ is the map from layer ℓ’s input activation xℓ ∈ Rdℓ to the generated action chunk 
+
+a ∈ Rm through the unrolled T -step denoiser of Equation 1, Jℓ = ∂a/∂x ℓ is its Jacobian, and 
+
+Gℓ = E[J⊤ 
+
+> ℓ
+
+Jℓ] as in Equation 5. The expectation is over calibration inputs, as in Section 4.1, and the token–step index i is suppressed wherever it plays no role. A.1 Gℓ IS THE HESSIAN OF THE ACTION ERROR AT THE FULL -PRECISION POINT 
+
+For a fixed perturbation δℓ of layer ℓ’s activation, define the action-error objective 
+
+Fℓ(δℓ) = 12 E ξ(δℓ) 2, ξ(δℓ) = Aℓ(xℓ + δℓ) − A ℓ(xℓ) ∈ Rm,
+
+so that ξ(0) = 0 . Differentiating twice with respect to δℓ,
+
+∇2Fℓ(δℓ) = E
+
+h
+
+Jℓ(δℓ)⊤Jℓ(δℓ)
+
+| {z }
+
+> Gauss–Newton
+
++ Pmk=1 ξk(δℓ) ∇2Aℓ,k (xℓ + δℓ)
+
+| {z }
+
+> residual curvature
+
+i
+
+,
+
+where Jℓ(δℓ) is the Jacobian evaluated at xℓ + δℓ. The second term is weighted by the components of ξ, which vanish at δℓ = 0 , so 
+
+∇2Fℓ(0) = EJ⊤ 
+
+> ℓ
+
+Jℓ
+
+ = Gℓ.
+
+Section 4.1 uses two consequences. First, Gℓ is the exact Hessian of the action error at the full-precision point, so the quadratic form of Equation 5 needs no assumption about training conver-gence, unlike loss-based PTQ, which has to argue that the loss gradient vanishes. Second, Gℓ ⪰ 0
+
+as a sum of Gram matrices, which is what licenses the eigendecomposition of Section 4.2. If the action head is read as a Gaussian likelihood with fixed isotropic covariance, Gℓ is also its Fisher in-formation up to the covariance scale, the usual Gauss–Newton/Fisher correspondence (Schraudolph, 2002; Martens, 2020; Kunstner et al., 2019). In either reading it is built from the model’s own output and never from ground-truth actions. A.2 THE BLOCK -DIAGONAL REDUCTION AND THE CROSS TERMS IT DISCARDS 
+
+Section 4.1 reduces the model-wide curvature G to one term per layer. Write ∆ = E∥A δ − A∥ 2 for the expected squared action change that Equation 5 approximates. Inserting the first-order deviation 
+
+Jδ = P
+
+> ℓ
+
+P 
+
+> i∈I ℓ
+
+J(i) 
+
+> ℓ
+
+δ(i) 
+
+> ℓ
+
+of Equation 4 and writing it out over the layer and token–step indices gives a double sum, 
+
+∆ ≈ X
+
+> ℓ,i
+
+E
+
+h
+
+δ(i)⊤ 
+
+> ℓ
+
+J(i)⊤ 
+
+> ℓ
+
+J(i) 
+
+> ℓ
+
+δ(i)
+
+> ℓ
+
+i| {z } 
+
+> same (ℓ,i ): kept
+
++ X
+
+> (ℓ,i )̸=( ℓ′,i ′)
+
+E
+
+h
+
+δ(i)⊤ 
+
+> ℓ
+
+J(i)⊤ 
+
+> ℓ
+
+J(i′) 
+
+> ℓ′
+
+δ(i′)
+
+> ℓ′
+
+i| {z } 
+
+> different (ℓ,i ): dropped
+
+. (11) The additive-noise model of Section 4.1 takes the residuals to be zero-mean, uncorrelated with the Jacobians, and uncorrelated with each other across different (ℓ, i ). Under it each cross term factors as tr  E[J(i)⊤ 
+
+> ℓ
+
+J(i′) 
+
+> ℓ′
+
+] E[δ(i′) 
+
+> ℓ′
+
+δ(i)⊤ 
+
+> ℓ
+
+] = 0 , and each kept term factors as tr  E[J(i)⊤ 
+
+> ℓ
+
+J(i) 
+
+> ℓ
+
+] Σ ℓ
+
+ with 
+
+Σℓ = E[δℓδ⊤ 
+
+> ℓ
+
+] the residual covariance shared by the token–step pairs of layer ℓ. Summing the pairs of each layer gives ∆ ≈ P 
+
+> ℓ
+
+tr( GℓΣℓ) = P 
+
+> ℓ
+
+E[δ⊤ 
+
+> ℓ
+
+Gℓδℓ] with Gℓ = E[P 
+
+> i
+
+J(i)⊤ 
+
+> ℓ
+
+J(i) 
+
+> ℓ
+
+], which is Equation 5. 13 Preprint The model is approximate. Adjacent denoising steps see similar activations and can leave correlated residuals. It is the block-diagonal reduction that K-FAC makes across layers (Martens & Grosse, 2015) and blockwise PTQ makes across blocks (Li et al., 2021), and Figure 3a is its empirical check, since the kept terms alone predict the measured single-layer W4A4 action damage at ρ=0 .95 across all 300 action-expert linears. The reduction is applied to the curvature of the action map. Layer-wise PTQ (Section 3) applies the same block-diagonal step and then also replaces the objective by each layer’s local output error, which removes all downstream information from the curvature. The two steps are independent, and Q-WAM takes only the first. A.3 OPTIMALITY OF THE TOP EIGENVECTORS 
+
+This appendix states and proves the result that Section 4.2 uses to choose the protected subspace. Let V ∈ Rdℓ×r have orthonormal columns, let Π = V V ⊤, and let δ = Q4(˜ x⊥) − ˜x⊥ be the residual of the 4-bit path in Equation 9. The deflated weight passes fW ⊤(I − Π) δ to the output, so the rest of the network sees the residual (I − Π) δ. By Equation 5, the expected per-layer distortion of the 4-bit path is 
+
+Eδ⊤(I − Π) eGℓ (I − Π) δ = tr  (I − Π) eGℓ(I − Π) Σ δ
+
+, Σδ = E[δδ ⊤].
+
+Isotropic rounding error. The residual is isotropic when its covariance is a multiple of the iden-tity, Σδ = σ2I. Equivalently, the mean squared error along every unit direction u is the same, 
+
+E[( u⊤δ)2] = σ2, so the rounding error has no preferred direction. The block Hadamard rotation of Section 3 spreads outlier channels over all coordinates, which brings the rounding error close to this state, and Appendix A.5 tests one consequence of it on Fast-WAM. For an isotropic residual, cyclicity of the trace and (I − Π) 2 = I − Π give 
+
+Eδ⊤(I − Π) eGℓ (I − Π) δ = σ2 tr   eGℓ(I − Π)  = σ2  tr eGℓ − tr V ⊤ eGℓV , (12) where the last step uses tr( eGℓV V ⊤) = tr( V ⊤ eGℓV ).
+
+Proposition 1 (Optimal protected subspace) . Over all V ∈ Rdℓ×r with orthonormal columns, Equa-tion 12 reaches its minimum when the columns of V span the top-r eigenvectors of eGℓ, and the minimum equals σ2 P 
+
+> j>r
+
+λj .Proof. The term tr eGℓ does not depend on V , so minimizing Equation 12 over V is the same as maximizing tr( V ⊤ eGℓV ) over matrices with orthonormal columns. The Ky Fan maximum princi-ple (Fan, 1949) states that for a symmetric matrix A with eigenvalues λ1 ≥ · · · ≥ λd,
+
+max   
+
+> V⊤V=Ir
+
+tr  V ⊤AV  =
+
+> r
+
+X
+
+> j=1
+
+λj ,
+
+attained when the columns of V span an invariant subspace of the r largest eigenvalues. The matrix 
+
+eGℓ = S⊤GℓS with S = diag( γ)H is symmetric, so the principle with A = eGℓ gives the minimum distortion σ2(tr eGℓ − P 
+
+> j≤r
+
+λj ) = σ2 P 
+
+> j>r
+
+λj , attained by the top-r eigenspace. Without isotropy, the distortion tr  (I − Π) eGℓ(I − Π)Σ δ
+
+ depends on both eGℓ and Σδ , and the best subspace need not be the top eigenspace of eGℓ.A.4 THE PROBE ESTIMATOR : PROCEDURE , COST AND ACCURACY 
+
+This appendix details the estimator of Equation 6. Throughout, Jℓ ∈ Rm×dℓ denotes the Jacobian of the action chunk a ∈ Rm with respect to one token–step activation of layer ℓ, with the index i
+
+suppressed. 14 Preprint 
+
+Why probes. Reverse-mode differentiation computes, in one backward pass, the gradient of one scalar with respect to every intermediate tensor. For the vector output a, one backward pass therefore computes the vector–Jacobian product J⊤ 
+
+> ℓ
+
+w for one chosen weight vector w ∈ Rm, by differentiat-ing the scalar ⟨a, w ⟩. The exact Gram matrix runs w through the m unit vectors e1, . . . , e m,
+
+J⊤ 
+
+> ℓ
+
+Jℓ =
+
+> m
+
+X
+
+> k=1
+
+ J⊤ 
+
+> ℓ
+
+ek
+
+  J⊤ 
+
+> ℓ
+
+ek
+
+⊤,
+
+which costs m backward passes per input, m=448 on RoboTwin. The probe estimator replaces the sweep over unit vectors with random vectors u ∼ N (0 , I m). Since Eu[uu ⊤] = Im,
+
+Eu
+
+(J⊤ 
+
+> ℓ
+
+u)( J⊤ 
+
+> ℓ
+
+u)⊤ = J⊤ 
+
+> ℓ
+
+Eu[uu ⊤] Jℓ = J⊤ 
+
+> ℓ
+
+Jℓ,
+
+so each probe gives an unbiased rank-one estimate of the exact sum, and the P -probe average of Equation 6 is unbiased for every P ≥ 1. The number of probes controls only the variance. The construction is the Hutchinson trace estimator (Hutchinson, 1989) applied to a Gram matrix instead of a trace. Gℓ is itself an average over inputs, so probe noise and input noise average down along the same sum, since N inputs with P probes each contribute N P rank-one terms for every token–step pair. 
+
+Procedure. For each calibration input (on, l n), the estimator runs three steps. 1. Encode the observation and the instruction once into the cached conditioning z, and fix the initial noise a(0) of the sampler to one draw, so that the action chunk a is a deterministic function of the activations. 2. Run the T Euler steps of Equation 1 with gradients enabled, and record the input activation x(i)
+
+> ℓ
+
+of every quantized linear layer at every token–step pair i. Each recorded activation is a separate node of the autograd graph, for the reason the Attribution paragraph below gives. 3. For p = 1 , . . . , P , draw unp ∼ N (0 , I m) and backpropagate the scalar ⟨a, u np ⟩ through the recorded graph. Read the gradient g(i) 
+
+> ℓ,np
+
+= J(i)⊤ 
+
+> ℓ
+
+unp at every recorded activation, and add 
+
+g(i) 
+
+> ℓ,np
+
+g(i)⊤ 
+
+> ℓ,np
+
+to a dℓ × dℓ accumulator Aℓ.The graph is kept between probes, so one forward pass serves all P backward passes. After the last input, bGℓ = Aℓ/(N P ), which equals Equation 6. 
+
+Cost. Per input, the estimator needs one forward pass and P =12 backward passes, against m=448 
+
+backward passes for exact Jacobians. Each backward pass returns the vector–Jacobian products of every layer, so the cost does not grow with the number of layers. Each layer stores one dℓ ×
+
+dℓ accumulator, at most 4096 × 4096 on Fast-WAM, independent of N . With N =10 ,919 inputs, the whole calibration costs N P ≈ 1.3 × 10 5 backward passes and runs once offline. Smoothing and rotation enter afterwards through Equation 7, so changing either transform requires no new calibration. Q-WAM reads three quantities from the estimate, and the next three paragraphs give the guarantee for each. 
+
+Trace. tr bGℓ = 1
+
+> N P
+
+P 
+
+> n,p
+
+∥Jℓ(on)⊤unp ∥2 is Hutchinson’s estimator of tr( J⊤ 
+
+> ℓ
+
+Jℓ) (Hutchin-son, 1989). For a fixed symmetric positive semidefinite A and Gaussian probes, the single-probe estimate u⊤Au has variance 2∥A∥2 
+
+> F
+
+, so N P probes give a relative standard deviation of p2/N P ∥A∥F / tr A, and O(ε−2 log(1 /η )) probes suffice for relative error ε at confidence 
+
+1 − η (Avron & Toledo, 2011; Roosta-Khorasani & Ascher, 2015). A sharply decaying spectrum, which Figure 3b shows, puts ∥A∥F / tr A near its maximum of one, the worst case for this bound. Equation 10 uses the trace only to compare experts whose masses differ by one to four orders of magnitude, so the estimator’s error is far below the margin it has to resolve, and variance reduc-tion (Meyer et al., 2021) is unnecessary. 
+
+Subspace. Collect the P probes of frame n into Un ∈ Rm×P and stack the N Jacobians into 
+
+J = [ Jℓ(o1); . . . ; Jℓ(oN )] ∈ RN m ×dℓ , so that J⊤J/N is the empirical Gℓ. With the block-diagonal test matrix Ω = blkdiag( U1, . . . , U N ) ∈ RN m ×N P ,
+
+N P bGℓ = X
+
+> n
+
+Jℓ(on)⊤UnU ⊤ 
+
+> n
+
+Jℓ(on) = J⊤Ω Ω ⊤J,
+
+15 Preprint so bGℓ is, up to scale, the Gram matrix of the sketch J⊤Ω. This sketch is the randomized range finder (Halko et al., 2011) applied to J⊤ with N P test vectors. The range finder recovers the dom-inant rank-r singular subspace once the number of test vectors exceeds r by a small oversampling margin, with an error set by the trailing singular values. The count that has to exceed r is therefore 
+
+N P = 10 ,919 × 12 ≈ 1.3 × 10 5, against dℓ ≈ 10 3, and not P alone; P sets only how much of each frame’s Jacobian is seen. The guarantee of the range finder (Halko et al., 2011) is stated for a dense Gaussian test matrix and ours is block-diagonal, so we also rely on the unbiasedness of bGℓ and on 
+
+N P ≫ dℓ. Choosing P < r per frame allocates a fixed backward-pass budget across frames rather than within one, which is the right allocation because Gℓ averages over frames. Exact per-frame Jacobians would cost m/P ≈ 37 × more per frame for a per-frame precision that the average then dilutes. 
+
+Basis. Gaussian probes have a rotationally invariant law, so the estimator’s error is not tied to any coordinate system of action space. Rademacher probes have lower variance for the trace and are the usual choice when only a trace is wanted (Avron & Toledo, 2011), but their law singles out the coordinate axes, which is the wrong trade when the estimate is consumed as an eigenbasis. 
+
+Attribution. One implementation detail matters. When several layers consume the same tensor, as the q, k and v projections of one attention block do, the gradient stored on that tensor is the sum over all its consumers, and reading it would credit each layer with the others’ sensitivity. We therefore clone each layer’s input so that it is a distinct node in the autograd graph, and read J⊤ 
+
+> ℓ
+
+u from the clone. An earlier version of our AOGs omitted this and was recomputed; the shipped AOGs use per-consumer attribution. A.5 CHECKING THE ISOTROPIC NOISE MODEL 
+
+Proposition 1 and the action mass of Equation 10 assume that the rotated 4-bit residual is isotropic, with no preferred direction. An isotropic residual places the fraction r/d ℓ of its expected squared norm E∥δ∥2 inside any r-dimensional subspace. We test this consequence on twelve action-expert layers of Fast-WAM, the ten linear layers of the first block and the query and key projections of the second, and report medians. The residual of Q4 places 3.1% of its squared norm inside span( V ),which matches the chance rate r/d ℓ and the share inside a random subspace of the same rank. The same 3.1% of the squared norm carries 97% of the action damage δ⊤ eGℓδ, against 2.9% for the random subspace, and deflation removes it at the output up to a second-order product of rounding errors. Removing the protected component also shrinks the dynamic range that sets ς in Equation 2, by a median factor of 0.77 against 0.99 for the random subspace, so the 4-bit residual contracts in every direction. 
+
+## B IMPLEMENTATION DETAILS 
+
+B.1 QUANTIZATION SETTINGS AND KERNELS 
+
+All quantizers are symmetric and round to nearest, with one scale for each group of consecutive input channels. For INT4 we use a group size of 32 for both weights and activations. Each weight group stores 4-bit codes in [−8, 7] , and each activation group is quantized at runtime, per token, with a scale equal to its absolute maximum divided by 7. On Blackwell GPUs we use NVFP4 instead, which stores E2M1 values with an FP8 (E4M3) scale for every group of 16 elements, for both weights and activations; the weights carry an additional FP32 scale per tensor. Before the rotation, we apply SmoothQuant smoothing with the per-channel factor 
+
+sj = max |Xj |α
+
+max |W:,j |1−α , (13) where max |Xj | is the absolute maximum of input channel j over the calibration inputs and 
+
+max |W:,j | is the absolute maximum of the matching weight column. We divide the activation by s and multiply the weight by s, so the layer output is unchanged before quantization. In the RoboTwin experiments we use a smoothing factor of α = 0 .5 for every layer of all three models. The activation maxima are collected on 50 RoboTwin episodes, one per task. The block Hadamard 16 Preprint Wrist Cameras 
+
+> Head Camera
+> Head Camera
+> Wrist Cameras
+
+## Humanoid Unitree G1 Bimanual UR3 
+
+Figure 7: Real-world experiment setup. rotation uses the largest power of two that divides the input dimension, up to 1024, and the protected subspace has rank r = 32 with its branch kept in 16-bit precision. The action-block latency reported in Section 5 is measured with 4-bit kernels written in Triton. A quantized layer runs two of them. The first applies the smoothing, the block Hadamard rotation, the projection onto the protected subspace and the activation quantization, and the second multiplies the packed 4-bit weights, adding the protected branch and the bias in its epilogue. The weights stay packed at 4 bits throughout and are the exported codes of the evaluated checkpoint, and the activations are quantized by the same rule as in evaluation; the fused implementation differs from it only in the order in which it accumulates in floating point. We time the quantized layers of one action chunk since the ASP has been applied to that expert for the corresponding models. The precisions are replayed as CUDA graphs with the same layer layout. Each reported value is the median over repeated runs on one L40S GPU. B.2 COST OF THE 16-BIT BRANCH bf16 W4A4 Q-WAM  
+
+> 0510
+> memory (GB)  9.11 2.64 2.69
+> +0.05 GB
+
+Figure 6: ImageWAM’s memory comparison for the ASP overhead. The 16-bit branch of ASP adds little to the 4-bit model. Fig-ure 6 compares the memory of ImageWAM’s quantized blocks: 
+
+9.11 GB in bf16, 2.64 GB for the 4-bit model without the branch (smoothing, rotation and group-wise W4A4), and 2.69 GB for Q-WAM. The branch therefore adds 0.05 GB, 1.9% of the 4-bit model, while the model as a whole stays 3.4× smaller than bf16. Across the three models, the branch adds 0.05 –0.16 GB and 0.08 –0.26 bits per weight (Table 3). Its computation is small as well: both paths are dense matrix multiplications, and with the branch included the quantized action-token layers still run 1.06 –1.56 × faster than bf16 (Figure 5). B.3 REAL -WORLD SETUP 
+
+Figure 7 shows the two embodiments of the real-world experiments. The first is a Unitree G1 humanoid with parallel-jaw grippers, and the second is a bimanual UR3 robot. Each embodiment carries four cameras. Table 2 lists the tasks run on each. 
+
+## C SUPPLEMENTARY EXPERIMENTS 
+
+C.1 SVDQ UANT AS THE WEIGHT QUANTIZER 
+
+SVDQuant protects weights rather than activations. It keeps a rank-32 16-bit branch built from the leading singular vectors of the smoothed weight and quantizes the remainder, which works well 17 Preprint Table 5: Q-WAM with SVDQuant as the weight quantizer. ASP is held fixed on the activation side and only the weight side varies, between group-wise INT4 and SVDQuant’s low-rank decomposi-tion.                                               
+
+> model activation weight BPW clean randomized Avg. Mem (GB) Fast-WAM ASP group INT4 4.62 91.62 89.94 90.78 3.44
+> ASP SVDQuant 4.95 91.44 90.54 90.99 3.68 ImageWAM ASP group INT4 4.58 93.00 92.94 92.97 2.69
+> ASP SVDQuant 4.83 90.56 90.16 90.36 2.83 LingBot-VA ASP group INT4 4.76 90.20 88.92 89.56 3.27
+> ASP SVDQuant 5.03 90.52 88.88 89.70 3.43
+
+on image diffusion models. Table 5 tests whether this weight protection adds to Q-WAM. ASP is held fixed on the activation side, and the weights are quantized either group-wise to INT4, as in Q-WAM, or with SVDQuant’s decomposition. The SVDQuant branch costs 0.25 to 0.33 additional BPW and 0.14 to 0.24 GB of memory, but it does not improve the success rate. The average changes by +0 .21 points on Fast-WAM and +0 .14 points on LingBot-VA, both smaller than the variation between calibration sets (Appendix C.3), and it falls by 2.61 points on ImageWAM. SVDQuant selects the protected directions by the singular values of the weight, a criterion that ignores how the action depends on each layer. In a WAM, this dependence decides which quantization errors matter. Figure 3a shows that per-layer reconstruction error does not predict the damage to the action, whereas the AOG does. Therefore, the weight directions that SVDQuant keeps in 16 bits are not the ones the action depends on, and group-wise INT4 is the cheaper choice for the weights of Q-WAM. C.2 WHERE THE ACTION MASS SITS WITHIN EACH EXPERT 
+
+Section 4.3 scores whole experts by their action mass μE (Equation 10). Figure 8 resolves the same quantity to single layers on Fast-WAM. Each cell is the trace tr( eGℓ) of one linear layer as a share of the model’s total, arranged by layer type and block, and both experts share one color scale. The action expert holds 89 .3% of the total. Within it the mass concentrates in the cross-attention output projections, which carry 57 .2% of the expert’s mass, and cross-attention as a whole carries 82 .0% 
+
+against 2.0% for self-attention. Across the 300 action layers the trace spans more than six orders of magnitude. The video expert holds the remaining 10 .7% and spreads it more evenly, led by the second feed-forward projection at 32 .1% and the cross-attention output projection at 25 .5% . Eight layers of the video expert’s last block carry exactly zero mass, because no later block reads their outputs; the action expert reads that block only through its self-attention key and value projections, which are the two layers of the block that carry mass. C.3 SENSITIVITY TO THE CALIBRATION SET 
+
+The AOG and the protected subspaces are estimated from 50 calibration episodes, one per RoboTwin task. Table 6 measures how much the result depends on which episodes are drawn. On ImageWAM, we draw three further sets of 50 episodes with random seeds 7, 13 and 21, in addition to the original set, which was drawn with seed 42. For each of the four sets, we recompute the AOG and the rank-32 protected subspaces, export a new checkpoint, and evaluate it on all 50 tasks with 100 episodes per task under both the clean and the randomized conditions. The four checkpoints reach an average success rate of 92 .41% with a standard deviation of 0.49 
+
+points. The largest gap between two calibration sets is 1.12 points, between seeds 7 and 13. The protected subspaces also barely change between sets. Any two sets share 97 –99% of their rank-32 subspace, measured as ∥V ⊤ 
+
+> 1
+
+V2∥2 
+
+> F
+
+/r and averaged over layers, while a random subspace of the same rank shares about 2% . The protected subspace, and with it the success rate, is therefore insensitive to the choice of calibration episodes. 18 Preprint sa.q sa.k sa.v sa.o ca.q ca.k ca.v ca.o ffn.0 ffn.2             
+
+> action expert (ASP protects)
+> 0919 29 block
+> sa.q sa.k sa.v sa.o ca.q ca.k ca.v ca.o ffn.0 ffn.2
+> video expert
+> 15% 9% 57% 11% 5%
+> 0.01 1100
+> % of the expert's mass
+> 7% 10% 26% 13% 32% 10 5
+> 10 4
+> 10 3
+> 10 2
+> 10 1
+> 10 0
+> 10 1
+> layer share of total tr  G (%)
+
+Figure 8: Share of Fast-WAM’s action mass carried by each linear layer, for the action expert (top) and the video expert (bottom) on one logarithmic color scale. Rows are layer types and columns are blocks. The bars on the right give each layer type’s share of its own expert’s mass. Gray cells have exactly zero mass. Table 6: Sensitivity of ImageWAM to the calibration set. Each row recomputes the AOG, the protected subspaces and the checkpoint from a different set of calibration episodes, one per task, and evaluates it on the full RoboTwin suite. 
+
+Calibration seed Clean Randomized Avg. 42 (original set) 93.08 92.28 92.68 7 92.62 93.08 92.85 13 91.48 91.98 91.73 21 92.34 92.44 92.39 Mean ± std. 92 .38 ± 0.67 92 .44 ± 0.46 92 .41 ± 0.49 
+
+C.4 PER -TASK ROBO TWIN RESULTS 
+
+RoboTwin 2.0 has 50 tasks. Tables 7, 8 and 9 extend Table 1 task by task for Fast-WAM, ImageWAM and LingBot-VA. They report the success rate of every method on each task under the clean and the domain-randomized conditions. 19 Preprint Table 7: Per-task success rates (%) of Fast-WAM on RoboTwin 2.0 for every method in Table 1, under the clean (Clean) and domain-randomized (Rand.) conditions. The best quantized average is shown in bold. 
+
+bf16 SmoothQuant ViDiT-Q SVDQuant Q-WAM 
+
+Task Clean Rand. Clean Rand. Clean Rand. Clean Rand. Clean Rand. 
+
+adjust bottle 100 100 47 21 100 100 100 100 100 100 
+
+beat block hammer 97 98 18 10 94 94 98 94 100 96 
+
+blocks ranking rgb 100 100 1 0 96 97 100 99 100 100 
+
+blocks ranking size 95 93 1 0 83 90 89 91 90 92 
+
+click alarmclock 99 100 96 92 100 100 100 100 100 100 
+
+click bell 100 100 100 99 100 100 100 100 100 100 
+
+dump bin bigbin 98 96 35 20 85 87 88 87 96 98 
+
+grab roller 100 100 43 25 100 100 100 100 100 100 
+
+handover block 94 80 0 0 9 16 79 69 94 74 
+
+handover mic 99 100 0 0 72 67 92 91 100 97 
+
+hanging mug 57 58 5 1 44 46 51 49 64 54 
+
+lift pot 99 100 21 6 90 95 98 92 100 99 
+
+move can pot 91 91 4 0 79 70 94 92 85 88 
+
+move pillbottle pad 99 99 2 6 84 90 93 97 99 100 
+
+move playingcard away 100 100 22 12 97 99 100 100 100 100 
+
+move stapler pad 81 63 0 0 54 35 72 59 72 61 
+
+open laptop 98 100 63 53 98 97 98 98 98 99 
+
+open microwave 80 47 0 1 60 42 56 37 70 33 
+
+pick diverse bottles 83 86 7 2 82 78 91 90 84 83 
+
+pick dual bottles 100 96 10 3 95 94 99 98 100 98 
+
+place a2b left 95 92 22 10 91 91 93 92 96 96 
+
+place a2b right 97 94 26 15 92 91 96 95 97 88 
+
+place bread basket 93 94 28 22 90 84 90 92 94 95 
+
+place bread skillet 93 87 9 1 86 80 95 90 93 94 
+
+place burger fries 94 98 19 3 90 96 93 95 97 96 
+
+place can basket 66 65 1 2 62 56 70 66 65 70 
+
+place cans plasticbox 98 99 1 0 93 93 95 97 100 97 
+
+place container plate 96 94 38 33 95 97 99 97 98 100 
+
+place dual shoes 92 89 0 0 93 82 86 88 88 91 
+
+place empty cup 100 100 59 35 100 99 99 100 100 100 
+
+place fan 95 96 0 0 69 74 76 69 95 94 
+
+place mouse pad 88 89 6 3 74 75 82 81 84 83 
+
+place object basket 84 87 9 6 89 89 86 79 80 82 
+
+place object scale 88 93 7 1 86 85 88 89 87 92 
+
+place object stand 88 91 16 14 96 93 89 91 90 95 
+
+place phone stand 98 98 9 7 93 94 96 98 99 98 
+
+place shoe 96 99 20 10 86 96 95 97 95 97 
+
+press stapler 92 97 96 87 96 95 98 97 92 93 
+
+put bottles dustbin 91 90 0 0 29 33 78 73 88 82 
+
+put object cabinet 90 88 0 0 34 28 85 88 89 86 
+
+rotate qrcode 91 91 0 2 89 77 90 85 91 86 
+
+scan object 91 89 39 25 81 77 84 85 92 91 
+
+shake bottle 100 100 90 82 100 100 100 100 100 100 
+
+shake bottle horizontally 100 100 91 84 99 100 100 100 100 100 
+
+stack blocks three 96 95 0 0 67 80 94 91 95 96 
+
+stack blocks two 100 100 3 2 100 97 100 100 100 99 
+
+stack bowls three 85 90 0 0 78 66 76 66 81 83 
+
+stack bowls two 95 97 2 1 92 89 96 94 94 95 
+
+stamp seal 90 94 12 7 63 55 72 71 89 86 
+
+turn switch 62 64 21 21 65 55 57 60 60 60 Average 92.28 91.34 21.98 16.48 82.00 80.48 89.12 87.38 91.62 89.94 
+
+20 Preprint Table 8: Per-task success rates (%) of ImageWAM on RoboTwin 2.0 for every method in Table 1, under the clean (Clean) and domain-randomized (Rand.) conditions. The best quantized average is shown in bold. 
+
+bf16 SmoothQuant ViDiT-Q SVDQuant Q-WAM 
+
+Task Clean Rand. Clean Rand. Clean Rand. Clean Rand. Clean Rand. 
+
+adjust bottle 100 100 96 97 99 99 100 100 100 100 
+
+beat block hammer 100 98 42 27 91 97 95 97 98 92 
+
+blocks ranking rgb 96 99 89 91 73 82 97 98 99 99 
+
+blocks ranking size 92 97 67 71 60 82 95 93 93 96 
+
+click alarmclock 100 100 100 100 100 99 100 99 99 100 
+
+click bell 100 100 100 100 100 100 99 100 100 100 
+
+dump bin bigbin 96 93 67 60 94 82 88 86 98 88 
+
+grab roller 100 100 100 100 100 100 100 100 100 100 
+
+handover block 94 96 17 8 97 91 64 64 96 95 
+
+handover mic 100 99 81 85 56 69 96 97 98 98 
+
+hanging mug 74 77 40 29 60 67 56 70 75 76 
+
+lift pot 100 100 35 37 83 89 95 90 100 100 
+
+move can pot 96 98 20 28 94 98 83 75 96 100 
+
+move pillbottle pad 99 100 20 25 92 89 81 85 97 99 
+
+move playingcard away 100 99 92 97 97 96 97 97 100 99 
+
+move stapler pad 66 67 16 9 36 44 42 34 51 65 
+
+open laptop 97 98 96 96 95 98 95 97 98 99 
+
+open microwave 97 94 27 29 13 14 6 22 82 73 
+
+pick diverse bottles 87 89 47 43 89 83 89 83 86 89 
+
+pick dual bottles 99 96 39 41 88 84 95 93 100 98 
+
+place a2b left 95 96 76 85 87 92 93 94 95 98 
+
+place a2b right 99 96 89 85 91 96 95 93 99 95 
+
+place bread basket 94 96 67 61 88 86 89 90 97 93 
+
+place bread skillet 91 90 59 55 76 86 91 86 93 94 
+
+place burger fries 100 99 78 78 91 91 91 90 100 99 
+
+place can basket 77 62 28 20 66 58 56 59 80 71 
+
+place cans plasticbox 100 97 48 38 80 87 84 75 98 97 
+
+place container plate 99 97 85 88 92 97 95 95 98 99 
+
+place dual shoes 77 86 28 40 25 33 65 69 71 83 
+
+place empty cup 100 100 84 87 100 100 99 100 100 100 
+
+place fan 95 96 26 34 54 65 69 68 93 95 
+
+place mouse pad 87 93 29 47 56 58 64 61 85 87 
+
+place object basket 78 82 68 63 80 75 82 81 82 87 
+
+place object scale 93 97 64 73 82 87 81 85 91 98 
+
+place object stand 100 98 75 73 95 90 92 96 95 95 
+
+place phone stand 100 99 86 90 100 99 88 96 100 98 
+
+place shoe 95 99 78 81 79 88 94 97 97 98 
+
+press stapler 95 100 98 98 100 97 97 100 96 100 
+
+put bottles dustbin 95 92 11 3 67 59 89 66 98 87 
+
+put object cabinet 88 95 20 16 63 79 70 73 86 87 
+
+rotate qrcode 86 86 53 47 80 83 85 79 90 86 
+
+scan object 93 89 26 22 70 80 86 88 91 95 
+
+shake bottle 100 100 93 97 100 100 99 99 100 100 
+
+shake bottle horizontally 100 100 93 98 100 100 100 99 100 100 
+
+stack blocks three 96 98 24 45 64 77 93 84 97 97 
+
+stack blocks two 100 100 85 74 86 81 99 98 100 100 
+
+stack bowls three 70 82 35 38 51 70 64 74 84 79 
+
+stack bowls two 92 97 66 72 82 88 90 93 95 97 
+
+stamp seal 78 83 21 14 41 56 69 68 92 90 
+
+turn switch 75 80 68 73 75 83 75 75 81 76 Average 92.82 93.70 59.04 59.36 78.76 82.08 84.34 84.22 93.00 92.94 
+
+21 Preprint Table 9: Per-task success rates (%) of LingBot-VA on RoboTwin 2.0 for every method in Table 1, under the clean (Clean) and domain-randomized (Rand.) conditions. The best quantized average is shown in bold. 
+
+bf16 SmoothQuant ViDiT-Q SVDQuant Q-WAM 
+
+Task Clean Rand. Clean Rand. Clean Rand. Clean Rand. Clean Rand. 
+
+adjust bottle 96 96 96 90 95 95 100 96 98 94 
+
+beat block hammer 94 100 90 86 90 83 98 94 100 92 
+
+blocks ranking rgb 96 94 82 58 76 65 88 88 94 96 
+
+blocks ranking size 96 82 66 46 81 53 86 62 100 80 
+
+click alarmclock 100 100 100 98 100 100 100 100 100 100 
+
+click bell 100 100 100 100 100 98 100 100 100 100 
+
+dump bin bigbin 92 94 92 78 90 92 88 98 98 94 
+
+grab roller 100 100 100 100 97 97 100 100 100 100 
+
+handover block 100 90 58 36 56 44 88 80 100 90 
+
+handover mic 94 98 82 64 71 66 74 84 82 90 
+
+hanging mug 18 20 18 16 14 10 22 40 18 34 
+
+lift pot 100 100 98 92 97 92 98 88 100 100 
+
+move can pot 94 94 82 86 87 74 82 72 96 82 
+
+move pillbottle pad 100 100 92 82 96 89 96 86 100 100 
+
+move playingcard away 100 98 100 90 95 91 100 96 98 100 
+
+move stapler pad 68 70 48 28 40 21 50 42 62 66 
+
+open laptop 100 96 96 88 98 94 94 92 96 94 
+
+open microwave 46 90 20 34 26 71 22 48 28 76 
+
+pick diverse bottles 94 88 88 56 87 56 80 86 96 88 
+
+pick dual bottles 100 100 94 74 99 72 98 90 100 96 
+
+place a2b left 98 90 94 86 89 83 94 84 98 90 
+
+place a2b right 86 92 90 82 89 76 94 94 100 92 
+
+place bread basket 94 96 86 84 84 83 84 92 96 92 
+
+place bread skillet 98 90 90 78 83 74 94 86 90 90 
+
+place burger fries 98 98 94 78 80 73 98 98 94 100 
+
+place can basket 82 84 72 50 68 71 74 58 86 72 
+
+place cans plasticbox 100 98 84 68 96 81 92 88 100 96 
+
+place container plate 100 98 100 92 96 96 94 90 100 98 
+
+place dual shoes 94 88 58 50 41 34 74 78 92 86 
+
+place empty cup 100 100 100 100 99 100 100 100 100 100 
+
+place fan 90 88 72 52 70 62 70 72 100 84 
+
+place mouse pad 88 92 72 56 76 62 86 82 96 92 
+
+place object basket 90 76 80 60 84 66 82 86 84 78 
+
+place object scale 100 96 86 74 87 82 100 88 100 90 
+
+place object stand 98 92 92 86 98 83 96 80 100 80 
+
+place phone stand 98 94 96 86 87 86 98 90 98 94 
+
+place shoe 94 98 88 84 95 85 92 90 98 98 
+
+press stapler 78 84 94 96 97 93 100 96 84 90 
+
+put bottles dustbin 74 74 16 28 26 39 34 50 76 72 
+
+put object cabinet 92 76 52 54 54 45 84 58 74 80 
+
+rotate qrcode 92 90 90 76 84 82 94 80 96 90 
+
+scan object 96 86 72 74 71 73 96 80 86 92 
+
+shake bottle 98 100 100 96 99 99 96 96 100 100 
+
+shake bottle horizontally 100 100 98 94 100 99 100 100 100 100 
+
+stack blocks three 100 96 84 72 91 67 100 88 100 94 
+
+stack blocks two 100 100 96 90 100 92 98 98 98 100 
+
+stack bowls three 68 82 64 54 62 56 70 80 66 80 
+
+stack bowls two 96 92 92 82 89 90 92 92 96 88 
+
+stamp seal 98 90 84 60 84 47 82 68 98 94 
+
+turn switch 54 60 86 68 67 60 60 72 38 62 Average 90.84 90.20 81.68 72.24 80.82 74.04 85.84 83.12 90.20 88.92 
+
+22

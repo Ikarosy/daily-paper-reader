@@ -1,0 +1,89 @@
+{
+  "date": "20260930",
+  "date_label": "",
+  "generated_at": "2026-09-30 22:40:46 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.25492v1",
+      "route": "202609/30/2609.25492v1-rgsq-riemannian-geometry-sensitive-quantization-for-large-vision-language-models",
+      "title": "RGSQ: Riemannian Geometry-Sensitive Quantization for Large Vision-Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向视觉语言模型的低比特后训练量化与几何敏感比特分配",
+      "first_seen_at": "2026-09-30 22:40:46 UTC",
+      "updated_at": "2026-09-30 22:40:46 UTC"
+    },
+    {
+      "paper_id": "2609.29032v1",
+      "route": "202609/30/2609.29032v1-paging-the-experts-a-reproducible-characterization-of-flash-backed-moe-inference-on-iphone",
+      "title": "Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "量化MoE专家分页与内存预算推理",
+      "first_seen_at": "2026-09-30 22:40:46 UTC",
+      "updated_at": "2026-09-30 22:40:46 UTC"
+    },
+    {
+      "paper_id": "2609.33269v1",
+      "route": "202609/30/2609.33269v1-q-wam-4-bit-quantization-of-world-action-models-with-action-subspace-protection",
+      "title": "Q-WAM: 4-Bit Quantization of World Action Models with Action-Subspace Protection",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "4比特权值激活量化并保护舍入误差",
+      "first_seen_at": "2026-09-30 22:40:46 UTC",
+      "updated_at": "2026-09-30 22:40:46 UTC"
+    },
+    {
+      "paper_id": "2609.33746v1",
+      "route": "202609/30/2609.33746v1-pq-hsa-reusing-product-quantized-scores-for-hybrid-sparse-approximate-attention",
+      "title": "PQ-HSA: Reusing Product-Quantized Scores for Hybrid Sparse-Approximate Attention",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "复用乘积量化码本索引进行近似注意力分数估计",
+      "first_seen_at": "2026-09-30 22:40:46 UTC",
+      "updated_at": "2026-09-30 22:40:46 UTC"
+    },
+    {
+      "paper_id": "2609.35906v1",
+      "route": "202609/30/2609.35906v1-dual-branch-vector-quantization-aided-satellite-digital-semantic-communication-with-index-compression-for-high-resolution-rsi-over-afdm",
+      "title": "Dual-Branch Vector-Quantization-Aided Satellite Digital Semantic Communication with Index Compression for High-Resolution RSI Over AFDM",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "矢量量化辅助传输与索引压缩、码本使用",
+      "first_seen_at": "2026-09-30 22:40:46 UTC",
+      "updated_at": "2026-09-30 22:40:46 UTC"
+    }
+  ]
+}
