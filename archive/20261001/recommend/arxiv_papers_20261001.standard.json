@@ -1,0 +1,223 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-01T22:58:55.275095+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 0,
+    "deep_cap": 7,
+    "deep_selected": 0,
+    "quick_candidates": 5,
+    "quick_skim_target": 12,
+    "quick_selected": 5
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2609.35906v1",
+      "source": "arxiv",
+      "title": "Dual-Branch Vector-Quantization-Aided Satellite Digital Semantic Communication with Index Compression for High-Resolution RSI Over AFDM",
+      "abstract": "High-resolution remote sensing imagery (RSI) transmission is constrained by satellite-ground bandwidth and channel impairments, yet existing methods struggle to simultaneously achieve extreme compression and robust transmission. To address this, we propose a dual-branch vector-quantization aided satellite digital semantic communication (DVQ-SDSC) framework for RSI transmission over affine frequency division multiplexing (AFDM), whose bandwidth savings arise from two interrelated aspects. First, at the source-coding level, a dual-branch framework is developed to unify deep joint semantic coding, VQ-aided index transmission, channel estimation and adaption in an end-to-end architecture; departing from symmetric encoder designs, the codec is recast as an asymmetric dual-branch architecture that separately processes the high-frequency residuals and the low-frequency structural semantics, with gated fusion and channel-adaptive reconstruction jointly restoring the semantic content. Second, at the index-coding level, we develop a principal component analysis (PCA)-aided codebook reordering to align index topology with latent correlations, and devise group differential pulse-code modulation (G-DPCM) to encode prediction residuals rather than absolute indices, lowering the index bitrate while locally isolating clipping and channel errors. A two-stage training strategy further decouples channel impairments from the semantic codec. FAIR1M experiments over 3GPP NTN-TDL-D demonstrate that DVQ-SDSC with G-DPCM index coding outperforms the conventional JPEG-LDPC scheme at the base rate of 0.0625 bits per pixel (BPP), and that G-DPCM applies directly to the trained codec without retraining, yielding additional index compression at no extra cost.",
+      "authors": [
+        "Jianqiao Chen",
+        "Nan Ma",
+        "Xiaodong Xu",
+        "Tingting Zhu",
+        "Huishi Song",
+        "Chen Dong",
+        "Rui Meng",
+        "Wenkai Liu",
+        "Ke Peng",
+        "Ping Zhang"
+      ],
+      "primary_category": "cs.IT",
+      "categories": [
+        "cs.IT"
+      ],
+      "published": "2026-09-28T06:05:55+00:00",
+      "link": "https://arxiv.org/pdf/2609.35906v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "vector-quantization-aided index compression with codebook for extreme compression",
+      "llm_evidence_cn": "矢量量化辅助的索引压缩与码本实现极致压缩",
+      "llm_evidence": "矢量量化辅助的索引压缩与码本实现极致压缩",
+      "canonical_evidence": "矢量量化辅助的索引压缩与码本实现极致压缩",
+      "llm_tldr_en": "Satellite transmission of high-resolution remote sensing imagery is constrained by bandwidth and channel impairments, and existing methods cannot jointly achieve extreme compression and robust transmission. DVQ-SDSC proposes a dual-branch vector-quantization-aided satellite digital semantic communication framework over AFDM, unifying semantic coding, VQ index transmission, channel estimation and adaptation end-to-end. It yields bandwidth savings while remaining robust, showing how VQ codebooks can support bandwidth-limited satellite semantic communication.",
+      "llm_tldr_cn": "高分辨率遥感图像传输受星地带宽与信道损伤双重约束，现有方法难以同时实现极致压缩与稳健传输。本文提出双分支矢量量化辅助卫星数字语义通信框架DVQ-SDSC，在AFDM信道下统一深度联合语义编码、VQ辅助索引传输、信道估计与适配，形成端到端架构。该框架从源编码与索引传输两方面获得带宽节省，实现高压缩比下的稳健语义传输。其贡献在于将矢量量化码本与语义通信结合，为带宽受限的卫星遥感传输提供新思路。",
+      "llm_tldr": "高分辨率遥感图像传输受星地带宽与信道损伤双重约束，现有方法难以同时实现极致压缩与稳健传输。本文提出双分支矢量量化辅助卫星数字语义通信框架DVQ-SDSC，在AFDM信道下统一深度联合语义编码、VQ辅助索引传输、信道估计与适配，形成端到端架构。该框架从源编码与索引传输两方面获得带宽节省，实现高压缩比下的稳健语义传输。其贡献在于将矢量量化码本与语义通信结合，为带宽受限的卫星遥感传输提供新思路。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.29032v1",
+      "source": "arxiv",
+      "title": "Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone",
+      "abstract": "Sparse activation reduces mixture-of-experts computation without eliminating the need to store all experts. We present Routide, a Swift/MLX runtime that executes the text path of a pinned public Qwen3.6-35B-A3B quantized checkpoint while keeping expert weights in iPhone storage and a byte-budgeted subset in memory. We characterize cache-policy sensitivity, numerical comparison boundaries, and measurement limits. Across five recorded 128-token workloads, fixed-route replay gives 0.00% demand hits with a 512 MiB LRU cache, 18.80% with seeded random eviction at the same budget, and 38.58% with 576 MiB LRU. The apparent capacity cliff is therefore a policy/workload interaction, not a universal memory requirement. Same-runtime Mac controls preserve generated sequences across eviction and asynchronous prefetch, including 2,560 exact token comparisons and 10,334 speculative loads. In contrast, complete resident-Python versus recorded-phone sequences disagree on all five tested cases, precluding a general numerical equivalence claim. Two separately scoped iOS 27 memory protocols observe sampled process-footprint peaks of 1.87-2.32 GiB on short prompts and 2.39-2.73 GiB on one longer prompt. We retain a thermal stopping event, negative timing comparisons, and a single qualified whole-device power estimate. These results establish bounded feasibility and identify limitations that a deployment claim must not hide.",
+      "authors": [
+        "Musa Shams"
+      ],
+      "primary_category": "cs.PF",
+      "categories": [
+        "cs.PF",
+        "cs.LG"
+      ],
+      "published": "2026-09-24T05:05:28+00:00",
+      "link": "https://arxiv.org/pdf/2609.29032v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "MoE inference with quantized expert weights paged from flash",
+      "llm_evidence_cn": "量化 MoE 专家权重的端侧推理",
+      "llm_evidence": "量化 MoE 专家权重的端侧推理",
+      "canonical_evidence": "量化 MoE 专家权重的端侧推理",
+      "llm_tldr_en": "Sparse MoE still requires storing all experts, which is hard on mobile. Routide, a Swift/MLX runtime, keeps a quantized MoE checkpoint's expert weights on iPhone flash with a byte-budgeted in-memory subset, showing the capacity cliff is a cache-policy effect.",
+      "llm_tldr_cn": "稀疏激活的 MoE 虽减少计算，却仍需存储全部专家，移动端内存难以容纳。作者提出 Routide（Swift/MLX 运行时），将量化 MoE 检查点的专家权重放在 iPhone 闪存中，仅在内存保留字节预算内的子集。在五组 128 token 负载上，512MiB LRU 缓存需求命中率为 0%，576MiB 时升至 38.58%，说明所谓容量悬崖实为缓存策略与负载的交互。该工作为端侧 MoE 量化推理的缓存设计提供了可复现的实证刻画。",
+      "llm_tldr": "稀疏激活的 MoE 虽减少计算，却仍需存储全部专家，移动端内存难以容纳。作者提出 Routide（Swift/MLX 运行时），将量化 MoE 检查点的专家权重放在 iPhone 闪存中，仅在内存保留字节预算内的子集。在五组 128 token 负载上，512MiB LRU 缓存需求命中率为 0%，576MiB 时升至 38.58%，说明所谓容量悬崖实为缓存策略与负载的交互。该工作为端侧 MoE 量化推理的缓存设计提供了可复现的实证刻画。",
+      "llm_tags": [
+        "query:moe-quant:composite"
+      ],
+      "matched_query_tag": "query:moe-quant:composite",
+      "matched_query_text": "Papers central to MoE 量化, especially work that connects or combines: P; M; MoE Quantization.",
+      "matched_requirement_id": "req-composite-moe-quant",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.30950v1",
+      "source": "arxiv",
+      "title": "Low-Bit Recurrent States in Hybrid Language Models",
+      "abstract": "Hybrid language models maintain fixed-size recurrent states, but existing quantizers typically use eight bits or more. Quantization errors persist according to channel decay rates. We derive distortion weights from the observability Gramian and combine them with normalized state ranges for mixed-precision bit allocation, without calibration data, rotation, or training. We also quantize decay rates logarithmically. With per-token state quantization, a four-bit mean payload reduces excess negative log-likelihood by factors of 3.3--27.9 relative to the best of seven baselines across three hybrid models; metadata costs vary. At six bits, negative log-likelihood differs from the FP32-state baseline by less than 0.005 nats. Ablations separate gains from variable bit widths, decay weighting, and range normalization. With less frequent write-backs, gains diminish and depend on the model and budget.",
+      "authors": [
+        "Hongren Chen",
+        "Jiayang He"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-25T08:01:56+00:00",
+      "link": "https://arxiv.org/pdf/2609.30950v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "low-bit quantization of recurrent states with mixed-precision bit allocation",
+      "llm_evidence_cn": "循环状态低比特量化与混合精度比特分配",
+      "llm_evidence": "循环状态低比特量化与混合精度比特分配",
+      "canonical_evidence": "循环状态低比特量化与混合精度比特分配",
+      "llm_tldr_en": "Hybrid LMs keep fixed-size recurrent states but quantizers use 8+ bits; this work derives distortion weights from the observability Gramian for mixed-precision bit allocation, achieving 4-bit state payloads with 3.3-27.9x lower excess NLL.",
+      "llm_tldr_cn": "混合语言模型需要维护固定大小的循环状态，而现有量化器普遍使用八比特以上精度，状态存储与误差问题突出。该文从可观性Gramian推导失真权重，结合归一化状态范围进行混合精度比特分配，并对衰减率做对数量化，全程无需校准数据、旋转或训练。实验表明，逐token状态量化在四比特平均负载下相对七个基线把超额负对数似然降低3.3至27.9倍，六比特时与FP32状态差距不足0.005 nats。这一方案为混合模型的高效低比特状态压缩提供了无需训练即可落地的路径。",
+      "llm_tldr": "混合语言模型需要维护固定大小的循环状态，而现有量化器普遍使用八比特以上精度，状态存储与误差问题突出。该文从可观性Gramian推导失真权重，结合归一化状态范围进行混合精度比特分配，并对衰减率做对数量化，全程无需校准数据、旋转或训练。实验表明，逐token状态量化在四比特平均负载下相对七个基线把超额负对数似然降低3.3至27.9倍，六比特时与FP32状态差距不足0.005 nats。这一方案为混合模型的高效低比特状态压缩提供了无需训练即可落地的路径。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.31009v1",
+      "source": "arxiv",
+      "title": "G$^2$PTQ: Improving LLM Post-Training Quantization with Generalized Gradient Compensation",
+      "abstract": "Post-training quantization (PTQ) is a practical approach to reducing the memory and computational footprint of large language models (LLMs) without retraining. GPTQ-based methods have become the de facto standard, yet they suffer from two complementary limitations. Methods with local, layer-wise objectives lack global supervision; while methods with global objectives fix their Hessian estimates at the start and ignore first-order gradients, so their guidance grows stale as quantization proceeds. This paper presents G$^2$PTQ, a unified PTQ framework with Generalized Gradient Compensation that integrates both first- and second-order information under a globally supervised, block-wise optimization objective. By refreshing gradient and Hessian estimates before quantizing each Transformer block, G$^2$PTQ avoids the staleness of prior global methods. Furthermore, to stabilize the exact first-order compensation, we introduce a trust-region scaling mechanism that dynamically bounds the gradient step to prevent exploding weight updates. Finally, we derive efficient implementations for block-wise Hessian approximation and exact gradient compensation. Experimental results on various model families and bit-widths demonstrate that G$^2$PTQ enables better alignment with the full-precision model, outperforming state-of-the-art baselines. Code is available at: https://github.com/G2PTQ/G2PTQ.",
+      "authors": [
+        "Ruikang Liu",
+        "Haoli Bai",
+        "Yuxuan Sun",
+        "Qian Zhang",
+        "Wenzheng Cai",
+        "Yanqi Hao",
+        "Feiyu Wang",
+        "Weidong Zhong",
+        "Zhuang Wang",
+        "Tong Yang",
+        "Xiangsheng Zhou"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-09-25T08:53:14+00:00",
+      "link": "https://arxiv.org/pdf/2609.31009v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "unified post-training quantization with generalized gradient compensation",
+      "llm_evidence_cn": "广义梯度补偿的统一训练后量化框架",
+      "llm_evidence": "广义梯度补偿的统一训练后量化框架",
+      "canonical_evidence": "广义梯度补偿的统一训练后量化框架",
+      "llm_tldr_en": "GPTQ-based post-training quantization suffers from stale Hessian estimates and missing global supervision. G2PTQ unifies first- and second-order information under a globally supervised block-wise objective, refreshing gradients during quantization to improve low-bit LLM compression without retraining.",
+      "llm_tldr_cn": "大语言模型训练后量化可降低内存与计算开销，但现有GPTQ类方法存在局部目标缺乏全局监督、Hessian估计固定且忽略一阶梯度导致指导过时的问题。本文提出G²PTQ统一框架，在全局监督的分块优化目标下融合一阶与二阶信息，并在量化过程中持续刷新梯度与Hessian。实验表明该方法提升了低比特量化的精度，为无需重训练的高效LLM压缩提供了更稳健的方案。",
+      "llm_tldr": "大语言模型训练后量化可降低内存与计算开销，但现有GPTQ类方法存在局部目标缺乏全局监督、Hessian估计固定且忽略一阶梯度导致指导过时的问题。本文提出G²PTQ统一框架，在全局监督的分块优化目标下融合一阶与二阶信息，并在量化过程中持续刷新梯度与Hessian。实验表明该方法提升了低比特量化的精度，为无需重训练的高效LLM压缩提供了更稳健的方案。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "papers provide SoTA/advanced results",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.35586v1",
+      "source": "arxiv",
+      "title": "IMC-CLINIC: Coupled Loss-Informed Newton Iterations for Clipping in Analog In-Memory Computing",
+      "abstract": "Analog in-memory computing (IMC) offers a promising path toward energy-efficient large language model (LLM) inference by executing matrix multiplications (MatMul) directly within memory arrays in the analog domain. Its efficiency, however, comes with an additional source of error: limited-precision analog-to-digital converters (ADCs) quantize accumulated analog partial sums, introducing output-side error distinct from conventional activation and weight quantization at the MatMul inputs. Clipping can mitigate both operand and ADC quantization errors, but the optimal clipping factors must jointly balance activation rounding and clipping, weight rounding and clipping, and ADC quantization. Existing clipping methods, designed for digital quantization, do not explicitly optimize these coupled sources of IMC error and often rely on costly search-based calibration. We introduce IMC-CLINIC (Coupled Loss-Informed Newton Iterations for Clipping), a clipping calibration framework based on an analytical surrogate for IMC MatMul output error. The surrogate jointly models operand quantization, accumulated clipping-induced bias, and ADC quantization, enabling efficient evaluation of its gradient and approximate curvature from a small calibration set. IMC-CLINIC jointly optimizes activation and weight clipping factors using a safeguarded Newton-type method. Across multiple models and datasets, it improves average zero-shot accuracy by 6.5-11.5 percentage points over the grid search baseline while reducing calibration time by factors of 10.0-12.1. Its analytical surrogate closely tracks empirical IMC output error, and its optimizer is certified within 1% of the global optimum under the loss objective across all projections on two representative models.",
+      "authors": [
+        "Yung-Chin Chen",
+        "Chia-Yu Chen",
+        "Naveen Verma"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-28T16:38:47+00:00",
+      "link": "https://arxiv.org/pdf/2609.35586v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "optimal clipping factors for weight and activation quantization plus ADC quantization",
+      "llm_evidence_cn": "联合优化权重、激活与ADC量化的最优裁剪因子",
+      "llm_evidence": "联合优化权重、激活与ADC量化的最优裁剪因子",
+      "canonical_evidence": "联合优化权重、激活与ADC量化的最优裁剪因子",
+      "llm_tldr_en": "Analog in-memory computing adds ADC quantization error on top of weight and activation rounding, and clipping must jointly balance all three. IMC-CLINIC proposes coupled loss-informed Newton iterations to find optimal clipping factors, reducing output-side quantization error for energy-efficient LLM inference.",
+      "llm_tldr_cn": "模拟存内计算通过阵列内矩阵乘法提升LLM推理能效，但低精度ADC对模拟部分和量化会引入额外的输出端误差，裁剪因子需同时平衡激活、权重的舍入与裁剪以及ADC量化。本文提出IMC-CLINIC，用耦合的损失感知牛顿迭代求解最优裁剪因子。实验表明该方法能有效降低量化误差，改善模拟存内计算推理精度。",
+      "llm_tldr": "模拟存内计算通过阵列内矩阵乘法提升LLM推理能效，但低精度ADC对模拟部分和量化会引入额外的输出端误差，裁剪因子需同时平衡激活、权重的舍入与裁剪以及ADC量化。本文提出IMC-CLINIC，用耦合的损失感知牛顿迭代求解最优裁剪因子。实验表明该方法能有效降低量化误差，改善模拟存内计算推理精度。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "papers provide SoTA/advanced results",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

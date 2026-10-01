@@ -48,7 +48,7 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-30</span>
+      <span class="dpr-home-dashboard-kicker">2026-10-01</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 5 篇</strong>
@@ -58,7 +58,7 @@
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>5</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-30 22:40:46 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-01 22:59:41 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日无精读、速读5篇，主线集中在大模型量化与端侧推理效率。</p>
-<p>最值得看的是 RGSQ（7.0/10）用黎曼几何敏感量化优化大型视觉语言模型，其次是两篇 6 分工作：iPhone 上 Flash-backed MoE 推理的可复现刻画，以及用动作子空间保护做世界动作模型的 4-bit 量化。</p>
-<p>普通读者可先读 RGSQ 建立量化直觉，再按&quot;端侧部署&quot;或&quot;具身模型&quot;兴趣挑一篇速读跟进。</p>
+<p>今日速读 5 篇、精读挂零，选题集中在卫星语义通信与端侧大模型推理两条线。</p>
+<p>最值得看的是拿下 7.0 分的《Dual-Branch Vector-Quantization-Aided Satellite Digital Semantic Communication with Index Compression for High-Resolution RSI Over AFDM》，它把矢量量化双分支与索引压缩结合，瞄准高分辨率遥感图像在 AFDM 上的传输；另外两篇 6.0 分工作分别关注 iPhone 上 Flash 支撑的 MoE 推理复现，以及混合语言模型中的低位循环状态。</p>
+<p>普通读者可先读那篇 7.0 分论文的索引压缩思路，再顺着 MoE 端侧推理和低位循环状态两篇，理解“模型变小、跑得更远”这条主线。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -96,7 +96,7 @@
     <strong class="dpr-home-dashboard-count">5 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="RGSQ: Riemannian Geometry-Sensitive Quantization for Large Vision-Language Models">RGSQ: Riemannian Geometry-Sensitive Quantization for Large Vision-Language Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone">Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone</span></li><li><span class="dpr-home-dashboard-paper-title" title="Q-WAM: 4-Bit Quantization of World Action Models with Action-Subspace Protection">Q-WAM: 4-Bit Quantization of World Action Models with Action-Subspace Protection</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Dual-Branch Vector-Quantization-Aided Satellite Digital Semantic Communication with Index Compression for High-Resolution RSI Over AFDM">Dual-Branch Vector-Quantization-Aided Satellite Digital Semantic Communication with Index Compression for High-Resolution RSI Over AFDM</span></li><li><span class="dpr-home-dashboard-paper-title" title="Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone">Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone</span></li><li><span class="dpr-home-dashboard-paper-title" title="Low-Bit Recurrent States in Hybrid Language Models">Low-Bit Recurrent States in Hybrid Language Models</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>4</strong></span><span class="dpr-home-dashboard-tag">moe-quant <strong>1</strong></span></div>
 </section>

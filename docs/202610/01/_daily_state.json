@@ -1,0 +1,89 @@
+{
+  "date": "20261001",
+  "date_label": "",
+  "generated_at": "2026-10-01 22:59:41 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.35906v1",
+      "route": "202610/01/2609.35906v1-dual-branch-vector-quantization-aided-satellite-digital-semantic-communication-with-index-compression-for-high-resolution-rsi-over-afdm",
+      "title": "Dual-Branch Vector-Quantization-Aided Satellite Digital Semantic Communication with Index Compression for High-Resolution RSI Over AFDM",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "矢量量化辅助的索引压缩与码本实现极致压缩",
+      "first_seen_at": "2026-10-01 22:59:41 UTC",
+      "updated_at": "2026-10-01 22:59:41 UTC"
+    },
+    {
+      "paper_id": "2609.29032v1",
+      "route": "202610/01/2609.29032v1-paging-the-experts-a-reproducible-characterization-of-flash-backed-moe-inference-on-iphone",
+      "title": "Paging the Experts: A Reproducible Characterization of Flash-Backed MoE Inference on iPhone",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "量化 MoE 专家权重的端侧推理",
+      "first_seen_at": "2026-10-01 22:59:41 UTC",
+      "updated_at": "2026-10-01 22:59:41 UTC"
+    },
+    {
+      "paper_id": "2609.30950v1",
+      "route": "202610/01/2609.30950v1-low-bit-recurrent-states-in-hybrid-language-models",
+      "title": "Low-Bit Recurrent States in Hybrid Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "循环状态低比特量化与混合精度比特分配",
+      "first_seen_at": "2026-10-01 22:59:41 UTC",
+      "updated_at": "2026-10-01 22:59:41 UTC"
+    },
+    {
+      "paper_id": "2609.31009v1",
+      "route": "202610/01/2609.31009v1-g2ptq-improving-llm-post-training-quantization-with-generalized-gradient-compensation",
+      "title": "G$^2$PTQ: Improving LLM Post-Training Quantization with Generalized Gradient Compensation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "广义梯度补偿的统一训练后量化框架",
+      "first_seen_at": "2026-10-01 22:59:41 UTC",
+      "updated_at": "2026-10-01 22:59:41 UTC"
+    },
+    {
+      "paper_id": "2609.35586v1",
+      "route": "202610/01/2609.35586v1-imc-clinic-coupled-loss-informed-newton-iterations-for-clipping-in-analog-in-memory-computing",
+      "title": "IMC-CLINIC: Coupled Loss-Informed Newton Iterations for Clipping in Analog In-Memory Computing",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "联合优化权重、激活与ADC量化的最优裁剪因子",
+      "first_seen_at": "2026-10-01 22:59:41 UTC",
+      "updated_at": "2026-10-01 22:59:41 UTC"
+    }
+  ]
+}

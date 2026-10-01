@@ -1,0 +1,943 @@
+Title: Dual-Branch Vector-Quantization-Aided Satellite Digital Semantic Communication with Index Compression for High-Resolution RSI Over AFDM
+
+URL Source: https://arxiv.org/pdf/2609.35906v1
+
+Published Time: Wed, 30 Sep 2026 00:05:39 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+# Dual-Branch Vector-Quantization-Aided Satellite Digital Semantic Communication with Index Compression for High-Resolution RSI Over AFDM 
+
+Jianqiao Chen, Nan Ma, Member, IEEE , Xiaodong Xu, Senior Member, IEEE , Tingting Zhu, Member, IEEE ,Huishi Song, Chen Dong, Rui Meng, Member, IEEE , Wenkai Liu, Ke Peng and Ping Zhang, Fellow, IEEE 
+
+Abstract —High-resolution remote sensing imagery (RSI) transmission is constrained by satellite-ground bandwidth and channel impairments, yet existing methods struggle to simulta-neously achieve extreme compression and robust transmission. To address this, we propose a dual-branch vector-quantization-aided satellite digital semantic communication (DVQ-SDSC) framework for RSI transmission over affine frequency division multiplexing (AFDM), whose bandwidth savings arise from two interrelated aspects. First, at the source-coding level, a dual-branch framework is developed to unify deep joint semantic coding, VQ-aided index transmission, channel estimation and adaption in an end-to-end architecture; departing from symmet-ric encoder designs, the codec is recast as an asymmetric dual-branch architecture that separately processes the high-frequency residuals and the low-frequency structural semantics, with gated fusion and channel-adaptive reconstruction jointly restoring the semantic content. Second, at the index-coding level, we develop a principal component analysis (PCA)-aided codebook reordering to align index topology with latent correlations, and devise group differential pulse-code modulation (G-DPCM) to encode prediction residuals rather than absolute indices, lowering the index bitrate while locally isolating clipping and channel errors. A two-stage training strategy further decouples channel impair-ments from the semantic codec. FAIR1M experiments over 3GPP NTN-TDL-D demonstrate that DVQ-SDSC with G-DPCM index coding outperforms the conventional JPEG-LDPC scheme at the base rate of 0.0625 bits per pixel (BPP), and that G-DPCM applies directly to the trained codec without retraining, yielding additional index compression at no extra cost. 
+
+Index Terms —Satellite communication, digital semantic com-munication, vector quantization, AFDM, index compression. 
+
+I. I NTRODUCTION 
+
+A. Background and Significance 
+
+# SATELLITE communication has gained increasing atten-tion owing to its large-scale connectivity and seamless wireless coverage, while high-quality remote sensing imagery (RSI) transmission is vital for environmental monitoring, including the urban planning, agricultural management, and 
+
+Jianqiao Chen, Tingting Zhu and Huishi Song are with the ZGC Institute of Ubiquitous-X Innovation and Applications, and Beijing Key Laboratory of 6G DOICT converged and Cloud-Native Mobile Information Networks, Beijing 100876, China. Nan Ma, Xiaodong Xu, Chen Dong, Rui Meng, Wenkai Liu, Ke Peng, and Ping Zhang are with the State Key Laboratory of Networking and Switching Technology, Beijing University of Posts and Telecommunications, Beijing 100876, China (e-mail: {chenjianqiao; zhutingt-ing; songhuishi }@zgc-xnet.com. {manan; xuxiaodong; dongchen; buptmen-grui; liuwenkai; pengke; pzhang }@bupt.edu.cn). ( Corresponding author: Nan Ma. )
+
+disaster response [1]. However, the explosive growth of low Earth orbit (LEO)-satellite deployments and their massive high-resolution imagery, combined with severely limited satel-lite bandwidth, make efficient and timely transmission of such big data increasingly urgent [2]. Additionally, high-velocity LEO-satellite motion causes rapid channel variation, degrading signal quality and elevating the bit error rate, thereby compromising communication reliability [3]. Conven-tional Shannon-theoretic schemes compress all bits uniformly and employ separate source-channel coding (SSCC), thus performing poorly in bandwidth-constrained, highly interfered satellite-to-ground image links [4], [5]. Rapidly evolving semantic communication has emerged as a breakthrough paradigm for enhancing transmission efficiency [6], [7]. By leveraging deep joint source-channel coding (DJSCC), it synergistically unifies source and channel coding within a single optimization framework, which enhances noise resilience and effectively mitigates the cliff effect [8], [9]. Various DJSCC schemes have been developed for different communication source modes [10], [11], [12] and physical layer transmission modes [13], [14], [15]. However, despite these advances, existing semantic communication schemes still face three major limitations in high-resolution RSI trans-mission over dynamic LEO-satellite channels. Limitation 1: 
+
+Most existing DJSCC schemes rely on analog or end-to-end continuous representations, lacking a practical discrete semantic mapping mechanism compatible with standardized digital communication infrastructures. Limitation 2: Conven-tional single-branch semantic codecs process low-frequency (LF) structural content and high-frequency (HF) texture within a shared representation, prioritizing the former over the latter under extreme bandwidth constraints. Limitation 3: Prevailing schemes transmit semantic information and optimize under idealized, perfect channel state information (CSI), which is highly mismatched with the rapidly time-varying LEO-satellite channels. We next summarize the current state of research and present the contributions of this work. 
+
+B. Related Works and Contributions 
+
+As to the processing of RSI, recent research has explored the potential of semantic communication systems in evolving satellite communications [16], [17]. Jiang et al. [18] propose a framework that combines feature extraction and semantic source-channel coding, achieving excellent accuracy in the classification task. Cao et al. [19] applies segmentation model arXiv:2609.35906v1 [cs.IT] 28 Sep 2026 enhancement for fine-grained semantic segmentation, which prioritizes semantically vital content via task-driven selection and real-time CSI and uses an signal-to-noise ratio (SNR)-aware stack-based channel codec for adaptive coding. As to RSI compression and transmission tasks, a generative founda-tion model-based semantic satellite communication framework is proposed to safeguard key features and enhance visual quality [20]. Leveraging known channels and prior images, it refines performance while reducing frequent bandwidth adjustments. Tan et al. [21] propose to compress RSIs into semantic information and residuals for high-quality recon-struction under limited bandwidth, adapt semantic preferences via an attention feature module across SNRs, and enable variable semantic lengths through a variance-based position mask module. As to internet of everything scenarios, a se-mantic communication framework is developed to adapt to heterogeneous receiver capacities, which uses Swin Trans-former model to transmit task-relevant features for reducing bandwidth [22]. To tackle bandwidth limitations and semantic knowledge base (SKB) vulnerability, Lin et al. [23] propose a spatially attention-assisted joint coding-modulation framework for semantic communication, improving semantic precision and SKB-based data recovery while ensuring consistency. Vector-quantized (VQ)-enabled semantic communication represents semantic features via trainable codebooks, whose corresponding discrete indices can be directly mappable to standard digital modulation. It thus integrates semantic com-munication into existing satellite communication infrastruc-ture naturally with low hardware cost and full compatibility [24], [25]. An adaptive semantic communication framework is proposed by integrating a deep reinforcement learning agent with a vector-quantized variational autoencoder (VQ-VAE) [26]. It dynamically selects modulation via real-time Doppler and delay spread, while receiver-side post-equalization re-duces residual frequency offsets. To improve transmission efficiency and link stability in free space optical (FSO)-based RSIs transmission, Chen et al. in [27] propose an FSO-semantic communication scheme using VQ-VAE with spatial normalization for preserving image details. A se-mantic forwarding-based framework is proposed for satellite-terrestrial networks that jointly optimizes the semantic en-coder and codebook to shape constellation symbols [28]. The feature-wise linear modulation-based channel-aware recon-struction and codebook split-enhanced model division mul-tiple access enhance robustness and spectral efficiency. Although VQ-based RSI processing has undergone prelimi-nary research, the conventional VQ architecture still constrains its applicability to high-resolution RSI, particularly in se-mantic compression and reconstruction. Moreover, the above models have not been trained or evaluated under LEO-satellite channel characteristics. Chen et al. in [29] combines semantic communication with orthogonal time-frequency space (OTFS) modulation to mitigate Doppler and boost efficiency and integrates adversarial training with 3GPP channel model. However, it adopts traditional channel encoder and decoder for enhancing error correction capability. In contrast to OTFS, the recently proposed affine frequency division multiplexing (AFDM) employs a lower-complexity one-dimensional dis-crete affine Fourier transform (DAFT) structure rather than a two-dimensional delay-Doppler transform, which therefore requires only one-dimensional pilot guards for channel es-timation and attains comparable bit-error performance with reduced pilot overhead [30], [31]. Several AFDM-based com-munication schemes for LEO-satellite systems have developed recently [32], [33]. However, research combined with seman-tic communication is still quite lacking. To overcome these limitations, we propose the dual-branch vector-quantization-aided satellite digital semantic communi-cation (DVQ-SDSC) framework for RSI transmission over AFDM-based satellite channels. It unifies deep joint semantic coding, VQ-based discrete mapping, residual-indexed trans-mission, sparse channel estimation, and SNR-adaptive de-coding within a single end-to-end architecture, systematically addressing (i) the lack of a discrete semantic mapping ( Limi-tation 1 ), (ii) the separation of LF structural and HF residual semantics at source-coding level ( Limitation 2 ), and (iii) SNR-adaptive reconstruction over estimated CSI ( Limitation 3 ). The key contributions are summarized as follows: 
+
+• Dual-Branch Framework with LF/HF Extraction and Codebook Mapping: We propose a dual-branch frame-work for semantic feature extraction and VQ quantization mapping, tailored to high-resolution RSI transmission. Unlike single-branch codecs that entangle structure and texture, the encoder separately extracts HF texture details and LF structural semantics, while the decoder performs gated fusion and reconstruction of the two branches, preserving both under limited bandwidth. To the best of our knowledge, this is the first work to combine asymmetric LF/HF semantic branching with VQ-based discrete mapping for high-resolution RSI transmission over satellite channels. 
+
+• Asymmetric LF/HF Semantic Branching: We depart from single-branch encoders that represent structure and texture within a shared latent and instead devise an asymmetric two-branch architecture in which each branch is quantized through a dedicated VQ codebook. The top branch extracts HF residuals via bicubic subtraction and refines them through multi-scale fusion and channel attention before quantization; the bottom branch encodes LF structural semantics at a reduced spatial resolution. Their outputs are reconciled by a gated fusion module through channel-wise adaptive weighting and residual refinement, yielding the final reconstruction. 
+
+• Correlation-based Index Compression and Transmis-sion: Conventional VQ-based architectures transmit in-dices using fixed-length codes, leaving adjacent-index correlation unexploited. To address this, we propose a principal component analysis (PCA)-aided codebook re-ordering that aligns the index topology with latent feature correlations, and develop group-wise differential pulse-code modulation (G-DPCM), which encodes prediction residuals rather than absolute indices and thereby reduces the average bitrate. Group-wise error isolation confines clipping and channel-induced errors locally, preventing distortion propagation under channel fading. 
+
+• Experimental Validation and Performance Evaluation: Fig. 1: Overall architecture of DVQ-SDSC framework over AFDM-based satellite channels. 
+
+We develop a two-stage training strategy that isolates channel-induced impairments from the semantic codec. Extensive experiments on FAIR1M over 3GPP NTN-TDL-D channels demonstrate that DVQ-SDSC with G-DPCM index coding outperforms conventional Photo-graphic Experts Group (JPEG) + low-density parity-check (LDPC) in peak signal-to-noise ratio (PSNR), multiscale structural similarity (MS-SSIM), and learned perceptual image patch similarity (LPIPS) at 0.0625 bits per pixel (BPP). Furthermore, G-DPCM reduces the index bitrate relative to fixed-length coding without codec retraining or additional transmission overhead. The remainder of this paper is organized as follows. Section II presents the system model and DVQ-SDSC framework for high-resolution RSI transmission over AFDM-based satel-lite channels. Section III details the dual-branch asymmetric codec, VQ mapping, and joint optimization strategy. Section IV elaborates on the proposed PCA-aided codebook reorder-ing and G-DPCM for index compression and transmission. Section V reports experimental results and performance eval-uations. Finally, Section VI concludes the paper. 
+
+Notation: Boldface small letters denote vectors and bold-face capital letters denote matrices. R, Z and C denote the real number field, integer number field, and complex number field, respectively. [·] 𝑇 denotes matrix transpose. [·] 𝐻 denotes conjugate transpose. ∥ · ∥ 2 denotes Euclidean norm. II. DVQ-SDSC F RAMEWORK FOR HIGH -RESOLUTION 
+
+RSI T RANSMISSION OVER AFDM-BASED CHANNELS 
+
+As shown in Fig. 1, the DVQ-SDSC framework for high-resolution RSI transmission over AFDM-based satellite chan-nels adopts a dual-branch asymmetric encoder to decouple HF texture details from LF structural semantics. The under-lying rationale is twofold: LF semantics alone are insufficient for photorealistic reconstruction under extreme compression, while HF features transmitted without LF priors lead to structural drift and visual artifacts. 
+
+A. Semantic Joint Source-Channel Encoder at the Satellite 
+
+Let the original high-resolution image dataset be D, with each image S ∈ R𝐻 ×𝑊 ×𝑂 ⊂ D, where 𝐻 , 𝑊 and 𝑂 
+
+are the height, width, and channel size of each image, respectively. The low-resolution image S↓ ∈ R𝐻 ′ ×𝑊 ′ ×𝑂 ′
+
+related to S can be obtained via bicubic interpolation. At the transmitter, two dedicated semantic encoders (SEs) are developed to extract features from the high-resolution and low-resolution images, referred to as the top semantic encoder (SE-T) and bottom semantic encoder (SE-B), respectively. The extracted HF and LF semantic features are denoted by Z𝐻𝐹 = 𝒛 0, ..., 𝒛 𝑘 𝑧 , ..., 𝒛 𝐾 𝑧 −1
+
+𝑇 ∈ R𝐾 𝑧 ×𝑀 𝑧 and Z𝐿𝐹 =
+
+[𝒛 ′
+
+> 0
+
+, ..., 𝒛 ′ 
+
+> 𝑘 ′
+> 𝑧
+
+, ..., 𝒛 ′ 
+
+> 𝐾 ′
+> 𝑧 −1
+
+]𝑇 ∈ R𝐾 ′  
+
+> 𝑧 ×𝑀 ′
+> 𝑧
+
+, respectively, which can be calculated as 
+
+Z𝐻𝐹 = 𝑓 𝑆𝐸 −𝑇 
+
+ S, S↓, 𝜶 𝑇 
+
+ , Z𝐿𝐹 = 𝑓 𝑆𝐸 −𝐵 
+
+ S↓, 𝜶 𝐵 
+
+ , (1) where 𝑓 𝑆𝐸 −𝑇 (· , 𝜶 𝑇 ) and 𝑓 𝑆𝐸 −𝐵 (· , 𝜶 𝐵 ) denote the SE-T and SE-B with parameters 𝜶 𝑇 and 𝜶 𝐵 , respectively. The dual-branch quantized codebooks are assisted by em-bedding spaces for the top semantic feature (ES-T) and bottom semantic feature (ES-B), which correspond respectively to the HF features and the LF features. Let the ES-T and ES-B be C𝐻𝐹 = 𝒄 0, ..., 𝒄 𝑘 𝑇 , ..., 𝒄 𝐾 𝑇 −1
+
+𝑇 ∈ R𝐾 𝑇 × 𝑁 𝑇 and C𝐿𝐹 =
+
+[𝒄 ′
+
+> 0
+
+, ..., 𝒄 ′ 
+
+> 𝑘 𝐵
+
+, ..., 𝒄 ′ 
+
+> 𝐾 𝐵 −1
+
+]𝑇 ∈ R𝐾 𝐵 × 𝑁 𝐵 , where 𝐾 𝑇 (𝐾 𝐵 ) denotes the codebook size, and each element 𝒄 𝑘 𝑇 ∈ R𝑁 𝑇 (𝒄 ′ 
+
+> 𝑘 𝐵
+
+∈ R𝑁 𝐵 )
+
+is called a semantic codeword with dimension size 𝑁 𝑇 (𝑁 𝐵 )
+
+and index 𝑘 𝑇 (𝑘 𝐵 ). The feature elements in Z𝐻𝐹 and Z𝐿𝐹 
+
+are passed through discretization bottleneck and generates the mapping index with respect to the ES-T and ES-B as follows: 
+
+ˆ𝒛 𝑘 𝑧 = 𝑞  𝒛 𝑘 𝑧 
+
+ ≜ argmin  
+
+> 𝒄 𝑗
+
+𝒛 𝑘 𝑧 − 𝒄 𝑗 2 , 𝑗 = 1, 2, ..., 𝐾 𝑇 ,
+
+ˆ𝒛 ′ 
+
+> 𝑘 ′
+> 𝑧
+
+= 𝑞 (𝒛 ′ 
+
+> 𝑘 ′
+> 𝑧
+
+) ≜ argmin 
+
+> 𝒄 ′
+> 𝑗
+
+∥𝒛 ′ 
+
+> 𝑘 ′
+> 𝑧
+
+− 𝒄 ′𝑗 ∥2, 𝑗 = 1, 2, ..., 𝐾 𝐵 , (2) where 𝑞 (·) denotes quantization operator, and 𝒄 𝑗 (𝒄 ′𝑗 ) denotes the element with the 𝑗 th index of ES-T (ES-B). After all the semantic features are mapped into the dis-crete space, the corresponding index sequences of semantic features of Z𝐻𝐹 and Z𝐿𝐹 are obtained, which are denoted as 
+
+𝑰 𝑠 = 𝑰 𝑠 𝐻𝐹 , 𝑰 𝑠 𝐿𝐹 ∈ Z(𝐾 𝑧 +𝐾 ′ 
+
+> 𝑧
+
+). Through Digital Modulation 
+
+module, 𝑰 𝑠 is mapped into the transmitted symbol vector 
+
+𝒙 𝑑 ∈ C𝐿 𝑠 , where 𝐿 𝑠 denotes the length of modulated symbols. 
+
+B. AFDM-Based Transmission Under LEO-Satellite Channel 
+
+To combat the high-mobility LEO-satellite communications with time-varying channels and large Doppler, we consider the AFDM-based multicarrier waveform. The processing pro-cedure of AFDM-based transmission is shown on the right side of Fig. 1. Let 𝑁 denote the number of AFDM chirp subcarries. Each AFDM frame spans a duration of 𝑇 = 𝑁 · △ 𝑡 .The sampling rate is given by 1 
+
+> △𝑡
+
+, and the subcarrier spacing to 
+
+△ 𝑓 = 1 
+
+> 𝑇
+
+. Let 𝒙 𝑝 ∈ C𝑁 𝑝 denote pilot sequence and 𝒙 𝑔 ∈ C𝑁 𝑔 
+
+denote guard sequence. The data sequence, pilot sequence, and guard sequence are combined to form the DAFT symbol vector 𝒙 = [𝑥 1, ..., 𝑥 𝑚 , ..., 𝑥 𝑁 ]𝑇 ∈ C𝑁 . The 𝑥 𝑚 is transformed into time-domain symbol 𝑠 𝑛 through an 𝑁 -point IDAFT as 
+
+𝑠 𝑛 = 
+
+> 𝑁 −1
+
+∑︁ 
+
+> 𝑚 =0
+
+𝑥 𝑚 𝜙 𝑛 (𝑚 ) , 𝑛 = 0, 1, ..., 𝑁 − 1, (3) where 𝜙 𝑛 (𝑚 ) = 1√𝑁 𝑒 𝑗 2 𝜋 (𝑐 1 𝑛 2+𝑐 2 𝑚 2+ 𝑛𝑚 𝑁 ), 𝑐 1 and 𝑐 2 denote chirp parameters for AFDM time-frequency resource division. To make the channel lie in a periodic domain, a chirp periodic prefix (CPP) should be added to the modulated signal, i.e., 𝑠 𝑛 = 𝑠 𝑁 +𝑛 𝑒 − 𝑗 2 𝜋𝑐 1 (𝑁 2+2𝑁 𝑛 ), 𝑛 = −𝐿 𝑐 𝑝 , ..., −1, where 𝐿 𝑐 𝑝 
+
+denotes any integer greater than or equal to the value in samples of the maximum delay spread of the wireless channel. From (3), its vector form can be given by 
+
+𝒔 = A𝐻 𝒙 = 𝚵 𝐻 𝑐 1 F𝐻 𝚵 𝐻 𝑐 2 𝒙 , (4) where A ≜ 𝚵 𝑐 2 F𝚵 𝑐 1 denotes the DAFT matrix, 𝚵 𝑐 ≜
+
+diag (𝑒 − 𝑗 2 𝜋𝑐𝑛 2
+
+, 𝑛 = 0, 1, ..., 𝑁 − 1), and F denotes the discrete Fourier transform (DFT) matrix with entries 1√𝑁 𝑒 − 𝑗 2 𝜋𝑚𝑛 /𝑁 .The ground-space LEO-satellite channel can be character-ized in delay-Doppler (DD) domain as 
+
+𝑔 𝑛 (𝑙 ) =
+
+> 𝐿 𝑝
+
+∑︁ 
+
+> 𝑖 =1
+
+ℎ𝑖 𝑒 − 𝑗 2 𝜋 𝑓 𝑖 𝑛 𝛿 (𝑙 − 𝑙 𝑖 ) , (5) where 𝐿 𝑝 denotes the number of multi-paths, 𝛿 (·) denotes the Dirac delta operator, and ℎ𝑖 , 𝑓 𝑖 and 𝑙 𝑖 denote the complex gain, Doppler shift, and integer delay associated with the 𝑖 th path, respectively. Let 𝜈 𝑖 ≜ 𝑁 𝑓 𝑖 = ¯𝜈 𝑖 + 𝜄 𝑖 , where 𝜈 𝑖 ∈ [− 𝜈 𝑚𝑎𝑥 , 𝜈 𝑚𝑎𝑥 ]
+
+denotes the normalized Doppler shift with respect to the subcarrier spacing, ¯𝜈 𝑖 denotes its integer part whereas 𝜄 𝑖 
+
+denotes the fractional part satisfying − 12 ≤ 𝜄 𝑖 ≤ 12 .After the parallel to serial conversion, transmission over the channel and CPP discarding, the received symbols in DAFT-domain can be calculated as 
+
+𝒚 =
+
+> 𝐿 𝑝
+
+∑︁ 
+
+> 𝑖 =1
+
+ℎ𝑖 H𝑖 𝒙 + A𝒘 = H𝑒 𝒙 + e𝒘 , (6) where 𝒘 = [0, ..., 𝑤 𝑛 , ..., 𝑤 𝑁 −1]𝑇 with 𝑤 𝑛 ∼ CN ( 0, 1)
+
+denoting the additive Gaussian noise, H𝑖 = A𝚪 𝑖 𝚫 𝜖 𝑖 𝚷 𝑙 𝑖 A𝐻 ,
+
+𝚫 𝜖 𝑖 = diag (𝑒 − 𝑗 2 𝜋 𝜖 𝑖 𝑁 𝑛 , 𝑛 = 0, 1, ..., 𝑁 − 1), 𝚷 𝑙 𝑖 de-notes the forward cyclic-shift matrix in terms of 𝑙 𝑖 ,and 𝚪 𝑖 denotes a 𝑁 × 𝑁 diagonal matrix, i.e., 𝚪 𝑖 =
+
+diag 
+
+(
+
+𝑒 − 𝑗 2 𝜋𝑐 1 (𝑁 2 −2𝑁 (𝑙 𝑖 −𝑛 )), 𝑛 ≤ 𝑙 𝑖 
+
+1, 𝑛 ≥ 𝑙 𝑖 
+
+, 𝑛 = 0, ..., 𝑁 − 1
+
+!
+
+.
+
+C. Semantic Joint Source-Channel Decoder at UEs 
+
+After quantization and modulation processing, the index sequences related to semantic features are transmitted over the AFDM link. The Channel Estimation module first computes an estimate of effective channel matrix bH𝑒 ∈ C𝑁 × 𝑁 based on pilot and received symbols. The Channel Equalization 
+
+module then performs to recover transmitted signals, i.e., 
+
+b𝒙 𝑑 = bH−1 
+
+> 𝑒
+
+𝒚 𝑑 , where 𝒚 𝑑 denotes the received symbols for channel estimation. The equalized data symbol b𝒙 𝑑 is finally passed to Digital Demodulation module, which reverses the modulation mapping to obtain the recovered index vector 
+
+b𝑰 𝑠 = {b𝑰 𝑠 𝐻𝐹 , b𝑰 𝑠 𝐿𝐹 }. Based on b𝑰 𝑠 and feature embedding spaces (ES-T/ES-B), the HF features bZ𝐻𝐹 and LF features bZ𝐿𝐹 can be mapped, which are passed to the Semantic Decoder (SD) to reconstruct the original image as 
+
+bS = 𝑓 𝑆𝐷 ({ bZ𝐻𝐹 , bZ𝐿𝐹 }, 𝜷 ), (7) where 𝑓 𝑆𝐷 (· , 𝜷 ) denotes the SD module with parameter 𝜷 .
+
+D. Problem Formulation 
+
+For transmitting high-resolution RSIs in satellite-to-ground channel with very limited bandwidth resources, we formulate the DVQ-SDSC framework as a joint optimization of dual-branch-aided semantic extraction, VQ mapping and recon-struction with AFDM-based transmission as follows: 
+
+ 𝜶 ∗ 
+
+> 𝑇
+
+, 𝜶 ∗
+
+> 𝐵
+
+, 𝜷 ∗, C∗ 
+
+> 𝐻𝐹
+
+, C∗
+
+> 𝐿𝐹
+
+
+
+= argmin    
+
+> 𝜶 𝑇 ,𝜶 𝐵 ,𝜷 ,C𝐻𝐹 ,C𝐿𝐹
+
+E𝑝 ( 𝜎 ) E𝑝 (𝒉 ) E𝑝 (S, ˆS) [𝑑 (S, ˆS)] , (8) where E𝑝 ( 𝑥 ) [·] denotes the expectation with respect to the dis-tribution 𝑝 (𝑥 ), 𝑝 (𝜎 ) and 𝑝 (𝒉 ) model the statistical distribu-tion of fading channel and noise, respectively, 𝑝 (S, ˆS) denotes the joint distribution of original and reconstructed semantic features, and 𝑑 (·) denotes a perceptual distortion metric. The optimization variable 𝜶 ∗ 
+
+> 𝑇
+
+, 𝜶 ∗
+
+> 𝐵
+
+, 𝜷 ∗, C∗ 
+
+> 𝐻𝐹
+
+, C∗ 
+
+> 𝐿𝐹
+
+collectively govern the dual-branch configurations, VQ mapping and channel adaption strategies, jointly minimizing the perceptual distortion over AFDM-based satellite channels. Furthermore, VQ-index transmission provides an additional avenue for bandwidth reduction, owing to its compact discrete-index representation of semantic features. On the other hand, the achievable rate reduction remains suboptimal due to the use of conventional fixed-length index coding. III. D ESIGN OF DVQ-SDSC M ODULE 
+
+This section details the major DVQ-SDSC modules, which employ lightweight neural network architectures tailored to the asymmetric satellite-to-ground computational capabilities. 
+
+A. SE-T Design for HF Feature Extraction 
+
+As shown in Fig. 2(a), the SE-T is designed to capture discriminative HF residuals (i.e., edges, texture, and fine-grained details) from HR images, compensating for detail loss in the LR encoded features while suppressing noise, thereby providing informative priors for cross-frequency fusion. 
+
+• HF Residual Module : The SE-T first explicitly com-putes the HF residual by subtracting the bicubic-up-sampled low-resolution image from the original high-resolution input, thereby directly isolating the target HF components to be reconstructed. The HF residual information captured by HF Residual module is calculated as 
+
+R𝐻𝐹 = S − 𝑈 𝑏 
+
+ S↓
+
+ , (9) (a)           
+
+> (b) Fig. 2: Architecture of the proposed SE-T HF feature extraction network. (a) Overall pipeline. (b) Detailed internal structure of each parallel branch.
+> 𝐷𝐶𝑜𝑛𝑣 (𝑘,𝑠, 𝑝 )denotes the depth-wise separable convolution operation with kernel-size 𝑘 , stride-size 𝑠 and padding-size 𝑝 .𝐶𝑜𝑛𝑣 (𝑘,𝑠, 𝑝 )denotes the convolution operation. 𝐵𝑎𝑡 𝑐ℎ𝑁 𝑜𝑟 𝑚 denotes batch normalization operation.
+> 𝑅𝑒𝐿𝑈 denotes rectified linear unit function.
+
+where 𝑈 𝑏 (·) denotes the bicubic up-sampling operator that restores S↓ to the spatial resolution of S. By leveraging the bicubic interpolation as the baseline, the residual term focuses the network’s capacity on reconstructing non-linear HF details rather than relearning LF content. 
+
+• Multi-scale Extraction & Fusion Module : To capture HF patterns spanning fine-grained edges, medium-scale textures, and coarse structural layouts, the Multi-scale Extraction &
+
+Fusion module employs three parallel branches, namely Fine-Branch , Middle-Branch , and Coarse-Branch layers that share an identical architecture, followed by a Branch-Fusion layer. As illustrated in Fig. 2(b), each branch consists of a down-sampling stage (left, dashed box) and a customized residual block for high-order feature extraction (right, dashed box). As to Fine-Branch layer, it targets thin edges and micro-textures by applying a minimal down-sampling stride, pre-serving spatial resolution to retain fine-grained details. As to 
+
+Middle-Branch layer, it focuses on medium-scale textures by adopting two consecutive down-sampling operations which re-duces spatial redundancy while maintaining semantic context. As to Coarse-Branch layer, it captures large-scale structural layouts and global high-frequency distributions. It implements a down-sampling via three sequential strides, significantly compressing spatial size to extract compact high-level repre-sentations. Let 𝐺 𝑀 (· , 𝒅 𝑠 , 𝐶 𝑖𝑛 , 𝐶 𝑜𝑢𝑡 ) denote the shared branch architecture, where 𝒅 𝑠 denotes the sequence of down-sampling strides, 𝐶 𝑖𝑛 denotes the number of intermediate channels, and 
+
+𝐶 𝑜𝑢𝑡 denotes the output channel dimension. So, the output of three branches can be uniformly expressed respectively as 
+
+F 𝑓 = 𝐺 𝑀 
+
+ R𝐻𝐹 , 𝒅 𝑠 , 𝐶 𝑖𝑛 , 𝐶 𝑓 
+
+, F𝑚 = 𝐺 𝑀 (R𝐻𝐹 , 𝒅 𝑠 , 𝐶 𝑖𝑛 , 𝐶 𝑚 ),and F𝑐 = 𝐺 𝑀 (R𝐻𝐹 , 𝒅 𝑠 , 𝐶 𝑖𝑛 , 𝐶 𝑐 ), where 𝐶 𝑓 , 𝐶 𝑚 and 𝐶 𝑐 
+
+denote the channel dimension of F 𝑓 , F𝑚 and F𝑐 , respectively. Let 𝐺 𝑃 (· , (ℎ, 𝑤 )) denote the adaptive average pooling operator that resizes input features to spatial dimensions 
+
+(ℎ, 𝑤 ). The output of spatial dimensions related to those branches are unified to the target size (𝐻 𝑡 , 𝑊 𝑡 ), namely 
+
+eF 𝑓 = 𝐺 𝑃 
+
+ F 𝑓 , (𝐻 𝑡 , 𝑊 𝑡 ), eF𝑚 = 𝐺 𝑃 (F𝑚 , (𝐻 𝑡 , 𝑊 𝑡 )) , and eF𝑐 =
+
+𝐺 𝑃 (F𝑐 , (𝐻 𝑡 , 𝑊 𝑡 )) . The aligned multi-scale features are then concatenated along the channel dimension to form a unified representation, namely F𝐶 𝑎𝑡 = [eF 𝑓 , eF𝑚 , eF𝑐 ] ∈ R𝐵 ×𝐶 𝑡 ×𝐻 𝑡 ×𝑊 𝑡 
+
+with 𝐶 𝑡 = 𝐶 𝑓 + 𝐶 𝑚 + 𝐶 𝑐 . As to Branch-fusion layer, a 
+
+1 × 1 convolutional layer with batch normalization and ReLU activation is applied to fuse the concatenated features and reduce the channel dimension. The finally fused features can be expressed as F𝐵𝐹 = 𝜎 𝑅𝐿 
+
+ 𝜎 𝐵𝑁 
+
+ 𝐶𝑜𝑛𝑣 (1,1,0) (F𝐶 𝑎𝑡 ) ,where 𝜎 𝑅𝐿 (·) denotes ReLU activation operator, and 𝜎 𝐵𝑁 (·) 
+
+denotes batch normalization operator. 
+
+• Channel Attention Module : To adaptively emphasize informative HF channels, we develop a lightweight Channel Attention module after cross-scale feature fusion. As to F𝐵𝐹 ,we generate a set per-channel weights 𝑀 𝑐 ∈ R𝐵 ×𝐶 𝑡 ×1×1 and recalibrate the feature maps as follows. First, both global average pooling and global max pooling are applied along the spatial dimensions to aggregate channel-wise statistics, i.e., F𝐴𝑣𝑔 = 1 
+
+> 𝐻 𝑡 𝑊 𝑡
+
+Í𝐻 𝑡 
+
+> 𝑖 =1
+
+Í𝑊 𝑡  
+
+> 𝑗 =1
+
+F𝐵𝐹 (:, :, 𝑖, 𝑗 ) ∈ R𝐵 ×𝐶 𝑡 and 
+
+F𝑀 𝑎𝑥 = max 𝑖 ∈ [ 1,𝐻 𝑡 ], 𝑗 ∈ [ 1,𝑊 𝑡 ] F𝐵𝐹 (:, :, 𝑖, 𝑗 ) ∈ R𝐵 ×𝐶 𝑡 . These feature maps are then passed through a shared multi-layer perceptron (MLP) operator to generate the channel attention, and the finally recalibrated feature F𝐴𝑡𝑡 𝑛 is obtained via channel-wise multiplication, which can be expressed as 
+
+F𝐴𝑡𝑡 𝑛 = 𝜎 𝑆 𝑀 
+
+ 𝐺 𝑀 𝐿 𝑃 
+
+ Z𝐴𝑣𝑔 
+
+ + 𝐺 𝑀 𝐿 𝑃 (Z𝑀 𝑎𝑥 ) ⊗ F𝐵𝐹 , (10) where ⊗ denotes element-wise multiplication, 𝜎 𝑆 𝑀 (·) denotes the Sigmoid activation operator, and the 𝐺 𝑀 𝐿 𝑃 (·) consists of two 1 × 1 convolutional layers and ReLU activation operator, i.e., 𝐺 𝑀 𝐿 𝑃 (·) = 𝐶𝑜𝑛𝑣 (1,1,0)
+
+ 𝜎 𝑅𝐿 
+
+ 𝐶𝑜𝑛𝑣 (1,1,0) (·)  .To stabilize gradient flow, a global residual connection injects the original HR image as an HF prior. The projected prior is then fused into the HF feature via a learnable scaling factor 𝜓 𝐻𝐹 , which can be expressed as 
+
+Z𝐻𝐹 = F𝐴𝑡𝑡 𝑛 + 𝜓 𝐻𝐹 · S𝑃𝑟 𝑜 𝑗 , (11) where S𝑃𝑟 𝑜 𝑗 = 𝜎 𝐵𝑁 
+
+ 𝐶𝑜𝑛𝑣 (1,1,0) (𝐺 𝑃 (S; (𝐻 𝑡 , 𝑊 𝑡 ))) , and 
+
+𝜓 𝐻𝐹 denotes a learnable parameter initialized to 0.1. 
+
+B. SE-B Design for LF Feature Extraction 
+
+As shown in Fig. 3, SE-B extracts LF semantic features via the Swin Transformer, hierarchically aggregating structurally consistent features from LR inputs by synergizing convolu-tional down-sampling with window-based self-attention. As to the Pre-embedding module, the raw S↓ is first pro-jected into a high-dimensional embedding space to facilitate subsequent feature transformations, which can be expressed as 
+
+F𝑃𝑒𝑚𝑏 = 𝐶𝑜𝑛𝑣 (1,1,0)
+
+ 𝜎 𝑅𝐿 
+
+ 𝜎 𝐵𝑁 
+
+ 𝐶𝑜𝑛𝑣 (3,1,1)
+
+ S↓
+
+ . Then, the following employs two cascaded stages, and each of the two cascaded stages comprises a Down-sampling & Dynamic-padding module and a Swin Transformer Block module. Specifically, depth-wise separable convolution down-samples while expanding channels via 1 × 1 convolution; Dynamic-padding accommodates arbitrary input resolutions before the Fig. 3: Architecture of SE-B for LF feature extraction. 
+
+Swin Transformer Block processing. Taking the first stage as an example, its output can be expressed as 
+
+F(1) 
+
+> 𝑆𝑤𝑖𝑛
+
+= 𝐺 𝑆 2
+
+ 𝐺 𝑆 1 (𝐺 𝑊𝑖𝑛 (𝐺 𝑃𝑎𝑑 (F𝐷𝑠 ; 𝑤 )))  , (12) where F𝐷𝑠 = 𝐶𝑜𝑛𝑣 (1,1,0)
+
+ 𝐷𝐶𝑜𝑛𝑣 (4,2,1) (F𝑃𝑒𝑚𝑏 ) denotes the down-sampling operation, 𝐺 𝑃𝑎𝑑 (· ; 𝑤 ) denotes padding operator that the width and height of the input feature are divisible by 𝑤 , 𝐺 𝑊𝑖𝑛 denotes the window partition operator that makes padded tensor be non-overlapping windows of size 
+
+𝑤 × 𝑤 , and the block  𝐺 𝑆 1 , 𝐺 𝑆 2
+
+ applies window-based multi-head self-attention (W-MSA) and shifted-window MSA (SW-MSA), which computes self-attention within non-overlapping local windows for efficiency while shifts these windows for capturing long-range dependencies [34]. 
+
+C. SD Design for Feature Reconstruction 
+
+As depicted in Fig. 4(a), the SD consists of Feature Fu-sion module and cascaded Swin Transformer Block and SNR Adaptive modules. 
+
+• Feature Fusion Module : To reconcile quantized LF structural priors with HF residual details, the proposed gating-inspired Feature Fusion module adopts lightweight layers to adaptively harmonize multi-scale features, as detailed in Fig. 4(b). The quantized LF feature bZ𝐿𝐹 and HF feature bZ𝐻𝐹 are projected into the LF-align and HF-align 
+
+layers, respectively, each implemented as a 1 × 1 convolution with batch normalization and ReLU activation to eliminate channel-dimension discrepancies. Their output features are expressed as F𝐿𝐹 = 𝑈 𝑏 (𝜎 𝑅𝐿 (𝜎 𝐵𝑁 (𝐶𝑜𝑛𝑣 (1,1,0) (bZ𝐵 )))) and 
+
+F𝐻𝐹 = 𝜎 𝑅𝐿 (𝜎 𝐵𝑁 (𝐶𝑜𝑛𝑣 (1,1,0) (bZ𝑇 ))) . A lightweight Gate 
+
+layer then processes the concatenated tensor [F𝐿𝐹 , F𝐻𝐹 ]
+
+to produce per-channel modulation weights. It comprises two 3 × 3 convolutions with batch normalization and ReLU, followed by a Sigmoid activation that constrains the weights to [0, 1]. The gate map is expressed as {F𝐺𝐿𝐹 , F𝐺𝐻𝐹 } =
+
+𝜎 𝑆 𝑀 (𝐶𝑜𝑛𝑣 (3,1,1) (𝜎 𝐵𝑁 (𝐶𝑜𝑛𝑣 (3,1,1) [F𝐿𝐹 , F𝐻𝐹 ]))) . Finally, the aligned features undergo channel-wise adaptive weighting and residual refinement to suppress fusion artifacts, i.e., 
+
+Z𝐹𝐹 = F𝐺 + 𝜓 𝐹𝐹 · 𝐺 𝑅𝐹 (F𝐺 ) , (13) where F𝐺 = F𝐺𝐿𝐹 ⊗ F𝐿𝐹 + F𝐺𝐻𝐹 ⊗ F𝐻𝐹 , 𝐺 𝑅𝐹 (·) =
+
+𝜎 𝐵𝑁 (𝐶𝑜𝑛𝑣 (3,1,1) (𝜎 𝑅 (𝜎 𝐵𝑁 (𝐶𝑜𝑛𝑣 (3,1,1) (·))))) denotes the re-finement convolutional block defined in Refine layer, and 𝜓 𝐹𝐹 
+
+denotes a learnable scalar initialized to 0.1. 
+
+• SNR Adaptive Module : The detailed structure of 
+
+SNR Adaptive module is shown in Fig. 4(c). Prior to en-tering the SNR Adaptive module, the features are pro-cessed by Swin Transformer Block module, i.e., F𝑆𝐷 𝑆𝑤𝑖𝑛 =
+
+𝐺 𝑆 2
+
+ 𝐺 𝑆 1 (𝐺 𝑊𝑖𝑛 (𝐺 𝑃𝑎𝑑 (Z𝐹𝐹 ; 𝑤 ))) . Let 𝒗 𝑆 𝑁 𝑅 ∈ R𝐵 denote the batch-wise SNR value. The scalar SNR value is projected into a high-dimensional semantic space compatible with the           
+
+> (a)
+> (b)
+> (c) Fig. 4: Architecture of SD for feature reconstruction. (a) Overall structure, where HF and LF features are fused by Feature Fusion module followed by cascaded Swin Transformer Block and SNR Adaptive modules. (b) Structure of Feature Fusion module. (c) Structure of SNR Adaptive module.
+
+feature channels, i.e., Z𝑆 𝑁 𝑅 = 𝜎 𝐿 𝑁 (𝜎 𝑅𝐿 (𝜎 𝐿 𝑁 (𝒗 𝑆 𝑁 𝑅 ))) ,where 𝜎 𝐿 𝑁 (·) denotes linear operator. A shallow convo-lutional branch extracts local descriptors, which are aggre-gated into global satistics via adaptive average pooling as 
+
+F𝑙𝑜𝑐 = 𝐺 𝑃 (𝜎 𝑅 (𝐶𝑜𝑛𝑣 (3,1,1) (F𝑆𝐷 𝑆 )) ; (1, 1)) . The local feature context and SNR embedding are concatenated and fed into a gating network to predict channel-wise scaling factors, i.e., 
+
+F𝐿𝑆 = 𝜎 𝑆 (𝜎 𝐿 𝑁 ([ F𝑙𝑜𝑐 , F𝑆 𝑁 𝑅 ])) . The output features are then adaptively recalibrated as 
+
+F𝑆 𝐴 = F𝑆𝐷 𝑆 ⊗ F𝐿𝑆 + 𝐶𝑜𝑛𝑣 (1,1,0) (𝜎 𝐿𝑅 (𝐶𝑜𝑛𝑣 (1,1,0) (F𝑆𝐷 𝑆 ))) .
+
+(14) Finally, the reconstructed image bS is obtained through three cascaded processing stages. 
+
+D. Training Strategy Over AFDM-based Satellite Channels 
+
+The DVQ-SDSC framework must be trained under practical satellite channels and additive-noise conditions. In particular, a single bit error in the demodulated symbol b𝒙 𝑑 induces an index flip in b𝑰 𝑠 , and then this error propagates through the embedding lookup, generating a semantically incorrect codeword. Moreover, the total AFDM frame length is shared among pilot, guard, and data symbols. Increasing the pilot density improves channel-estimation accuracy at the cost of reduced bandwidth for semantic transmission, thereby inten-sifying the already severe bandwidth constraint. Recent studies formulate AFDM channel estimation as sparse signal recovery due to the inherent sparsity of H𝑒 ,where the pilot arrangement and sparse measurement matrix design are key considerations. The DAFT-domain transmit vector 𝒙 ∈ C𝑁 is assembled by concatenating pilot, guard, and data symbols. Let the leading 𝑁 𝑝 entries, 𝑘 ∈ { 0, . . . , 𝑁 𝑝 −1},hold the pilot symbols 𝑥 𝑝 [𝑘 ] and the next 𝑁 𝑔 entries, 
+
+𝑘 ∈ { 𝑁 𝑝 , . . . , 𝑁 𝑝 + 𝑁 𝑔 − 1}, and the last 𝑁 𝑔 entries, 𝑘 ∈Algorithm 1: Training Strategy of DVQ-SDSC                                                                                                                                                                                  
+
+> Require: Image dataset D; AFDM channel H𝑒 with pilot arrangement; noise power 𝜎 2; SE-T 𝑓 𝑆𝐸 -𝑇 (· , 𝛼 𝑇 ), SE-B 𝑓 𝑆𝐸 -𝐵 (· , 𝛼 𝐵 ); trainable codebooks C𝐻𝐹 ,C𝐿𝐹 ; SD model 𝑓 𝑆𝐷 (· , 𝛽 ).
+> Ensure: Optimized parameters {𝛼 ∗
+> 𝑇 , 𝛼 ∗
+> 𝐵 , 𝛽 ∗}and codebooks
+> {C∗
+> 𝐻𝐹 ,C∗
+> 𝐿𝐹 }.1: Stage 1 (Codec & Codebook Pretraining):
+> 2: Initialize 𝛼 𝑇 , 𝛼 𝐵 , 𝛽, C𝐻𝐹 ,C𝐿𝐹 .3: while not converged do
+> 4: Sample batch {𝑆, 𝑆 ↓}from D.5: Extract Z𝐻𝐹 =𝑓 𝑆𝐸 -𝑇 (𝑆, 𝑆 ↓, 𝛼 𝑇 ),Z𝐿𝐹 =𝑓 𝑆𝐸 -𝐵 (𝑆 ↓, 𝛼 𝐵 )by (1). 6: Quantize features to indices 𝑰 𝑠 ={𝑰 𝑠 𝐻𝐹 ,𝑰 𝑠 𝐿𝐹 }via VQ by (2). 7: Modulate 𝑰 𝑠 →𝒙 𝑑 and transmit over AFDM (ideal channel). 8: Reconstruct bS=𝑓 𝑆𝐷 (bZ𝐻𝐹 ,bZ𝐿𝐹 , 𝛽 )by (7). 9: Compute L𝑟𝑒𝑐 =𝑑 (𝑆, bS)by (8). 10: Update 𝛼 𝑇 , 𝛼 𝐵 , 𝛽, C𝐻𝐹 ,C𝐿𝐹 ←min L𝑟𝑒𝑐 .11: end while
+> 12: Set 𝛼 ∗
+> 𝑇 ←𝛼 𝑇 , 𝛼 ∗
+> 𝐵 ←𝛼 𝐵 ,C∗
+> 𝐻𝐹 ←C𝐻𝐹 ,C∗
+> 𝐿𝐹 ←C𝐿𝐹 .13: Stage 2 (SD Refinement under Satellite Channel):
+> 14: Freeze 𝛼 ∗
+> 𝑇 , 𝛼 ∗
+> 𝐵 ,C∗
+> 𝐻𝐹 ,C∗
+> 𝐿𝐹 (encoder & codebooks fixed). 15: while not converged do
+> 16: Modulate I𝑠 →𝒙 𝑑 , transmit over H𝑒 with noise 𝜎 2.17: Extract observation window 𝒚 𝑇 from received DAFT-domain signal. 18: Estimate bH𝑒 via OMP sparse recovery by (18). 19: Equalize and demodulate to recover bI𝑠 .20: Reconstruct bS=𝑓 𝑆𝐷 (bZ𝐻𝐹 ,bZ𝐿𝐹 , 𝛽 )by (7). 21: Update 𝛽 ←min L𝑟𝑒𝑐 =𝑑 (𝑆, bS).22: end while
+> 23: Set 𝛽 ∗←𝛽 .
+> Output: {𝛼 ∗
+> 𝑇 , 𝛼 ∗
+> 𝐵 , 𝛽 ∗}and {C∗
+> 𝐻𝐹 ,C∗
+> 𝐿𝐹 }.
+
+{𝑁 𝑝 + 𝑁 𝑔 + 𝑁 𝑑 , . . . , 𝑁 − 1}, serve as guard symbols that isolate the channel-induced pilot spread from the adjacent data block. The 𝑁 𝑑 data symbols 𝑥 𝑑 [𝑘 ] occupy the central 
+
+𝑁 𝑑 entries, i.e., 𝑘 ∈ {𝑁 𝑝 + 𝑁 𝑔 , . . . , 𝑁 − 𝑁 𝑔 − 1}. The AFDM receiver extracts a contiguous 𝑁 -point DAFT-domain observation window for sparse channel estimation, starting at index e𝑚 𝑠 = 𝑘 max + 𝑁 𝑣 − 𝑁 𝑔 , where 𝑘 max and 𝑁 𝑣 denote the maximum normalized Doppler shift and the number of Doppler carriers, respectively. Given the guard length 𝑁 𝑔 =
+
+(𝑙 max + 1)( 2𝑘 max + 2𝑁 𝑣 − 1) with 𝑙 max being the maximum normalized delay, the total number of observed symbols is 
+
+𝑁 𝑇 = 𝑁 𝑝 + 𝑁 𝑔 . Extracted via modulo-𝑁 indexing, the window has index set 𝑰 𝑇 = {( e𝑚 𝑠 +𝑖 ) mod 𝑁 | 𝑖 = 0, . . . , 𝑁 𝑇 −1}. From (6), the received pilot signal 𝒚 𝑇 ∈ C𝑁 𝑇 is rewritten as 
+
+𝒚 𝑇 = 𝚽 ( 𝒈 ) 𝒉 + 𝒘 𝑇 , (15) where 𝒉 = [ℎ0, ..., ℎ 𝐿 𝑝 −1]𝑇 ∈ C𝐿 𝑝 , 𝒘 𝑇 ∈ C𝑁 𝑇 
+
+denotes the measurement noise, and 𝚽 ( 𝒈 ) =
+
+[𝝓 (𝑔 0), ..., 𝝓 (𝑔 𝑖 ), ..., 𝝓 (𝑔 𝐿 𝑝 −1)] ∈ C𝑁 𝑇 ×𝐿 𝑝 denotes the measurement matrix. The e𝑚 th entry of 𝝓 (𝑔 𝑖 ) is calculated as 
+
+𝝓 e𝑚 (𝑔 𝑖 ) = 1
+
+𝑁 ∑︁ 𝑚 ∈ { 0,..., 𝑁 𝑝 −1}
+
+𝒙 𝑚 𝑒 𝑗 2 𝜋     
+
+> h
+> 𝑐 1𝑙 2
+> 𝑖 −𝑚𝑙 𝑖 𝑁 +𝑐 2
+
+(𝑚 2 − e𝑚 2)i
+
+× 𝑒 − 𝑗 2 𝜋 [ e𝑚 −𝑚 +2𝑁 𝑐 1𝑙 𝑖 + ¯𝜈 𝑖 +𝜄 𝑖 ] − 1
+
+𝑒 − 𝑗 2 𝜋 𝑁 [ e𝑚 −𝑚 +2𝑁 𝑐 1𝑙 𝑖 + ¯𝜈 𝑖 +𝜄 𝑖 ] − 1 , (16) Since the measurement matrix 𝚽 ( 𝒈 ) depends on the un-known channel information {𝑙 𝑖 , ¯𝜈 𝑖 , 𝜄 𝑖 }𝐿 𝑝 −1 
+
+> 𝑖 =0
+
+, direct channel-parameter estimation from (15) is infeasible. To overcome this, we transform channel estimation into a sparse signal recovery problem over a virtual sampling grid. Specifically, we sample the delay and Doppler dimensions over [0, 𝑙 max ]
+
+and [− 𝜈 max , 𝜈 max ] with resolutions 𝑟 𝜏 = 𝑙 max /( 𝑁 𝜏 − 1) and 
+
+𝑟 𝜈 = (2𝜈 max + 2)/( 𝑁 𝜈 − 1), yielding the delay and Doppler vectors e𝒍 = [e𝑙 0, . . . , e𝑙 𝑁 𝜏 −1]𝑇 and e𝒌 = [e𝑘 0, . . . , e𝑘 𝑁 𝜈 −1]𝑇 , where 
+
+e𝑙 𝑎 = 𝑎𝑟 𝜏 and e𝑘 𝑏 = 𝑏𝑟 𝜈 − 𝑘 max − 1. We then define the virtual sampling grid as e𝑆 𝑖 = {e𝑙 𝑖 , e𝑘 𝑖 }𝑁 𝑠  
+
+> 𝑖
+
+with 𝑁 𝑠 = 𝑁 𝜏 𝑁 𝜈 . The AFDM channel estimation model is thus established as 
+
+𝒚 𝑇 = 𝚽 (e𝒈 ) e𝒉 + 𝒘 𝑇 , (17) where 𝚽 (e𝒈 ) = [𝝓 (e𝑔 0), . . . , 𝝓 (e𝑔 𝑁 𝑠 −1)] ∈ C𝑁 𝑇 × 𝑁 𝑠 denotes the measurement matrix over the virtual sampling grid e𝑺 , and e𝒉 =
+
+[eℎ0, . . . , eℎ𝑁 𝑠 −1]𝑇 ∈ C𝑁 𝑠 the channel vector to be estimated. Thus, the sparse channel estimation is formulated as 
+
+min 
+
+> e𝒉 ∈C𝑁𝑠
+
+∥e𝒉 ∥0 s.t. ∥ 𝒚 𝑇 − 𝚽 (e𝒈 ) e𝒉 ∥2 ≤ 𝜖, (18) where ∥ · ∥ 0 denotes zero-norm operation, and 𝜖 denotes the noise power bound. For computational efficiency, we solve (18) via orthogonal matching pursuit (OMP) [35], whose greedy nature is well suited to the sparse effective channel H𝑒 , while the codebooks are trained following the procedure in [25]. To fully decouple channel estimation from the semantic codec, the DVQ-SDSC adopts a two-stage training strategy. In Stage 1, the se-mantic encoder/decoder and codebooks are jointly optimized without the satellite channel, isolating feature extraction and quantization from channel-induced gradients. In Stage 2, the semantic decoder is retrained under the satellite channel with encoder and codebooks frozen, adapting to realistic channel impairments while preserving learned semantic representation. The overall procedure is summarized in Algorithm 1 .IV. C ODEBOOK -R EORDERING -A IDED G-DPCM FOR 
+
+INDEX COMPRESSION AND TRANSMISSION 
+
+The proposed DVQ-SDSC framework establishes a dis-crete semantic space via a learnable codebook for efficient index-based transmission. However, conventional VQ-based methods transmit each index with a fixed bit-length, thereby introducing inherent coding redundancy. By exploiting the strong spatial correlation among VQ-generated indices arising from locally smooth latent features, we propose a codebook-reordering-aided G-DPCM scheme that encodes predicted residuals instead of absolute index values for further com-pression. Specifically, the DPCM-aware PCA method is first introduced to reorder the codebook, aligning its topological structure with the correlation pattern exploited by DPCM, and then the G-DPCM codec is developed to transmit VQ indices over noisy channels with a controllable trade-off between bandwidth efficiency and error resilience. 
+
+A. DPCM-Aware PCA Method for Codebook Reordering 
+
+Encoded image features generally exhibit strong spatial local correlation. However, standard VQ codebook mapping assigns each feature to its nearest code vector without guar-anteeing that similar features obtain neighboring indices. Since the original codebook indices carry no inherent topo-logical meaning, spatially or semantically adjacent regions may map to substantially different entries, leaving the spa-tial correlation unexploited for compression. Without loss Algorithm 2: DPCM-Aware PCA for Codebook Re-ordering                                                                                                                                            
+
+> Require: Original VQ codebook C𝐻𝐹 =[𝒄 0, . . . , 𝒄 𝐾 𝑇 −1]𝑇 ∈R𝐾 𝑇 ×𝑁 𝑇 ;ring-neighborhood decay parameter 𝜎 .1: Compute the codebook mean 𝝁 𝑐 =1
+> 𝐾 𝑇
+> Í𝐾 𝑇 −1
+> 𝑘 =0𝒄 𝑘 .2: Center the codewords: eC𝐻𝐹 =[˜𝒄 0, . . . , ˜𝒄 𝐾 𝑇 −1]𝑇 , where ˜𝒄 𝑘 =𝒄 𝑘 −𝝁 𝑐 .3: Compute the ring-weighted covariance 𝚺 𝐶 =1
+> 𝐾 𝑇 −1eC𝑇 𝐻𝐹 WeC𝐻𝐹
+> with [W]𝑖, 𝑗 =exp  −𝑑 2(𝑖, 𝑗 )/( 2𝜎 2),
+> 𝑑 (𝑖, 𝑗 )=min { | 𝑖 −𝑗 |, 𝐾 𝑇 − | 𝑖 −𝑗 | } .4: Obtain the leading eigenvector 𝒗 0of 𝚺 𝐶 (e.g. via power iteration). 5: Set v=𝒗 0/∥ 𝒗 0∥.6: for 𝑘 =0to 𝐾 𝑇 −1do
+> 7: 𝑝 𝑘 =˜𝒄 𝑇 𝑘 v{PCA projection score }
+> 8: end for
+> 9: 𝝅 lin =argsort (𝑝 0, . . . , 𝑝 𝐾 𝑇 −1){ascending order }
+> 10: for each candidate cut 𝑟 𝑝 ∈ { 0,1, . . . , 𝐾 𝑇 −1}do
+> 11: 𝝅 𝑟 𝑝 =roll (𝝅 lin ,−𝑟 𝑝 ){left cyclic shift }
+> 12: Evaluate the adjacent-distance cost J ( 𝑟 𝑝 )by (21) 13: end for
+> 14: 𝑟 ∗
+> 𝑝 =arg min
+> 𝑟 𝑝
+> J ( 𝑟 𝑝 ), and set the final permutation
+> 𝝅 =𝝅 𝑟 ∗
+> 𝑝 =roll (𝝅 lin ,−𝑟 ∗
+> 𝑝 ).15: Construct the reordered codebook C𝝅
+> 𝐻𝐹 =[𝒄 𝝅 (0), . . . , 𝒄 𝝅 (𝐾 𝑇 −1)]𝑇 .
+> Output: Optimal permutation 𝝅 and reordered codebook C𝜋 𝐻𝐹 .
+
+of generality, we illustrate this using the HF feature matrix 
+
+Z𝐻𝐹 = [𝒛 0, . . . , 𝒛 𝐾 𝑧 −1]𝑇 ∈ R𝐾 𝑧 ×𝑀 𝑧 , its corresponding code-book C𝐻𝐹 = [𝒄 0, . . . , 𝒄 𝐾 𝑇 −1]𝑇 ∈ R𝐾 𝑇 × 𝑁 𝑇 , and the quantized counterpart bZ𝐻𝐹 = [b𝒛 0, . . . , b𝒛 𝐾 𝑧 −1]𝑇 ∈ R𝐾 𝑧 ×𝑀 𝑧 . We then seek a permutation 𝝅 ∈ 𝛀 𝐾 𝑧 that aligns adjacent indices with proximal codewords while preserving the ring structure (where indices 1 and 𝐾 𝑧 are adjacent), formally stated as 
+
+min   
+
+> 𝝅 ∈𝛀 𝐾𝑧
+> 𝐾 𝑧 −1
+
+∑︁  
+
+> 𝑘 𝑧 =0
+
+∥b𝒛 𝝅 (𝑘 𝑧 ) − b𝒛 𝝅 (𝑘 𝑧 −1) ∥22 s.t. 𝝅 (0) = 𝝅 (𝐾 𝑧 − 1) , (19) where b𝒛 𝝅 (𝑘 𝑧 ) denotes the quantized codeword placed at posi-tion 𝑘 𝑧 after permutation 𝝅 .Since the unique vectors in any quantized feature map are exactly the codebook C𝐻𝐹 , (19) is equivalent to finding an optimal codebook ordering. Moreover, evaluating (19) directly over data-dependent quantized features would require a dif-ferent permutation for each input, which is computationally prohibitive. We therefore optimize a single universal permu-tation by rearranging the codebook vectors {𝒄 𝑘 }𝐾 𝑇 −1 
+
+> 𝑘 =0
+
+based on their embedding-space proximity. To avoid an exhaustive permutation search, we impose a ring-adjacency prior on the index space via Gaussian weighting. Let 𝑑 (𝑖, 𝑗 ) = min {| 𝑖 −
+
+𝑗 |, 𝐾 𝑧 − | 𝑖 − 𝑗 |} denote the ring distance between indices 𝑖 and 
+
+𝑗 , and the weight matrix be [𝑾 ]𝑖, 𝑗 = exp   − 𝑑 2 (𝑖, 𝑗 )/( 2𝜎 2 
+
+> 𝑔
+
+).Denoting the centered codebook by eC𝐻𝐹 = C𝐻𝐹 − 1𝐾 𝑇 𝝁 𝑇 𝐶 ,where 𝝁 𝐶 = 1
+
+> 𝐾 𝑇
+
+Í𝐾 𝑇   
+
+> 𝑘 𝑇 =1
+
+𝒄 𝑘 𝑇 is the codebook mean, we define the weighted scatter as 𝚺 𝐶 = 1  
+
+> 𝐾 𝑇 −1
+
+eC𝑇 𝐻𝐹 WeC𝐻𝐹 . Let 𝒗 0 be the dominant eigenvector of 𝚺 𝐶 , obtained via power iteration. Projecting the centered codewords onto 𝒗 0 yields the scalar scores 𝑝 𝑘 = ˜𝒄 𝑇 𝑘 𝒗 0, and the codebook is linearized by sorting these scores in ascending order, i.e., 
+
+𝝅 lin = argsort  {𝑝 𝑘 }𝐾 𝑇 
+
+> 𝑘 =1
+
+, (20) where argsort (·) returns the permutation that arranges its argument in ascending order. Since the ordering recovered by (20) is intrinsically circular, a linear layout is obtained by cutting the ring at a single point. Let 𝝅 𝑟 𝑝 = roll (𝝅 lin , −𝑟 𝑝 ) denote the circularly shifted ordering, where 𝑟 𝑝 is the cut position. The optimal cut minimizes the total embedded distance between adjacent codewords, i.e., 
+
+𝑟 ∗ 
+
+> 𝑝
+
+= arg min  
+
+> 𝑟 𝑝
+> 𝐾 𝑇 −1
+
+∑︁ 
+
+> 𝑘 =1
+
+∥ ˜𝒄 𝜋 𝑟𝑝 (𝑘 ) − ˜𝒄 𝜋 𝑟𝑝 (𝑘 +1) ∥22, (21) where ˜𝒄 𝑘 is the 𝑘 -th column of eC𝐻𝐹 .The final codebook permutation is set to 𝝅 = 𝝅 𝑟 ∗ 
+
+> 𝑝
+
+, obtained by ring-unrolling the circular ordering induced by (20) at the optimal cut point 𝑟 ∗ 
+
+> 𝑝
+
+determined from (21). Concretely, we first perform PCA on the Gaussian-weighted covariance matrix 𝚺 𝐶 , whose Gaussian ring weights W inherently encode the ring-adjacency prior of DPCM, to extract the dominant eigenvector v0. Sorting all codewords by their projections onto 
+
+v0 produces a circular ordering, and then (21) selects the cut point 𝑟 ∗ 
+
+> 𝑝
+
+minimizing the wrap-around discontinuity, and ring-unrolling at 𝑟 ∗ 
+
+> 𝑝
+
+yields the linear permutation 𝝅 𝑟 ∗ 
+
+> 𝑝
+
+. The overall procedure is summarized in Algorithm 2 . The ring-adjacency prior in 𝚺 𝐶 ensures that neighboring codewords are placed contiguously in embedding space, which concentrates the prediction residuals. 
+
+B. G-DPCM Codec for Index Compression and Transmission 
+
+Designed for VQ-index transmission over noisy channels, the proposed G-DPCM codec strikes a controllable balance between bandwidth efficiency and error resilience. Departing from conventional entropy-coded DPCM [36] that inherently assumes error-free delivery, the proposed G-DPCM introduces two key innovations: (i) group-wise anchor–residual coding replaces fixed-length index transmission with low-bit-width residual quantization; and (ii) group-based error isolation confines clipping and channel errors within each group, preventing distortion propagation. The following Lemma 1 
+
+establishes the theoretical foundation for its application. 
+
+Lemma 1 (Residual Concentration and Coding Gain under PCA-aided Codebook Reordering): For the VQ codebook 
+
+C = {𝒄 𝑘 }𝐾 𝑇 −1 
+
+> 𝑘 =0
+
+(mean 𝝁 𝑐 , centered codewords ˜𝒄 𝑘 = 𝒄 𝑘 − 𝝁 𝑐 ), let 𝒗 0 be the leading eigenvector of the ring-weighted covari-ance 𝚺 𝐶 and 𝑝 𝑘 = ˜𝒄 𝑇 𝑘 𝒗 0 be the scalar projection of each centered codeword. Let 𝝅 sort these projections in ascending order, i.e., 𝑝 𝝅 (0) ≤ · · · ≤ 𝑝 𝝅 (𝐾 𝑇 −1) , so that 𝑠 𝑘 = 𝝅 −1 (𝑘 ) is the reordered index of 𝒄 𝑘 . For adjacent latent vectors 𝒛 𝑢 , 𝒛 𝑣 
+
+quantized to 𝒄 𝑘 𝑢 , 𝒄 𝑘 𝑣 , the folded DPCM residual is defined as 
+
+𝛿 𝑧 =  (𝑠 𝑘 𝑣 − 𝑠 𝑘 𝑢 ) mod 𝐾 𝑇 
+
+ 
+
+> fold
+
+∈ {−⌊ 𝐾 𝑇 /2⌋, . . . , ⌈𝐾 𝑇 /2⌉ − 1},where (·) fold symmetrizes the modulo result. Then, the fol-lowing hold: (i) Since adjacent latents in natural images are locally smooth, ∥𝒛 𝑢 − 𝒛 𝑣 ∥2 is small with high probability, and so is ∥𝒄 𝑘 𝑢 − 𝒄 𝑘 𝑣 ∥2. (ii) Let 𝑏 𝑎 = ⌈log 2 𝐾 𝑇 ⌉ be the bit-width of fixed-length absolute index coding. Since 𝛿 𝑧 concentrates near zero, a uniform 𝑏 𝑟 -bit quantizer with 𝑏 𝑟 ≪ 𝑏 𝑎 covers the high-probability residual range without clipping for most index pairs. 
+
+Lemma 1 follows from the variance-maximizing property of the leading eigenvector 𝒗 0. Specifically, codewords close in embedding space yield similar projections 𝑝 𝑘 . Since adjacent Algorithm 3: G-DPCM codec for Index Compression and Transmission                                                                                                                                                                                               
+
+> Require: Reordered index sequence 𝒔 𝑟 ∈ { 0, . . . , 𝐾 𝑇 −1}𝐿 𝑠 from
+> Algorithm 2 ; codebook size 𝐾 𝑇 ; group size 𝐺 ; anchor bit-width
+> 𝑏 𝑎 =⌈log 2𝐾 𝑇 ⌉; residual bit-width 𝑏 𝑟 satisfying 2𝑏 𝑟 −1≥𝐵 max .1: Notation: bin (𝑥, 𝐿 )maps 𝑥 ∈ { 0, . . . , 2𝐿 −1}to an 𝐿 -bit unsigned string, bin2int (·) is its inverse; 𝑎 mod 𝐾 𝑇 returns the non-negative
+> remainder in {0, . . . , 𝐾 𝑇 −1};∥denotes bit-stream concatenation. 2: Encoding Procedure:
+> 3: B ← ∅ ;𝑀 ← ⌈ 𝐿 𝑠 /𝐺 ⌉.4: for 𝑚 =0to 𝑀 −1do
+> 5: 𝐺 𝑚 ←min {𝐺, 𝐿 𝑠 −𝑚𝐺 };B ← B ∥ bin (𝑠 𝑟 𝑚𝐺 , 𝑏 𝑎 ).6: for 𝑛 =1to 𝐺 𝑚 −1do
+> 7: Δ𝑛 ← ( 𝑠 𝑟 𝑚𝐺 +𝑛 −𝑠 𝑟 𝑚𝐺 +𝑛 −1)mod 𝐾 𝑇 .8: map Δ𝑛 to signed residual eΔ𝑛 ∈ [− 𝐵 max , 𝐵 max ]
+> 9: bΔ𝑛 ←clip (eΔ𝑛 +2𝑏 𝑟 −1,0,2𝑏 𝑟 −1);B ← B ∥ bin (bΔ𝑛 , 𝑏 𝑟 ).10: end for
+> 11: end for
+> 12: Decoding Procedure:
+> 13: ˆ𝒔 𝑟 ←0𝐿 𝑠 ;idx ←0.14: for 𝑚 =0to 𝑀 −1do
+> 15: 𝐺 𝑚 ←min {𝐺, 𝐿 𝑠 −𝑚𝐺 };
+> ˆ𝑠 𝑟 𝑚𝐺 ←bin2int  B [ idx : idx +𝑏 𝑎 −1];idx ←idx +𝑏 𝑎 .16: for 𝑛 =1to 𝐺 𝑚 −1do
+> 17: eΔ𝑛 ←bin2int  B [ idx : idx +𝑏 𝑟 −1]−2𝑏 𝑟 −1;idx ←idx +𝑏 𝑟 .18: ˆ𝑠 𝑟 𝑚𝐺 +𝑛 ← ( ˆ𝑠 𝑟 𝑚𝐺 +𝑛 −1+eΔ𝑛 )mod 𝐾 𝑇 .19: end for
+> 20: end for Output: Reconstructed codeword indices ˆ𝑘 𝑙 ←𝜋  ˆ𝑠 𝑟 𝑙
+> ,
+> 𝑙 =0, . . . , 𝐿 𝑠 −1.
+
+latents 𝒛 𝑢 , 𝒛 𝑣 are locally correlated, their nearest codewords lie in nearby regions. Sorting by 𝑝 𝑘 thus assigns nearby reordered indices to adjacent spatial locations, so that 𝛿 𝑧 concentrates around zero. Driven by Lemma 1 , the overall procedure of G-DPCM is summarized in Algorithm 3 and described below. 
+
+1) Encoding Procedure 
+
+Given the reordered index sequence 𝒔 𝑟 , the encoder par-titions it into 𝑀 non-overlapping groups {G 𝑚 }𝑀 −1 
+
+> 𝑚 =0
+
+of 𝐺 
+
+consecutive indices, i.e., G𝑚 = {𝑠 𝑟 𝑚𝐺 , . . . , 𝑠 𝑟 𝑚𝐺 +𝐺 −1 }. The first index 𝑠 𝑟 𝑚𝐺 of each group serves as an anchor, coded with 𝑏 𝑎 
+
+bits, while the remaining indices are differentially encoded using the raw DPCM residual quantized with 𝑏 𝑟 bits as 
+
+Δ𝑛 = 𝑠 𝑟 𝑚𝐺 +𝑛 − 𝑠 𝑟 𝑚𝐺 +𝑛 −1, 𝑛 = 1, . . . , 𝐺 − 1. (22) To keep the residual within a symmetric range around zero, we apply modulo-folding as follows 
+
+eΔ𝑛 =  Δ𝑛 mod 𝐾 𝑇 
+
+ 
+
+> fold
+
+∈
+
+n
+
+−
+
+j 𝐾 𝑇 
+
+> 2
+
+k
+
+, . . . , 
+
+l 𝐾 𝑇 
+
+> 2
+
+m
+
+− 1
+
+o
+
+, (23) where 𝑥 fold = 𝑥 if 𝑥 ≤ ⌊( 𝐾 𝑇 − 1)/ 2⌋ and 𝑥 fold = 𝑥 − 𝐾 𝑇 
+
+otherwise. By Lemma 1(i) , the folded residual is deterministically bounded by eΔ𝑛 ≤ 𝐵 max . Under the design condition 𝐵 max ≪
+
+𝐾 𝑇 /2, no effective modulo wrap-around occurs for spatially smooth features, and the symmetric interval fully contains the residual dynamic range. The folded residual is then mapped to a 𝑏 𝑟 -bit unsigned integer via an offset-clip operation, i.e., 
+
+bΔ𝑛 = clip (eΔ𝑛 + 2𝑏 𝑟 −1, 0, 2𝑏 𝑟 − 1), (24) which denotes a bijection from integers in [− 2𝑏 𝑟 −1, 2𝑏 𝑟 −1 − 1]
+
+to {0, 1, ..., 2𝑏 𝑟 − 1} via an offset of 2𝑏 𝑟 −1.
+
+2) Decoding Procedure 
+
+At the receiver, the index sequence is recovered group by group. The anchor of each group is decoded from its 𝑏 𝑎 -bit representation, and each received residual is mapped back to the signed folded range by inverting the offset, i.e., eΔ𝑛 = bΔ𝑛 −
+
+2𝑏 𝑟 −1. The remaining indices then follow from the recursion 
+
+𝑠 𝑟 𝑚𝐺 +𝑛 =  𝑠 𝑟 𝑚𝐺 +𝑛 −1 + eΔ𝑛 
+
+ mod 𝐾 𝑇 , 𝑛 = 1, . . . , 𝐺 − 1, (25) and the corresponding codeword is retrieved as 𝒄 𝜋 (𝑠 𝑟 𝑚𝐺 +𝑛 ) .Since each group restarts from its anchor, residual errors propagate only within that group and cannot cross its bound-aries. This group-wise error isolation gives G-DPCM a key advantage over wireless satellite channels. Without G-DPCM, each of the 𝐿 𝑠 indices requires 𝑏 𝑎 
+
+bits, i.e., 𝐿 𝑠 𝑏 𝑎 bits in total. With G-DPCM, the sequence is partitioned into 𝑀 = ⌈𝐿 𝑠 /𝐺 ⌉ groups, each sending one 
+
+𝑏 𝑎 -bit anchor followed by 𝐺 − 1 residuals of 𝑏 𝑟 bits, so that 𝐵 𝐺 -𝐷 𝑃𝐶 𝑀 = Í𝑀 −1 
+
+> 𝑚 =0
+
+[𝑏 𝑎 + ( 𝐺 𝑚 − 1)𝑏 𝑟 ], where 𝐺 𝑚 =
+
+min {𝐺, 𝐿 𝑠 −𝑚𝐺 } accounts for a possibly truncated last group. For 𝐿 𝑠 ≫ 𝐺 , it reduces to 𝐵 G-DPCM ≈ 𝑀 [𝑏 𝑎 + ( 𝐺 − 1)𝑏 𝑟 ],and the compression ratio is 𝜌 𝐺 = 𝐿 𝑠 𝑏 𝑎  
+
+> 𝐵 𝐺 -𝐷 𝑃𝐶 𝑀
+
+≈ 𝐺𝑏 𝑎   
+
+> 𝑏 𝑎 +( 𝐺 −1)𝑏 𝑟
+
+.V. E XPERIMENTS AND RESULTS DISCUSSION 
+
+This section comprehensively evaluates the proposed DVQ-SDSC framework for high-resolution RIS transmission over AFDM satellite channels, along with the G-DPCM codec in terms of bandwidth efficiency and error resilience. 
+
+A. Experimental Setup 1) Training Environments and Evaluation Metrics 
+
+The proposed DVQ-SDSC framework is evaluated on FAIR1M [37], a large-scale fine-grained object recognition benchmark for high-resolution RSI. It contains over one million oriented bounding-box annotations across five cate-gories and 37 sub-categories, with image sizes ranging from 
+
+1000 × 1000 to 10 ,000 × 10 ,000 pixels. Here, almost 5,000 
+
+images are used for training and 500 for testing. During training, images are randomly cropped into 1024 × 1024 
+
+patches, whereas at test time they are divided into non-overlapping 4096 × 4096 images. The model is implemented in PyTorch and trained for 100 epochs using AdamW with an initial learning rate of 2 × 10 −4, weight decay 10 −4, and a batch size of eight. All experiments are conducted on an NVIDIA RTX 4090 GPU. Reconstruction quality is assessed via PSNR [38] for pixel-level accuracy, complemented by MS-SSIM [39] and LPIPS [40] for perceptual quality. The bit compression ratio (BCR) 𝑅 BCR is defined as the ratio of the number of transmitted bits to that of the original image, serving as a measure of the required communication overhead. Since the proposed architecture is flexible enough to accommodate different BCRs, we configure the network parameters in this work to achieve 𝑅 BCR = 1384 . Let 𝑏 0 denote the raw bits per channel per pixel ( 𝑏 0 = 8), and let each quantization index be represented by log 2 𝐾 𝑇 bits under fixed-length coding. Since SE-T and SE-B decimate the input by factors 𝜌 𝑇 and 𝜌 𝐵 , respectively, the numbers of semantic feature vectors are 𝐾 𝑧 = 𝐻𝑊 /𝜌 2 
+
+> 𝑇
+
+and 𝐾 ′ 
+
+> 𝑧
+
+= 𝐻𝑊 /𝜌 2
+
+> 𝐵
+
+. The payload bits carried by the index sequence 𝑰 𝑠 are therefore (a) (b) (c)            
+
+> (d) (e) (f) Fig. 5: Objective performance comparison over AFDM with the 3GPP NTN-TDL-D channel. (a)-(c) Compare the proposed DVQ-SDSC against the JPEG+LDPC baseline in terms of PSNR, MS-SSIM, and LPIPS, respectively, where ”Perfect CSI” and ”Estimated CSI” denote the availability of ideal and estimated CSI at the receiver. (d)-(f) Ablation study on the training SNR regime, evaluating DVQ-SDSC trained over [0,15 ]dB, fixed at 0dB, 6dB, and
+> 12 dB, under the same three metrics. All DVQ-SDSC curves operate at 0.0625 bpp, whereas the JPEG+LDPC baseline operates at 0.2095 bpp.
+
+𝐿 bit = (𝐾 𝑧 + 𝐾 ′ 
+
+> 𝑧
+
+) log 2 𝐾 𝑇 =
+
+ 1
+
+> 𝜌 2
+> 𝑇
+
++ 1
+
+> 𝜌 2
+> 𝐵
+
+
+
+𝐻𝑊 log 2 𝐾 𝑇 , and 𝑅 BCR 
+
+relative to raw image S is calculated by 
+
+𝑅 BCR = 𝐿 bit 
+
+𝐻𝑊𝑂 𝑏 0
+
+= log 2 𝐾 𝑇 
+
+𝑂𝑏 0
+
+1
+
+𝜌 2
+
+> 𝑇
+
++ 1
+
+𝜌 2
+
+> 𝐵
+
+!
+
+. (26) Since (26) is independent of 𝐻 and 𝑊 , the dual-branch codec is resolution-invariant. For the configuration settings 
+
+𝜌 𝑇 = 𝜌 𝐵 = 16 , 𝐾 𝑇 = 𝐾 𝐵 = 256 , 𝑂 = 3 and 𝑏 0 = 8, we obtain 𝑅 BCR = 1384 ≈ 2.604 × 10 −3 and its corresponding bit per pixel (BPP) 𝑅 bpp = 0.0625 , which implies 131 072 
+
+indices, i.e., 1 048 576 bit ( 128 KiB), for a 4096 × 4096 image against 48 MiB of raw data. With a heterogeneous encoder-decoder architecture (0.52 M vs. 1.89 M parameters), the DVQ-SDSC offloads most computation to the ground station, minimizing satellite-side storage and computational burden while maintaining reconstruction fidelity. Coupled with low 
+
+𝑅 BCR , this architecture realizes efficient end-to-end semantic transmission within stringent satellite resource constraints. 
+
+2) AFDM Symbol Structure and Channel Model 
+
+The AFDM system employs 𝑁 = 1024 DAFT-domain symbols with Δ 𝑓 = 30 kHz and a carrier frequency of 2 GHz, yielding 𝑇 = 1/Δ 𝑓 = 33 .3 𝜇 s and △𝑡 = 𝑇 /𝑁 = 32 .55 ns. The chirp parameters are set to 𝑐 1 = [2(𝑘 max + 𝑁 𝑣 ) + 
+
+1]/( 2𝑁 ) = 7/2048 and 𝑐 2 = 1/( 20 𝑁 ) = 1/20480 , with 
+
+𝑘 max = 2 and 𝑁 𝑣 = 1. Each frame comprises 𝑁 𝑝 = 32 pilot symbols occupying 𝑘 ∈ {0, . . . , 𝑁 𝑝 − 1}, a guard interval of 𝑁 𝑔 = (𝑙 max + 1)( 2𝑘 max + 2𝑁 𝑣 ) − 1 = 11 zero samples, 
+
+𝑁 𝑑 = 𝑁 − 𝑁 𝑝 − 2𝑁 𝑔 = 970 data symbols, and a trailing guard of 𝑁 𝑔 = 11 zero samples, i.e., a frame efficiency of 𝑁 𝑑 /𝑁 = 94 .73% . The observation window of length 
+
+𝑁 𝑇 = 𝑁 𝑝 + 𝑁 𝑔 = 43 starts at ˜𝑚 𝑠 = 𝑘 max + 𝑁 𝑣 − 𝑁 𝑔 = −8
+
+and is extracted via modulo-𝑁 indexing. The fourth-order orthogonal amplitude modulation (QAM) is adopted. The satellite channel follows the 3GPP NTN-TDL-D profile [41], comprising line-of-sight (LOS) and non-LOS (NLOS) paths. The normalized maximum Doppler and delay spreads are 
+
+𝑘 max = 2 and 𝑙 max = 1, respectively, and the path delays are 𝜏 𝑖 = 𝜏 𝑖, norm · 𝜏 spread for 𝑖 ∈ {0, . . . , 𝐿 𝑝 − 1}, with 
+
+𝜏 spread ∈ [30 , 50 ] ns. Channel estimation is cast as sparse recovery with 𝚽 ( ˜g) ∈ C43 ×800 built on an 𝑁 𝜏 = 20 , 𝑁 𝜈 = 40 
+
+delay-Doppler grid ( 𝑁 𝑠 = 𝑁 𝜏 𝑁 𝜈 ), solved by OMP method. 
+
+B. Performance of DVQ-SDSC Framework 
+
+We evaluate the end-to-end reconstruction performance of the proposed DVQ-SDSC framework over AFDM with stan-dard 3GPP NTN-TDL-D channel. Unless otherwise specified, all DVQ-SDSC variants operate at 0.0625 bpp. 
+
+1) Comparison with the Baseline Scheme 
+
+Figs. 5(a)-(c) compare DVQ-SDSC with the conventional JPEG+LDPC baseline under perfect and estimated CSI. Three conclusions follow. First, DVQ-SDSC consistently outper-forms JPEG+LDPC over the entire 0-15dB SNR range in PSNR and MS-SSIM while attaining a substantially lower LPIPS score. This gain is achieved at only 0.0625 bpp, which is much less than that of the 0.2095 bpp consumed by the baseline, validating the effectiveness of the proposed semantic codec and VQ mechanism in preserving HF texture details under extreme bandwidth constraints. Second, the performance gap between perfect- and estimated-CSI cases remains marginal across all three metrics, confirming that the OMP-based sparse channel estimator reliably recovers CSI at the receiver and mitigates channel uncertainty. Conse-quently, DVQ-SDSC retains satisfactory reconstruction with (a)                 
+
+> (b)
+> (c) Fig. 6: Empirical evaluation of the DPCM-aware PCA codebook reordering. (a) Distribution of the folded residual 𝛿 𝑧 for the LF index sequence, obtained without (blue) and with (orange) the proposed reordering 𝝅 . (b) Corresponding distribution of 𝛿 𝑧 for the HF index sequence. (c) Mean and standard deviation of 𝛿 𝑧 for LF and HF branches before and after reordering.
+
+estimated CSI, demonstrating the robustness of the joint AFDM waveform and OMP estimator under imperfect chan-nel knowledge. Third, DVQ-SDSC’s PSNR and MS-SSIM rise monotonically with SNR whereas LPIPS decreases steadily, confirming that the DJSCC-enabled semantic encoder-decoder successfully tracks varying channel conditions. In contrast, the JPEG+LDPC baseline is fundamentally limited by its fixed compression-and-coding pipeline. 
+
+2) Impact of the SNR Adaptive Module 
+
+To assess the proposed SNR-adaptive mechanism, Figs. 5(d)-(f) compare models with and without it. Four config-urations are evaluated: the full SNR-adaptive model trained over the entire [0, 15 ]dB interval, and three non-adaptive baselines trained and tested at fixed 0, 6, and 12 dB. The latter are optimized for a single predetermined channel condition and thus lack adaptivity. As evidenced by the curves, the full model achieves the most balanced performance across the entire test range, remaining competitive in PSNR, MS-SSIM, and LPIPS at both low- and high-SNR endpoints. In contrast, the fixed-SNR models exhibit a pronounced trade-off: (i) the 12 dB model performs well at high SNR but degrades noticeably at 0-3dB, while the 0dB model shows the opposite behavior; (ii) the 6dB model compromises between the two yet still falls short, particularly in perceptual quality. This gap directly demonstrates that the model remains tied to its training SNR and generalizes poorly to unseen channel states without the SNR-adaptive module. 
+
+C. Performance of Codebook Reordering and G-DPCM 
+
+To assess the residual concentration asserted in Lemma 1 ,we analyze the empirical distribution of the folded residual 
+
+𝛿 𝑧 together with its first- and second-order statistics. For each 
+
+4096 × 4096 test image, SE-T and SE-B each produce a 
+
+256 × 128 index map. Since 𝐾 𝑇 = 𝐾 𝐵 = 256 , the residual lies in [− 128 , 127 ]. The blue bars/curves correspond to the trained codebook in its original ordering, whereas the orange ones employ the permutation 𝝅 returned by Algorithm 2 .Figs. 6(a) and 6(b) show that codebook reordering markedly contracts the residual mass toward the origin in both LF and HF branches. Under the original ordering, non-zero residuals disperse over essentially the entire ring as expected. Since the trained codewords carry no topological ordering, two spatially adjacent latents may map to codewords with arbitrarily distant indices. After reordering, the distribution becomes sharply peaked and unimodal with most non-zero mass confined to a narrow interval around zero, which is precisely predicted by 
+
+Lemma 1(i) . Because 𝝅 is a bijection, it preserves the event that two spatially adjacent latents are quantised to the same codeword, and hence the number of pairs with 𝛿 𝑧 = 0 is identical for both orderings. The gain from Algorithm 2 is therefore the contraction of the non-zero residual support, as evidenced by Fig. 6(c), which shows a pronounced reduction in both mean absolute value and standard deviation. To isolate the end-to-end impact of the proposed G-DPCM codec (shown as Algorithm 3), we assess reconstruction quality as a function of both the channel conditions and the residual bit width 𝑏 𝑟 . For a fair comparison, all curves in Fig. 7 share the same base compression rate 𝑅 bpp = 0.0625 bpp, and only the overhead introduced by index transmission is varied. Setting 𝐺 = 4 and 𝑏 𝑎 = 8, the group packing factor becomes 𝜌 𝐺 = 𝐺𝑏 𝑎 /[ 𝑏 𝑎 +( 𝐺 −1)𝑏 𝑟 ], so a smaller 𝑏 𝑟 produces a larger 𝜌 𝐺 and hence fewer transmitted bits. The three G-DPCM configurations correspond to 𝑏 𝑟 ∈ {5, 6, 7}, whose theoretical rate savings are 28 .125% , 18 .75% , and 9.375% ,respectively, relative to fixed-length index coding. The results of Fig. 7 yield four conclusions. (i) Among the evaluated schemes, the fixed-length reference (red) achieves the highest fidelity, while the three G-DPCM curves degrade monotonically with decreasing 𝑏 𝑟 . (ii) This degradation is gradual rather than abrupt, and the default 𝑏 𝑟 = 6 (blue) trails the red curve only slightly despite transmitting 18 .75% fewer index bits. Since the DPCM-aware PCA reordering 𝝅 concen-trates the folded residual 𝛿 𝑧 about the origin, the majority of samples stay within the clipping interval, so reducing 𝑏 𝑟 sac-rifices little reconstruction quality. (iii) The (𝐺, 𝑏 𝑟 ) = (4, 5)
+
+configuration (green) is particularly revealing: at low SNR, its small group size 𝐺 = 4 increases anchor-bit exposure to channel errors, while its coarse 𝑏 𝑟 = 5 quantization halves the clipping interval relative to 𝑏 𝑟 = 6, jointly degrading residual-decoding robustness. (iv) The ablated (𝐺, 𝑏 𝑟 ) = (4, 6) variant without codebook reordering (wo CRO, cyan) consistently lies (a) (b) (c) Fig. 7: Performance comparison between the proposed DVQ-SDSC and its variant with the G-DPCM codec-based index compression and transmission, evaluated over AFDM with 3GPP NTN-TDL-D channel. (a) PSNR, (b) MS-SSIM, and (c) LPIPS as functions of the wireless SNR in the range 0-15 dB. 
+
+below the G-DPCM curves, demonstrating that PCA-based codebook reordering is essential for residual concentration. Moreover, we relate the residual contraction in Fig. 6 to the coding gain of Lemma 1(ii) . Because G-DPCM assigns a fixed 𝑏 𝑟 -bit field to every residual, the reordering 𝝅 itself does not change the bit rate, and it only determines the residual dynamic range 𝐵 max that this field must cover. With 
+
+𝑏 𝑎 = 8, 𝑏 𝑟 = 6, and 𝐺 = 4, it gives 18 .75% bit saving over fixed-length coding, independent of the residual statistics. Equivalently, both index maps of a 4096 × 4096 image require 
+
+2𝐿 𝑠 𝑏 𝑎 = 1.049 Mbit without G-DPCM versus 2⌈𝐿 𝑠 /𝐺 ⌉ [ 𝑏 𝑎 +(𝐺 − 1)𝑏 𝑟 ] = 0.852 Mbit with it, corresponding to 384 ×
+
+and 473 × compression relative to 8-bit RGB. Algorithm 3 
+
+is clipping-free only if 2𝑏 𝑟 − 1 ≥ 𝐵 max , i.e., the offset-clip in (24) spans [− 32 , 31 ] for 𝑏 𝑟 = 6. The residual concentration achieved by PCA reordering eliminates the need for a wider clipping field and preserves a larger 𝜌 𝐺 , thereby enabling the gradual rate-distortion-perception trade-off in Fig. 7. The visual comparisons in Fig. 8 corroborate the quanti-tative findings in Fig. 7. At high SNR (15-9 dB), both the fixed-length DVQ-SDSC (Fig. 8(a)) and its G-DPCM vari-ant (Fig. 8(b)) reconstruct visually faithful RSIs, preserving coastline geometry and land-sea boundaries with only subtle differences. However, both schemes accumulate noise and granular artifacts with fine textures and edges progressively blurring below 6 dB. A closer comparison at identical SNR and bit allocation ( 𝑅 bpp = 0.0625 , (𝐺, 𝑏 𝑟 ) = (4, 6)) shows that the G-DPCM variant retains quality comparable to the fixed-length codec at 15-9 dB, while degrading markedly more gracefully at 6-0 dB without abrupt structural collapse. This directly reflects the residual contraction in Lemma 1 :the DPCM-aware PCA reordering 𝝅 concentrates the folded residual 𝛿 𝑧 about the origin, confining most samples within the clipping interval; consequently, reducing 𝑏 𝑟 sacrifices little reconstruction quality while isolating clipping errors locally within each group. In summary, G-DPCM reduces index-transmission overhead by 18 .75% with no latent perceptual penalty, particularly at high SNR. VI. C ONCLUSION 
+
+In this paper, we proposed DVQ-SDSC, a VQ-aided dual-branch digital semantic communication framework for high-resolution RSI transmission over AFDM-based satellite chan-nels. First, we introduced an asymmetric codec that decou-ples HF texture residuals from LF structural semantics via bicubic extraction, multi-scale fusion, channel attention, and VQ quantization, followed by gated fusion and SNR-adaptive reconstruction. This hierarchical design overcomes the severe HF loss of conventional semantic codecs under extreme band-width constraints. Second, we developed a index compression scheme that combines PCA-aided codebook reordering with G-DPCM. By contracting the folded residual 𝛿 𝑧 toward the origin, it enables a graceful rate-distortion-perception trade-off and localizes clipping and channel errors within groups. Third, extensive FAIR1M experiments over 3GPP NTN-TDL-D channels show that DVQ-SDSC surpasses JPEG+LDPC across PSNR, MS-SSIM, and LPIPS at 0.0625 bpp, which is less than one third of the 0.2095 bpp baseline while remain-ing robust under estimated CSI. Finally, the heterogeneous architecture (0.52M/1.89M parameters) offloads computation to the ground station, while G-DPCM reduces index overhead with negligible perceptual penalty and no retraining, making it well suited to satellite-to-ground resource constraints. REFERENCES [1] K. Ntontin et al., “A Vision, Survey, and Roadmap Toward Space Communications in the 6G and Beyond Era,” Proc. IEEE , vol. 113, no. 9, pp. 178-184, 987-1023, Sep. 2025. [2] X. Luo, H. Chen, and Q. Guo, “LEO/VLEO Satellite Communications in 6G and Beyond Networks-Technologies, Applications, and Challenges,”             
+
+> Netw. IEEE , vol. 38, no. 5, pp. 273-285, Sep. 2024. [3] J. Heo, S. Sung, H. Lee, I. Hwang, and D. Hong, “MIMO Satellite Communication Systems: A Survey From the PHY Layer Perspective,”
+> IEEE Commun. Surv. Tut. , vol. 25, no. 3, pp. 1543-1570, Jul. 2023. [4] Y. Gao, and E. Tuncel, “Separate Source-Channel Coding for Transmit-ting Correlated Gaussian Sources Over Degraded Broadcast Channels,”
+> IEEE Trans. Inf. Theory , vol. 59, no. 6, pp. 3619-3634, Jun. 2013. [5] D. Gunduz, M. Wigger, T. Tung, P. Zhang, and Y. Xiao, “Joint Source-Channel Coding: Fundamentals and Recent Progress in Practical De-signs,” Proc. IEEE , vol. 113, no. 9, pp. 888-919, Sep. 2025. [6] P. Zhang, et al., “Beyond Shannon: Semantic Information Theory and Methodology,” IEEE Trans. Netw. Sci. Eng. , vol. 13, pp. 8062-8079, Mar. 2026. [7] P. Zhang, et al., “Intellicise Wireless Networks From Semantic Commu-nications: A Survey, Research Issues, and Challenges,” IEEE Commun. Surv. Tut. , vol. 27, no. 3, pp. 2051-2084, Jun. 2025. [8] L. Nguyen, A. Raha, P. Aung, D. Niyato, Z. Han, and C. Hong, “A Contemporary Survey on Semantic Communications: Theory of Mind, Generative AI, and Deep Joint Source-Channel Coding,” IEEE Commun. Surv. Tut. , vol. 28, pp. 2377-2417, Oct. 2025. [9] J. Xu, T. Tung, B. Ai, W. Chen, Y. Sun, and D. Gunduz, “Deep Joint Source-Channel Coding for Semantic Communications,” IEEE Commun. Surv. Tut. , vol. 61, no. 11, pp. 42-48, Nov. 2023.
+
+Fig. 8: Two comparative visual examples between the proposed DVQ-SDSC and its variant incorporating the G-DPCM codec, both operating at (𝐺, 𝑏 𝑟 ) =
+
+(4, 6) and 𝑅 bpp = 0.0625 . The reconstructed images are displayed from left to right in descending order of SNR, ranging from 15 dB to 0 dB. (a) DVQ-SDSC, and (b) DVQ-SDSC with the G-DPCM codec; the PSNR, MS-SSIM, and LPIPS scores are annotated below each image. [10] K. Yang, S. Wang, J. Dai, X. Qin, K. Niu, and P Zhang, “SwinJSCC: Taming Swin Transformer for Deep Joint Source-Channel Coding,” IEEE Trans. Cogn. Commun. Netw. , vol. 11, no. 1, pp. 90-104, Feb. 2025. [11] T. Tung and D. Gunduz, “DeepWiVe: Deep-Learning-Aided Wireless Video Transmission,” IEEE J. Sel. Areas Commun. , vol. 40, no. 9, pp. 2570-2583, Sep. 2022. [12] Z. Bao, H. Liang, C. Dong, C. Li, X. Xu, and P. Zhang, “MDVSC-Efficient Wireless Mdoel Division Video Semantic Communication,” 
+
+IEEE Internet Things J. , vol. 12, no. 2, pp. 1109-1124, Jan. 2025. [13] M. Yang, C. Bian, and H. Kim, “OFDM-Guided Deep Joint Source Channel Coding for Wireless Multipath Fading Channels,” IEEE Trans. Cogn. Commun. Netw. , vol. 8, no. 2, pp. 90-104, Jun. 2022. [14] H. Wu, Y. Shao, C. Bian, K. Mikolajczyk, and D. Gunduz, “Deep Joint Source-Channel Coding for Adaptive Image Transmission Over MIMO Channels,” IEEE Trans. Wireless Commun. , vol. 23, no. 10, pp. 15002-15017, Oct. 2024. [15] P. Jiang, C. Wen, S. Jin, and G. Y. Li, “RIS-Enhanced Semantic Com-munications Adaptive to User Requirements,” IEEE Trans. Commun. ,vol. 72, no. 7, pp. 4134-4148, Jul. 2024. [16] I. Ahmed, et al., “Semantic Communications in 6G: Coexistence, Multiple Access, and Satellite Networks,” IEEE Commun. Stand. Mag. ,vol. 9, no. 4, pp. 58-64, Dec. 2025. [17] Z. Wang, Z. Weng, X. Tao, and Z. Qin, “On the Role of Semantic Communication in Non-Terrestrial Networks,” IEEE Commun. Mag. , vol. 63, no. 10, pp. 102-109, Oct. 2025. [18] Y. Jiang, et al., “High Quality Compression and Transmission of Remote Sensing Images Based on Semantic Communication,” IEEE Trans. Sustain. Comput. , vol. 10, no. 5, pp. 843-857, Sep. 2025. [19] H. Cao, R. Meng, X. Xu, S. Han, and P. Zhang, “Importance-Aware Ro-bust Semantic Transmission for LEO Satellite-Ground Communication,” 
+
+IEEE Internet Things J. , vol. 13, no. 5, pp. 9665-9681, Mar. 2026. [20] P. Jiang, C. Wen, X. Li, S. Jin, and G. Y. Li, “Semantic Satellite Communications Based on Generative Foundation Model,” IEEE J. Sel. Areas Commun. , vol. 43, no. 7, pp. 2431-2445, Jul. 2025. [21] Z. Tan, et al., “Adaptive Semantic Communication System for High-Quality Remote Sensing Image Transmission in Unstable Wireless Envi-ronments,” IEEE Trans. Wireless Commun. , vol. 25, pp. 3001-3015, Oct. 2025. [22] W. Wang, et al., “Semantic Image Communication Based on Swin Transformer for Satellite IoE,” IEEE Internet Things J. , vol. 13, no. 1, pp. 392-404, Jan. 2026. [23] Z. Lin, H. Lin, Y. Sun, S. Basheer, M. T. Quasim, and K. Dev, “Joint Coding and Modulation for Robust Semantic Communication in Satellite Communications,” IEEE Internet Things J. , vol. 13, no. 1, pp. 339-346, Jan. 2026. [24] M. Lyu, et al., “Importance-Aware OFDM Transmission for VQ-VAE Based Digital Semantic Communications,” IEEE Trans. Veh. Technol. ,Early Access, pp. 1-16, Jun. 2026. [25] J. Chen, et al., “VQ-DSC-R: Robust Vector Quantized-Enabled Digi-tal Semantic Communication With OFDM Transmission,” IEEE Trans. Cogn. Commun. Netw. , vol. 12, pp. 10060-10077, Jul. 2026. [26] J. Seon, et al., “Doppler-Adaptive Digital Semantic Communication for Low Earth Orbit Satellite Systems,” IEEE Internet Things J. , vol. 12, no. 24, pp. 52900-52912, Dec. 2025. [27] W. Chen, C. Ju, T. Yuan, Y. Zhan, M. Zhang, and D. Wang, “Free Space Optical Semantic Communication for Satellite Remote Sensing Image Transmission,” IEEE Trans. Commun. , vol. 73, no. 10, pp. 9168-9183, Oct. 2025. [28] J. Huang, et al., “CoMDMA: Codebook-Enhanced Semantic Forwarding and Model-Division Multiple Access for Satellite-Terrestrial Networks,” 
+
+IEEE Internet Things J. , Early Access, Sep. 2026. [29] W. Chen, S. Li, C. Ju, D. Wang, J. Li, and D. Wang, “Semantic-Enhanced Downlink LEO Satellite Communication System With OTFS Modulation,” IEEE Commun. Lett. , vol. 28, no. 6, pp. 1377-1381, Jun. 2024. [30] A. Bemani, N. Ksairi, and M. Kountouris, “Affine Frequency Division Multiplexing for Next Generation Wireless Communications,” IEEE Trans. Wireless Commun. , vol. 22, no. 11, pp. 8214-8229, Nov. 2023. [31] Y. Tao, M. Wen, Y. Ge, T. Mao, Y. Tang, and A. Doosti-Aref, “Affine Frequency Division Multiple Access Based on DAFT Spreading for Next-Generation Wireless Networks,” IEEE Trans. Wireless Commun. , vol. 25, pp. 4626-4641, Oct. 2025. [32] Y. Wang, Y. He, L. Zhao, and Y. Jiang, “AFDM-Based Preamble Se-quence Transmission for 6G Mobile Satellite Communication Systems,” 
+
+IEEE Trans. Wireless Commun. , vol. 24, no. 10, pp. 8445-8460, Oct. 2025. [33] Y. Huang, Y. Guo, C. Guo, Y. Wang, and X. Guo, “Prior-Agnostic AFDM Channel Estimation for High-Mobility LEO Satellite Communi-cations Using Diffusion Models,” IEEE Wireless Commun. Lett. , vol. 15, pp. 2949-2953, May 2026. [34] Z. Liu et al., “Swin Transformer: Hierarchical Vision Transformer Using Shifted Windows,” Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV) ,2021. [35] G. Tan, B. Wu, and T. Herfet, “Performance Analysis of OMP-Based Channel Estimation in Mobile OFDM Systems,” IEEE Trans. Wireless Commun. , vol. 17, no. 5, pp. 3459-3473, May 2018. [36] N. S. Jayant and P. Noll, “Digital Coding of Waveforms: Principles and Applications to Speech and Video,” Englewood Cliffs, NJ: Prentice-Hall ,1984. [37] X. Sun, et al., “FAIR1M: A Benchmark Dataset for Fine-grained Object Recognition in High-Resolution Remote Sensing Imagery,” ISPRS J. Photogramm. Remote Sens. , vol. 184, pp. 116-130, Feb. 2022. [38] J. Korhonen and J. You, “Peak Signal-to-Noise Ratio Revisited: Is Simple Beautiful?” 4th Int. Workshop Qual. Multimedia Exp. , 2012. [39] Z. Wang, E. P. Simoncelli, and A. C. Bovik, “Multiscale Structural Similarity for Image Quality Assessment,” 37th Asilomar Conf. Signals, Syst. Comput. , 2003. [40] R. Zhang, P. Isola, A. Efros, E. Shechtman, and O. Wang, “The Unreasonable Effectiveness of Deep Features as a Perceptual Metric,” 
+
+in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recog. (CVPR) , pp. 586-595, 2018. [41] “3GPP, Study on New Radio (NR) To Support Non-Terrestrial Net-works,” document TR 38.811 , 2023.
