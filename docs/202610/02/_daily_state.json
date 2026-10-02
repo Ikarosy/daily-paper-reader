@@ -1,0 +1,137 @@
+{
+  "date": "20261002",
+  "date_label": "",
+  "generated_at": "2026-10-02 22:45:29 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2610.00432v1",
+      "route": "202610/02/2610.00432v1-xor-trellis-ultra-low-complexity-dequantization-and-curvature-aware-hadamard-free-llm-quantization",
+      "title": "XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "网格编码超低比特LLM量化，避免庞大码本，高效反量化器",
+      "first_seen_at": "2026-10-02 22:45:29 UTC",
+      "updated_at": "2026-10-02 22:45:29 UTC"
+    },
+    {
+      "paper_id": "2609.35906v1",
+      "route": "202610/02/2609.35906v1-dual-branch-vector-quantization-aided-satellite-digital-semantic-communication-with-index-compression-for-high-resolution-rsi-over-afdm",
+      "title": "Dual-Branch Vector-Quantization-Aided Satellite Digital Semantic Communication with Index Compression for High-Resolution RSI Over AFDM",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "向量量化辅助，码本索引压缩",
+      "first_seen_at": "2026-10-02 22:45:29 UTC",
+      "updated_at": "2026-10-02 22:45:29 UTC"
+    },
+    {
+      "paper_id": "2609.38471v1",
+      "route": "202610/02/2609.38471v1-derandomizing-dense-binary-hypervector-codebooks-for-quantized-scalars",
+      "title": "Derandomizing Dense Binary Hypervector Codebooks for Quantized Scalars",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "超维计算中表示量化标量等级的稠密二进制码本",
+      "first_seen_at": "2026-10-02 22:45:29 UTC",
+      "updated_at": "2026-10-02 22:45:29 UTC"
+    },
+    {
+      "paper_id": "2609.30950v1",
+      "route": "202610/02/2609.30950v1-low-bit-recurrent-states-in-hybrid-language-models",
+      "title": "Low-Bit Recurrent States in Hybrid Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "循环状态低比特量化与混合精度比特分配",
+      "first_seen_at": "2026-10-02 22:45:29 UTC",
+      "updated_at": "2026-10-02 22:45:29 UTC"
+    },
+    {
+      "paper_id": "2609.36634v1",
+      "route": "202610/02/2609.36634v1-lossless-compression-of-lookup-tables-for-hardware-applications",
+      "title": "Lossless Compression of Lookup Tables for Hardware Applications",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向硬件大型查找表的无损压缩与解码器架构",
+      "first_seen_at": "2026-10-02 22:45:29 UTC",
+      "updated_at": "2026-10-02 22:45:29 UTC"
+    },
+    {
+      "paper_id": "2609.36120v1",
+      "route": "202610/02/2609.36120v1-thinquant-scalable-rotation-learning-for-weight-and-activation-quantization-of-llms",
+      "title": "ThinQuant: Scalable Rotation Learning for Weight and Activation Quantization of LLMs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向LLM低比特权重与激活量化的可扩展旋转学习",
+      "first_seen_at": "2026-10-02 22:45:29 UTC",
+      "updated_at": "2026-10-02 22:45:29 UTC"
+    },
+    {
+      "paper_id": "2609.37007v1",
+      "route": "202610/02/2609.37007v1-rvq-position-aware-speculative-decoding-for-on-device-text-to-speech",
+      "title": "RVQ Position Aware Speculative Decoding for On Device Text to Speech",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "残差向量量化码与位置感知解码",
+      "first_seen_at": "2026-10-02 22:45:29 UTC",
+      "updated_at": "2026-10-02 22:45:29 UTC"
+    },
+    {
+      "paper_id": "2609.39223v2",
+      "route": "202610/02/2609.39223v2-qatfactory-a-versatile-deployment-aligned-framework-for-quantization-aware-training-and-distillation-of-llms",
+      "title": "QATFactory: A Versatile, Deployment-Aligned Framework for Quantization-aware Training and Distillation of LLMs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向部署的低精度大模型量化训练",
+      "first_seen_at": "2026-10-02 22:45:29 UTC",
+      "updated_at": "2026-10-02 22:45:29 UTC"
+    }
+  ]
+}

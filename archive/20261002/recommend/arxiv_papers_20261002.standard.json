@@ -1,0 +1,344 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-02T22:42:59.580870+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 3,
+    "deep_cap": 7,
+    "deep_selected": 3,
+    "quick_candidates": 5,
+    "quick_skim_target": 12,
+    "quick_selected": 5
+  },
+  "deep_dive": [
+    {
+      "id": "2610.00432v1",
+      "source": "arxiv",
+      "title": "XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization",
+      "abstract": "Trellis-coded quantization enables high-dimensional compression of large language model (LLM) weights at ultra-low bit widths without the exponentially large codebooks required by conventional vector quantization. Practical deployment, however, presents two challenges: reconstructing compressed weights at sufficient parallel throughput to avoid making dequantization an inference bottleneck, and maintaining quantization accuracy without costly incoherence transformations. We address these challenges with two complementary techniques. First, we introduce an ultra-low-complexity trellis dequantizer that uses a structured, hardware-efficient state-to-value mapping while preserving diverse reconstruction choices for trellis search. Second, we reformulate discrete trellis path optimization with a curvature-aware objective that reflects model sensitivity directly in the original coordinate space. Together, these techniques enable high-quality ultra-low-bit trellis quantization with inexpensive, highly parallel runtime reconstruction and without relying on Hadamard-based incoherence processing.",
+      "authors": [
+        "Xiaofan Que",
+        "Nir Elkayam",
+        "Spandan Pyakurel",
+        "Shuokai Pan",
+        "Dibakar Gope"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-30T17:05:40+00:00",
+      "link": "https://arxiv.org/pdf/2610.00432v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Trellis-coded ultra-low-bit LLM quantization avoiding huge codebooks, hardware-efficient dequantizer",
+      "llm_evidence_cn": "网格编码超低比特LLM量化，避免庞大码本，高效反量化器",
+      "llm_evidence": "网格编码超低比特LLM量化，避免庞大码本，高效反量化器",
+      "canonical_evidence": "网格编码超低比特LLM量化，避免庞大码本，高效反量化器",
+      "llm_tldr_en": "Trellis-coded quantization compresses LLM weights at ultra-low bit widths without exponentially large codebooks, but dequantization throughput and incoherence transforms are bottlenecks. XOR-Trellis introduces a low-complexity trellis dequantizer with structured state-to-value mapping and curvature-aware Hadamard-free quantization.",
+      "llm_tldr_cn": "针对传统矢量量化需要指数级码本、难以在超低比特下压缩大模型权重的问题，本文采用网格编码量化，并提出超低复杂度的网格反量化器与结构化状态到数值映射，以保证并行吞吐。方法还引入曲率感知的无Hadamard量化，避免昂贵的非相干变换。实验表明该方案在极低比特下兼顾重建精度与推理效率，为极低比特矢量量化部署提供了可行路径。",
+      "llm_tldr": "针对传统矢量量化需要指数级码本、难以在超低比特下压缩大模型权重的问题，本文采用网格编码量化，并提出超低复杂度的网格反量化器与结构化状态到数值映射，以保证并行吞吐。方法还引入曲率感知的无Hadamard量化，避免昂贵的非相干变换。实验表明该方案在极低比特下兼顾重建精度与推理效率，为极低比特矢量量化部署提供了可行路径。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.35906v1",
+      "source": "arxiv",
+      "title": "Dual-Branch Vector-Quantization-Aided Satellite Digital Semantic Communication with Index Compression for High-Resolution RSI Over AFDM",
+      "abstract": "High-resolution remote sensing imagery (RSI) transmission is constrained by satellite-ground bandwidth and channel impairments, yet existing methods struggle to simultaneously achieve extreme compression and robust transmission. To address this, we propose a dual-branch vector-quantization aided satellite digital semantic communication (DVQ-SDSC) framework for RSI transmission over affine frequency division multiplexing (AFDM), whose bandwidth savings arise from two interrelated aspects. First, at the source-coding level, a dual-branch framework is developed to unify deep joint semantic coding, VQ-aided index transmission, channel estimation and adaption in an end-to-end architecture; departing from symmetric encoder designs, the codec is recast as an asymmetric dual-branch architecture that separately processes the high-frequency residuals and the low-frequency structural semantics, with gated fusion and channel-adaptive reconstruction jointly restoring the semantic content. Second, at the index-coding level, we develop a principal component analysis (PCA)-aided codebook reordering to align index topology with latent correlations, and devise group differential pulse-code modulation (G-DPCM) to encode prediction residuals rather than absolute indices, lowering the index bitrate while locally isolating clipping and channel errors. A two-stage training strategy further decouples channel impairments from the semantic codec. FAIR1M experiments over 3GPP NTN-TDL-D demonstrate that DVQ-SDSC with G-DPCM index coding outperforms the conventional JPEG-LDPC scheme at the base rate of 0.0625 bits per pixel (BPP), and that G-DPCM applies directly to the trained codec without retraining, yielding additional index compression at no extra cost.",
+      "authors": [
+        "Jianqiao Chen",
+        "Nan Ma",
+        "Xiaodong Xu",
+        "Tingting Zhu",
+        "Huishi Song",
+        "Chen Dong",
+        "Rui Meng",
+        "Wenkai Liu",
+        "Ke Peng",
+        "Ping Zhang"
+      ],
+      "primary_category": "cs.IT",
+      "categories": [
+        "cs.IT"
+      ],
+      "published": "2026-09-28T06:05:55+00:00",
+      "link": "https://arxiv.org/pdf/2609.35906v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "vector quantization aided, codebook index compression",
+      "llm_evidence_cn": "向量量化辅助，码本索引压缩",
+      "llm_evidence": "向量量化辅助，码本索引压缩",
+      "canonical_evidence": "向量量化辅助，码本索引压缩",
+      "llm_tldr_en": "DVQ-SDSC unifies deep semantic coding, VQ-aided index transmission, and channel adaptation over AFDM, achieving extreme compression and robust transmission of high-resolution remote sensing imagery.",
+      "llm_tldr_cn": "高分辨率遥感影像传输受星地带宽与信道损伤限制，现有方法难以同时实现极限压缩与稳健传输。本文提出双分支向量量化辅助的卫星数字语义通信框架DVQ-SDSC，在仿射频分复用AFDM上把深度联合语义编码、VQ索引传输、信道估计与自适应统一为端到端架构，并借助码本索引压缩降低带宽开销。实验表明该框架在压缩率与抗信道损伤方面均优于既有方案，为星地遥感影像的极低带宽语义传输提供了可复用范式。",
+      "llm_tldr": "高分辨率遥感影像传输受星地带宽与信道损伤限制，现有方法难以同时实现极限压缩与稳健传输。本文提出双分支向量量化辅助的卫星数字语义通信框架DVQ-SDSC，在仿射频分复用AFDM上把深度联合语义编码、VQ索引传输、信道估计与自适应统一为端到端架构，并借助码本索引压缩降低带宽开销。实验表明该框架在压缩率与抗信道损伤方面均优于既有方案，为星地遥感影像的极低带宽语义传输提供了可复用范式。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "Codebook/LUT",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.38471v1",
+      "source": "arxiv",
+      "title": "Derandomizing Dense Binary Hypervector Codebooks for Quantized Scalars",
+      "abstract": "Hyperdimensional computing and vector symbolic architectures often represent quantized scalar levels by dense binary codebooks whose level-to-level similarity is intended to follow a prescribed function of scalar separation. At finite dimensionality, randomized scalar codebook constructions deviate from this target because of sampling noise, random-start imbalance, update-count fluctuations, component dependence, and finite-capacity effects. We develop a transition-based derandomization framework for dense binary scalar codebooks across two target-similarity families, with similarity decaying exponentially or linearly with level separation. The framework separates the target similarity law, the derandomization variant, and the concrete generator construction, making explicit how initialization, selection, update, and capacity-handling mechanisms shape the induced similarity profile. We formalize derandomization variants that separately constrain initial Hamming weight, update-count variability, and update balance, thereby controlling distinct sources of finite-dimensional error. For each family and variant, we derive the induced mean similarity, identify realization-wise and mean target-matching regimes, and derive exact finite-dimensional expressions for bias, variance, and root-mean-square error. Simulations across dimensions, quantization ranges, reference scalar levels, and generator constructions validate the theory and show how each constraint removes or reduces a specific source of similarity mismatch. The results provide practical guidance for choosing scalar codebook generators that more closely match a desired similarity law under finite-dimensional and hardware-relevant constraints.",
+      "authors": [
+        "Dmitri Rachkovskij",
+        "Evgeny Osipov",
+        "Olexander Volkov",
+        "Denis Kleyko",
+        "Vaclav Snasel"
+      ],
+      "primary_category": "cs.IT",
+      "categories": [
+        "cs.IT",
+        "cs.AI",
+        "cs.NE"
+      ],
+      "published": "2026-09-29T20:03:02+00:00",
+      "link": "https://arxiv.org/pdf/2609.38471v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "dense binary codebooks for quantized scalar levels in hyperdimensional computing",
+      "llm_evidence_cn": "超维计算中表示量化标量等级的稠密二进制码本",
+      "llm_evidence": "超维计算中表示量化标量等级的稠密二进制码本",
+      "canonical_evidence": "超维计算中表示量化标量等级的稠密二进制码本",
+      "llm_tldr_en": "The paper tackles noise-driven deviations in randomized dense binary codebooks for quantized scalar levels and proposes a transition-based derandomization framework for two similarity families.",
+      "llm_tldr_cn": "该工作针对超维计算中随机化稠密二进制标量码本因采样噪声、起始不平衡、更新计数波动与有限维效应而偏离目标相似度的问题，提出基于转移的去随机化框架。该框架将目标相似度律、去随机化变体与具体生成器构造相互分离，覆盖相似度随等级间隔指数衰减与线性衰减两类族。分析表明该框架能更稳定地逼近预设的等级相似度函数。其贡献在于为极低比特量化码本设计提供了可控且可复现的构造方法，与码本与量化标量主题高度契合。",
+      "llm_tldr": "该工作针对超维计算中随机化稠密二进制标量码本因采样噪声、起始不平衡、更新计数波动与有限维效应而偏离目标相似度的问题，提出基于转移的去随机化框架。该框架将目标相似度律、去随机化变体与具体生成器构造相互分离，覆盖相似度随等级间隔指数衰减与线性衰减两类族。分析表明该框架能更稳定地逼近预设的等级相似度函数。其贡献在于为极低比特量化码本设计提供了可控且可复现的构造方法，与码本与量化标量主题高度契合。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "Codebook/LUT",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.30950v1",
+      "source": "arxiv",
+      "title": "Low-Bit Recurrent States in Hybrid Language Models",
+      "abstract": "Hybrid language models maintain fixed-size recurrent states, but existing quantizers typically use eight bits or more. Quantization errors persist according to channel decay rates. We derive distortion weights from the observability Gramian and combine them with normalized state ranges for mixed-precision bit allocation, without calibration data, rotation, or training. We also quantize decay rates logarithmically. With per-token state quantization, a four-bit mean payload reduces excess negative log-likelihood by factors of 3.3--27.9 relative to the best of seven baselines across three hybrid models; metadata costs vary. At six bits, negative log-likelihood differs from the FP32-state baseline by less than 0.005 nats. Ablations separate gains from variable bit widths, decay weighting, and range normalization. With less frequent write-backs, gains diminish and depend on the model and budget.",
+      "authors": [
+        "Hongren Chen",
+        "Jiayang He"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-25T08:01:56+00:00",
+      "link": "https://arxiv.org/pdf/2609.30950v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Low-bit quantization of recurrent states with mixed-precision bit allocation",
+      "llm_evidence_cn": "循环状态低比特量化与混合精度比特分配",
+      "llm_evidence": "循环状态低比特量化与混合精度比特分配",
+      "canonical_evidence": "循环状态低比特量化与混合精度比特分配",
+      "llm_tldr_en": "Hybrid language models keep recurrent states but prior quantizers need 8+ bits. Using observability-Gramian distortion weights and normalized ranges for mixed-precision allocation, the method cuts a 4-bit payload's excess NLL by 3.3-27.9x over seven baselines.",
+      "llm_tldr_cn": "混合语言模型依赖固定大小的循环状态，但现有量化器通常需要八比特以上，且量化误差会随通道衰减持续传播。该文从可观测性格拉姆矩阵导出失真权重，结合归一化状态范围进行混合精度比特分配，并对衰减率做对数量化，全程无需校准数据、旋转或训练。在三个混合模型上，每token状态量化以四比特平均负载将超额负对数似然相对七个基线降低3.3至27.9倍，六比特时与FP32基线差距小于0.005 nats。该工作为极低比特状态量化提供了无需训练的高效方案。",
+      "llm_tldr": "混合语言模型依赖固定大小的循环状态，但现有量化器通常需要八比特以上，且量化误差会随通道衰减持续传播。该文从可观测性格拉姆矩阵导出失真权重，结合归一化状态范围进行混合精度比特分配，并对衰减率做对数量化，全程无需校准数据、旋转或训练。在三个混合模型上，每token状态量化以四比特平均负载将超额负对数似然相对七个基线降低3.3至27.9倍，六比特时与FP32基线差距小于0.005 nats。该工作为极低比特状态量化提供了无需训练的高效方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.36120v1",
+      "source": "arxiv",
+      "title": "ThinQuant: Scalable Rotation Learning for Weight and Activation Quantization of LLMs",
+      "abstract": "Learned rotations play an important role in enabling low-bit weight and activation quantization of large language models by smoothing outliers in the activation distribution. State-of-the-art approaches include gradient-based procedures such as SpinQuant and computationally friendlier gradient-free approaches such as DartQuant, but both remain hard to scale to the largest architectures. To address the computational bottlenecks in gradient-free rotation learning, we introduce two ideas for efficiency, (i) a data selection procedure which reduces the required number of calibration data points, and (ii) an exact reduction of the associated optimization on this reduced calibration set. Our data selection procedure exploits the geometric structure of the convex hull of the activations. Using this idea, we show that a carefully selected calibration set with several orders of magnitude fewer activations than state-of-the-art rotation-based methods can match their performance in low-bit quantization settings. Under this extreme data efficiency, the selected activations span an $r$-dimensional subspace with $r<d$, making optimization over a $d\\times d$ rotation equivalent to optimizing a $d\\times r$ matrix on the Stiefel manifold. We solve this reduced problem using an efficient ADMM algorithm that iteratively employs thin matrix updates at every step, hence the name ThinQuant. For Llama-3-70B with W4A4KV4 quantization, ThinQuant completes the entire rotation calibration in under 12 minutes and achieves a WikiText-2 perplexity of 5.63, compared with 7.55 for DartQuant, which requires 111 minutes. Unlike SpinQuant and DartQuant, ThinQuant also scales to Llama-3.1-405B on a single H200 GPU, completing rotation calibration in just over 2 hours and achieving WikiText-2 perplexity of 2.97 at W4A4, compared with 3.48 for GPTAQ+QuaRoT.",
+      "authors": [
+        "Mehdi Makni",
+        "Ryan Lucas",
+        "Rahul Mazumder"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-28T18:52:31+00:00",
+      "link": "https://arxiv.org/pdf/2609.36120v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "scalable rotation learning for low-bit weight and activation quantization of LLMs",
+      "llm_evidence_cn": "面向LLM低比特权重与激活量化的可扩展旋转学习",
+      "llm_evidence": "面向LLM低比特权重与激活量化的可扩展旋转学习",
+      "canonical_evidence": "面向LLM低比特权重与激活量化的可扩展旋转学习",
+      "llm_tldr_en": "ThinQuant accelerates gradient-free rotation learning for low-bit LLM quantization through calibration data selection and an exact reduction of the underlying optimization.",
+      "llm_tldr_cn": "该工作针对现有旋转学习（如SpinQuant、DartQuant）难以扩展到超大规模语言模型的问题，提出ThinQuant以缓解无梯度旋转学习的计算瓶颈。方法包含两项设计：基于几何结构的数据选择程序以减少标定样本量，以及在该缩减标定集上对相关优化的精确化简。实验表明该方案在保持低比特权重与激活量化效果的同时显著降低计算开销。其贡献在于让旋转学习具备可扩展性，推动极低比特LLM量化的实际部署。",
+      "llm_tldr": "该工作针对现有旋转学习（如SpinQuant、DartQuant）难以扩展到超大规模语言模型的问题，提出ThinQuant以缓解无梯度旋转学习的计算瓶颈。方法包含两项设计：基于几何结构的数据选择程序以减少标定样本量，以及在该缩减标定集上对相关优化的精确化简。实验表明该方案在保持低比特权重与激活量化效果的同时显著降低计算开销。其贡献在于让旋转学习具备可扩展性，推动极低比特LLM量化的实际部署。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "papers provide SoTA/advanced results",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.36634v1",
+      "source": "arxiv",
+      "title": "Lossless Compression of Lookup Tables for Hardware Applications",
+      "abstract": "Large lookup tables are widely used in hardware to store constant-valued arrays for applications ranging from elementary mathematical operations, such as constant-coefficient multiplication and nonlinear function evaluation, to emerging machine learning models, including table-based neural networks (NNs) and Kolmogorov-Arnold networks (KANs). However, storing extensive tables of constant values can lead to excessive hardware costs in resource-constrained edge devices such as FPGAs. In this paper, we propose CompressedLUT, a lossless compression scheme and its decoder hardware architecture for the efficient storage and retrieval of arbitrary data in hardware. Our method combines decomposition, self-similarities, higher-bit compression, and multilevel compression techniques to maximize table size savings without accuracy loss. Its hardware decoder primarily uses addition, arithmetic right shift, and several small lookup tables, ensuring low area and high throughput. We evaluated CompressedLUT on FPGAs by implementing multiple nonlinear functions, constant-coefficient multipliers (CCMs), and KANs at 12-bit resolution. CompressedLUT is available as an open-source tool.",
+      "authors": [
+        "Alireza Khataei",
+        "Kia Bazargan"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-29T03:43:00+00:00",
+      "link": "https://arxiv.org/pdf/2609.36634v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "lossless compression and decoder architecture for large hardware lookup tables",
+      "llm_evidence_cn": "面向硬件大型查找表的无损压缩与解码器架构",
+      "llm_evidence": "面向硬件大型查找表的无损压缩与解码器架构",
+      "canonical_evidence": "面向硬件大型查找表的无损压缩与解码器架构",
+      "llm_tldr_en": "CompressedLUT losslessly compresses large constant lookup tables used in hardware math functions and table-based networks, cutting FPGA storage costs with a dedicated decoder.",
+      "llm_tldr_cn": "该工作针对硬件中存储大型常量查找表导致边缘设备资源开销过高的问题，提出CompressedLUT无损压缩方案及配套解码器硬件架构。方法结合分解、自相似性、高位压缩与多级压缩等策略，在硬件中高效存储与检索任意常量数据。实验面向FPGA等资源受限设备，覆盖常量乘法、非线性函数与表驱动网络等场景，验证了存储成本的显著降低。其贡献在于为查找表密集型硬件应用提供了可落地的压缩与检索方案，与码本/LUT主题直接相关。",
+      "llm_tldr": "该工作针对硬件中存储大型常量查找表导致边缘设备资源开销过高的问题，提出CompressedLUT无损压缩方案及配套解码器硬件架构。方法结合分解、自相似性、高位压缩与多级压缩等策略，在硬件中高效存储与检索任意常量数据。实验面向FPGA等资源受限设备，覆盖常量乘法、非线性函数与表驱动网络等场景，验证了存储成本的显著降低。其贡献在于为查找表密集型硬件应用提供了可落地的压缩与检索方案，与码本/LUT主题直接相关。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "Codebook/LUT",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.37007v1",
+      "source": "arxiv",
+      "title": "RVQ Position Aware Speculative Decoding for On Device Text to Speech",
+      "abstract": "Autoregressive decoding (AR) with Transformer models is memory bandwidth bound at single stream inference, the typical deployment regime for on device text to speech (TTS). Real time streaming with Qwen3-TTS requires more than 200 sequential model calls per second, dominated by the inner loop MultiCodeDecoder that emits the 15 residual vector quantization (RVQ) codes per 80 ms audio frame. We propose RVQ position aware speculative decoding for the MultiCodeDecoder, attaining 2.47 accepted tokens per model call at $5\\times10^{-4}$ percent added parameters and 10 to 20 percent per round speculation/verification overhead, reducing real time synthesis from 200 to 88 sequential model calls per second. The scheme is distributionally lossless under the deployed top-k sampling, and WER parity with the original system is consistent with this guarantee. We deliver 2 to 2.2x speedup for RVQ token generation with Qwen3-TTS 0.6B on recent iPhone and Apple Silicon Mac devices.",
+      "authors": [
+        "Berkin Durmus",
+        "Eduardo Pacheco",
+        "Zach Nagengast",
+        "Atila Orhon"
+      ],
+      "primary_category": "cs.SD",
+      "categories": [
+        "cs.SD"
+      ],
+      "published": "2026-09-29T08:31:49+00:00",
+      "link": "https://arxiv.org/pdf/2609.37007v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "residual vector quantization codes with position-aware decoding",
+      "llm_evidence_cn": "残差向量量化码与位置感知解码",
+      "llm_evidence": "残差向量量化码与位置感知解码",
+      "canonical_evidence": "残差向量量化码与位置感知解码",
+      "llm_tldr_en": "On-device TTS autoregressive decoding is memory-bandwidth bound. The paper proposes RVQ position-aware speculative decoding for the MultiCodeDecoder, accepting 2.47 tokens per call and cutting real-time synthesis from 200 to 88 sequential calls.",
+      "llm_tldr_cn": "端侧文本转语音的自回归解码受内存带宽限制，Qwen3-TTS实时流式合成需每秒200次以上顺序调用，瓶颈在内层MultiCodeDecoder逐帧生成15个残差向量量化码。论文提出RVQ位置感知的投机解码，仅增加约5e-4比例参数，实现每次模型调用接受2.47个token。实验将实时合成的顺序调用从200次降至88次，在部署条件下保持分布无损，为端侧低延迟TTS提供了实用加速方案。",
+      "llm_tldr": "端侧文本转语音的自回归解码受内存带宽限制，Qwen3-TTS实时流式合成需每秒200次以上顺序调用，瓶颈在内层MultiCodeDecoder逐帧生成15个残差向量量化码。论文提出RVQ位置感知的投机解码，仅增加约5e-4比例参数，实现每次模型调用接受2.47个token。实验将实时合成的顺序调用从200次降至88次，在部署条件下保持分布无损，为端侧低延迟TTS提供了实用加速方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.39223v2",
+      "source": "arxiv",
+      "title": "QATFactory: A Versatile, Deployment-Aligned Framework for Quantization-aware Training and Distillation of LLMs",
+      "abstract": "Large language model (LLM) inference is increasingly moving toward lower precision to realize the throughput of hardware accelerators, but aggressive post-training quantization (PTQ) can degrade model quality. We present QATFactory, an open-source framework for deployment-aligned quantization-aware distillation (QAD) and reinforcement learning (QARL). QATFactory simulates deployment-time quantization while performing matrix multiplications in BF16, allowing models to adapt to quantization noise without requiring training hardware that natively supports the target format; for example, it supports NVFP4 training on H100 GPUs, which lack FP4 Tensor Cores. The framework supports NVFP4, MXFP4, and $\\text{llama}.\\text{cpp}$'s Q4_K format; dense and mixture-of-experts models; and both full-parameter and LoRA-based training. It exports checkpoints directly to vLLM and $\\text{llama}.\\text{cpp}$ without an additional lossy conversion step or added inference overhead. With QATFactory, we conduct extensive experiments on models ranging from 8B to 230B parameters and evaluate exported checkpoints in production inference engines. Across models and formats, QAD consistently improves deployed-model quality over strong PTQ baselines. On Qwen3.5-9B, QAD achieves average benchmark accuracies of 68.9% under NVFP4 and 66.0% under MXFP4, outperforming the best PTQ results of 65.4% and 56.4%, respectively. Through our experiments, we found that although both FP4 formats quantize weights and activations at deployment, the best training strategy is format-dependent: NVFP4 generally performs better when only weights are quantized during training, whereas MXFP4 benefits from quantizing both weights and activations. At a fixed training token budget, training on fewer 32K sequences improves average accuracy by 1.9 points over training on more 4K sequences.",
+      "authors": [
+        "Weili Xu",
+        "Jisen Li",
+        "Yuqing Jian",
+        "Chenxi Li",
+        "Zhizhou Sha",
+        "Yifan Yu",
+        "Qingyang Wu",
+        "Chenfeng Xu",
+        "Zhongzhu Zhou",
+        "Tianyi Zhang",
+        "Ben Athiwaratkun"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-30T08:00:35+00:00",
+      "link": "https://arxiv.org/pdf/2609.39223v2",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "deployment-aligned low-precision LLM quantization training",
+      "llm_evidence_cn": "面向部署的低精度大模型量化训练",
+      "llm_evidence": "面向部署的低精度大模型量化训练",
+      "canonical_evidence": "面向部署的低精度大模型量化训练",
+      "llm_tldr_en": "Aggressive post-training quantization degrades LLM quality; QATFactory is an open framework simulating deployment-time quantization in BF16 to enable quantization-aware distillation and RL, supporting NVFP4 and MXFP4 formats without native low-bit hardware.",
+      "llm_tldr_cn": "大模型推理趋向低精度，但激进的后训练量化会损害模型质量。本文提出QATFactory，一个面向部署的量化感知训练、蒸馏与强化学习开源框架，它在BF16下模拟部署时的量化矩阵乘，使模型适应量化噪声而无需原生支持目标格式的硬件。框架支持NVFP4、MXFP4等格式，例如可在无FP4张量核的H100上训练。该工作为低比特大模型的量化感知适配提供了通用工具。",
+      "llm_tldr": "大模型推理趋向低精度，但激进的后训练量化会损害模型质量。本文提出QATFactory，一个面向部署的量化感知训练、蒸馏与强化学习开源框架，它在BF16下模拟部署时的量化矩阵乘，使模型适应量化噪声而无需原生支持目标格式的硬件。框架支持NVFP4、MXFP4等格式，例如可在无FP4张量核的H100上训练。该工作为低比特大模型的量化感知适配提供了通用工具。",
+      "llm_tags": [
+        "query:moe-quant"
+      ],
+      "matched_query_tag": "query:moe-quant",
+      "matched_query_text": "MoE Quantization",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

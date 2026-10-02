@@ -1,0 +1,631 @@
+Title: Lossless Compression of Lookup Tables for Hardware Applications
+
+URL Source: https://arxiv.org/pdf/2609.36634v1
+
+Published Time: Wed, 30 Sep 2026 00:51:01 GMT
+
+Number of Pages: 12
+
+Markdown Content:
+> 1
+
+# Lossless Compression of Lookup Tables for Hardware Applications 
+
+Alireza Khataei, Kia Bazargan Department of Electrical and Computer Engineering University of Minnesota Minneapolis, MN, USA 
+
+{khata014, kia }@umn.edu 
+
+> This work has been submitted to the IEEE for possible publication. Copyright may be transferred without notice, after which this version may no longer be accessible.
+
+Abstract —Large lookup tables are widely used in hardware to store constant-valued arrays for applications ranging from elementary mathematical operations, such as constant-coefficient multiplication and nonlinear function evaluation, to emerging machine learning models, including table-based neural networks (NNs) and Kolmogorov–Arnold networks (KANs). However, stor-ing extensive tables of constant values can lead to excessive hardware costs in resource-constrained edge devices such as FPGAs. In this paper, we propose CompressedLUT, a lossless compression scheme and its decoder hardware architecture for the efficient storage and retrieval of arbitrary data in hardware. Our method combines decomposition, self-similarities, higher-bit compression, and multilevel compression techniques to maximize table size savings without accuracy loss. Its hardware decoder primarily uses addition, arithmetic right shift, and several small lookup tables, ensuring low area and high throughput. We evaluated CompressedLUT on FPGAs by implementing multiple nonlinear functions, constant-coefficient multipliers (CCMs), and KANs at 12-bit resolution. CompressedLUT is available as an open-source tool. 
+
+Index Terms —hardware acceleration, lookup table compres-sion, constant coefficient multiplication, nonlinear function eval-uation, table-based Kolmogorov–Arnold networks 
+
+I. I NTRODUCTION 
+
+Lookup tables are widely used in both hardware and software systems to store blocks of read-only, predefined data. Such tables are used in field-programmable gate arrays (FPGAs), graphics processing units (GPUs), and digital signal processors (DSPs). Their applications range from elementary mathematical operations, such as constant coefficient multipli-ers (CCMs) and nonlinear functions, to novel machine learn-ing models, such as table-based neural networks (NNs) and Kolmogorov–Arnold networks (KANs). Compressing lookup tables can potentially reduce their implementation costs in terms of memory resource utilization, throughput, power con-sumption, etc. This issue has been of considerable interest as an active research area [1]–[7]. Nonlinear functions have various applications such as ac-tivation functions in machine learning. Using lookup tables for function evaluation is an efficient method due to its simplicity of implementation, low computational latency, and high throughput, especially for evaluating compound complex functions, such as 1/[1 + e−x], which can be evaluated by a table of precomputed values in hardware instead of performing costly intermediate operations step-by-step. At low resolutions, lookup tables can be directly used for implementing a function by tabulating the values of all possible inputs. Given a function at the input resolution win and output resolution wout , the size of the corresponding lookup table would be wout × 2win bits, which grows exponentially as win increases. For this reason, this approach is usually used for evaluating a function at up to 12-bit resolutions [8]. At higher resolutions, however, simple tabulation of a function is not feasible due to the massive sizes of resulting tables. In such cases, approximate methods are applied, which sacrifice accuracy for hardware cost savings. Examples of such methods include bipartite table (BT) [9], multipartite table (MT) [10], [11], and piecewise polynomial approximation (PPA) [12] methods. BT and MT decompose the table of a function into smaller tables, called the table of initial values (TIV) and table of offsets (TO), which result in the reduction of hardware costs. PPA methods, however, break a function into sub-functions and approximate them with polynomials whose coefficients are stored in smaller tables. Although all of these methods can simplify the implementation of a function at the expense of accuracy, they still rely on lookup tables to store essential values such as TIV, TO, or tables of coefficients. Lookup tables are also used in other state-of-the-art methods, libraries, and architectures for high-resolution function evaluation. For instance, hls4ml [13], [14] is a Python package for machine learning inference on FPGAs, and it uses lookup tables to perform nonlinear parts of activation functions in NNs. Additionally, many floating-point operations require lookup tables as parts of their archi-tectures [15]–[17]. As a result, lookup tables are used either directly or as parts of other table-based methods for function evaluation. In either case, table compression methods can be used to shrink such tables to reduce their implementation hardware costs. Multiplication is a fundamental operation in many appli-cations. When one operand is constant, the operation can be implemented as a CCM using specialized hardware instead of a general-purpose multiplier [18]–[23]. Because a CCM computes the linear function y = cx for a fixed coefficient c,it can also be implemented as a lookup table that stores the output for each possible input value. In this application, lookup tables contain many redundancies that compression methods can exploit to reduce hardware costs. arXiv:2609.36634v1 [cs.AR] 29 Sep 2026 2
+
+NNs require repeated multiply-accumulate operations, non-linear activations, and access to weights and biases, all of which contribute to hardware costs. Recently, table-based methods [24]–[31] have been proposed in which a neuron or a sub-network is represented as a lookup table that directly maps the inputs to an output. These methods illustrate another use of lookup tables in hardware. Recently, ReducedLUT [7] extended CompressedLUT [6] by injecting don’t cares into the compression process and demonstrated how it could improve the hardware costs of table-based NNs with minimal model accuracy degradation. KANs [32] are inspired by the Kolmogorov–Arnold repre-sentation theorem and considered as alternatives to multilayer perceptrons (MLPs). Whereas MLPs use fixed nonlinear ac-tivation functions at nodes, KANs place learnable nonlinear functions on edges. KANEL ´ E [33] and LUT-KAN [34] pro-vide table-based methods for KAN implementations in which edge functions are replaced with lookup tables, enabling low-latency, high-throughput inference. However, KANs typically use many nonlinear functions, and storing them in lookup tables can require substantial hardware resources, especially at high input resolutions. As a result, table compression methods can be beneficial in reducing hardware costs in this application. In this paper, which is the extended version of [6], we pro-pose CompressedLUT as a method for lossless compression of lookup tables, which uses the idea of decomposition [2], [3], self-similarities [35], [36], multilevel compression, and higher-bit compression to maximize table size savings. Com-pressedLUT is available as an open-source tool 1.For evaluating our method, we use CompressedLUT in the following applications to implement their lookup tables effi-ciently at lower hardware costs while maintaining their base-line accuracy. The results were compared to implementations of lookup tables through the PlainTable (uncompressed plain table) and previous TwoTable (two-table decomposition) [2] approaches. All the designs are described in RTL, synthesized, and placed and routed on FPGAs.  
+
+> •
+
+Nonlinear Functions: We target several nonlinear func-tions at 12-bit resolution. We develop a software script to evaluate a given function over a given domain and store its quantized results in a large lookup table for hardware implementations. In terms of compression, our method compresses the tables on average by 80%, whereas TwoTable compresses them on average by 52%. In terms of throughput per LUT (TPL) hardware cost, our method on average has 3.30 times higher throughput than PlainTable, whereas TwoTable on average has 2.15 times higher throughput.  
+
+> •
+
+CCMs (Constant Coefficient Multipliers): We implement several CCMs at 12-bit resolution with different constant values. As CCMs are basically linear functions, we use the same approach as used in the nonlinear functions. In other words, we develop a software script to generate the lookup table values corresponding to the quantized result of the linear functions representing the CCMs. In      
+
+> 1CompressedLUT is available at https://github.com/kiabuzz/ CompressedLUT (DOI: 10.5281/zenodo.10431619).
+
+terms of compression, our method compresses the tables on average by 94%, whereas TwoTable compresses them on average by 65%. In terms of TPL, our method has 10.55 times higher throughput than PlainTable on aver-age, whereas Vivado (direct Verilog multiplication with 
+
+assign y = c * x) and TwoTable have 1.61 and 2.74 times higher throughput on average, respectively.  
+
+> •
+
+KANs (Kolmogorov-Arnold Networks): We use KANEL ´ E (a table-based KAN framework) [33] to train two KAN models on the MNIST and JSC-OpenML datasets using 12-bit learnable activation functions. That framework then generates lookup tables corresponding to the trained activation functions, which are finally compressed and implemented by our method. Considering the hardware costs of the entire networks, CompressedLUT improves TPL on average by 1.87 times compared to PlainTable. The rest of the paper is organized as follows. Section II discusses the details of each technique used for compres-sion. Section III shows the CompressedLUT tool flow. In Section IV, the implementation results are presented and discussed. Finally, the paper is concluded in Section V. II. M ETHODOLOGY 
+
+We describe our compression methodology by first pre-senting the idea of breaking a table into two smaller tables (Sec. II-A), similar to what TwoTable [2] and LDTC [3] use. Then we use the idea of finding self-similarities in the smaller table (Sec. II-B), extending the idea in [36]. The above methods would be suitable for tables that store functions that are smooth and have small local variations. However, for tables that store values with higher dynamic range and large local variations, such as the ones used in many function approximation methods, we present two other techniques detailed in sections II-C and II-D. The overall architecture of our method is discussed in Sec. II-E. 
+
+A. Lookup Table Decomposition 
+
+Similar to TwoTable [2] and LDTC [3], we decompose a table T into two new tables Tbias and Tst . Fig. 1 shows the decomposition of T into Tbias and Tst . Assuming T has 2win 
+
+elements of wout bits, it is split into n = 2 win −ws sub-tables, where 0 < w s < w in . Next, the minimum value of each sub-table is stored as an element in Tbias . Additionally, the minimum value of each sub-table is subtracted from all the values in the corresponding sub-table and the resulting values are stored in Tst .As seen, Tbias has 2win −ws elements of wbias bits, where 
+
+wbias is usually the same as wout . Whereas Tst has 2win 
+
+elements of wst bits, where wst is less than wout . This is because Tst holds local variations which usually require a smaller bit width. In summary, the table Tbias has the same output bit width as the original table T , but it has fewer elements. In contrast, the table Tst has the same number of 3T1 T2 …Tn 
+
+T
+
+> min(T1) min(T2) …min(Tn)
+
+Tbias 2
+
+> wout
+
+Tst    
+
+> ST1 = T1 – min(T1) ST2 = T2 – min(T2) …STn = Tn – min(Tn)
+> wst wbias
+> win
+> 2win
+> 2ws
+> 2ws2 win - w s
+> Fig. 1. Decomposition of T into T bias and T st .
+
+win 
+
+> Input Address
+
+win -w s
+
+> Output Value
+
++ wout Tbias 
+
+## Tst   
+
+> Fig. 2. Retrieving T through T bias and T st .
+
+elements as the original table T , but it has less output bit width. The tables have the following number of bits. 
+
+Size (T ) = 2 win × wout 
+
+Size (Tbias ) = 2 win −ws × wbias 
+
+Size (Tst ) = 2 win × wst 
+
+The final size ratio obtained by table decomposition is as follows. 
+
+SizeRatio = [ Size (Tbias ) + Size (Tst )] /Size (T )= [2 win −ws × wbias + 2 win × wst ]/(2 win × wout )= 2 −ws + wst /w out 
+
+As seen, the final size ratio after decomposition depends on two terms: 2−ws and wst /w out . The parameter ws can be set to any value between 0 and win . Increasing ws decreases the first term 2−ws , yet it increases the second term wst /w out .This is because increasing ws results in sub-tables with more elements, which might have larger local variations, that require greater bit width wst .After decomposition, the original table T is replaced by 
+
+Tbias and Tst . The input address of Tst is the same as the input address of T , but the input address of Tbias is fed by the (win − ws) higher bits of the input address of T . Finally, an adder is used to retrieve the values of the original table T
+
+by adding the output values of Tst and Tbias , as seen in Fig. 2. 
+
+B. Self-Similarities in Lookup Tables 
+
+Using the core idea of what the authors of [36] call the “SimBU” method, we can compress the table of Tst further. 0356
+
+ST 14 
+
+> 0123
+
+ST 1
+
+> 0011
+
+ST 24 
+
+> 0000
+
+ST 32 
+
+Tst ST 1
+
+……
+
+> ST 14
+> ST 24
+> ST 32
+
+…
+
+(a) (b)  
+
+> Fig. 3. Examples of self-similarities in sub-tables.
+
+SimBU was proposed in the context of “unary” methods to reduce the complexity of HBU [37]. However, the self-similarity algorithm proposed by this method can be deployed as a lossless compression approach in the context of binary lookup tables. As discussed in Section II-A, Tst holds the values of n sub-tables ST i, where i ∈ { 1, 2, · · · , n }. However, the values of many of these sub-tables are similar. Similar sub-tables refer to the sub-tables whose values are either identical or can get identical through the arithmetic right shift operation. Fig. 3a shows an example of Tst which contains 32 sub-tables of 4 elements. Therefore, Tst has 128 elements in total. The values of four sub-tables ST 1, ST 14 , ST 24 , and ST 32 are shown separately in Fig. 3b. As seen, if the values of ST 14 are shifted to the right by 1 bit, we can obtain ST 1. Additionally, if the values of ST 14 are shifted to the right by 2 or 3 bits, we can obtain ST 24 or ST 32 , respectively. In other words, we can say that ST 14 can generate ST 1, ST 24 , and ST 32 using the right shift operation. As a result, instead of storing 4 different sub-tables, we can store only ST 14 as a unique sub-table, through which we can retrieve the other ones. In the example of Fig. 3b, in addition to ST 14 , ST 1 can also generate ST 24 and ST 32 , but this time by getting shifted to the right by 1 and 2 bits, respectively. Furthermore, ST 24 
+
+can generate ST 32 by getting shifted to the right by 1 bit. However, among these 4 sub-functions, considering ST 14 as the unique sub-function is the best choice since it can generate 3 other sub-functions. Therefore, the final goal of this phase is to find the minimum set of unique sub-tables in Tst that can generate the rest. Using the self-similarity matrix used in SimBU [36], simi-larities among all sub-tables in Tst are identified. As discussed in Section II-A, Tst consists of n = 2win −ws sub-tables, and each sub-table consists of 2ws elements. To measure similarities, an n×n Boolean matrix is needed, which is called a similarity matrix. Each entry of this matrix specifies whether the two sub-tables are similar or not. That is, an entry sij is 1 if the sub-table ST i can generate ST j . Obviously, this matrix is not symmetric since if ST i can generate ST j through right shifting, the opposite is not necessarily true. The following is 4
+
+the definition of the similarity matrix.                           
+
+> SimilarityM atrix =
+> 
+> sm 1,1sm 1,2· · · sm 1,n
+> sm 2,1sm 2,2· · · sm 2,n
+> ....... . ....
+> sm n, 1sm n, 2· · · sm n,n
+> 
+> n×n
+> sm i,j = 1 ⇔ ∃ t∈N:∀m∈N(m < 2ws), rsh t{ST i[m]}=ST j[m]
+
+(1) where rsh t denotes an arithmetic right shift by t bits. After identifying similar sub-tables, the unique set of them should be determined that can generate the other sub-tables to retrieve the original Tst . Unique sub-tables are named U ST ,and they are all stored in a new single table, called Tust .Furthermore, two new tables of n elements, called Tidx and 
+
+Trsh , are needed to retrieve the original table Tst through Tust .The value of the ith element in Tidx shows the index of the unique sub-function that can generate ST i, and the value of the ith element in Trsh shows the number of right bit shifts that need to be performed on the values of the corresponding unique sub-table to retrieve ST i. For instance, if Tidx [5] = 3 
+
+and Trsh [5] = 2 , we can conclude that ST 5 can be retrieved by U ST 3 after right shifting the values of U ST 3 by 2 bits. To find unique sub-tables, a vector must be obtained based on the similarity matrix. This vector is called a similarity vector, and the jth entry in it specifies how many sub-tables can be generated using the jth sub-table. The vector can be created by adding the values in each column in the similarity matrix as follows. 
+
+SimilarityV ector = [ sv 1, sv 2, · · · , sv n]
+
+sv j = X
+
+> i
+
+sm ij (2) The index of the element in the similarity vector with the maximum value determines the first unique sub-table. In other words, if sv i is the element with the maximum value, ST i
+
+will be considered as the first unique sub-table U ST 1, and its values are stored in Tust . We also need to traverse through the 
+
+ith column of the similarity matrix to see which sub-tables can be generated through ST i. If ST i can generate ST j through right shifting by t bits, then the jth element of Tidx and Trsh 
+
+must be set to 1 and t, respectively. After finding the first unique sub-table, we need to update the similarity matrix and similarity vector. Therefore, the ith row and column of the similarity matrix must be set to 0. Additionally, if ST i can generate ST j , the jth row and column of the similarity matrix must be set to 0 as well. The elements of the similarity vector need to be recalculated based on the updated similarity matrix. The process above needs to be repeated again and again until all the entries of the similarity matrix are 0’s. In each iteration, it identifies a new unique sub-table. In the end, if the process takes k iterations to finish, we will end up with k
+
+unique sub-tables U ST i, where i ∈ { 1, 2, · · · , k } and k ≤ n.These unique sub-tables are all stored in Tust .As a result, Tst is replaced by Tust , Tidx , and Trsh . In contrast to Tst , which contains n sub-tables, Tust contains 
+
+k unique sub-tables, where k is often significantly less than 
+
+n. It means that many sub-tables can be generated using a few unique sub-tables. Therefore, we can achieve significant table-size reductions. However, when calculating the overall memory space reduction, the size of Tidx and Trsh must be taken into account. In summary, the size of each table and the size ratio are as follows. 
+
+Size (Tst ) = n × 2ws × wst 
+
+Size (Tust ) = k × 2ws × wst 
+
+Size (Tidx ) = n × widx 
+
+Size (Trsh ) = n × wrsh         
+
+> SizeRatio = [ Size (Tust ) + Size (Tidx ) + Size (Trsh )] /Size (Tst )= [ widx +wrsh ]/(2 ws×wst ) + k/n
+
+where widx and wrsh are the bit width of the values in Tidx 
+
+and Trsh , respectively. In our method, however, we force wrsh 
+
+to be 2, which means that during the self-similarity search process, we limit the value of t in Eq. 1 to the range of [0,3]. The value of widx depends on the number of unique sub-tables and is equal to f loor (log 2( k − 1)) + 1 .
+
+C. Higher-Bit Compression 
+
+Using decomposition and self-similarities can potentially reduce a table’s size, especially if the values of a table change continuously. That is, these two compression techniques can be more efficient if there are small differences between con-secutive values in a table. On the other hand, there are two issues in the compression of tables with more discrete values that show large differences between consecutive elements. The first issue is the increase of wst in Tst after decom-position (Section II-A), which negatively impacts the final table-size savings. This is because there are larger differences between consecutive values in T , and therefore the local variations are higher. As a result, the values in Tst , which stores the local variations, require a longer bit width wst .The second issue is with self-similarities (Section II-B). Since the values of sub-tables are larger, it is likely harder to find similarities among them. Therefore, the number of unique sub-tables increases, which in turn results in lower table-size savings. As a solution to mitigate these issues, we can split the values of T into higher and lower bits before performing decomposition and self-similarity measures. The values of T
+
+are divided into wl lower bits and wout − wl higher bits, which can be stored in two separate tables Tlb and Thb ,respectively. The table Tlb undergoes no compression, but Thb 
+
+is compressed by using decomposition (Section II-A) and self-similarities (Section II-B). The intuition behind this practice is to reduce the distances between consecutive values of T by considering higher bits. If we plot both T and Thb , the overall shapes of the plots will be similar, however, the slopes of sub-regions in the plot of 
+
+Thb would be more gentle. Therefore, local variations become lower, which potentially results in more table-size savings after using decomposition and self-similarity techniques. 
+
+D. Multilevel Compression 
+
+Using the three techniques discussed in Sections II-A, II-B, and II-C, a table T can be significantly compressed and 5Tlb 
+
+# Tbias  Trsh  Tidx 
+
+> Concatenator
+
+ws
+
+> Input Address
+
+win -w s
+
+# Tust 
+
++  
+
+> Concatenator
+> >> Output Value
+> Fig. 4. Overall architecture of our CompressedLUT method. In the case of multilevel compression, the same architecture is embedded in T bias .
+
+replaced by Tlb , Tust , Tidx , Trsh , and Tbias . Among these tables, Tbias can be compressed further by performing all three techniques on it. As a result, Tbias itself is replaced by another set of Tlb , Tust , Tidx , Trsh , and Tbias . This can potentially achieve further table-size savings in total. It is worth noting that if we plot the values of T and Tbias ,they will have a similar shape. This is because Tbias is the same as T sampled by a factor of 2win −ws . Although Tbias 
+
+has a coarser granularity than T , this issue can be resolved by splitting the values of Tbias into higher and lower bits, as discussed in Section II-C. Using the idea of multilevel compression often results in more table-size savings. However, it might increase hardware costs due to the nested decoders needed to retrieve values. 
+
+E. Overall Architecture 
+
+Algorithm 1 describes the compression techniques used by our CompressedLUT method. This algorithm takes a table 
+
+T and two parameters ws and wl as inputs, and it returns five tables Tlb , Tust , Tbias , Tidx , and Trsh as outputs. For multilevel compression, the algorithm must be run again multiple times, given Tbias as input. Fig. 4 shows the overall architecture of our method. The parameters ws and wl should be determined for each specific input table T . In our method, we run the algorithm for different values of the parameters and evaluate them based on the total sizes of all generated tables. Although the runtime of this procedure highly depends on the initial size of a lookup table, our CompressedLUT tool takes around 1.38 seconds on a regular computer to compress a lookup table of 4096 values at 12-bit resolution. III. T OOL FLOW 
+
+We developed the CompressedLUT tool to automate the implementation of large lookup tables in either Verilog for RTL or C++ for HLS. The user provides the raw lookup-table values in hexadecimal format, and the tool generates the corresponding RTL or HLS files according to the se-lected implementation flow. By default, the tool applies all compression techniques described in Sec. II to maximize table-size reduction. However, users can selectively disable individual techniques to evaluate the trade-off between storage reduction and hardware performance. Fig. 5 illustrates the CompressedLUT tool flow. RTL Generation 
+
+> HLS Generation
+
+CompressedLUT     
+
+> ❑Multi-Level Compression
+> ❑Higher Bit Split
+> ❑Self-Similarity Measure
+> ❑Decomposition
+> Lookup Table Compression
+> Verilog
+> C++
+> Lookup Table
+> Values
+> Pipelining
+> Parameters
+
+Or  
+
+> Fig. 5. The overview of the CompressedLUT tool flow.
+
+In the HLS mode, the tool uses pipelining pragmas to au-tomatically pipeline the architecture and increase throughput. In the RTL mode, the architecture is pipelined by using two predefined pipeline stages, as illustrated in Fig. 6. The user can configure the tool to insert pipeline registers at either or both of these locations. IV. I MPLEMENTATION RESULTS 
+
+Lookup tables are widely used in hardware for various applications, ranging from elementary mathematical functions to novel table-based machine learning models. In this section, we show how CompressedLUT can benefit some of these applications and also compare our method against other ap-proaches, including PlainTable (uncompressed plain table) and TwoTable (two-table decomposition) [2]. 6
+
+Algorithm 1: CompressedLUT  
+
+> 1
+
+Input: T, w l, w s 
+
+> 2
+
+Outputs: Tlb , T ust , T bias , T idx , T rsh  
+
+> 3
+
+Tlb [:] ← bitand (T [:] , 2wlb − 1)  
+
+> 4
+
+Thb [:] ← rsh (T [:] , w lb ) 
+
+> 5
+
+win ← bitwidth (length (T ) − 1)  
+
+> 6
+
+wout ← bitwidth (max (T ))  
+
+> 7
+
+n ← 2win −ws 
+
+> 8
+
+# Compression of Thb Using Decomposition  
+
+> 9
+
+for i = 1 to n do  
+
+> 10
+
+ST [:] ← Thb [( i − 1) × 2ws + 1 : i × 2ws ] 
+
+> 11
+
+Tst [( i−1) ×2ws +1 : i×2ws ] ← ST [:] −min (ST [:])  
+
+> 12
+
+Tbias [i] ← min (ST [:])  
+
+> 13
+
+end  
+
+> 14
+
+# Compression of Tst Using Self-Similarities  
+
+> 15
+
+SimilarityM atrix [:][:] ← zeros (n, n ) 
+
+> 16
+
+RightShif tM atrix [:][:] ← zeros (n, n ) 
+
+> 17
+
+for i = 1 to n do  
+
+> 18
+
+ST i ← Tst [( i − 1) × 2ws + 1 : i × 2ws ] 
+
+> 19
+
+for j = 1 to n do  
+
+> 20
+
+ST j ← Tst [( j − 1) × 2ws + 1 : j × 2ws ] 
+
+> 21
+
+for t = 0 to 3 do  
+
+> 22
+
+if rsh (ST i[:] , t ) == ST j [:] then  
+
+> 23
+
+SimilarityM atrix [i][ j] ← 1 
+
+> 24
+
+RightShif tM atrix [i][ j] ← t 
+
+> 25
+
+break  
+
+> 26
+
+end  
+
+> 27
+
+end  
+
+> 28
+
+end  
+
+> 29
+
+end  
+
+> 30
+
+k ← 0 
+
+> 31
+
+SimilarityV ector [:] ← zeros (1 , n ) 
+
+> 32
+
+while SimilarityM atrix [:][:] ! = zeros (n, n ) do  
+
+> 33
+
+k ← k + 1 # increment the number of unique sub-tables  
+
+> 34
+
+SimilarityV ector [:] ←P 
+
+> i
+
+SimilarityM atrix [i][:]  
+
+> 35
+
+idx ← arg max i SimilarityV ector [i] 
+
+> 36
+
+U ST [:] ← Tst [( idx − 1) × 2ws + 1 : idx × 2ws ] 
+
+> 37
+
+Tust [( k − 1) × 2ws + 1 : k × 2ws ] ← U ST [:]  
+
+> 38
+
+Tidx [idx ] ← k 
+
+> 39
+
+SimilarityM atrix [idx ][ idx ] ← 0 
+
+> 40
+
+# reference similar sub-tables to the kth unique sub-table  
+
+> 41
+
+for i = 1 to n do  
+
+> 42
+
+if SimilarityM atrix [i][ idx ] == 1 then  
+
+> 43
+
+Tidx [i] ← k 
+
+> 44
+
+Trsh ← RightShif tM atrix [i][ idx ] 
+
+> 45
+
+SimilarityM atrix [i][:] ← zeros (1 , n ) 
+
+> 46
+
+SimilarityM atrix [:][ i] ← zeros (n, 1)  
+
+> 47
+
+end  
+
+> 48
+
+end  
+
+> 49
+
+SimilarityM atrix [idx ][:] ← zeros (1 , n ) 
+
+> 50
+
+end Tbias 
+
+## Tlb 
+
+## Trsh 
+
+## Tidx 
+
+> Concatenator
+> Input Address
+> +
+> Concatenator
+> >>
+> Output Value
+> pipeline
+> stage 1
+> pipeline
+> stage 2
+
+## Tust  
+
+> Fig. 6. Pipeline register locations in the RTL mode of the CompressedLUT tool.
+
+In the first part of this section, we implement multiple nonlinear functions at 12-bit resolution, which are frequently used in machine learning and signal processing applications. In the next part, we implement multiple CCMs at 12-bit reso-lution with different constants. In the last part, we implement two table-based KAN models at 12-bit resolution, which are trained on MNIST and JSC-OpenML datasets. Our CompressedLUT tool supports generating hardware designs in either RTL or HLS. In the earlier version of this work [6], we reported the HLS implementation results. However, in this extended version, we use the tool in its RTL mode. All designs were synthesized and placed and routed using Vivado 2025.2 targeting the xcvu9p-flgb2104-2-i FPGA device, with the Flow PerfOptimized high setting in the Out-of-Context (OOC) synthesis mode. We obtained hardware utilization and timing reports after place and route. We disabled BRAM usage, as the use of BRAMs cannot show the efficiency of compression methods due to the discrete sizes of BRAMs [3]. Additionally, our designs do not utilize any DSP blocks. Therefore, the LUT count served as our primary metric for area measurement. For timing measurement, we implemented a two-stage pipeline for CompressedLUT and a single-stage pipeline for TwoTable with an initiation interval (II) of 1 to achieve maximum throughput. Finally, we adopted Throughput per LUT (TPL) as the comprehensive metric to evaluate and compare the hardware efficiency of the different methods. 
+
+A. Nonlinear Functions 
+
+A low-resolution function at up to 12 bits can be directly evaluated by lookup tables containing the function’s values for all possible input combinations [3]. Such tables can be compressed using our lossless compression method, which can reduce hardware costs without loss of accuracy. For this case study, we targeted a number of nonlinear functions at 12-bit resolution, each of which had a baseline 7Exp  Log  Sqrt  Recip  Sin 
+
+Cos  Sigmoid  Tanh  GELU  SiLU                                                     
+
+> Fig. 7. Plots of the implemented nonlinear functions after tabulation. X-axes represent the input address of the tables, and Y-axes represent the corresponding output values. TABLE I SPECIFICATIONS OF THE IMPLEMENTED NONLINEAR FUNCTIONS .
+> Name Equation Range
+> Exp exp( x)x∈[0 ,ln(2)]
+> Log log 2(x)x∈[1 ,2]
+> Sqrt √xx∈[1 ,4]
+> Recip 1/x x∈[1 ,2]
+> Sin sin( x)x∈[0 , π/ 2]
+> Cos cos( x)x∈[0 , π/ 2]
+> Sigmoid 1/(1 + exp( −x)) x∈[0 ,8]
+> Tanh tanh( x)x∈[0 ,4]
+> GELU 0.5x
+> 
+> 1 + tanh
+> p 2/π  x+ 0 .044715 x3
+> x∈[−4,4]
+> SiLU x/ (1 + exp( −x)) x∈[−8,8]
+
+table of 12 ×212 = 49152 bits. The equation and input range of each function are provided in Table I. The minimum value of each table is subtracted from all the values in that table, which could potentially remove excessive output bits such as sign bits in some cases. The output values are then scaled to span the range [0 , 1] and quantized to 12-bit resolution. Fig. 7 shows the plots of implemented nonlinear functions after tabulation. We used CompressedLUT as well as PlainTable and TwoTable [2] methods to compress the tables as much as possible. As in [2], we used the total bit count as a metric to guide the selection of decomposition parameters in each method. Table II shows the FPGA implementation results of the nonlinear functions. Table III and Fig. 8 summarize the average results obtained using each implementation method. “Initial Size” and “Final Size” show the total bit count before and after compression, respectively. “Fmax” shows the max-imum achievable clock frequency in megahertz (MHz), and “Latency” shows the time required for data to propagate from input to output, measured in the number of clock cycles (cy). Finally, “TPL” shows throughput per LUT in megasamples per second per LUT (MS/s/LUT). As seen, our method can 00.2 0.4 0.6 0.8 1 
+
+> PlainTable TwoTable CompressedLUT PlainTable TwoTable CompressedLUT PlainTable TwoTable CompressedLUT
+> Final Size Ratio
+> 012345
+> PlainTable TwoTable CompressedLUT PlainTable TwoTable CompressedLUT PlainTable TwoTable CompressedLUT
+> TPL Ratio
+> Fig. 8. Average FPGA implementation results of the nonlinear functions.
+
+compress the tables on average by 80%, whereas TwoTable can compress them on average by 52%. In terms of TPL, our method is 3.30 times better than PlainTable, whereas TwoTable is 2.15 times better than PlainTable. Unlike low-resolution functions, it is not practical to fully tabulate the values of a function beyond 12-bit resolutions due to the exponentially growing size of the resulting tables. In such cases, approximate methods, such as BT, MT, and PPA can be applied to reduce overall table size at the expense of accuracy. As discussed earlier, these approximate methods still rely on lookup tables to store essential values to perform computations. For instance, BT and MT methods rely on TIV and TO tables. In addition, PPA methods store the coefficients of polynomials in lookup tables. Our CompressedLUT method can be plugged into such table-based methods to compress their tables, which reduces hardware costs with no additional approximation error. However, compressing such tables is not as easy as compressing the tables of low-resolution functions. This is because the lookup tables used in table-based methods usually do not show smooth local variations compared to the tables of low-resolution functions. For instance, the TIV table of a function, implemented by an MT method, contains uniformly sampled values of the function. Therefore, the difference between every two consecutive values in the TIV table is likely larger than that of two consecutive values in the plain table of the function. Nonetheless, our method can 8
+
+TABLE II FPGA IMPLEMENTATION RESULTS OF THE NONLINEAR FUNCTIONS AFTER PLACE & ROUTE . D ECODER COSTS ARE INCLUDED . TPL (MS/ S/LUT)  
+
+> DENOTES THROUGHPUT PER
+
+LUT, MEASURED IN MEGASAMPLES PER SECOND PER LUT. 
+
+Specifications Compression Hardware Costs Function Initial Size (bit) Method Final Size (bit) Ratio LUT FF Fmax (MHz) Latency (cy) TPL (MS/s/LUT) Ratio 
+
+PlainTable 49152 1.00 500 37 638 2 1.28 1.00 TwoTable 22528 0.46 218 40 666 3 3.06 2.39 Exp 49152 CompressedLUT 7836 0.16 150 77 781 4 5.21 4.08 PlainTable 49152 1.00 508 59 649 2 1.28 1.00 TwoTable 22528 0.46 228 40 644 3 2.82 2.21 Log 49152 CompressedLUT 7314 0.15 157 94 796 4 5.07 3.97 PlainTable 49152 1.00 482 55 605 2 1.26 1.00 TwoTable 22528 0.46 212 40 664 3 3.13 2.50 Sqrt 49152 CompressedLUT 7940 0.16 144 77 801 4 5.56 4.43 PlainTable 49152 1.00 508 46 617 2 1.21 1.00 TwoTable 22528 0.46 239 40 657 3 2.75 2.26 Recip 49152 CompressedLUT 9120 0.19 164 81 806 4 4.91 4.05 PlainTable 49152 1.00 498 39 657 2 1.32 1.00 TwoTable 22528 0.46 238 40 667 3 2.80 2.12 Sin 49152 CompressedLUT 9164 0.19 172 81 745 4 4.33 3.28 PlainTable 49152 1.00 585 55 645 2 1.10 1.00 TwoTable 22528 0.46 238 40 696 3 2.92 2.65 Cos 49152 CompressedLUT 9164 0.19 172 81 770 4 4.48 4.06 PlainTable 49152 1.00 371 34 659 2 1.78 1.00 TwoTable 26624 0.54 242 44 723 3 2.99 1.68 Sigmoid 49152 CompressedLUT 13992 0.28 219 67 819 4 3.74 2.11 PlainTable 49152 1.00 371 34 659 2 1.78 1.00 TwoTable 26624 0.54 242 44 723 3 2.99 1.68 Tanh 49152 CompressedLUT 13992 0.28 219 67 819 4 3.74 2.11 PlainTable 49152 1.00 445 37 654 2 1.47 1.00 TwoTable 24576 0.50 222 39 682 3 3.07 2.09 GELU 49152 CompressedLUT 12640 0.26 172 66 760 4 4.42 3.01 PlainTable 49152 1.00 415 40 657 2 1.58 1.00 TwoTable 22528 0.46 209 40 705 3 3.37 2.13 SiLU 49152 CompressedLUT 9088 0.18 175 81 824 4 4.71 2.97 TABLE III AVERAGE FPGA IMPLEMENTATION RESULTS OF THE NONLINEAR FUNCTIONS .
+
+Method Final Size Ratio TPL Ratio 
+
+PlainTable 1.00 1.00 TwoTable 0.48 2.15 CompressedLUT 0.20 3.30 
+
+achieve significant savings in table size due to breaking output values into higher bits and lower bits as well as using a multilevel compression technique. 
+
+B. Constant Coefficient Multipliers (CCMs) 
+
+Multiplication is a fundamental operation in many applica-tions, including digital signal processing and machine learning. In applications where one operand has a fixed value, the multiplication can be implemented using a CCM that can be performed using specialized hardware rather than a general-purpose multiplier [18]–[23]. Since a CCM is a univariate linear function, one possible implementation is a lookup table in which the precomputed values of the function are stored for every possible input value. The output can then be obtained directly by using the input as the address of the table. This approach does not introduce any additional approximation error other than input and output quantizations. CompressedLUT can efficiently compress such tables without additional loss of accuracy. 9
+
+TABLE IV FPGA IMPLEMENTATION RESULTS OF THE CCM S AFTER PLACE & ROUTE . TPL (MS/ S/LUT) DENOTES THROUGHPUT PER LUT, MEASURED IN MEGASAMPLES PER SECOND PER LUT. 
+
+Specifications Compression Hardware Costs Constant Initial Size (bit) Method Final Size (bit) Ratio LUT FF Fmax (MHz) Latency (cy) TPL (MS/s/LUT) Ratio 
+
+- Vivado - - 133 23 284 2 2.14 1.37 PlainTable 49152 1.00 390 32 608 2 1.56 1.00 TwoTable 13824 0.28 154 36 677 3 4.40 2.82 
+
+e−1
+
+49152 CompressedLUT 2624 0.05 47 68 794 4 16.89 10.84 - Vivado - - 92 24 307 2 3.34 2.49 PlainTable 49152 1.00 467 35 625 2 1.34 1.00 TwoTable 18432 0.38 174 39 745 3 4.28 3.20 
+
+log(2) 49152 CompressedLUT 2976 0.06 54 73 864 4 16.00 11.96 - Vivado - - 150 24 262 2 1.75 0.91 PlainTable 49152 1.00 347 30 664 2 1.91 1.00 TwoTable 18432 0.38 174 39 720 3 4.14 2.16 
+
+1/√2 49152 CompressedLUT 2864 0.06 53 73 824 4 15.55 8.12 - Vivado - - 114 24 294 2 2.58 1.98 PlainTable 49152 1.00 455 33 593 2 1.30 1.00 TwoTable 18432 0.38 196 39 706 3 3.60 2.76 
+
+π/ 4 49152 CompressedLUT 2976 0.06 55 73 794 4 14.44 11.08 - Vivado - - 150 24 356 2 2.37 1.77 PlainTable 49152 1.00 479 36 644 2 1.34 1.00 TwoTable 18432 0.38 185 39 711 3 3.84 2.86 
+
+√3/2 49152 CompressedLUT 2920 0.06 54 73 812 4 15.04 11.18 
+
+For this case study, we developed a script to generate lookup tables for CCMs for a variety of constant coeffi-cients. The script evaluated y = cx over the input domain 
+
+[0 , 1) at 12-bit input and output bitwidths. We then applied CompressedLUT to each generated table to reduce hardware costs. In addition, we implemented CCMs using other methods for comparison, including Vivado, PlainTable, and TwoTable. The Vivado method represents the naive implementation, in which each CCM is described directly in Verilog as assign y = c * x, allowing Vivado to synthesize and implement the constant multiplication on the FPGA. Depending on the constant value, c was represented using 21–24 bits to provide sufficient internal precision such that the rounded outputs matched the accurate 12-bit reference values generated by our table-generation script. Table IV shows the FPGA implementation results of the CCMs. Table V and Fig. 9 summarize the average results obtained using each implementation method. The results indi-cate that our method can compress the tables on average by 94%, whereas TwoTable can compress them on average by 65%. In terms of TPL, our method is 10.55 times better than PlainTable, whereas Vivado and TwoTable are 1.61 and 2.74 times better than PlainTable, respectively. 
+
+TABLE V AVERAGE FPGA IMPLEMENTATION RESULTS OF THE CCM S.
+
+Method Final Size Ratio TPL Ratio 
+
+Vivado - 1.61 PlainTable 1.00 1.00 TwoTable 0.35 2.74 CompressedLUT 0.06 10.55 00.2 0.4 0.6 0.8 1
+
+> PlainTable TwoTable CompressedLUT
+
+Final Size Ratio 
+
+> 012345678910 11
+> Vivado PlainTable TwoTable CompressedLUT
+
+TPL Ratio 
+
+Fig. 9. Average FPGA implementation results of the CCMs. 10 learnable wights on edges 
+
+> learnable activation functions
+> on edges
+> sum operation on nodes
+> fixed activation functions
+> on nodes
+
+MLP KAN  
+
+> Fig. 10. Difference between KAN and MLP architectures [32].
+
+C. Kolmogorov-Arnold Networks (KANs) 
+
+KANs [32] are a promising alternative to MLPs, inspired by the Kolmogorov–Arnold representation theorem. The KAN paper demonstrated that these models can provide improved accuracy and interpretability compared with MLPs, particu-larly for function fitting problems. Unlike MLPs that perform fixed nonlinear activation functions on nodes, KANs apply learnable nonlinear activation functions on edges. Fig. 10 shows the difference between KAN and MLP architectures. KANEL ´ E [33] provides a framework for implementing KANs on FPGAs using lookup tables for function evalua-tion. After quantization-aware training and pruning, KANEL ´ Eimplements the learned edge functions as lookup tables. Therefore, the evaluation of edge functions during inference is replaced by direct table lookups. The table outputs as-sociated with each node are accumulated using balanced, pipelined adder trees. This table-based method avoids the costly evaluation of edge functions and enables low-latency, high-throughput KAN inference on FPGAs. Despite these benefits, a table-based KAN may require a large number of tables. Before pruning, a fully connected KAN layer with din inputs and dout outputs contains as many as 
+
+din dout learnable univariate edge functions, each of which is mapped to a separate lookup table. Furthermore, the number of entries in each table increases exponentially with its input bitwidth. The storage cost can therefore become substantial in high-resolution KAN implementations containing many nonlinear edge functions. This characteristic makes KANEL ´ Ean appropriate application for CompressedLUT. Our method reduces redundancy in the tables representing the learned edge functions without retraining the network or introducing additional approximation errors. For this case study, we used KANEL ´ E to train the KAN models on two different classification datasets, including MNIST and JSC-OpenML. Next, CompressedLUT was ap-plied to the tables associated with the KAN layers generated by KANEL ´ E to reduce hardware costs. The original KANEL ´ E0123      
+
+> PlainTable CompressedLUT
+> TPL Ratio
+> 0.0 0.2 0.4 0.6 0.8 10.0 0.2 0.4 0.6 0.8 1.0
+> Fig. 11. Average FPGA implementation results of the KANs.
+
+evaluation [33] assigned different, generally lower, quantiza-tion bitwidths to individual layers to balance accuracy and hardware costs. In our experiments, all layers were instead quantized to 12-bit resolution. This higher bitwidth produced slightly higher accuracy than the bitwidths used in the original work. Nevertheless, the purpose of this evaluation was not to analyze the relationship between quantization precision and prediction accuracy or to optimize KANEL ´ E through hyperparameter tuning. Rather, it was designed as a case study to determine how effectively CompressedLUT reduces the hardware costs of table-based KAN layers at such a high resolution. In practice, using 12-bit precision for every layer may not be necessary, and the appropriate bitwidth should be selected for each layer according to the accuracy and hardware constraints of the target application. Table VI shows the FPGA implementation results of the KANs. Table VII and Fig. 11 summarize the average results obtained using each implementation method. As seen, our method on average has 1.87 times higher TPL than PlainTable. V. C ONCLUSIONS 
+
+In this paper, we proposed CompressedLUT, a lossless lookup table compression method that combines multilevel compression, decomposition, self-similarities, and other tech-niques to compress arbitrary arrays of data, implemented as lookup tables. We showed the effectiveness of our method by implementing several nonlinear functions, constant coefficient multipliers, and Kolmogorov-Arnold networks at 12-bit reso-lution on FPGAs. In terms of throughput per LUT hardware cost, CompressedLUT was on average 3.30, 10.55, and 1.87 times better than conventional lookup table implementations for those three applications, respectively. ACKNOWLEDGMENTS 
+
+This material is based upon work supported in part by Cisco Systems, Inc. under grant number 00105407, and by the National Science Foundation under grant number PFI-TT 2016390. REFERENCES [1] Y. Xie, A. N. Joseph Raj, Z. Hu, S. Huang, Z. Fan, and M. Joler, “A twofold lookup table architecture for efficient approximation of activation functions,” IEEE Transactions on Very Large Scale Integration (VLSI) Systems , vol. 28, no. 12, pp. 2540–2550, 2020. 11 
+
+TABLE VI FPGA IMPLEMENTATION RESULTS OF THE KAN S AFTER PLACE & ROUTE . TPL ( KS/ S/LUT) DENOTES THROUGHPUT PER LUT, MEASURED IN KILOSAMPLES PER SECOND PER LUT. 
+
+Specifications Hardware Costs Dataset Accuracy Method LUT FF Fmax (MHz) Latency (cy) TPL (kS/s/LUT) Ratio 
+
+PlainTable 351816 174128 182 10 0.52 1.00 MNIST 97.08% CompressedLUT 266064 194362 291 11 1.09 2.11 PlainTable 63592 2922 516 7 8.11 1.00 JSC-OpenML 76.34% CompressedLUT 30858 8088 414 9 13.42 1.65 TABLE VII AVERAGE FPGA IMPLEMENTATION RESULTS OF THE KAN S.
+
+Method TPL Ratio 
+
+PlainTable 1.00 CompressedLUT 1.87 [2] S.-F. Hsiao, P.-H. Wu, C.-S. Wen, and P. K. Meher, “Table size reduction methods for faithfully rounded lookup-table-based multiplierless func-tion evaluation,” IEEE Transactions on Circuits and Systems II: Express Briefs , vol. 62, no. 5, pp. 466–470, 2015. [3] M. Christ, L. Forget, and F. de Dinechin, “Lossless differential table compression for hardware function evaluation,” IEEE Transactions on Circuits and Systems II: Express Briefs , vol. 69, no. 3, pp. 1642–1646, 2022. [4] Y. S. Gener, S. G¨ oren, and H. F. Ugurdag, “Lossless look-up table compression for hardware implementation of transcendental functions,” in 2019 IFIP/IEEE 27th International Conference on Very Large Scale Integration (VLSI-SoC) , 2019, pp. 52–57. [5] S.-F. Hsiao, K.-C. Chen, and Y.-H. Chen, “Optimization of lookup table size in table-bound design of function computation,” in 2018 IEEE International Symposium on Circuits and Systems (ISCAS) , 2018, pp. 1–4. [6] A. Khataei and K. Bazargan, “Compressedlut: An open source tool for lossless compression of lookup tables for function evaluation and beyond,” in Proceedings of the 2024 ACM/SIGDA International Symposium on Field Programmable Gate Arrays , ser. FPGA ’24. New York, NY, USA: Association for Computing Machinery, 2024, p. 2–11. [Online]. Available: https://doi.org/10.1145/3626202.3637575 [7] O. Cassidy, M. Andronic, S. Coward, and G. A. Constantinides, “Reducedlut: Table decomposition with ”don’t care” conditions,” in 
+
+Proceedings of the 2025 ACM/SIGDA International Symposium on Field Programmable Gate Arrays , ser. FPGA ’25. New York, NY, USA: Association for Computing Machinery, 2025, p. 36–42. [Online]. Available: https://doi.org/10.1145/3706628.3708823 [8] J.-M. Muller, “Elementary functions and approximate computing,” Pro-ceedings of the IEEE , vol. 108, no. 12, pp. 2136–2149, 2020. [9] M. Schulte and J. Stine, “Approximating elementary functions with symmetric bipartite tables,” IEEE Transactions on Computers , vol. 48, no. 8, pp. 842–847, 1999. [10] F. de Dinechin and A. Tisserand, “Multipartite table methods,” IEEE Transactions on Computers , vol. 54, no. 3, pp. 319–330, 2005. [11] S.-F. Hsiao, C.-S. Wen, Y.-H. Chen, and K.-C. Huang, “Hierarchical multipartite function evaluation,” IEEE Transactions on Computers ,vol. 66, no. 1, pp. 89–99, 2017. [12] J. Detrey and F. de Dinechin, “Table-based polynomials for fast hard-ware function evaluation,” in 2005 IEEE International Conference on Application-Specific Systems, Architecture Processors (ASAP’05) , 2005, pp. 328–333. [13] FastML Team, “fastmachinelearning/hls4ml,” 2023. [Online]. Available: https://github.com/fastmachinelearning/hls4ml [14] J. Duarte et al. , “Fast inference of deep neural networks in FPGAs for particle physics,” JINST , vol. 13, no. 07, p. P07027, 2018. [15] P. Patel, A. Arora, E. Swartzlander, and L. John, “Loggen: A parame-terized generator for designing floating-point logarithm units for deep learning,” in 2022 23rd International Symposium on Quality Electronic Design (ISQED) , 2022, pp. 1–7. [16] M. Langhammer and B. Pasca, “Single precision natural logarithm architecture for hard floating-point and dsp-enabled fpgas,” in 2016 IEEE 23nd Symposium on Computer Arithmetic (ARITH) , 2016, pp. 164–171. [17] N. Campos, S. Chesnokov, E. Edirisinghe, and A. Lluis, “Fpga im-plementation of custom floating-point logarithm and division,” in Ap-plied Reconfigurable Computing. Architectures, Tools, and Applications ,S. Derrien, F. Hannig, P. C. Diniz, and D. Chillet, Eds. Cham: Springer International Publishing, 2021, pp. 295–304. [18] M. Kumm, O. Gustafsson, M. Garrido, and P. Zipf, “Optimal single constant multiplication using ternary adders,” IEEE Transactions on Circuits and Systems II: Express Briefs , vol. 65, no. 7, pp. 928–932, 2018. [19] F. de Dinechin and B. Pasca, “Designing custom arithmetic data paths with flopoco,” IEEE Design & Test of Computers , vol. 28, no. 4, pp. 18–27, 2011. [20] E. G. Walters, “Reduced-area constant-coefficient and multiple-constant multipliers for xilinx fpgas with 6-input luts,” Electronics , vol. 6, p. 101, 2017. [21] S. R. Faraji, P. Abillama, and K. Bazargan, “Low-cost approximate constant coefficient hybrid binary-unary multiplier for dsp applica-tions,” in 2020 IEEE 28th Annual International Symposium on Field-Programmable Custom Computing Machines (FCCM) , 2020, pp. 93– 101. [22] ——, “Approximate constant-coefficient multiplication using hybrid binary-unary computing for fpgas,” ACM Trans. Reconfigurable Technol. Syst. , vol. 15, no. 3, dec 2022. [Online]. Available: https://doi.org/10.1145/3494570 [23] A. Khataei and K. Bazargan, “Constant coefficient multipliers using self-similarity-based hybrid binary-unary computing,” in 2023 IEEE/ACM International Conference on Computer Aided Design (ICCAD) , 2023, pp. 1–7. [24] C. Sun, Z. Que, T. Aarrestad, V. Loncar, J. Ngadiuba, W. Luk, and M. Spiropulu, “Hgq: High granularity quantization for real-time neural networks on fpgas,” in Proceedings of the 2026 ACM/SIGDA International Symposium on Field Programmable Gate Arrays , ser. FPGA ’26. New York, NY, USA: Association for Computing Machinery, 2026, p. 79–91. [Online]. Available: https://doi.org/10.1145/3748173.3779200 [25] C. Sun, Z. Que, B. Zadeh, Q. Liu, K. H. Alvarez, W. Luk, and M. Spirop-ulu, “Hgq-lut: Fast lut-aware training and efficient architectures for dnn inference,” in 2026 IEEE 34th Annual International Symposium on Field-Programmable Custom Computing Machines (FCCM) , 2026, pp. 19–28. [26] M. Andronic and G. A. Constantinides, “Neuralut-assemble: Hardware-aware assembling of sub-neural networks for efficient lut infer-ence,” in 2025 IEEE 33rd Annual International Symposium on Field-Programmable Custom Computing Machines (FCCM) , 2025, pp. 208– 216. [27] E. Wang, J. J. Davis, P. Y. K. Cheung, and G. A. Constantinides, “Lutnet: Rethinking inference in fpga soft logic,” in 2019 IEEE 27th Annual International Symposium on Field-Programmable Custom Computing Machines (FCCM) , 2019, pp. 26–34. [28] Y. Umuroglu, Y. Akhauri, N. J. Fraser, and M. Blott, “Logicnets: Co-designed neural networks and circuits for extreme-throughput applica-tions,” in 2020 30th International Conference on Field-Programmable Logic and Applications (FPL) , 2020, pp. 291–297. [29] M. Andronic and G. A. Constantinides, “Polylut: Learning piecewise polynomials for ultra-low latency fpga lut-based inference,” in 2023 12 
+
+International Conference on Field Programmable Technology (ICFPT) ,2023, pp. 60–68. [30] ——, “Neuralut: Hiding neural network density in boolean synthe-sizable functions,” in 2024 34th International Conference on Field-Programmable Logic and Applications (FPL) , 2024, pp. 140–148. [31] B. Lou, R. Rademacher, D. Boland, and P. H. Leong, “Polylut-add: Fpga-based lut inference with wide inputs,” in 2024 34th International Conference on Field-Programmable Logic and Applications (FPL) ,2024, pp. 149–155. [32] Z. Liu, Y. Wang, S. Vaidya, F. Ruehle, J. Halverson, M. Soljacic, T. Hou, and M. Tegmark, “Kan: Kolmogorov–arnold networks,” in 
+
+International Conference on Learning Representations , Y. Yue, A. Garg, N. Peng, F. Sha, and R. Yu, Eds., vol. 2025, 2025, pp. 70 367–70 413. [Online]. Available: https://proceedings.iclr.cc/paper files/paper/2025/ file/afaed89642ea100935e39d39a4da602c-Paper-Conference.pdf [33] D. Hoang, A. Gupta, and P. C. Harris, “Kanel´ e: Kolmogorov–arnold networks for efficient lut-based evaluation,” in Proceedings of the 2026 ACM/SIGDA International Symposium on Field Programmable Gate Arrays , ser. FPGA ’26. New York, NY, USA: Association for Computing Machinery, 2026, p. 44–55. [Online]. Available: https://doi.org/10.1145/3748173.3779202 [34] O. Kuznetsov, “Lut-kan: Look-up table acceleration of kolmogorov–arnold networks on resource-constrained microcon-trollers for embedded edge inference,” Journal of Systems Architecture , vol. 179, p. 103923, 2026. [Online]. Available: https://www.sciencedirect.com/science/article/pii/S1383762126002419 [35] A. Khataei, G. Singh, and K. Bazargan, “Approximate hybrid binary-unary computing with applications in bert language model and image processing,” in Proceedings of the 2023 ACM/SIGDA International Symposium on Field Programmable Gate Arrays , ser. FPGA ’23. New York, NY, USA: Association for Computing Machinery, 2023, p. 165–175. [Online]. Available: https://doi.org/10.1145/3543622.3573181 [36] ——, “Optimizing hybrid binary-unary hardware accelerators using self-similarity measures,” in 2023 IEEE 31st Annual International Sympo-sium on Field-Programmable Custom Computing Machines (FCCM) ,2023, pp. 105–113. [37] S. R. Faraji and K. Bazargan, “Hybrid binary-unary hardware accelerator,” in Proceedings of the 24th Asia and South Pacific Design Automation Conference , ser. ASPDAC ’19. New York, NY, USA: Association for Computing Machinery, 2019, p. 210–215. [Online]. Available: https://doi.org/10.1145/3287624.3287706
