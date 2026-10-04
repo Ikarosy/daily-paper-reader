@@ -1,0 +1,105 @@
+{
+  "date": "20261004",
+  "date_label": "",
+  "generated_at": "2026-10-04 22:47:35 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2610.00432v1",
+      "route": "202610/04/2610.00432v1-xor-trellis-ultra-low-complexity-dequantization-and-curvature-aware-hadamard-free-llm-quantization",
+      "title": "XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "超低比特网格编码量化，避免指数级码本",
+      "first_seen_at": "2026-10-04 22:47:35 UTC",
+      "updated_at": "2026-10-04 22:47:35 UTC"
+    },
+    {
+      "paper_id": "2609.32250v1",
+      "route": "202610/04/2609.32250v1-robostar-next-scale-autoregressive-sign-language-translation-for-humanoid-robots",
+      "title": "RoboSTAR: Next-Scale Autoregressive Sign Language Translation for Humanoid Robots",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向超低比特的有限标量量化分词",
+      "first_seen_at": "2026-10-04 22:47:35 UTC",
+      "updated_at": "2026-10-04 22:47:35 UTC"
+    },
+    {
+      "paper_id": "2609.37007v1",
+      "route": "202610/04/2609.37007v1-rvq-position-aware-speculative-decoding-for-on-device-text-to-speech",
+      "title": "RVQ Position Aware Speculative Decoding for On Device Text to Speech",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "基于码本的残差向量量化码字逐帧生成",
+      "first_seen_at": "2026-10-04 22:47:35 UTC",
+      "updated_at": "2026-10-04 22:47:35 UTC"
+    },
+    {
+      "paper_id": "2609.37416v1",
+      "route": "202610/04/2609.37416v1-scale-sensitivity-in-low-bit-post-training-quantization-curvature-of-the-quantization-error-landscape",
+      "title": "Scale Sensitivity in Low-Bit Post-Training Quantization: Curvature of the Quantization Error Landscape",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "低比特PTQ尺度敏感性与均匀标量量化误差分析",
+      "first_seen_at": "2026-10-04 22:47:35 UTC",
+      "updated_at": "2026-10-04 22:47:35 UTC"
+    },
+    {
+      "paper_id": "2609.38121v1",
+      "route": "202610/04/2609.38121v1-wush-kv-kv-cache-quantization-with-data-adaptive-transforms",
+      "title": "WUSH-KV: KV Cache Quantization with Data-Adaptive Transforms",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "数据自适应变换的低比特KV缓存量化",
+      "first_seen_at": "2026-10-04 22:47:35 UTC",
+      "updated_at": "2026-10-04 22:47:35 UTC"
+    },
+    {
+      "paper_id": "2609.38477v1",
+      "route": "202610/04/2609.38477v1-security-enhanced-seed-based-weight-quantization-for-large-language-models",
+      "title": "Security-Enhanced Seed-Based Weight Quantization for Large Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向大模型的种子式权重量化与非均匀比特分配",
+      "first_seen_at": "2026-10-04 22:47:35 UTC",
+      "updated_at": "2026-10-04 22:47:35 UTC"
+    }
+  ]
+}

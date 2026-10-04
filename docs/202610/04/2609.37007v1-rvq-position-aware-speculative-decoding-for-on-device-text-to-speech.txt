@@ -1,0 +1,236 @@
+Title: RVQ Position Aware Speculative Decoding for On Device Text to Speech
+
+URL Source: https://arxiv.org/pdf/2609.37007v1
+
+Published Time: Wed, 30 Sep 2026 01:18:08 GMT
+
+Number of Pages: 5
+
+Markdown Content:
+# RVQ POSITION AWARE SPECULATIVE DECODING FOR ON DEVICE TEXT TO SPEECH 
+
+# Berkin Durmus, Eduardo Pacheco, Zach Nagengast, Atila Orhon 
+
+# Argmax, Inc., USA 
+
+ABSTRACT 
+
+Autoregressive decoding (AR) with Transformer models is mem-ory bandwidth bound at single stream inference, the typical deploy-ment regime for on device text to speech (TTS). Real time stream-ing with Qwen3-TTS [1] requires ≥ 200 sequential model calls per second, dominated by the inner loop MultiCodeDecoder that emits the 15 residual vector quantization (RVQ) codes per 80 ms au-dio frame. We propose RVQ position aware speculative decoding 
+
+for the MultiCodeDecoder , attaining 2.47 accepted tokens per model call at 5×10 −4% added parameters and 10 –20% per round speculation/verification overhead, reducing real time synthesis from 
+
+200 to ≈88 sequential model calls per second. The scheme is dis-tributionally lossless under the deployed top-k sampling [2, 3], and WER parity with the original system is consistent with this guar-antee. We deliver 2–2.2× speedup for RVQ token generation with Qwen3-TTS-0.6B on recent iPhone and Apple Silicon Mac devices. 
+
+Index Terms — text to speech, speculative decoding, on device in-ference, inference speedup 
+
+1. INTRODUCTION 
+
+Speech waveforms carry complex timbre and prosodic informa-tion in addition to the underlying linguistic content. As a result, state of the art text to speech (TTS) systems, e.g. Qwen3-TTS [1], CosyVoice 3 [4], and CaT-TTS [5], are designed to emit many more tokens per second of audio than per character of input text. As shown in Figure 1, Qwen3-TTS uses two nested loops over residual vector quantization (RVQ) codes [6, 7]: the outer loop runs a text conditioned CodeDecoder once per 80 ms audio frame to emit the coarse code c0, and the inner loop runs the MultiCodeDecoder 
+
+15 times autoregressively to emit the 15 residual codes c1, . . . , c 15 
+
+that complete the embedding of that frame. In total, ∼1 s of audio is represented with ∼200 tokens: 13 outer loop CodeDecoder calls and 187 inner loop MultiCodeDecoder calls. Real time streaming generation therefore requires a minimum of 200 
+
+tokens per second of inference throughput, and, because every token is produced by a sequential model call, this translates into ≥ 200 se-quential model calls per second. The additional throughput required by the audio token to waveform decoder is negligible relative to that of token generation. On single stream on device inference, the inner 
+
+MultiCodeDecoder loop dominates per frame latency, because kernel launch overhead and KV cache management amortize poorly across so many sequential calls. Speculative decoding [2, 3] is a natural fit: a cheap drafter pro-poses k candidate tokens that the target verifies in one parallel model call; when on average ¯k candidates are accepted, the in-ner loop emits ¯k+1 tokens per model call instead of 1. We pro-pose RVQ position aware speculative decoding, which extends Medusa [8] with a position aware hidden state offset and a sparse tree attention mask so that drafter and verifier fuse into a sin-gle compiled MultiCodeDecoder model call (Figure 3). The                                    
+
+> t0t1t2· · ·
+> CodeDecoder
+> 28 layers
+> ×1call/frame
+> c0c1c2· · · c13 c14
+> MultiCodeDecoder
+> 5layers, ×15 calls/frame
+> c1c2c3· · · c14 c15
+> {c0, c 1, . . . , c 15 }
+> Σ
+> CodeDecoder
+> 28 layers
+> ×1call/frame
+> c0c1c2· · · c13 c14
+> MultiCodeDecoder
+> 5layers, ×15 calls/frame
+> c1c2c3· · · c14 c15
+> {c0, c 1, . . . , c 15 }
+> ΣCodeDecoder
+
+· · ·         
+
+> frame 0 (80 ms) frame 1 (80 ms) frame 2 (80 ms)
+> Speech Decoder (RVQ codes →audio)
+> audio waveform
+
+Fig. 1 : Qwen3-TTS autoregressive audio generation. A forced text-token sequence t0, t 1, t 2, . . . (violet) is fed into the model: each 
+
+ti is an input text token consumed by frame i. t0 conditions the first CodeDecoder ; for i > 0, ti is summed with the 16 RVQ codes of frame i − 1 inside Σ to condition the next CodeDecoder .At each frame the CodeDecoder is called once and emits the seed code c0 (yellow); the MultiCodeDecoder is then called autoregres-sively 15 times: at inner step k it consumes ck−1 and emits ck ,with each output fed back as the next-step input, completing the 16 -code RVQ frame embedding {c0, . . . , c 15 }, which is then summed with ti in Σ. Speech Decoder consumes the resulting RVQ code stream and renders the audio waveform. Real-time synthesis re-quires 12 .5 frames/s × 16 codes/frame = 200 tokens/s. method adds <0.001% parameters and 10 –20% per round specu-lation/verification overhead, and is distributionally lossless under the deployed top-k sampling [9], inheriting the guarantee of spec-ulative sampling [2, 3]; WER parity with the original system is consistent with this guarantee. Putting it together, real time gener-ation still emits 200 tokens per second but now requires only ≈88 
+
+sequential model calls per second ( 12 .5 outer plus ≈76 inner at 
+
+2.47 tokens/step), and we demonstrate 2–2.2× practical speedup for RVQ token generation on recent iPhone and Apple Silicon Mac devices. Concretely, our method: • extends the Medusa framework [8] with an RVQ position aware offset that fuses drafter and verifier into a single com-piled MultiCodeDecoder model call (§2, Figure 3), • achieves WER parity with the autoregressive baseline across six languages, with no audible differences in manual review or production use, in line with the lossless guarantee of spec-ulative sampling [2, 3] (§3.2), • delivers 2.47 accepted tokens per MultiCodeDecoder 
+
+model call (§3.3) and 2–2.2× measured RVQ token gen-eration speedup on recent devices such as iPhone 17 and MacBook M3 (§3.4), unlocking reliable real time TTS on older hardware such as iPhone 12. arXiv:2609.37007v1 [cs.SD] 29 Sep 2026 Related work. Codec language models [10] cast TTS as au-toregressive token generation over RVQ codes. In this setting, VADUSA [11] and Nguyen et al. [12] apply Medusa style [8] multi-head drafting to AR speech synthesis, but both accelerate the tempo-ral token loop, train new multimillion parameter draft heads, verify with relaxed or heuristic acceptance rules that alter the output distri-bution, and report GPU only results; general purpose drafters such as EAGLE [13] and ReDrafter [14] likewise train new draft networks on top of the backbone. On device, these designs carry material overhead: a separate draft model or tens of millions of added param-eters increase asset size, memory footprint, and per call compute, which mobile hardware can ill afford. Principled coarse grained acceptance [15] instead relaxes exact token matching to acoustic similarity groups, trading token level exactness for acceptance; we preserve the exact token level distribution. Non speculative alter-natives such as delay pattern interleaving [16] and masked parallel generation [17] also reduce sequential RVQ calls, but require re-training the backbone and change its output distribution, which is undesirable for an already deployed model. We instead target the RVQ depth inner loop and exploit the MultiCodeDecoder ’s native per position multihead structure, which Medusa style meth-ods must otherwise train from scratch: drafting adds only 3,072 
+
+trained offset parameters and no new heads, verification preserves the deployed top-k sampling distribution, and, extending our Whis-perKit inference stack [18], drafter and verifier fuse into a single static shape model call; to our knowledge this is the first speculative decoding for TTS demonstrated on the Apple Neural Engine. 
+
+2. SYSTEM 2.1. Medusa as the natural baseline 
+
+Medusa [8] attaches K extra Language Model Heads (LMHs) to a target backbone so that one model call on hidden state h produces a draft of the next K tokens. Unlike conventional transformer de-coders, the Qwen3-TTS MultiCodeDecoder is multiheaded by construction: each of the 15 residual codebook positions has its own dedicated input embedding table and its own LM head, so the pre-viously committed code at position i is looked up in table i and the hidden state at position i is projected by LMH i. This is a natural ba-sis for Medusa style drafting. A direct application of Medusa would attach K additional drafter heads, but the existing per position heads already cover the tokens we want to speculate on. Reusing them is preferable: it adds no parameters, requires no extra asset variants, and leaves the output distribution unchanged. 
+
+2.2. Achieving higher tokens per step 
+
+The MultiCodeDecoder is multiheaded by construction and so requires no architectural changes to support Medusa style specula-tive decoding, but it was not trained for it: each existing LMH ex-pects the hidden state at its own codebook position. A direct applica-tion of Medusa style speculative decoding therefore works but yields low tokens/step. We propose two changes to recover the gain: 
+
+Tree attention increases acceptance rate. Instead of drafting a sin-gle token per position, the drafter can emit the top m candidates at each of the K drafted codebook positions and arrange them as a tree of depth K [8]: every node is a draft token, and every root to leaf 
+
+path is a candidate continuation of length K. Taking the Cartesian product yields up to mK such paths (the number of candidate se-quences grows exponentially in draft depth), while the tree itself has only N distinct nodes. These N tokens are packed, together with the committed prefix, into a single query of length q=N +1 and verified in one MultiCodeDecoder model call, masked so that each to-ken attends only to its ancestors [8, 19] (Figure 2). Verification uses the standard speculative acceptance rule with residual resampling, applied along the tree [2, 3, 8]. With the original heads this alone raises tokens/step, but the gain materialises only at large q, at which point the verify model call itself becomes compute bound and erodes the end to end speedup on older hardware.                  
+
+> ∆
+> Codebook k
+> Codebook k+1
+> Codebook k+2
+> Codebook k+3
+> t1t2
+> t3t4t3
+> t5t5t6
+> Longest speculation path verified
+> Sparse Tree
+> Pack Sparse Tree
+> ∆t1t2t3t4t3t5t5t6∆
+> t1
+> t2
+> t3
+> t4
+> t3
+> t5
+> t5
+> t6
+> Sparse Tree Attention Mask
+
+Fig. 2 : Efficient verification with sparse tree attention pack-ing. The tree of N candidate tokens (left) is packed, together with the committed prefix (grey), into a verify query of length 
+
+q=N +1=9 (column headers, top right) and processed in one 
+
+MultiCodeDecoder model call under the sparse tree attention mask shown below it (blue: query token i attends to key position 
+
+j, i.e. j is an ancestor of i or i itself). Row and column headers share the same token ordering. The longest verified speculation path (green) is committed to the KV cache; larger N raises both the ex-pected accepted prefix and the verify cost. 
+
+RVQ position aware offsets with sparse tree attention. Because each LMH expects the hidden state at its own codebook position, projecting a position-k hidden state through LMH k+j does not, on its own, produce strong drafts. A small per position residual offset on the hidden state recovers the lost signal (Figure 3): at runtime po-sition k, LMH k runs without an offset and emits the accepted token, while LMH k+j receives an additively offset hidden state hk +bj ,where b1, . . . , b K (K=3 ) are trained per offset residual vectors, and emits one of the K drafts. The same K offset vectors are shared across all starting positions k. Combined with tree attention draft-ing, this delivers most of the tokens/step uplift; to keep the verify model call’s query length small enough to stay bandwidth bound, we further prune the full tree to a sparse subset of paths ( sparse tree attention ), retaining most of the acceptance gain while remaining de-ployable on older devices. The sparse tree is calibrated offline: using per depth and per rank acceptance statistics measured on the calibra-tion set (Table 1), the tree is grown greedily, at each step adding the node with the largest expected contribution to the accepted prefix length [8], until the node budget N is reached; tree depth is capped at K. The budget N is then chosen per device (§3.4). 
+
+Training the offsets. The backbone, the per position embedding ta-bles, and all LM heads remain frozen; only the residual offset vectors 
+
+b1, . . . , b K (3,072 parameters in total; Table 2) are trained. We run the frozen model with teacher forcing over the VoxPopuli [20] train-ing split to obtain, at every inner loop position k, the hidden state 
+
+hk together with the ground truth codes of the subsequent positions. Each offset state hk +bj is projected through the frozen LMH k+j
+
+and trained with a cross entropy loss against the ground truth code 
+
+ck+j , summed over draft depths j ≤ K and all valid positions, fol-lowing the Medusa head training recipe [8]. Training uses Adam with a learning rate of 10 −3 and a batch size of 32 on a single NVIDIA Tesla P100 GPU. The verifier stream never consumes an offset state, so training the offsets leaves the deployed output distri-bution untouched. The offsets are trained on English data only; at test time we evaluate on six languages and observe no loss in accep-tance (§3.3, Table 3), so no multilingual training is required.             
+
+> LMH kLMH k+1 LMH k+2 LMH k+3
+> Autoregressive Decoding Speculative Decoding MultiCodeDecoder
+> hidden state hk
+> Position-aware Offset
+> b1, b 2, b 3
+> hk+b1hk+b2hk+b3hkck
+> accepted
+> ck+1 ck+2 ck+3
+> drafted ( K=3 )
+
+Fig. 3 : Comparison of baseline AR and our speculation inside a single MultiCodeDecoder model call (Fig. 1 inner loop). All LM heads are original frozen Qwen3-TTS heads. Solid green arrows de-note the baseline autoregressive path: at runtime position k, LMH k
+
+consumes hk and emits the accepted code (green). Because this first-token path is identical to baseline AR, the code is guaranteed to be accepted. Dashed blue arrows denote our speculative path in the same model call: hk is fed into a small Position-aware Offset 
+
+block whose three outputs hk +b1, h k +b2, h k +b3 drive LMH k+1 –LMH k+3 to emit drafted codes (blue) for the next K=3 RVQ posi-tions ahead of time. 
+
+3. RESULTS 3.1. Dataset 
+
+Table 1 summarizes the dataset specifications used across training, calibration, and evaluation. The residual offsets are trained and val-idated on disjoint subsets of the English VoxPopuli train split. The sparse tree configuration is then selected on a LibriSpeech test clean calibration set, following the Medusa tree construction recipe [8]: we measure per depth and per rank acceptance statistics on this set and grow trees greedily under each node budget N and depth cap 
+
+K, keeping the shape with the highest expected accepted length (§2.2). Finally, acceptance and WER are measured on the Fleurs train split in six languages, of which only English overlaps with the training and calibration language. All experiments use the 0.6B Cus-tomVoice variant with the original sampling configuration [1]; WER is averaged over ten seeds per system. 
+
+3.2. Accuracy: WER parity 
+
+Speculative decoding is distributionally lossless via the modified re-jection sampling rule [2, 3], which preserves the target distribution. Our residual offsets enter only the drafter stream (Figure 3), so the verifier LMH outputs are identical to the AR baseline and the guar-antee applies unchanged. Table 3 reports the transcription error of the synthesised audio. The AR and speculative WER columns in Table 3 are close but not numerically identical: both systems sample from the same top-k dis-tribution, so any two runs, speculative or not, differ utterance by ut-terance, and the reported WER additionally passes through an ASR 
+
+Table 1 : Dataset specifications. Stage-wise corpora used to train the position-aware residual offsets, calibrate the sparse tree, and measure acceptance. English VoxPopuli [20] is split into train-ing and validation; LibriSpeech [21] provides the held-out set on which the sparse tree configuration is selected; Fleurs [22] supplies multilingual evaluation across six languages. Frames 
+
+count CodeDecoder steps at 80 ms/frame, each frame with 15 
+
+MultiCodeDecoder steps. 
+
+Stage Dataset Language Samples Hours Frames 
+
+Training VoxPopuli English 155,513 ∼462 20.8M Validation VoxPopuli English 17,200 ∼56 2.53M Calibration LibriSpeech English 1,804 ∼4.4 200K Evaluation Fleurs English 1,242 ∼3.0 135K German 874 ∼2.5 112K Spanish 1,216 ∼4.3 192K Russian 810 ∼2.3 105K Japanese 810 ∼2.3 102K Mandarin 842 ∼2.4 106K transcription step (WhisperKit [18]) that contributes measurement noise of its own. The speculative WER is no higher than the AR WER in any language; the differences are small and share a direc-tion, which we leave uncharacterised. Beyond WER, we manually reviewed synthesised audio from both decoders and heard no dif-ferences in voice, prosody, or artifacts, and the speculative decoder is deployed in production in the Argmax SDK [18, 23] with no ob-served quality regressions. 
+
+3.3. Theoretical acceleration: tokens/step 
+
+All acceptance rates are measured on free running synthesis, with the model consuming its own generated codes as in deployment. Table 2 compares three Medusa style drafter designs. Reusing the neighbouring LM heads as drafters costs no parameters but lower acceptance rate. Medusa increases that, at the cost of ∼ 94 M new parameters ( +16% on a 0.6B backbone). Our position aware off-sets match Medusa acceptance while adding almost no parameters on top of the original model. Acceptance is also stable across lan-guages (Table 3): although the offsets are trained on English Vox-Populi [20] and calibrated on English LibriSpeech [21], they deliver 
+
+2.44 –2.46 tokens/step on all six Fleurs [22] evaluation subsets. Table 2 isolates the effect of the drafter. Naive reuse of the frozen heads (i) yields only 1.70 tokens/step because of positional mis-match: each frozen LMH k+j was trained to read the hidden state at its own codebook position, so a position-k hidden state is out of dis-tribution for it. Dedicated Medusa heads (ii) remove this mismatch at the cost of ∼94 M added parameters. Our offsets (iii) achieve the same effect with a single learned translation of the hidden state per lookahead distance, matching the acceptance of Medusa heads (2.47 vs. 2.60 tokens/step) while adding only 3,072 parameters to the frozen backbone. We attribute the cross lingual stability to the same mechanism: the offsets model the position conditional geom-etry of the RVQ hierarchy (the codebook to codebook statistics of the frozen audio codec) rather than the lexical content of the English training data, and this structure is largely language agnostic. Finally, Medusa’s ∼16% added parameters would also add asset size and memory on device, which the offsets avoid. Table 2 : Medusa-style drafter ablation. Three drafter choices on top of the frozen Qwen3-TTS-0.6B backbone. (i) Reused LM heads :the K=3 neighbouring codebook heads LMH k+1 , . . . , LMH k+3 
+
+draft from the position-k hidden state; no new parameters. (ii) 
+
+Medusa heads [8]: K=3 fresh Medusa heads per codebook posi-tion ( 45 new heads total). (iii) Position-aware offsets (ours): K=3 
+
+residual bias vectors b1, . . . , b K added to the hidden state; LM heads frozen and reused as drafters. 
+
+Drafter Toks/step Added params 
+
+Reused LM heads 1.70 —Medusa heads [8] 2.60 ∼ 94 M ( ∼ +16% )
+
+Ours (pos. offsets) 2.47 3,072 (∼ +5 ×10 −4%)
+
+Table 3 : Per-language performance on Fleurs. Acceptance rate (Toks/step ) and WER (CER for Mandarin and Japanese), in per-cent, of the generated audio for the autoregressive baseline and our speculative decoder, evaluated on Fleurs subsets in six languages. WER is computed via WhisperKit [18], using whisper-large-v3-turbo [24] for Mandarin and Japanese and parakeet-v3 [25] other-wise. Transcription and WER evaluation use our open source Open-Bench suite [26, 27]. As shown in prior work [2, 3], speculative decoding is distributionally lossless; the WER columns are consis-tent with this. 
+
+Language Audio (min) Autoregressive Speculative Toks/step WER/CER Toks/step WER/CER 
+
+English 180.2 1.00 4.25 2.45 3.99 German 149.0 1.00 6.4 2.46 5.58 Spanish 255.6 1.00 7.28 2.44 5.98 Russian 139.8 1.00 9.55 2.46 8.26 Japanese 136.2 1.00 8.55 2.46 7.71 Mandarin 141.7 1.00 7.43 2.45 7.18 
+
+3.4. Practical acceleration: per device wall time latency 
+
+Acceptance rate ( Toks/step ) is the ceiling for the practical speedup; the realised speedup is always lower because the verify call runs at query length q=N rather than q=1 ; as N grows this pushes the MultiCodeDecoder from memory bandwidth bound toward compute bound. Figure 4 sweeps N across three Apple devices and exposes the per device optimum. Figure 4 quantifies this tradeoff (all latencies are p50 over 200 
+
+steady state iterations on the Apple Neural Engine, W8A16, with 
+
+20 warmup calls excluded). W8A16 (8 bit weights, 16 bit activa-tions) [18] is used for all reported results. The acceptance ceiling (grey dashed) rises monotonically with sparse tree size but saturates (from 2.25 tokens/step at N =16 to 2.60 at N =64 ), whereas the verify cost grows steadily with the query length q=N , so the net speedup peaks where the marginal accepted token no longer pays for the marginal verify cost. On recent hardware the verify call stays close to memory bandwidth bound through N =32 : one AR 
+
+MultiCodeDecoder call costs 2.05 ms on iPhone 17 Pro Max and 2.2 ms on MacBook M3 Pro, and the speculative call at N =32 
+
+adds only +5 .3% and +13 .6% respectively, so the optimum sits at 
+
+N =32 with 2.34 × and 2.13 × speedup. On iPhone 12 the crossover into the compute bound regime occurs almost immediately: the op-timum is N =16 (1.82 ×), and larger trees erode the gain, degrading to 1.21 × at N =64 . N can therefore be calibrated once per device class, offline: acceptance (the numerator) is device independent, so only the denominator, the verify overhead, needs profiling on new hardware. The overhead in Figure 4 isolates the model call ( +5 .3% and 
+
++13 .6% at N =32 ); host side work outside the model call brings the    
+
+> 16 32 48 64 11.522.53
+> Sparse-tree Size (N) Speed-up ( ×)
+> iPhone 17 Pro Max MacBook M3 Pro iPhone 12 Theoretical (Hardware-agnostic)
+
+Fig. 4 : Practical speedup vs sparse tree size across hard-ware. The grey dashed curve is the device independent accep-tance ( Toks/step ) and is the theoretical ceiling on the speedup. Coloured curves are the per device MultiCodeDecoder speedup, 
+
+(Toks/step )/(1 + verify overhead ); the gap below the ceiling is the verify-step overhead introduced when the query length grows from 
+
+q=1 (AR, memory bound) to q=N (compute bound). The selected operating point is N =32 on iPhone 17 Pro Max and MacBook M3 Pro, and N =16 on iPhone 12. total per round overhead to an estimated 10 –20% , consistent with the 2–2.2× deployed speedup range. The absolute latencies show that speculation is most beneficial on older devices. At 187 .5 inner loop calls per second of audio, au-toregressive token generation alone costs ∼894 ms of inner loop compute per second of synthesised speech on iPhone 12 ( 4.77 ms per call), nearly the entire real time budget before the 28 -layer 
+
+CodeDecoder and the speech decoder are accounted for. Specula-tion at the selected operating point roughly halves this cost, leaving headroom for the unaccelerated components. On recent devices the same reduction cuts this cost from ∼384 ms per second of audio (iPhone 17 Pro Max) to ∼164 ms, after which token generation accounts for a minority of the single stream compute budget. 
+
+4. CONCLUSION 
+
+We presented RVQ position aware speculative decoding for on device TTS, which reuses the frozen per position LM heads of the Qwen3-TTS MultiCodeDecoder as drafters: 3,072 trained residual offset parameters let each head draft ahead of its own code-book position, while sparse tree attention fuses drafting and verifica-tion into a single compiled model call that leaves the verifier stream untouched and remains distributionally lossless under top-k sam-pling. The method sustains 2.44 –2.46 accepted tokens per model call across the six Fleurs evaluation languages with WER parity against the autoregressive baseline, and delivers 2–2.2× RVQ token generation speedup on recent iPhone and Apple Silicon Mac devices in the single stream regime. On recent devices this adds headroom; on older hardware such as iPhone 12, where autoregressive decoding alone nearly exhausts the real time budget, it unlocks comfortable real time synthesis. The unaccelerated 28 -layer CodeDecoder is a natural next target for speculation across frames, alongside dynamic per device selection of the sparse tree size N . The method assumes only an autoregressive codebook depth decoder with reusable per position heads, a structure shared by systems such as CaT-TTS [5]; evaluating such transfer is left for future work. 5. ACKNOWLEDGMENTS 
+
+This work was funded by Argmax, Inc. All authors are employees of Argmax, Inc. The authors have no other relevant financial or non-financial interests to disclose. Anthropic’s Claude [28] was used to draft and edit the manuscript text, and OpenAI’s GPT-6 [29] was used to review and critique earlier drafts. All content was reviewed and verified by the authors, who take full responsibility for it. 
+
+6. COMPLIANCE WITH ETHICAL STANDARDS 
+
+This study uses only the publicly released VoxPopuli [20], Lib-riSpeech [21], and Fleurs [22] datasets under their respective li-censes and collects no new human subjects data, so no ethical approval was required. 
+
+7. REFERENCES 
+
+[1] Hangrui Hu, Xinfa Zhu, Ting He, et al., “Qwen3-TTS technical report,” arXiv:2601.15621 , 2026. [2] Yaniv Leviathan, Matan Kalman, and Yossi Matias, “Fast in-ference from transformers via speculative decoding,” Proc. ICML , 2023. [3] Charlie Chen, Sebastian Borgeaud, Geoffrey Irving, Jean-Baptiste Lespiau, Laurent Sifre, and John Jumper, “Accelerat-ing large language model decoding with speculative sampling,” 
+
+arXiv:2302.01318 , 2023. [4] Zhihao Du, Changfeng Gao, Yuxuan Wang, Fan Yu, Tianyu Zhao, Hao Wang, Xiang Lv, Hui Wang, Xian Shi, Keyu An, et al., “CosyVoice 3: Towards in-the-wild speech generation via scaling-up and post-training,” arXiv:2505.17589 , 2025. [5] Junjie Cao, Yichen Han, Ruonan Zhang, Xiaoyang Hao, Hongxiang Li, Shuaijiang Zhao, Yue Liu, and Xiao-Ping Zhang, “Comprehend and talk: Text to speech synthesis via dual language modeling,” arXiv:2509.22062 , 2025. [6] Neil Zeghidour, Alejandro Luebs, Ahmed Omran, Jan Skoglund, and Marco Tagliasacchi, “SoundStream: An end-to-end neural audio codec,” IEEE/ACM Trans. Audio, Speech, Lang. Process. , vol. 30, pp. 495–507, 2021. [7] Alexandre D´ efossez, Jade Copet, Gabriel Synnaeve, and Yossi Adi, “High fidelity neural audio compression,” Trans. Mach. Learn. Res. , 2023. [8] Tianle Cai, Yuhong Li, Zhengyang Geng, Hao Peng, Jason D. Lee, Deming Chen, and Tri Dao, “Medusa: Simple LLM infer-ence acceleration framework with multiple decoding heads,” in 
+
+Proc. ICML , 2024. [9] Angela Fan, Mike Lewis, and Yann Dauphin, “Hierarchical neural story generation,” in Proc. ACL , 2018. [10] Chengyi Wang, Sanyuan Chen, Yu Wu, Ziqiang Zhang, Long Zhou, Shujie Liu, Zhuo Chen, Yanqing Liu, Huaming Wang, Jinyu Li, Lei He, Sheng Zhao, and Furu Wei, “Neural codec language models are zero-shot text to speech synthesizers,” 
+
+arXiv:2301.02111 , 2023. [11] Bohan Li, Hankun Wang, Situo Zhang, Yiwei Guo, and Kai Yu, “Fast and high-quality auto-regressive speech synthesis via speculative decoding,” in Proc. ICASSP , 2025. [12] Tan Dat Nguyen, Ji-Hoon Kim, Jeongsoo Choi, Shukjae Choi, Jinseok Park, Younglo Lee, and Joon Son Chung, “Accelerat-ing codec-based speech synthesis with multi-token prediction and speculative decoding,” in Proc. ICASSP , 2025. [13] Yuhui Li, Fangyun Wei, Chao Zhang, and Hongyang Zhang, “EAGLE: Speculative sampling requires rethinking feature un-certainty,” in Proc. ICML , 2024. [14] Yunfei Cheng, Aonan Zhang, Xuanyu Zhang, Chong Wang, and Yi Wang, “Recurrent drafter for fast speculative decoding in large language models,” arXiv:2403.09919 , 2024. [15] Moran Yanuka, Paul Dixon, Eyal Finkelshtein, Daniel Rotman, and Raja Giryes, “Principled coarse-grained acceptance for speculative decoding in speech,” in Proc. ICASSP , 2026. [16] Jade Copet, Felix Kreuk, Itai Gat, Tal Remez, David Kant, Gabriel Synnaeve, Yossi Adi, and Alexandre D´ efossez, “Sim-ple and controllable music generation,” in Proc. NeurIPS ,2023. [17] Zal´ an Borsos, Matt Sharifi, Damien Vincent, Eugene Kharitonov, Neil Zeghidour, and Marco Tagliasacchi, “Sound-Storm: Efficient parallel audio generation,” arXiv:2305.09636 ,2023. [18] Berkin Durmus, Arda Okan, Eduardo Pacheco, Zach Nagen-gast, and Atila Orhon, “WhisperKit: On-device real-time ASR with billion-scale transformers,” in Proc. ICML Work-shop TTODLer-FM , 2025, https://openreview.net/ forum?id=6lC3MPFbVg .[19] Xupeng Miao, Gabriele Oliaro, Zhihao Zhang, Xinhao Cheng, Zeyu Wang, Zhengxin Zhang, Rae Ying Yee Wong, Alan Zhu, Lijie Yang, Xiaoxiang Shi, Chunan Shi, Zhuoming Chen, Daiyaan Arfeen, Reyna Abhyankar, and Zhihao Jia, “SpecIn-fer: Accelerating large language model serving with tree-based speculative inference and verification,” in Proc. ASPLOS ,2024. [20] Changhan Wang, Morgane Rivi` ere, Ann Lee, Anne Wu, Chaitanya Talnikar, Daniel Haziza, Mary Williamson, Juan Pino, and Emmanuel Dupoux, “VoxPopuli: A large-scale multilingual speech corpus for representation learning, semi-supervised learning and interpretation,” in Proc. ACL , 2021. [21] Vassil Panayotov, Guoguo Chen, Daniel Povey, and Sanjeev Khudanpur, “LibriSpeech: An ASR corpus based on public domain audio books,” in Proc. ICASSP , 2015. [22] Alexis Conneau, Min Ma, Simran Khanuja, Yu Zhang, Vera Axelrod, Siddharth Dalmia, Jason Riesa, Clara Rivera, and Ankur Bapna, “FLEURS: Few-shot learning evaluation of uni-versal representations of speech,” in Proc. IEEE SLT , 2022. [23] Argmax, Inc., “Argmax SDK: On device speech AI for apple silicon,” https://github.com/argmaxinc/ argmax-oss-swift , 2026. [24] Alec Radford, Jong Wook Kim, Tao Xu, Greg Brockman, Christine McLeavey, and Ilya Sutskever, “Robust speech recognition via large-scale weak supervision,” in Proc. ICML ,2023. [25] NVIDIA NeMo Team, “Parakeet tdt 0.6b v3,” https: //huggingface.co/nvidia/parakeet-tdt-0. 6b-v3 , 2025. [26] Argmax, Inc., “OpenBench: Open source reproducible bench-marks for speech processing,” https://github.com/ argmaxinc/OpenBench , 2025. [27] Berkin Durmus, Blaise Munyampirwa, Eduardo Pacheco, Atila Orhon, and Andrey Leonov, “SDBench: A comprehensive benchmark suite for speaker diarization,” in Proc. Interspeech ,2025. [28] Anthropic, “Claude,” https://www.anthropic.com/ claude , 2026. [29] OpenAI, “GPT-6,” https://openai.com , 2026.

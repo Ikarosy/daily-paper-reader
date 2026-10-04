@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-10-02</span>
+      <span class="dpr-home-dashboard-kicker">2026-10-04</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 8 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 6 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>5</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-10-02 22:45:29 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-04 22:47:35 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今天共筛出 8 篇论文，精读 3 篇、速读 5 篇，重点聚焦 LLM 量化与语义通信两大方向。最值得看的是 9.0 分的《XOR-Trellis》提出的超低复杂度去量化与曲率感知无 Hadamard 量化方案，以及 8.0 分《Dual-Branch Vector-Quantization-Aided Satellite Digital Semantic Communication》用索引压缩提升 AFDM 下高分辨率遥感图像传输效率的思路。普通读者可先读这两篇的精读笔记，再按需浏览 ThinQuant 与低比特循环状态等速读条目，把握量化效率与压缩成本的权衡主线。</p>
+<p>今天从 6 篇中精读 1 篇、速读 5 篇，重点锁定 LLM 低比特量化，速读覆盖机器人手语翻译、端侧 TTS 推测解码与量化误差分析。</p>
+<p>最值得看的是拿下 9.0 分的《XOR-Trellis》：用免 Hadamard 的超低复杂度反量化配合曲率感知做 LLM 量化，另一条线索是低比特后训练量化对尺度的敏感性。</p>
+<p>普通读者可先读 XOR-Trellis 的结论与复杂度对比表，其余速读扫摘要判断是否与你的端侧部署场景相关即可。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -78,12 +80,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">3 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization">XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization</span></li><li><span class="dpr-home-dashboard-paper-title" title="Dual-Branch Vector-Quantization-Aided Satellite Digital Semantic Communication with Index Compression for High-Resolution RSI Over AFDM">Dual-Branch Vector-Quantization-Aided Satellite Digital Semantic Communication with Index Compression for High-Resolution RSI Over AFDM</span></li><li><span class="dpr-home-dashboard-paper-title" title="Derandomizing Dense Binary Hypervector Codebooks for Quantized Scalars">Derandomizing Dense Binary Hypervector Codebooks for Quantized Scalars</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization">XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>3</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -94,9 +96,9 @@
     <strong class="dpr-home-dashboard-count">5 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Low-Bit Recurrent States in Hybrid Language Models">Low-Bit Recurrent States in Hybrid Language Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="Lossless Compression of Lookup Tables for Hardware Applications">Lossless Compression of Lookup Tables for Hardware Applications</span></li><li><span class="dpr-home-dashboard-paper-title" title="ThinQuant: Scalable Rotation Learning for Weight and Activation Quantization of LLMs">ThinQuant: Scalable Rotation Learning for Weight and Activation Quantization of LLMs</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="RoboSTAR: Next-Scale Autoregressive Sign Language Translation for Humanoid Robots">RoboSTAR: Next-Scale Autoregressive Sign Language Translation for Humanoid Robots</span></li><li><span class="dpr-home-dashboard-paper-title" title="RVQ Position Aware Speculative Decoding for On Device Text to Speech">RVQ Position Aware Speculative Decoding for On Device Text to Speech</span></li><li><span class="dpr-home-dashboard-paper-title" title="Scale Sensitivity in Low-Bit Post-Training Quantization: Curvature of the Quantization Error Landscape">Scale Sensitivity in Low-Bit Post-Training Quantization: Curvature of the Quantization Error Landscape</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>4</strong></span><span class="dpr-home-dashboard-tag">moe-quant <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>5</strong></span></div>
 </section>
 </div>
 
