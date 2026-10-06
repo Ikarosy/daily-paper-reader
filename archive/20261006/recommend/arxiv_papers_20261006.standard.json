@@ -1,0 +1,215 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-06T01:15:26.701639+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 5,
+    "deep_cap": 7,
+    "deep_selected": 5,
+    "quick_candidates": 0,
+    "quick_skim_target": 12,
+    "quick_selected": 0
+  },
+  "deep_dive": [
+    {
+      "id": "2610.00432v1",
+      "source": "arxiv",
+      "title": "XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization",
+      "abstract": "Trellis-coded quantization enables high-dimensional compression of large language model (LLM) weights at ultra-low bit widths without the exponentially large codebooks required by conventional vector quantization. Practical deployment, however, presents two challenges: reconstructing compressed weights at sufficient parallel throughput to avoid making dequantization an inference bottleneck, and maintaining quantization accuracy without costly incoherence transformations. We address these challenges with two complementary techniques. First, we introduce an ultra-low-complexity trellis dequantizer that uses a structured, hardware-efficient state-to-value mapping while preserving diverse reconstruction choices for trellis search. Second, we reformulate discrete trellis path optimization with a curvature-aware objective that reflects model sensitivity directly in the original coordinate space. Together, these techniques enable high-quality ultra-low-bit trellis quantization with inexpensive, highly parallel runtime reconstruction and without relying on Hadamard-based incoherence processing.",
+      "authors": [
+        "Xiaofan Que",
+        "Nir Elkayam",
+        "Spandan Pyakurel",
+        "Shuokai Pan",
+        "Dibakar Gope"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-30T17:05:40+00:00",
+      "link": "https://arxiv.org/pdf/2610.00432v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Ultra-low-bit trellis-coded quantization with hardware-efficient codebook-free dequantization",
+      "llm_evidence_cn": "超低比特格编码量化与硬件高效免大码本反量化",
+      "llm_evidence": "超低比特格编码量化与硬件高效免大码本反量化",
+      "canonical_evidence": "超低比特格编码量化与硬件高效免大码本反量化",
+      "llm_tldr_en": "XOR-Trellis enables ultra-low-bit LLM weight compression via trellis-coded quantization, introducing a hardware-efficient state-to-value dequantizer and curvature-aware, Hadamard-free transformations to keep accuracy while avoiding dequantization bottlenecks.",
+      "llm_tldr_cn": "格编码量化可在极低比特下压缩大语言模型权重，且无需传统矢量量化那样庞大的码本，但其反量化吞吐不足易成推理瓶颈，且精度常依赖昂贵的非相干变换。该文提出XOR-Trellis，采用结构化、硬件高效的状态到数值映射实现超低复杂度反量化，同时保留丰富的重建选择，并引入曲率感知的免Hadamard量化方法。该方案在极低比特下兼顾压缩率、精度与推理速度，推进了LLM极低比特矢量量化的实用部署。",
+      "llm_tldr": "格编码量化可在极低比特下压缩大语言模型权重，且无需传统矢量量化那样庞大的码本，但其反量化吞吐不足易成推理瓶颈，且精度常依赖昂贵的非相干变换。该文提出XOR-Trellis，采用结构化、硬件高效的状态到数值映射实现超低复杂度反量化，同时保留丰富的重建选择，并引入曲率感知的免Hadamard量化方法。该方案在极低比特下兼顾压缩率、精度与推理速度，推进了LLM极低比特矢量量化的实用部署。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.02241v1",
+      "source": "arxiv",
+      "title": "Hardware-Native Joint Sparse-Quantization for Trillion-Scale Mixture-of-Experts",
+      "abstract": "Mixture-of-Experts (MoE) architectures allow frontier language models to scale to trillions of parameters, but their deployment is constrained by massive memory footprints and memory-bandwidth limitations. Although modern accelerators provide Sparse Tensor Cores (SpTCs) that reduce weight storage and increase throughput through low-precision semi-structured sparsity, exploiting them for MoEs remains challenging because of substantial model-quality degradation and the lack of grouped sparse GEMM primitives. We present an end-to-end hardware-software co-design framework that compresses expert weights into hardware-native, low-precision sparse representations and accelerates their execution on SpTCs. Algorithmically, our framework relaxes discrete semi-structured support selection through continuous reparameterization, enabling differentiable joint optimization with quantized weights under a router-weighted reconstruction objective and scalable expert-parallel compression. Systemically, we develop a custom grouped sparse GEMM kernel tailored to low-precision sparse MoE inference on SpTCs. Across MoE models ranging from 30 billion to one trillion parameters, our framework improves state-of-the-art joint sparse-quantization accuracy by up to 4.35 percentage points while preserving 96.09% of the original model's performance. On NVIDIA B200 GPUs, our kernel outperforms the vendor baseline by up to $1.65\\times$, increasing serving throughput by $1.18\\times$ and reducing end-to-end latency by up to $4.03\\times$. These results establish hardware-software co-design as a practical path toward scalable and efficient MoE deployment.",
+      "authors": [
+        "Kwanhee Lee",
+        "Namhoon Lee",
+        "Dan Alistarh"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-29T07:58:06+00:00",
+      "link": "https://arxiv.org/pdf/2610.02241v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Hardware-native joint sparse-quantization for trillion-scale MoE",
+      "llm_evidence_cn": "面向万亿级MoE的硬件原生联合稀疏量化",
+      "llm_evidence": "面向万亿级MoE的硬件原生联合稀疏量化",
+      "canonical_evidence": "面向万亿级MoE的硬件原生联合稀疏量化",
+      "llm_tldr_en": "An end-to-end hardware-software co-design compresses MoE expert weights into low-precision sparse forms executed on Sparse Tensor Cores, addressing memory and bandwidth limits of trillion-scale MoE deployment.",
+      "llm_tldr_cn": "万亿级混合专家（MoE）模型虽可扩展参数量，却受限于巨大显存占用与带宽瓶颈。该文提出软硬件协同设计的端到端框架，将专家权重压缩为硬件原生的低精度半结构化稀疏表示，并在稀疏张量核心上加速执行，同时缓解模型质量退化与缺少分组稀疏GEMM原语的问题。工作放宽离散化约束以兼顾精度与效率，为超大规模MoE的低比特稀疏部署提供了可行路径。",
+      "llm_tldr": "万亿级混合专家（MoE）模型虽可扩展参数量，却受限于巨大显存占用与带宽瓶颈。该文提出软硬件协同设计的端到端框架，将专家权重压缩为硬件原生的低精度半结构化稀疏表示，并在稀疏张量核心上加速执行，同时缓解模型质量退化与缺少分组稀疏GEMM原语的问题。工作放宽离散化约束以兼顾精度与效率，为超大规模MoE的低比特稀疏部署提供了可行路径。",
+      "llm_tags": [
+        "query:moe-quant:composite"
+      ],
+      "matched_query_tag": "query:moe-quant:composite",
+      "matched_query_text": "Papers central to MoE 量化, especially work that connects or combines: P; M; MoE Quantization.",
+      "matched_requirement_id": "req-composite-moe-quant",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.03027v1",
+      "source": "arxiv",
+      "title": "Tailoring the Quantization Space for 1-Bit KV Cache Compression",
+      "abstract": "The key-value (KV) cache becomes a major memory bottleneck in long-context LLM inference, placing substantial pressure on memory capacity and bandwidth. To mitigate this bottleneck, vector quantization (VQ) has emerged as a promising approach for aggressive KV cache compression. However, existing VQ methods degrade substantially in the 1-bit regime. At such extreme compression, each codebook must represent a larger group of channels with a limited set of centroids, making effective use of its capacity increasingly challenging. To address this, we introduce $\\textbf{TaSQ}$, which tailors the VQ target space by combining query-guided channel weighting, cross-head normalization, and covariance-aware channel grouping to better reflect the error sensitivity and statistical structure of cached activations. Since these transforms are RoPE-compatible and can be easily merged into projection weights and codebooks, TaSQ preserves the conventional VQ lookup structure and adds negligible serving overhead. Across general, long-chain-of-thought reasoning, and long-context retrieval benchmarks, TaSQ consistently outperforms existing low-bit KV cache VQ baselines while preserving reasoning stability. On a single RTX 6000 Ada GPU, its SGLang implementation supports up to $14\\times$ larger batch sizes and achieves $1.87\\times$ higher peak throughput compared to the BF16 baseline.",
+      "authors": [
+        "Minsoo Cheong",
+        "Donghyun Son",
+        "Sungjoo Yoo"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-10-02T09:04:25+00:00",
+      "link": "https://arxiv.org/pdf/2610.03027v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "1-bit vector quantization codebook for KV cache compression",
+      "llm_evidence_cn": "1比特向量量化码本压缩KV缓存",
+      "llm_evidence": "1比特向量量化码本压缩KV缓存",
+      "canonical_evidence": "1比特向量量化码本压缩KV缓存",
+      "llm_tldr_en": "TaSQ tailors the vector quantization target space via query-guided channel weighting, cross-head normalization and covariance-aware grouping, improving 1-bit KV cache compression where existing VQ codebooks degrade.",
+      "llm_tldr_cn": "长上下文大模型推理中KV缓存成为主要内存瓶颈，向量量化被用于激进压缩，但现有方法在1比特极端压缩下性能显著退化，因每个码本需用有限质心表示更多通道。本文提出TaSQ，通过查询引导的通道加权、跨头归一化与协方差感知的通道分组来重新定制VQ目标空间，以更好反映误差敏感性与结构。实验表明该方法在极低比特KV缓存压缩下优于现有方案，为1比特量化提供了更有效的码本利用方式。",
+      "llm_tldr": "长上下文大模型推理中KV缓存成为主要内存瓶颈，向量量化被用于激进压缩，但现有方法在1比特极端压缩下性能显著退化，因每个码本需用有限质心表示更多通道。本文提出TaSQ，通过查询引导的通道加权、跨头归一化与协方差感知的通道分组来重新定制VQ目标空间，以更好反映误差敏感性与结构。实验表明该方法在极低比特KV缓存压缩下优于现有方案，为1比特量化提供了更有效的码本利用方式。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.03651v1",
+      "source": "arxiv",
+      "title": "MRVQ: One Resident Index for Dimension- and Rate-Elastic Vector Search",
+      "abstract": "Dense-retrieval services must switch among embedding-prefix dimensions and index bit rates as latency, quality, and memory budgets change. Tuning a quantizer separately for each rate gives the best quality, but the retrieval tier then holds several code streams and quantizer states at once. We introduce Matryoshka Residual Vector Quantization (MRVQ), a post-hoc residual quantizer for frozen embeddings. Its maximum-rate code can be truncated two ways: dropping residual stages lowers the rate, and dropping embedding coordinates lowers the dimension. One resident artifact therefore serves every (dimension, rate) pair we evaluate. Across FiQA and NFCorpus, four embedding families, and {4, 8, 16}-byte codes, MRVQ is the lowest-RAM design we evaluate. It uses 17.8-22.0x less memory than three separately trained QINCo2 indices, and 1.89-2.02x less than a lean shared-model steelman. The saving is not free: per-rate QINCo2 is 0.026-0.107 nDCG@10 better on FiQA. But MRVQ beats PQ, OPQ, and AdANNS-OPQ at matched code size. We also evaluate a low-build-cost PCA-scalar design that attains quality comparable to RaBitQ and its extension while fitting 420x faster at the median. Finally, we report two negative results: QINCo2 collapses when trained at high rates, and a ranking-bound hypothesis misses its pre-specified acceptance criteria. MRVQ is therefore a low-memory operating point for elastic retrieval, not a universal quality winner.",
+      "authors": [
+        "Sean Culatana",
+        "Shang-En Huang",
+        "Kang Li"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.IR"
+      ],
+      "published": "2026-10-02T17:33:13+00:00",
+      "link": "https://arxiv.org/pdf/2610.03651v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "post-hoc residual vector quantizer with truncatable bit rates and codebook stages for vector search",
+      "llm_evidence_cn": "面向向量检索的后验残差向量量化，支持码率与维度截断",
+      "llm_evidence": "面向向量检索的后验残差向量量化，支持码率与维度截断",
+      "canonical_evidence": "面向向量检索的后验残差向量量化，支持码率与维度截断",
+      "llm_tldr_en": "MRVQ is a post-hoc residual vector quantizer for frozen embeddings whose max-rate code truncates by dropping residual stages or coordinates, so one resident artifact serves every dimension-rate pair with the lowest RAM in tests.",
+      "llm_tldr_cn": "针对稠密检索需在嵌入维度与索引码率间切换、逐码率训练量化器需同时驻留多套码流与量化状态的问题，论文提出Matryoshka残差向量量化（MRVQ），对冻结嵌入做后验残差量化，其最高码率编码可通过丢弃残差级降码率、丢弃嵌入坐标降维度，使单一常驻产物覆盖所有维度-码率组合。在FiQA与NFCorpus、四类嵌入与4/8/16字节码设置下，MRVQ是所评估方案中常驻内存最低的设计。该工作为弹性向量检索提供了统一、低内存的索引方案。",
+      "llm_tldr": "针对稠密检索需在嵌入维度与索引码率间切换、逐码率训练量化器需同时驻留多套码流与量化状态的问题，论文提出Matryoshka残差向量量化（MRVQ），对冻结嵌入做后验残差量化，其最高码率编码可通过丢弃残差级降码率、丢弃嵌入坐标降维度，使单一常驻产物覆盖所有维度-码率组合。在FiQA与NFCorpus、四类嵌入与4/8/16字节码设置下，MRVQ是所评估方案中常驻内存最低的设计。该工作为弹性向量检索提供了统一、低内存的索引方案。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.02652v1",
+      "source": "arxiv",
+      "title": "RaBitQ-SSD: Split Codes and Pipelined I/O for SSD-Resident Vector Search",
+      "abstract": "SSD-resident approximate nearest-neighbor search is essential when vector collections exceed DRAM capacity. The challenge is to reduce SSD reads and hide I/O latency through concurrent reads and overlap with computation. However, for graph-based search, progressive candidate discovery limits advance I/O planning while IVF search reads inverted lists in full, incurring unnecessary SSD reads. In this paper, we present RaBitQ-SSD, an extension of IVF-RaBitQ for SSD-resident vector search. Specifically, we propose Split-RaBitQ, which retains a configurable prefix of each binary code in DRAM, allowing in-memory code storage below one bit per dimension. Using this partial representation, it provides an unbiased distance estimator with a probabilistic error bound. Once the in-memory coarse quantizer identifies candidate lists, this bound supports pruning individual candidates within them, enabling finer-grained SSD access. We also design an asynchronous search pipeline that coordinates candidate pruning with SSD read scheduling to reduce unnecessary reads while overlapping I/O with computation. On datasets ranging from $5$ million to $1$ billion vectors, RaBitQ-SSD delivers up to $1.74\\times$ the throughput of graph-based baselines at $90\\%$ recall, while reducing SSD page reads by up to $3.8\\times$. Its on-SSD indexes are up to $7.0\\times$ smaller and $10.0\\times$ faster to build than DiskANN. We also build and search an index of $10$ billion vectors on a single machine with one SSD, achieving over $3{,}000$ queries per second at $90\\%$ recall.",
+      "authors": [
+        "Yuexuan Xu",
+        "Jianyang Gao",
+        "Michael Norris",
+        "Alibek Zhakubayev",
+        "Pankaj Singh",
+        "Junjie Qi",
+        "Matthijs Douze",
+        "Cheng Long"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB"
+      ],
+      "published": "2026-10-02T01:20:20+00:00",
+      "link": "https://arxiv.org/pdf/2610.02652v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "split binary codes with sub-one-bit-per-dimension in-memory storage for vector search",
+      "llm_evidence_cn": "面向向量检索的拆分二进制编码，内存占用低于每维一比特",
+      "llm_evidence": "面向向量检索的拆分二进制编码，内存占用低于每维一比特",
+      "canonical_evidence": "面向向量检索的拆分二进制编码，内存占用低于每维一比特",
+      "llm_tldr_en": "RaBitQ-SSD extends IVF-RaBitQ for SSD-resident vector search with Split-RaBitQ, which keeps a configurable prefix of each binary code in DRAM below one bit per dimension and gives an unbiased distance estimator to cut SSD reads.",
+      "llm_tldr_cn": "针对向量集合超出DRAM容量时SSD常驻近邻检索的I/O瓶颈，论文提出RaBitQ-SSD，将IVF-RaBitQ扩展到SSD场景，并设计Split-RaBitQ：在DRAM中保留每条二进制码的可配置前缀，使内存编码存储低于每维一比特，据此提供无偏距离估计与概率误差。该方案旨在减少SSD读取，并借助并发读取与计算重叠隐藏I/O延迟。其贡献在于以拆分编码实现低内存、可流水线化的高效SSD级向量检索。",
+      "llm_tldr": "针对向量集合超出DRAM容量时SSD常驻近邻检索的I/O瓶颈，论文提出RaBitQ-SSD，将IVF-RaBitQ扩展到SSD场景，并设计Split-RaBitQ：在DRAM中保留每条二进制码的可配置前缀，使内存编码存储低于每维一比特，据此提供无偏距离估计与概率误差。该方案旨在减少SSD读取，并借助并发读取与计算重叠隐藏I/O延迟。其贡献在于以拆分编码实现低内存、可流水线化的高效SSD级向量检索。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": []
+}

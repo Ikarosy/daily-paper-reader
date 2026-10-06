@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-10-04</span>
+      <span class="dpr-home-dashboard-kicker">2026-10-06</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 6 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 5 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>5</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>5</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>0</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-10-04 22:47:35 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-06 01:18:50 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今天从 6 篇中精读 1 篇、速读 5 篇，重点锁定 LLM 低比特量化，速读覆盖机器人手语翻译、端侧 TTS 推测解码与量化误差分析。</p>
-<p>最值得看的是拿下 9.0 分的《XOR-Trellis》：用免 Hadamard 的超低复杂度反量化配合曲率感知做 LLM 量化，另一条线索是低比特后训练量化对尺度的敏感性。</p>
-<p>普通读者可先读 XOR-Trellis 的结论与复杂度对比表，其余速读扫摘要判断是否与你的端侧部署场景相关即可。</p>
+<p>今日精读5篇全部打满，其中两篇拿下9.0高分，聚焦LLM量化与稀疏化。</p>
+<p>最值得看的是XOR-Trellis用超低复杂度去量化+无Hadamard变换的量化方案，以及面向万亿级MoE的硬件原生联合稀疏量化。</p>
+<p>普通读者可先关注这两条“把大模型压小又不掉精度”的路线，后续留意其落地实测效果。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -80,12 +80,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">1 篇</strong>
+    <strong class="dpr-home-dashboard-count">5 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization">XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization">XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization</span></li><li><span class="dpr-home-dashboard-paper-title" title="Hardware-Native Joint Sparse-Quantization for Trillion-Scale Mixture-of-Experts">Hardware-Native Joint Sparse-Quantization for Trillion-Scale Mixture-of-Experts</span></li><li><span class="dpr-home-dashboard-paper-title" title="Tailoring the Quantization Space for 1-Bit KV Cache Compression">Tailoring the Quantization Space for 1-Bit KV Cache Compression</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>4</strong></span><span class="dpr-home-dashboard-tag">moe-quant <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -93,12 +93,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">5 篇</strong>
+    <strong class="dpr-home-dashboard-count">0 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="RoboSTAR: Next-Scale Autoregressive Sign Language Translation for Humanoid Robots">RoboSTAR: Next-Scale Autoregressive Sign Language Translation for Humanoid Robots</span></li><li><span class="dpr-home-dashboard-paper-title" title="RVQ Position Aware Speculative Decoding for On Device Text to Speech">RVQ Position Aware Speculative Decoding for On Device Text to Speech</span></li><li><span class="dpr-home-dashboard-paper-title" title="Scale Sensitivity in Low-Bit Post-Training Quantization: Curvature of the Quantization Error Landscape">Scale Sensitivity in Low-Bit Post-Training Quantization: Curvature of the Quantization Error Landscape</span></li></ul>
+<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>5</strong></span></div>
+
 </section>
 </div>
 

@@ -1,0 +1,89 @@
+{
+  "date": "20261006",
+  "date_label": "",
+  "generated_at": "2026-10-06 01:18:50 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2610.00432v1",
+      "route": "202610/06/2610.00432v1-xor-trellis-ultra-low-complexity-dequantization-and-curvature-aware-hadamard-free-llm-quantization",
+      "title": "XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "超低比特格编码量化与硬件高效免大码本反量化",
+      "first_seen_at": "2026-10-06 01:18:50 UTC",
+      "updated_at": "2026-10-06 01:18:50 UTC"
+    },
+    {
+      "paper_id": "2610.02241v1",
+      "route": "202610/06/2610.02241v1-hardware-native-joint-sparse-quantization-for-trillion-scale-mixture-of-experts",
+      "title": "Hardware-Native Joint Sparse-Quantization for Trillion-Scale Mixture-of-Experts",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向万亿级MoE的硬件原生联合稀疏量化",
+      "first_seen_at": "2026-10-06 01:18:50 UTC",
+      "updated_at": "2026-10-06 01:18:50 UTC"
+    },
+    {
+      "paper_id": "2610.03027v1",
+      "route": "202610/06/2610.03027v1-tailoring-the-quantization-space-for-1-bit-kv-cache-compression",
+      "title": "Tailoring the Quantization Space for 1-Bit KV Cache Compression",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "1比特向量量化码本压缩KV缓存",
+      "first_seen_at": "2026-10-06 01:18:50 UTC",
+      "updated_at": "2026-10-06 01:18:50 UTC"
+    },
+    {
+      "paper_id": "2610.03651v1",
+      "route": "202610/06/2610.03651v1-mrvq-one-resident-index-for-dimension--and-rate-elastic-vector-search",
+      "title": "MRVQ: One Resident Index for Dimension- and Rate-Elastic Vector Search",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向向量检索的后验残差向量量化，支持码率与维度截断",
+      "first_seen_at": "2026-10-06 01:18:50 UTC",
+      "updated_at": "2026-10-06 01:18:50 UTC"
+    },
+    {
+      "paper_id": "2610.02652v1",
+      "route": "202610/06/2610.02652v1-rabitq-ssd-split-codes-and-pipelined-io-for-ssd-resident-vector-search",
+      "title": "RaBitQ-SSD: Split Codes and Pipelined I/O for SSD-Resident Vector Search",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向向量检索的拆分二进制编码，内存占用低于每维一比特",
+      "first_seen_at": "2026-10-06 01:18:50 UTC",
+      "updated_at": "2026-10-06 01:18:50 UTC"
+    }
+  ]
+}
