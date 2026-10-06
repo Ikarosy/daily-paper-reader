@@ -51,14 +51,14 @@
       <span class="dpr-home-dashboard-kicker">2026-10-06</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 5 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 10 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
-    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>5</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>2 次</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>8</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>2</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-10-06 01:18:50 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-06 23:33:25 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读5篇全部打满，其中两篇拿下9.0高分，聚焦LLM量化与稀疏化。</p>
-<p>最值得看的是XOR-Trellis用超低复杂度去量化+无Hadamard变换的量化方案，以及面向万亿级MoE的硬件原生联合稀疏量化。</p>
-<p>普通读者可先关注这两条“把大模型压小又不掉精度”的路线，后续留意其落地实测效果。</p>
+<p>2026-10-06 日报完成：10 篇中精读 8 篇、速读 2 篇。最值得看的是 LLM 量化方向——《XOR-Trellis》以超低复杂度去量化和曲率感知的无 Hadamard 量化拿下满分，《Hardware-Native Joint Sparse-Quantization》则为万亿级 MoE 提供硬件原生稀疏量化方案。普通读者可先读这两篇，重点关注量化精度与硬件开销如何兼得。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -80,12 +78,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">5 篇</strong>
+    <strong class="dpr-home-dashboard-count">8 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
 <ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization">XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization</span></li><li><span class="dpr-home-dashboard-paper-title" title="Hardware-Native Joint Sparse-Quantization for Trillion-Scale Mixture-of-Experts">Hardware-Native Joint Sparse-Quantization for Trillion-Scale Mixture-of-Experts</span></li><li><span class="dpr-home-dashboard-paper-title" title="Tailoring the Quantization Space for 1-Bit KV Cache Compression">Tailoring the Quantization Space for 1-Bit KV Cache Compression</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>4</strong></span><span class="dpr-home-dashboard-tag">moe-quant <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>7</strong></span><span class="dpr-home-dashboard-tag">moe-quant <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -93,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Understanding the Weight Averaging Mechanism in LLM Training for Post-Training Quantization">Understanding the Weight Averaging Mechanism in LLM Training for Post-Training Quantization</span></li><li><span class="dpr-home-dashboard-paper-title" title="GS-Codec: A Gaussian-Splatting Bottleneck for Neural Audio Coding">GS-Codec: A Gaussian-Splatting Bottleneck for Neural Audio Coding</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wbv <strong>2</strong></span></div>
 </section>
 </div>
 

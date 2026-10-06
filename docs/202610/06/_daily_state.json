@@ -1,9 +1,9 @@
 {
   "date": "20261006",
   "date_label": "",
-  "generated_at": "2026-10-06 01:18:50 UTC",
+  "generated_at": "2026-10-06 23:33:25 UTC",
   "recommend_exists": true,
-  "run_count": 1,
+  "run_count": 2,
   "papers": [
     {
       "paper_id": "2610.00432v1",
@@ -16,10 +16,10 @@
           "label": "wbv"
         }
       ],
-      "score": 9.0,
+      "score": 10.0,
       "evidence": "超低比特格编码量化与硬件高效免大码本反量化",
       "first_seen_at": "2026-10-06 01:18:50 UTC",
-      "updated_at": "2026-10-06 01:18:50 UTC"
+      "updated_at": "2026-10-06 23:33:25 UTC"
     },
     {
       "paper_id": "2610.02241v1",
@@ -35,7 +35,7 @@
       "score": 9.0,
       "evidence": "面向万亿级MoE的硬件原生联合稀疏量化",
       "first_seen_at": "2026-10-06 01:18:50 UTC",
-      "updated_at": "2026-10-06 01:18:50 UTC"
+      "updated_at": "2026-10-06 23:33:25 UTC"
     },
     {
       "paper_id": "2610.03027v1",
@@ -51,7 +51,7 @@
       "score": 9.0,
       "evidence": "1比特向量量化码本压缩KV缓存",
       "first_seen_at": "2026-10-06 01:18:50 UTC",
-      "updated_at": "2026-10-06 01:18:50 UTC"
+      "updated_at": "2026-10-06 23:33:25 UTC"
     },
     {
       "paper_id": "2610.03651v1",
@@ -67,7 +67,55 @@
       "score": 9.0,
       "evidence": "面向向量检索的后验残差向量量化，支持码率与维度截断",
       "first_seen_at": "2026-10-06 01:18:50 UTC",
-      "updated_at": "2026-10-06 01:18:50 UTC"
+      "updated_at": "2026-10-06 23:33:25 UTC"
+    },
+    {
+      "paper_id": "2610.04457v1",
+      "route": "202610/06/2610.04457v1-rpfq-vit-rotated-phase-frame-quantization-for-extremely-low-bit-weights-in-vision-transformers",
+      "title": "RPFQ-ViT: Rotated Phase-Frame Quantization for Extremely Low-Bit Weights in Vision Transformers",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "极低比特权重量化与相位平面编码及码本",
+      "first_seen_at": "2026-10-06 23:33:25 UTC",
+      "updated_at": "2026-10-06 23:33:25 UTC"
+    },
+    {
+      "paper_id": "2610.04490v1",
+      "route": "202610/06/2610.04490v1-barq-balanced-codebook-refinement-for-low-bit-llm-quantization",
+      "title": "BARQ: Balanced Codebook Refinement for Low-Bit LLM Quantization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于码本的低比特权重量化与平衡精炼",
+      "first_seen_at": "2026-10-06 23:33:25 UTC",
+      "updated_at": "2026-10-06 23:33:25 UTC"
+    },
+    {
+      "paper_id": "2610.05977v1",
+      "route": "202610/06/2610.05977v1-stagq-constraint-driven-multi-precision-weight-quantization-for-llms",
+      "title": "StagQ: Constraint-Driven Multi-Precision Weight Quantization for LLMs",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "2比特分组仿射基加1比特细化平面",
+      "first_seen_at": "2026-10-06 23:33:25 UTC",
+      "updated_at": "2026-10-06 23:33:25 UTC"
     },
     {
       "paper_id": "2610.02652v1",
@@ -84,6 +132,38 @@
       "evidence": "面向向量检索的拆分二进制编码，内存占用低于每维一比特",
       "first_seen_at": "2026-10-06 01:18:50 UTC",
       "updated_at": "2026-10-06 01:18:50 UTC"
+    },
+    {
+      "paper_id": "2610.05329v1",
+      "route": "202610/06/2610.05329v1-understanding-the-weight-averaging-mechanism-in-llm-training-for-post-training-quantization",
+      "title": "Understanding the Weight Averaging Mechanism in LLM Training for Post-Training Quantization",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向大模型的低精度训练后量化与权重平均机制",
+      "first_seen_at": "2026-10-06 23:33:25 UTC",
+      "updated_at": "2026-10-06 23:33:25 UTC"
+    },
+    {
+      "paper_id": "2610.04651v1",
+      "route": "202610/06/2610.04651v1-gs-codec-a-gaussian-splatting-bottleneck-for-neural-audio-coding",
+      "title": "GS-Codec: A Gaussian-Splatting Bottleneck for Neural Audio Coding",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "以高斯泼溅瓶颈替代VQ-VAE码本/标量网格",
+      "first_seen_at": "2026-10-06 23:33:25 UTC",
+      "updated_at": "2026-10-06 23:33:25 UTC"
     }
   ]
 }

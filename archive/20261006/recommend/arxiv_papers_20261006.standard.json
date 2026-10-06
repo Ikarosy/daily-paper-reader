@@ -1,15 +1,15 @@
 {
   "mode": "standard",
-  "generated_at": "2026-10-06T01:15:26.701639+00:00",
+  "generated_at": "2026-10-06T23:31:10.853741+00:00",
   "stats": {
     "mode": "standard",
     "tag_count": 2,
-    "deep_divecandidates": 5,
+    "deep_divecandidates": 7,
     "deep_cap": 7,
-    "deep_selected": 5,
-    "quick_candidates": 0,
+    "deep_selected": 7,
+    "quick_candidates": 2,
     "quick_skim_target": 12,
-    "quick_selected": 0
+    "quick_selected": 2
   },
   "deep_dive": [
     {
@@ -36,14 +36,14 @@
         "query:MoE-Quant",
         "query:wbv"
       ],
-      "llm_score": 9.0,
-      "llm_evidence_en": "Ultra-low-bit trellis-coded quantization with hardware-efficient codebook-free dequantization",
-      "llm_evidence_cn": "超低比特格编码量化与硬件高效免大码本反量化",
-      "llm_evidence": "超低比特格编码量化与硬件高效免大码本反量化",
-      "canonical_evidence": "超低比特格编码量化与硬件高效免大码本反量化",
-      "llm_tldr_en": "XOR-Trellis enables ultra-low-bit LLM weight compression via trellis-coded quantization, introducing a hardware-efficient state-to-value dequantizer and curvature-aware, Hadamard-free transformations to keep accuracy while avoiding dequantization bottlenecks.",
-      "llm_tldr_cn": "格编码量化可在极低比特下压缩大语言模型权重，且无需传统矢量量化那样庞大的码本，但其反量化吞吐不足易成推理瓶颈，且精度常依赖昂贵的非相干变换。该文提出XOR-Trellis，采用结构化、硬件高效的状态到数值映射实现超低复杂度反量化，同时保留丰富的重建选择，并引入曲率感知的免Hadamard量化方法。该方案在极低比特下兼顾压缩率、精度与推理速度，推进了LLM极低比特矢量量化的实用部署。",
-      "llm_tldr": "格编码量化可在极低比特下压缩大语言模型权重，且无需传统矢量量化那样庞大的码本，但其反量化吞吐不足易成推理瓶颈，且精度常依赖昂贵的非相干变换。该文提出XOR-Trellis，采用结构化、硬件高效的状态到数值映射实现超低复杂度反量化，同时保留丰富的重建选择，并引入曲率感知的免Hadamard量化方法。该方案在极低比特下兼顾压缩率、精度与推理速度，推进了LLM极低比特矢量量化的实用部署。",
+      "llm_score": 10.0,
+      "llm_evidence_en": "Trellis-coded quantization for ultra-low-bit LLM compression, codebook-free, dequantization, SoTA results",
+      "llm_evidence_cn": "网格编码量化用于超低比特LLM压缩，无需码本，反量化，先进结果",
+      "llm_evidence": "网格编码量化用于超低比特LLM压缩，无需码本，反量化，先进结果",
+      "canonical_evidence": "网格编码量化用于超低比特LLM压缩，无需码本，反量化，先进结果",
+      "llm_tldr_en": "XOR-Trellis tackles dequantization bottlenecks in trellis-coded quantization for ultra-low-bit LLM weights, which avoids exponential codebooks. It introduces an ultra-low-complexity trellis dequantizer with a structured state-to-value mapping and curvature-aware Hadamard-free quantization. Experiments show improved accuracy and efficient inference, advancing practical ultra-low-bit LLM deployment.",
+      "llm_tldr_cn": "针对网格编码量化在超低比特LLM权重压缩中反量化吞吐不足且需避免昂贵Hadamard变换的问题，本文提出XOR-Trellis，设计超低复杂度网格反量化器，采用结构化状态到值映射，并引入曲率感知的无Hadamard量化。实验表明该方法在保持量化精度的同时提升推理效率，为超低比特LLM量化的实际部署提供了有效方案。",
+      "llm_tldr": "针对网格编码量化在超低比特LLM权重压缩中反量化吞吐不足且需避免昂贵Hadamard变换的问题，本文提出XOR-Trellis，设计超低复杂度网格反量化器，采用结构化状态到值映射，并引入曲率感知的无Hadamard量化。实验表明该方法在保持量化精度的同时提升推理效率，为超低比特LLM量化的实际部署提供了有效方案。",
       "llm_tags": [
         "query:wbv:composite"
       ],
@@ -76,13 +76,13 @@
         "query:MoE-Quant"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "Hardware-native joint sparse-quantization for trillion-scale MoE",
-      "llm_evidence_cn": "面向万亿级MoE的硬件原生联合稀疏量化",
-      "llm_evidence": "面向万亿级MoE的硬件原生联合稀疏量化",
-      "canonical_evidence": "面向万亿级MoE的硬件原生联合稀疏量化",
-      "llm_tldr_en": "An end-to-end hardware-software co-design compresses MoE expert weights into low-precision sparse forms executed on Sparse Tensor Cores, addressing memory and bandwidth limits of trillion-scale MoE deployment.",
-      "llm_tldr_cn": "万亿级混合专家（MoE）模型虽可扩展参数量，却受限于巨大显存占用与带宽瓶颈。该文提出软硬件协同设计的端到端框架，将专家权重压缩为硬件原生的低精度半结构化稀疏表示，并在稀疏张量核心上加速执行，同时缓解模型质量退化与缺少分组稀疏GEMM原语的问题。工作放宽离散化约束以兼顾精度与效率，为超大规模MoE的低比特稀疏部署提供了可行路径。",
-      "llm_tldr": "万亿级混合专家（MoE）模型虽可扩展参数量，却受限于巨大显存占用与带宽瓶颈。该文提出软硬件协同设计的端到端框架，将专家权重压缩为硬件原生的低精度半结构化稀疏表示，并在稀疏张量核心上加速执行，同时缓解模型质量退化与缺少分组稀疏GEMM原语的问题。工作放宽离散化约束以兼顾精度与效率，为超大规模MoE的低比特稀疏部署提供了可行路径。",
+      "llm_evidence_en": "Hardware-native joint sparse-quantization for trillion-scale mixture-of-experts",
+      "llm_evidence_cn": "面向万亿级混合专家模型的原生硬件联合稀疏量化",
+      "llm_evidence": "面向万亿级混合专家模型的原生硬件联合稀疏量化",
+      "canonical_evidence": "面向万亿级混合专家模型的原生硬件联合稀疏量化",
+      "llm_tldr_en": "MoE models scale to trillions of parameters but are limited by memory and bandwidth. This work presents an end-to-end hardware-software co-design that compresses expert weights into hardware-native low-precision sparse representations and accelerates them on Sparse Tensor Cores while relaxing discretization to limit quality loss.",
+      "llm_tldr_cn": "混合专家模型可扩展到万亿参数，却受限于巨大的显存占用与内存带宽，而稀疏张量核虽能加速低精度稀疏计算，直接用于MoE却会严重掉点且缺乏分组稀疏GEMM原语。该文提出端到端软硬件协同设计框架，将专家权重压缩为硬件原生的低精度稀疏表示，并放宽离散化约束以缓解质量退化。实验表明该方案在稀疏张量核上加速执行，同时较好保持模型质量并降低存储开销。这为超大规模MoE的高效部署提供了算法与硬件联合优化路径。",
+      "llm_tldr": "混合专家模型可扩展到万亿参数，却受限于巨大的显存占用与内存带宽，而稀疏张量核虽能加速低精度稀疏计算，直接用于MoE却会严重掉点且缺乏分组稀疏GEMM原语。该文提出端到端软硬件协同设计框架，将专家权重压缩为硬件原生的低精度稀疏表示，并放宽离散化约束以缓解质量退化。实验表明该方案在稀疏张量核上加速执行，同时较好保持模型质量并降低存储开销。这为超大规模MoE的高效部署提供了算法与硬件联合优化路径。",
       "llm_tags": [
         "query:moe-quant:composite"
       ],
@@ -115,19 +115,101 @@
         "query:wbv"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "1-bit vector quantization codebook for KV cache compression",
-      "llm_evidence_cn": "1比特向量量化码本压缩KV缓存",
-      "llm_evidence": "1比特向量量化码本压缩KV缓存",
-      "canonical_evidence": "1比特向量量化码本压缩KV缓存",
-      "llm_tldr_en": "TaSQ tailors the vector quantization target space via query-guided channel weighting, cross-head normalization and covariance-aware grouping, improving 1-bit KV cache compression where existing VQ codebooks degrade.",
-      "llm_tldr_cn": "长上下文大模型推理中KV缓存成为主要内存瓶颈，向量量化被用于激进压缩，但现有方法在1比特极端压缩下性能显著退化，因每个码本需用有限质心表示更多通道。本文提出TaSQ，通过查询引导的通道加权、跨头归一化与协方差感知的通道分组来重新定制VQ目标空间，以更好反映误差敏感性与结构。实验表明该方法在极低比特KV缓存压缩下优于现有方案，为1比特量化提供了更有效的码本利用方式。",
-      "llm_tldr": "长上下文大模型推理中KV缓存成为主要内存瓶颈，向量量化被用于激进压缩，但现有方法在1比特极端压缩下性能显著退化，因每个码本需用有限质心表示更多通道。本文提出TaSQ，通过查询引导的通道加权、跨头归一化与协方差感知的通道分组来重新定制VQ目标空间，以更好反映误差敏感性与结构。实验表明该方法在极低比特KV缓存压缩下优于现有方案，为1比特量化提供了更有效的码本利用方式。",
+      "llm_evidence_en": "1-bit KV cache vector quantization with codebook space tailoring",
+      "llm_evidence_cn": "1比特KV缓存向量量化与码本空间定制",
+      "llm_evidence": "1比特KV缓存向量量化与码本空间定制",
+      "canonical_evidence": "1比特KV缓存向量量化与码本空间定制",
+      "llm_tldr_en": "KV cache is a memory bottleneck in long-context LLM inference; vector quantization helps but degrades at 1 bit. TaSQ tailors the VQ target space via query-guided weighting, cross-head normalization and covariance-aware grouping, improving extreme low-bit compression.",
+      "llm_tldr_cn": "长上下文大模型推理中，KV缓存成为显存与带宽瓶颈，向量量化（VQ）是实现激进压缩的有效途径，但现有方法在1比特极端压缩下显著退化，单个码本需用有限质心表示更多通道。为此作者提出TaSQ，通过查询引导的通道加权、跨头归一化与协方差感知的通道分组，重新塑造VQ的目标空间，使量化更贴合误差敏感度与统计特性。实验表明该方法在1比特KV缓存压缩下取得更优效果，为极低比特量化提供了新思路。",
+      "llm_tldr": "长上下文大模型推理中，KV缓存成为显存与带宽瓶颈，向量量化（VQ）是实现激进压缩的有效途径，但现有方法在1比特极端压缩下显著退化，单个码本需用有限质心表示更多通道。为此作者提出TaSQ，通过查询引导的通道加权、跨头归一化与协方差感知的通道分组，重新塑造VQ的目标空间，使量化更贴合误差敏感度与统计特性。实验表明该方法在1比特KV缓存压缩下取得更优效果，为极低比特量化提供了新思路。",
       "llm_tags": [
         "query:wbv:composite"
       ],
       "matched_query_tag": "query:wbv:composite",
       "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
       "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.04457v1",
+      "source": "arxiv",
+      "title": "RPFQ-ViT: Rotated Phase-Frame Quantization for Extremely Low-Bit Weights in Vision Transformers",
+      "abstract": "Vision Transformers (ViTs) achieve strong performance on image recognition and mobile vision applications, but their high-dimensional linear projections and attention computations still impose substantial storage and inference costs. Extremely low-bit quantization is a promising solution, yet ViTs often suffer severe accuracy degradation because conventional real-valued scalar codebooks are poorly matched to the directional geometry of Transformer projections. We present RPFQ-ViT, a Rotated Phase-Frame Quantization method that quantizes paired channels in two-dimensional phase planes, enabling low-bit codes to better preserve projection directions while recovering magnitude with lightweight scaling. RPFQ-ViT serves as a drop-in QAT replacement for nn.Linear and does not modify the standard real-valued attention, normalization, or activation computation graph. On ImageNet-1K, RPFQ-ViT-B/16 reaches 79.33% Top-1 / 94.48% Top-5 under W2/A4, Swin-T reaches 79.30% Top-1 / 94.79% Top-5 under W2/A8, and DeiT-S reaches 77.41% Top-1 / 93.11% Top-5 under W2/A8. Ablations, phase-geometry analysis, and direction-preservation metrics show that channel pairing, learnable rotation, phase-anchor learning, and residual phase refinement each improve quantization quality. We further deploy RPFQ-ViT image-classification models on native iOS and Android runtime stacks; with 2-bit packed weights, model size shrinks by roughly $5.4$-$7.1\\times$ relative to FP32 and end-to-end on-device latency drops by $1.4$-$1.6\\times$. All ImageNet results trained in our codebase use a matched 300-epoch recipe and are reported as mean accuracies over three independent runs. These results show that RPFQ-ViT provides a favorable trade-off among accuracy, compression, and practical mobile deployment for extremely low-bit ViTs.",
+      "authors": [
+        "Mengyuan Fan",
+        "Bokai Huang",
+        "JiaMing Pan",
+        "Xiaokun Yuan",
+        "Peizhuang Cong",
+        "Zhewen Tan",
+        "Tong Yang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-10-03T11:48:01+00:00",
+      "link": "https://arxiv.org/pdf/2610.04457v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "extremely low-bit weight quantization with phase-plane codes and codebooks",
+      "llm_evidence_cn": "极低比特权重量化与相位平面编码及码本",
+      "llm_evidence": "极低比特权重量化与相位平面编码及码本",
+      "canonical_evidence": "极低比特权重量化与相位平面编码及码本",
+      "llm_tldr_en": "Proposes RPFQ-ViT, quantizing paired channels in 2D phase planes so extremely low-bit codes better preserve projection directions, using lightweight magnitude scaling instead of real-valued codebooks.",
+      "llm_tldr_cn": "针对视觉Transformer在极低比特量化下因实数标量码本与投影方向几何不匹配而精度严重下降的问题，本文提出旋转相位帧量化RPFQ-ViT。方法将成对通道映射到二维相位平面进行量化，使低比特码更好地保持投影方向，并以轻量缩放恢复幅值。作为可直接替换的模块，该方法在极低比特下缓解精度退化，为Transformer极低比特权重量化提供了新思路。",
+      "llm_tldr": "针对视觉Transformer在极低比特量化下因实数标量码本与投影方向几何不匹配而精度严重下降的问题，本文提出旋转相位帧量化RPFQ-ViT。方法将成对通道映射到二维相位平面进行量化，使低比特码更好地保持投影方向，并以轻量缩放恢复幅值。作为可直接替换的模块，该方法在极低比特下缓解精度退化，为Transformer极低比特权重量化提供了新思路。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.04490v1",
+      "source": "arxiv",
+      "title": "BARQ: Balanced Codebook Refinement for Low-Bit LLM Quantization",
+      "abstract": "As large language models (LLMs) grow in parameter count, model storage and parameter memory traffic have become major bottlenecks to efficient deployment. Codebook-based weight quantization reduces these costs, but imbalanced nearest-codeword assignments during fitting can leave some codewords insufficiently updated, limiting effective codebook utilization. To address this limitation, we propose Balanced Assignment Refinement for Quantization (BARQ), which improves quantization quality through balanced fitting of existing codebooks. Specifically, we first compute joint soft assignments between weight blocks and codewords through entropically regularized optimal transport with uniform marginals and curvature-weighted reconstruction costs, ensuring equal positive fitting mass for every codeword in the exact solution. We then refine the codewords through an assignment-weighted barycentric update, which we prove minimizes the fitting objective for fixed assignments. For finite Sinkhorn iterations, the implemented update retains this optimality provided all codeword masses exceed the denominator floor. Finally, we discard the soft assignments and use the refined codebook for standard hard nearest-codeword encoding, with our analysis establishing sufficient conditions for reducing hard-quantization distortion and evaluation loss. Across multiple LLMs, BARQ achieves lower perplexity and higher mean zero-shot accuracy than the evaluated baselines at comparable bit budgets. The code is available at https://github.com/chenhangcuisg-code/BARQ.",
+      "authors": [
+        "Chenhang Cui",
+        "Xu Xie",
+        "Linrui Xu",
+        "Xiaohao Liu",
+        "Xingyu Zhu",
+        "Fei Shen",
+        "Tat-Seng Chua"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-10-03T12:45:15+00:00",
+      "link": "https://arxiv.org/pdf/2610.04490v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "codebook-based low-bit weight quantization with balanced refinement",
+      "llm_evidence_cn": "基于码本的低比特权重量化与平衡精炼",
+      "llm_evidence": "基于码本的低比特权重量化与平衡精炼",
+      "canonical_evidence": "基于码本的低比特权重量化与平衡精炼",
+      "llm_tldr_en": "BARQ improves codebook-based low-bit LLM weight quantization by computing entropically regularized optimal-transport soft assignments with uniform marginals, giving balanced codeword updates and higher codebook utilization.",
+      "llm_tldr_cn": "大模型参数膨胀使存储与参数访存成为部署瓶颈，基于码本的权重量化虽能缓解，但拟合时最近码字分配不均衡会导致部分码字更新不足、码本利用率受限。论文提出BARQ，通过带熵正则化的最优传输与均匀边缘分布，计算权重块与码字之间的联合软分配，并引入曲率加权重建代价，实现码本的平衡拟合与精炼。实验表明该方法提升码本利用率与低比特量化质量。该工作为低比特码本量化提供了简单而有效的改进思路。",
+      "llm_tldr": "大模型参数膨胀使存储与参数访存成为部署瓶颈，基于码本的权重量化虽能缓解，但拟合时最近码字分配不均衡会导致部分码字更新不足、码本利用率受限。论文提出BARQ，通过带熵正则化的最优传输与均匀边缘分布，计算权重块与码字之间的联合软分配，并引入曲率加权重建代价，实现码本的平衡拟合与精炼。实验表明该方法提升码本利用率与低比特量化质量。该工作为低比特码本量化提供了简单而有效的改进思路。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "Codebook/LUT",
+      "matched_requirement_id": "req-5",
       "selection_source": "fresh_fetch"
     },
     {
@@ -153,63 +235,147 @@
         "query:MoE-Quant",
         "query:wbv"
       ],
-      "llm_score": 9.0,
-      "llm_evidence_en": "post-hoc residual vector quantizer with truncatable bit rates and codebook stages for vector search",
-      "llm_evidence_cn": "面向向量检索的后验残差向量量化，支持码率与维度截断",
-      "llm_evidence": "面向向量检索的后验残差向量量化，支持码率与维度截断",
-      "canonical_evidence": "面向向量检索的后验残差向量量化，支持码率与维度截断",
-      "llm_tldr_en": "MRVQ is a post-hoc residual vector quantizer for frozen embeddings whose max-rate code truncates by dropping residual stages or coordinates, so one resident artifact serves every dimension-rate pair with the lowest RAM in tests.",
-      "llm_tldr_cn": "针对稠密检索需在嵌入维度与索引码率间切换、逐码率训练量化器需同时驻留多套码流与量化状态的问题，论文提出Matryoshka残差向量量化（MRVQ），对冻结嵌入做后验残差量化，其最高码率编码可通过丢弃残差级降码率、丢弃嵌入坐标降维度，使单一常驻产物覆盖所有维度-码率组合。在FiQA与NFCorpus、四类嵌入与4/8/16字节码设置下，MRVQ是所评估方案中常驻内存最低的设计。该工作为弹性向量检索提供了统一、低内存的索引方案。",
-      "llm_tldr": "针对稠密检索需在嵌入维度与索引码率间切换、逐码率训练量化器需同时驻留多套码流与量化状态的问题，论文提出Matryoshka残差向量量化（MRVQ），对冻结嵌入做后验残差量化，其最高码率编码可通过丢弃残差级降码率、丢弃嵌入坐标降维度，使单一常驻产物覆盖所有维度-码率组合。在FiQA与NFCorpus、四类嵌入与4/8/16字节码设置下，MRVQ是所评估方案中常驻内存最低的设计。该工作为弹性向量检索提供了统一、低内存的索引方案。",
+      "llm_score": 8.0,
+      "llm_evidence_en": "Matryoshka Residual Vector Quantization with truncated low-bit code streams",
+      "llm_evidence_cn": "可截断的低比特残差向量量化码流",
+      "llm_evidence": "可截断的低比特残差向量量化码流",
+      "canonical_evidence": "可截断的低比特残差向量量化码流",
+      "llm_tldr_en": "MRVQ introduces a post-hoc residual quantizer for frozen embeddings whose maximum-rate code can be truncated by dropping residual stages or coordinates, serving every dimension and bit-rate pair with one resident artifact at the lowest RAM.",
+      "llm_tldr_cn": "面向稠密检索中维度与比特率频繁切换的问题，现有做法需为每种码率单独调优量化器并同时保存多份码流与量化器状态。本文提出Matryoshka残差向量量化MRVQ，对冻结嵌入做后处理量化，通过丢弃残差级或嵌入坐标两种方式截断最高码率码本。在FiQA与NFCorpus、四种嵌入族和4/8/16字节码上，MRVQ是所评估方案中内存占用最低的设计，单份常驻产物即可服务所有维度与码率组合。",
+      "llm_tldr": "面向稠密检索中维度与比特率频繁切换的问题，现有做法需为每种码率单独调优量化器并同时保存多份码流与量化器状态。本文提出Matryoshka残差向量量化MRVQ，对冻结嵌入做后处理量化，通过丢弃残差级或嵌入坐标两种方式截断最高码率码本。在FiQA与NFCorpus、四种嵌入族和4/8/16字节码上，MRVQ是所评估方案中内存占用最低的设计，单份常驻产物即可服务所有维度与码率组合。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "2 bit VQ",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.05977v1",
+      "source": "arxiv",
+      "title": "StagQ: Constraint-Driven Multi-Precision Weight Quantization for LLMs",
+      "abstract": "Serving a large language model (LLM) across a fleet of deployments requires several weight-precision operating points. Multi-precision formats serve them all from one stream whose prefixes are valid lower-precision codes, instead of storing multiple copies. We present StagQ, a multi-precision weight format whose main stream is a 2-bit group-wise affine base followed by a configurable number of 1-bit refinement planes on a dyadic step schedule. Every supported precision is a readable prefix, decoded by an affine map derived from metadata shared across all precisions, with no per-weight lookup. A sparse side record, filled both before and after the grid is fitted, holds out the few weights the grid serves worst. We report two configurations of the encoder. At two bits the cheaper one leads the strongest multi-precision baseline on Llama-3.1-8B, Phi-4, and OLMo-2-7B by 3.1 to 7.0 MMLU points, at a slightly lower logical rate. At three bits it leads on Llama-3.1-8B, leads on Phi-4 at a higher rate, and ties on OLMo-2-7B. At four bits it ties on all three, at a higher rate. In a batch-one matrix-vector product on an NVIDIA A100 GPU, timed on synthetic weights, our kernel is faster than the two baseline kernels in most shape-precision cases.",
+      "authors": [
+        "Zhe Wei",
+        "Mengqi Guo",
+        "Yuan Yuan",
+        "Jiunn Bin Lim",
+        "Boyi Pan",
+        "Michael Bi Mi"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-10-05T08:28:43+00:00",
+      "link": "https://arxiv.org/pdf/2610.05977v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "2-bit group-wise affine base with 1-bit refinement planes",
+      "llm_evidence_cn": "2比特分组仿射基加1比特细化平面",
+      "llm_evidence": "2比特分组仿射基加1比特细化平面",
+      "canonical_evidence": "2比特分组仿射基加1比特细化平面",
+      "llm_tldr_en": "Proposes StagQ, a multi-precision weight format with a 2-bit group-wise affine base and configurable 1-bit refinement planes, serving many precisions from one prefix-readable stream.",
+      "llm_tldr_cn": "针对多部署场景需存储多份不同精度权重副本的问题，本文提出StagQ多精度权重量化格式。其主流为2比特分组仿射基，随后按二进步长附加可配置的1比特细化平面，使每种精度都是可读前缀，共享元数据解码且无需逐权重查表。论文还引入稀疏侧记录保留网格拟合最差的少数权重，从而在单一码流上支持多个精度操作点。",
+      "llm_tldr": "针对多部署场景需存储多份不同精度权重副本的问题，本文提出StagQ多精度权重量化格式。其主流为2比特分组仿射基，随后按二进步长附加可配置的1比特细化平面，使每种精度都是可读前缀，共享元数据解码且无需逐权重查表。论文还引入稀疏侧记录保留网格拟合最差的少数权重，从而在单一码流上支持多个精度操作点。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "2 bit VQ",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2610.05329v1",
+      "source": "arxiv",
+      "title": "Understanding the Weight Averaging Mechanism in LLM Training for Post-Training Quantization",
+      "abstract": "Large language models (LLMs) are typically pretrained in high precision but increasingly deployed with low-precision post-training quantization (PTQ). Recent studies have shown that using weight averaging during pretraining can improve PTQ performance compared with learning-rate decay, suggesting that it might provide a simple way to improve the pretraining-to-quantization transition. But the mechanism behind weight averaging remains insufficiently explained. This leads to inconsistent and fragile performance gains, thereby preventing practitioners from applying such a technique confidently. As a response, we formulate weight averaging as a trade-off between retaining training progress and improving robustness under perturbation. We further derive a continuous family of averaging kernels that unifies conventional strategies and achieves the Pareto frontier between the two competing goals. Critically, a theoretical framework for performing weight averaging under PTQ is developed. It can be shown that coarser quantization is more susceptible to perturbations, whereas finer quantization could be less affected. Thus, our results could provide unified theoretical guidance for performing weight averaging under different PTQ conditions. Experiments validate both the predicted behavior and the proposed averaging strategy. Code is available at https://github.com/MOFA-LAB/weight-averaging-for-ptq.",
+      "authors": [
+        "Hanzhang Wang",
+        "Tianqi Shen",
+        "Zonglin Liu",
+        "Junze He",
+        "Difan Zou",
+        "Ziye Ma"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-10-04T15:53:28+00:00",
+      "link": "https://arxiv.org/pdf/2610.05329v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "low-precision PTQ for LLMs and weight averaging mechanism",
+      "llm_evidence_cn": "面向大模型的低精度训练后量化与权重平均机制",
+      "llm_evidence": "面向大模型的低精度训练后量化与权重平均机制",
+      "canonical_evidence": "面向大模型的低精度训练后量化与权重平均机制",
+      "llm_tldr_en": "Explains the mechanism by which weight averaging during pretraining improves low-precision post-training quantization, framing it as a trade-off between retaining training progress and robustness.",
+      "llm_tldr_cn": "针对大模型低精度训练后量化中权重平均为何能提升量化效果却缺乏解释的问题，本文将权重平均形式化为保留训练进展与提升扰动鲁棒性之间的权衡。作者通过理论分析揭示了该机制，并解释此前收益不稳定、易碎的原因。该工作为实践者可靠地在预训练到量化的过渡阶段使用权重平均提供了指导，有助于改进低比特部署。",
+      "llm_tldr": "针对大模型低精度训练后量化中权重平均为何能提升量化效果却缺乏解释的问题，本文将权重平均形式化为保留训练进展与提升扰动鲁棒性之间的权衡。作者通过理论分析揭示了该机制，并解释此前收益不稳定、易碎的原因。该工作为实践者可靠地在预训练到量化的过渡阶段使用权重平均提供了指导，有助于改进低比特部署。",
       "llm_tags": [
         "query:wbv:composite"
       ],
       "matched_query_tag": "query:wbv:composite",
       "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
       "matched_requirement_id": "req-composite-wbv",
-      "selection_source": "fresh_fetch"
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
     },
     {
-      "id": "2610.02652v1",
+      "id": "2610.04651v1",
       "source": "arxiv",
-      "title": "RaBitQ-SSD: Split Codes and Pipelined I/O for SSD-Resident Vector Search",
-      "abstract": "SSD-resident approximate nearest-neighbor search is essential when vector collections exceed DRAM capacity. The challenge is to reduce SSD reads and hide I/O latency through concurrent reads and overlap with computation. However, for graph-based search, progressive candidate discovery limits advance I/O planning while IVF search reads inverted lists in full, incurring unnecessary SSD reads. In this paper, we present RaBitQ-SSD, an extension of IVF-RaBitQ for SSD-resident vector search. Specifically, we propose Split-RaBitQ, which retains a configurable prefix of each binary code in DRAM, allowing in-memory code storage below one bit per dimension. Using this partial representation, it provides an unbiased distance estimator with a probabilistic error bound. Once the in-memory coarse quantizer identifies candidate lists, this bound supports pruning individual candidates within them, enabling finer-grained SSD access. We also design an asynchronous search pipeline that coordinates candidate pruning with SSD read scheduling to reduce unnecessary reads while overlapping I/O with computation. On datasets ranging from $5$ million to $1$ billion vectors, RaBitQ-SSD delivers up to $1.74\\times$ the throughput of graph-based baselines at $90\\%$ recall, while reducing SSD page reads by up to $3.8\\times$. Its on-SSD indexes are up to $7.0\\times$ smaller and $10.0\\times$ faster to build than DiskANN. We also build and search an index of $10$ billion vectors on a single machine with one SSD, achieving over $3{,}000$ queries per second at $90\\%$ recall.",
+      "title": "GS-Codec: A Gaussian-Splatting Bottleneck for Neural Audio Coding",
+      "abstract": "Neural audio codecs compress waveforms into compact discrete tokens that underpin speech language models, real-time communication, and large-scale audio storage. Almost every dominant design, including residual vector quantization, finite scalar quantization, and single-codebook variants, follows the VQ-VAE template by partitioning the encoder latent through a learned codebook or a fixed scalar grid. We ask whether this partition is necessary. We introduce GS-Codec, a neural speech codec whose bottleneck is a parametric signal decomposition rather than a quantizer. We adapt Gaussian splatting from 3D scene reconstruction to one-dimensional latents. An inner optimization loop fits each encoder segment as a weighted sum of 1D Gaussian primitives. The decoder then reconstructs the waveform from the rendered sum. To avoid the cost of this iterative inner loop at inference time, we additionally train a lightweight GS Predictor Net that regresses the primitive parameters in a single forward pass. The encoder and decoder are trained end-to-end through the inner loop, with no quantizer anywhere in the training pipeline: the bottleneck is the decomposition itself, and scalar quantization is applied only post-training to the fitted parameters. Rather than relying on discrete codebook stages for bitrate control, our representation exposes a fine-grained rate-quality tradeoff: a single trained checkpoint supports post-training bitrate control by varying the number of primitives and the per-parameter bit depth, with no retraining required. GS-Codec matches or exceeds well-established open-source codecs such as EnCodec and DAC on speaker similarity (SIM), intelligibility (STOI), and perceptual quality (UTMOS) at comparable bitrates, while achieving comparable semantic performance (WER). Code and audio samples are available at https://ronaluf.github.io/gs-codec/",
       "authors": [
-        "Yuexuan Xu",
-        "Jianyang Gao",
-        "Michael Norris",
-        "Alibek Zhakubayev",
-        "Pankaj Singh",
-        "Junjie Qi",
-        "Matthijs Douze",
-        "Cheng Long"
+        "Ron Aluf",
+        "Alon Canfi",
+        "Eliya Nachmani"
       ],
-      "primary_category": "cs.DB",
+      "primary_category": "cs.SD",
       "categories": [
-        "cs.DB"
+        "cs.SD",
+        "cs.AI",
+        "cs.LG",
+        "eess.AS",
+        "eess.SP"
       ],
-      "published": "2026-10-02T01:20:20+00:00",
-      "link": "https://arxiv.org/pdf/2610.02652v1",
+      "published": "2026-10-03T16:49:17+00:00",
+      "link": "https://arxiv.org/pdf/2610.04651v1",
       "tags": [
         "keyword:wbv",
         "query:wbv"
       ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "split binary codes with sub-one-bit-per-dimension in-memory storage for vector search",
-      "llm_evidence_cn": "面向向量检索的拆分二进制编码，内存占用低于每维一比特",
-      "llm_evidence": "面向向量检索的拆分二进制编码，内存占用低于每维一比特",
-      "canonical_evidence": "面向向量检索的拆分二进制编码，内存占用低于每维一比特",
-      "llm_tldr_en": "RaBitQ-SSD extends IVF-RaBitQ for SSD-resident vector search with Split-RaBitQ, which keeps a configurable prefix of each binary code in DRAM below one bit per dimension and gives an unbiased distance estimator to cut SSD reads.",
-      "llm_tldr_cn": "针对向量集合超出DRAM容量时SSD常驻近邻检索的I/O瓶颈，论文提出RaBitQ-SSD，将IVF-RaBitQ扩展到SSD场景，并设计Split-RaBitQ：在DRAM中保留每条二进制码的可配置前缀，使内存编码存储低于每维一比特，据此提供无偏距离估计与概率误差。该方案旨在减少SSD读取，并借助并发读取与计算重叠隐藏I/O延迟。其贡献在于以拆分编码实现低内存、可流水线化的高效SSD级向量检索。",
-      "llm_tldr": "针对向量集合超出DRAM容量时SSD常驻近邻检索的I/O瓶颈，论文提出RaBitQ-SSD，将IVF-RaBitQ扩展到SSD场景，并设计Split-RaBitQ：在DRAM中保留每条二进制码的可配置前缀，使内存编码存储低于每维一比特，据此提供无偏距离估计与概率误差。该方案旨在减少SSD读取，并借助并发读取与计算重叠隐藏I/O延迟。其贡献在于以拆分编码实现低内存、可流水线化的高效SSD级向量检索。",
+      "llm_score": 6.0,
+      "llm_evidence_en": "replaces VQ-VAE codebook/scalar-grid bottleneck with Gaussian splatting",
+      "llm_evidence_cn": "以高斯泼溅瓶颈替代VQ-VAE码本/标量网格",
+      "llm_evidence": "以高斯泼溅瓶颈替代VQ-VAE码本/标量网格",
+      "canonical_evidence": "以高斯泼溅瓶颈替代VQ-VAE码本/标量网格",
+      "llm_tldr_en": "Neural audio codecs rely on VQ-VAE codebooks or fixed scalar grids; GS-Codec questions this partition and replaces the quantizer with a Gaussian-splatting signal-decomposition bottleneck over 1D latents.",
+      "llm_tldr_cn": "主流神经音频编解码器普遍沿用VQ-VAE模板，用学习码本或固定标量网格划分编码器隐变量，涵盖残差向量量化与有限标量量化等方案。本文质疑这种划分的必要性，提出GS-Codec，把三维场景重建中的高斯泼溅迁移到一维隐变量，用加权一维高斯原语的参数化分解替代量化器作为瓶颈。实验表明该非量化瓶颈可有效编码语音，为神经编解码提供了码本之外的新范式。",
+      "llm_tldr": "主流神经音频编解码器普遍沿用VQ-VAE模板，用学习码本或固定标量网格划分编码器隐变量，涵盖残差向量量化与有限标量量化等方案。本文质疑这种划分的必要性，提出GS-Codec，把三维场景重建中的高斯泼溅迁移到一维隐变量，用加权一维高斯原语的参数化分解替代量化器作为瓶颈。实验表明该非量化瓶颈可有效编码语音，为神经编解码提供了码本之外的新范式。",
       "llm_tags": [
-        "query:wbv:composite"
+        "query:wbv"
       ],
-      "matched_query_tag": "query:wbv:composite",
-      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
-      "matched_requirement_id": "req-composite-wbv",
-      "selection_source": "fresh_fetch"
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "Codebook/LUT",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
     }
-  ],
-  "quick_skim": []
+  ]
 }
