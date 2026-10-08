@@ -1,0 +1,417 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-08T00:08:43.745929+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 5,
+    "deep_cap": 7,
+    "deep_selected": 5,
+    "quick_candidates": 5,
+    "quick_skim_target": 12,
+    "quick_selected": 5
+  },
+  "deep_dive": [
+    {
+      "id": "2610.07767v1",
+      "source": "arxiv",
+      "title": "TRACE: Rollout-Guided Quantization-Aware Training for FP4 Reinforcement Learning of MoE Language Models",
+      "abstract": "Reinforcement learning (RL) for post-training large language models (LLMs) incurs substantial computation and memory overhead during rollout generation, which motivates low-precision rollout for efficient RL training. However, existing FP4 RL methods suffer from a key limitation: they primarily optimize quantization accuracy on the training and rollout paths independently rather than directly reducing the discrepancy between the two quantized execution paths. In this work, we propose TRACE (Train-Rollout Quantization Alignment via Compact GuidancE), an FP4 quantization framework for RL training of Mixture-of-Experts (MoE) language models that addresses the limitation of existing FP4 RL methods. TRACE incorporates rollout-guided quantization-aware training that uses rollout-side quantization outcomes to guide training-side FP4 rounding decisions, directly reducing train-rollout discrepancy. Moreover, TRACE adopts an efficient quantization-information caching scheme that selectively retains mantissa and scale information from deeper layers to reduce the storage and communication overhead introduced by rollout guidance. We evaluate TRACE on four large-scale MoE language models across reasoning, coding, and long-horizon RL tasks. Our results demonstrate that TRACE enables joint FP4 weight/activation and FP4 KV-cache rollout with RL performance comparable to BF16 rollout, while achieving up to 5.4xrollout speedup and strong final FP4 performance compared with post-hoc FP4 quantization of BF16-trained policies.",
+      "authors": [
+        "Xin Wang",
+        "Hao Yu",
+        "Zhengyang Zhuge",
+        "Bochao Mao",
+        "Zheng Li",
+        "Junda Feng",
+        "Yuyan Luo",
+        "Yi Zhang",
+        "Yizhong Cao",
+        "Mi Zhang",
+        "Dayiheng Liu",
+        "Jianwei Zhang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-10-06T05:03:47+00:00",
+      "link": "https://arxiv.org/pdf/2610.07767v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "FP4 quantization framework for RL training of Mixture-of-Experts language models",
+      "llm_evidence_cn": "面向MoE语言模型强化学习的FP4量化框架",
+      "llm_evidence": "面向MoE语言模型强化学习的FP4量化框架",
+      "canonical_evidence": "面向MoE语言模型强化学习的FP4量化框架",
+      "llm_tldr_en": "TRACE proposes an FP4 quantization-aware training framework for MoE language models that aligns training and rollout execution paths via compact guidance, reducing quantization discrepancy and enabling efficient low-precision RL training.",
+      "llm_tldr_cn": "针对大模型强化学习中轨迹生成开销大、现有FP4方法未对齐训练与轨迹量化路径的问题，本文提出面向MoE语言模型的FP4量化框架TRACE，通过紧凑引导对齐两条执行路径的量化误差。实验表明其能缩小训练与轨迹路径的量化差异并维持性能，为MoE低比特高效强化学习训练提供方案。",
+      "llm_tldr": "针对大模型强化学习中轨迹生成开销大、现有FP4方法未对齐训练与轨迹量化路径的问题，本文提出面向MoE语言模型的FP4量化框架TRACE，通过紧凑引导对齐两条执行路径的量化误差。实验表明其能缩小训练与轨迹路径的量化差异并维持性能，为MoE低比特高效强化学习训练提供方案。",
+      "llm_tags": [
+        "query:moe-quant"
+      ],
+      "matched_query_tag": "query:moe-quant",
+      "matched_query_text": "MoE Quantization",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.00432v1",
+      "source": "arxiv",
+      "title": "XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization",
+      "abstract": "Trellis-coded quantization enables high-dimensional compression of large language model (LLM) weights at ultra-low bit widths without the exponentially large codebooks required by conventional vector quantization. Practical deployment, however, presents two challenges: reconstructing compressed weights at sufficient parallel throughput to avoid making dequantization an inference bottleneck, and maintaining quantization accuracy without costly incoherence transformations. We address these challenges with two complementary techniques. First, we introduce an ultra-low-complexity trellis dequantizer that uses a structured, hardware-efficient state-to-value mapping while preserving diverse reconstruction choices for trellis search. Second, we reformulate discrete trellis path optimization with a curvature-aware objective that reflects model sensitivity directly in the original coordinate space. Together, these techniques enable high-quality ultra-low-bit trellis quantization with inexpensive, highly parallel runtime reconstruction and without relying on Hadamard-based incoherence processing.",
+      "authors": [
+        "Xiaofan Que",
+        "Nir Elkayam",
+        "Spandan Pyakurel",
+        "Shuokai Pan",
+        "Dibakar Gope"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-30T17:05:40+00:00",
+      "link": "https://arxiv.org/pdf/2610.00432v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "ultra-low bit LLM weight quantization, trellis-coded quantization without large codebooks",
+      "llm_evidence_cn": "超低比特LLM权重量化，无需大码本的网格编码量化",
+      "llm_evidence": "超低比特LLM权重量化，无需大码本的网格编码量化",
+      "canonical_evidence": "超低比特LLM权重量化，无需大码本的网格编码量化",
+      "llm_tldr_en": "XOR-Trellis addresses ultra-low bit LLM weight quantization where trellis-coded quantization avoids exponentially large codebooks. It proposes a hardware-efficient dequantizer and curvature-aware Hadamard-free quantization to keep accuracy without incoherence transforms.",
+      "llm_tldr_cn": "针对大语言模型权重超低比特压缩中传统矢量量化需要指数级大码本、且反量化易成推理瓶颈的问题，本文采用网格编码量化实现高维压缩。作者提出超低复杂度网格反量化器，使用结构化且硬件友好的状态到数值映射，并设计曲率感知的无Hadamard变换量化流程以在免去昂贵非相干变换的同时保持精度。该方案在极低比特下兼顾量化精度与反量化并行吞吐，为可部署的极低比特LLM量化提供了高效路径。",
+      "llm_tldr": "针对大语言模型权重超低比特压缩中传统矢量量化需要指数级大码本、且反量化易成推理瓶颈的问题，本文采用网格编码量化实现高维压缩。作者提出超低复杂度网格反量化器，使用结构化且硬件友好的状态到数值映射，并设计曲率感知的无Hadamard变换量化流程以在免去昂贵非相干变换的同时保持精度。该方案在极低比特下兼顾量化精度与反量化并行吞吐，为可部署的极低比特LLM量化提供了高效路径。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.02241v1",
+      "source": "arxiv",
+      "title": "Hardware-Native Joint Sparse-Quantization for Trillion-Scale Mixture-of-Experts",
+      "abstract": "Mixture-of-Experts (MoE) architectures allow frontier language models to scale to trillions of parameters, but their deployment is constrained by massive memory footprints and memory-bandwidth limitations. Although modern accelerators provide Sparse Tensor Cores (SpTCs) that reduce weight storage and increase throughput through low-precision semi-structured sparsity, exploiting them for MoEs remains challenging because of substantial model-quality degradation and the lack of grouped sparse GEMM primitives. We present an end-to-end hardware-software co-design framework that compresses expert weights into hardware-native, low-precision sparse representations and accelerates their execution on SpTCs. Algorithmically, our framework relaxes discrete semi-structured support selection through continuous reparameterization, enabling differentiable joint optimization with quantized weights under a router-weighted reconstruction objective and scalable expert-parallel compression. Systemically, we develop a custom grouped sparse GEMM kernel tailored to low-precision sparse MoE inference on SpTCs. Across MoE models ranging from 30 billion to one trillion parameters, our framework improves state-of-the-art joint sparse-quantization accuracy by up to 4.35 percentage points while preserving 96.09% of the original model's performance. On NVIDIA B200 GPUs, our kernel outperforms the vendor baseline by up to $1.65\\times$, increasing serving throughput by $1.18\\times$ and reducing end-to-end latency by up to $4.03\\times$. These results establish hardware-software co-design as a practical path toward scalable and efficient MoE deployment.",
+      "authors": [
+        "Kwanhee Lee",
+        "Namhoon Lee",
+        "Dan Alistarh"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-29T07:58:06+00:00",
+      "link": "https://arxiv.org/pdf/2610.02241v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "joint sparse-quantization for trillion-scale Mixture-of-Experts",
+      "llm_evidence_cn": "万亿级MoE的联合稀疏量化",
+      "llm_evidence": "万亿级MoE的联合稀疏量化",
+      "canonical_evidence": "万亿级MoE的联合稀疏量化",
+      "llm_tldr_en": "This paper tackles the memory and bandwidth bottlenecks of trillion-scale Mixture-of-Experts models by a hardware-software co-design that compresses expert weights into hardware-native low-precision sparse forms and executes them on Sparse Tensor Cores.",
+      "llm_tldr_cn": "MoE架构可将语言模型扩展到万亿参数，但庞大内存占用与带宽限制严重制约其部署。本文提出端到端软硬件协同设计框架，把专家权重压缩为硬件原生的低精度稀疏表示，并在稀疏张量核心上加速执行。算法上放松离散化约束以缓解模型质量退化，并补充分组稀疏GEMM原语。该工作实现了万亿级MoE的高效量化与稀疏推理，兼具算法与硬件价值。",
+      "llm_tldr": "MoE架构可将语言模型扩展到万亿参数，但庞大内存占用与带宽限制严重制约其部署。本文提出端到端软硬件协同设计框架，把专家权重压缩为硬件原生的低精度稀疏表示，并在稀疏张量核心上加速执行。算法上放松离散化约束以缓解模型质量退化，并补充分组稀疏GEMM原语。该工作实现了万亿级MoE的高效量化与稀疏推理，兼具算法与硬件价值。",
+      "llm_tags": [
+        "query:moe-quant:composite"
+      ],
+      "matched_query_tag": "query:moe-quant:composite",
+      "matched_query_text": "Papers central to MoE 量化, especially work that connects or combines: P; M; MoE Quantization.",
+      "matched_requirement_id": "req-composite-moe-quant",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.03027v1",
+      "source": "arxiv",
+      "title": "Tailoring the Quantization Space for 1-Bit KV Cache Compression",
+      "abstract": "The key-value (KV) cache becomes a major memory bottleneck in long-context LLM inference, placing substantial pressure on memory capacity and bandwidth. To mitigate this bottleneck, vector quantization (VQ) has emerged as a promising approach for aggressive KV cache compression. However, existing VQ methods degrade substantially in the 1-bit regime. At such extreme compression, each codebook must represent a larger group of channels with a limited set of centroids, making effective use of its capacity increasingly challenging. To address this, we introduce $\\textbf{TaSQ}$, which tailors the VQ target space by combining query-guided channel weighting, cross-head normalization, and covariance-aware channel grouping to better reflect the error sensitivity and statistical structure of cached activations. Since these transforms are RoPE-compatible and can be easily merged into projection weights and codebooks, TaSQ preserves the conventional VQ lookup structure and adds negligible serving overhead. Across general, long-chain-of-thought reasoning, and long-context retrieval benchmarks, TaSQ consistently outperforms existing low-bit KV cache VQ baselines while preserving reasoning stability. On a single RTX 6000 Ada GPU, its SGLang implementation supports up to $14\\times$ larger batch sizes and achieves $1.87\\times$ higher peak throughput compared to the BF16 baseline.",
+      "authors": [
+        "Minsoo Cheong",
+        "Donghyun Son",
+        "Sungjoo Yoo"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-10-02T09:04:25+00:00",
+      "link": "https://arxiv.org/pdf/2610.03027v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "vector quantization codebook for 1-bit KV cache compression",
+      "llm_evidence_cn": "面向1比特KV缓存压缩的向量量化码本",
+      "llm_evidence": "面向1比特KV缓存压缩的向量量化码本",
+      "canonical_evidence": "面向1比特KV缓存压缩的向量量化码本",
+      "llm_tldr_en": "VQ for KV cache compression degrades badly in the 1-bit regime where each codebook must cover many channels with few centroids. TaSQ tailors the VQ target space via query-guided channel weighting, cross-head normalization, and covariance-aware channel grouping.",
+      "llm_tldr_cn": "该文针对长上下文LLM推理中KV缓存造成的内存与带宽瓶颈，指出向量量化虽是有前景的压缩手段，但在1比特极端压缩下性能显著退化，原因是每个码本需用有限质心表示更多通道。作者提出TaSQ，通过查询引导的通道加权、跨头归一化与协方差感知的通道分组，重新裁剪VQ的目标空间，使其更好反映误差敏感度与结构。实验表明该方法在极低比特下缓解了退化，为极端压缩的KV缓存量化提供了更有效的码本设计思路。",
+      "llm_tldr": "该文针对长上下文LLM推理中KV缓存造成的内存与带宽瓶颈，指出向量量化虽是有前景的压缩手段，但在1比特极端压缩下性能显著退化，原因是每个码本需用有限质心表示更多通道。作者提出TaSQ，通过查询引导的通道加权、跨头归一化与协方差感知的通道分组，重新裁剪VQ的目标空间，使其更好反映误差敏感度与结构。实验表明该方法在极低比特下缓解了退化，为极端压缩的KV缓存量化提供了更有效的码本设计思路。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.04457v1",
+      "source": "arxiv",
+      "title": "RPFQ-ViT: Rotated Phase-Frame Quantization for Extremely Low-Bit Weights in Vision Transformers",
+      "abstract": "Vision Transformers (ViTs) achieve strong performance on image recognition and mobile vision applications, but their high-dimensional linear projections and attention computations still impose substantial storage and inference costs. Extremely low-bit quantization is a promising solution, yet ViTs often suffer severe accuracy degradation because conventional real-valued scalar codebooks are poorly matched to the directional geometry of Transformer projections. We present RPFQ-ViT, a Rotated Phase-Frame Quantization method that quantizes paired channels in two-dimensional phase planes, enabling low-bit codes to better preserve projection directions while recovering magnitude with lightweight scaling. RPFQ-ViT serves as a drop-in QAT replacement for nn.Linear and does not modify the standard real-valued attention, normalization, or activation computation graph. On ImageNet-1K, RPFQ-ViT-B/16 reaches 79.33% Top-1 / 94.48% Top-5 under W2/A4, Swin-T reaches 79.30% Top-1 / 94.79% Top-5 under W2/A8, and DeiT-S reaches 77.41% Top-1 / 93.11% Top-5 under W2/A8. Ablations, phase-geometry analysis, and direction-preservation metrics show that channel pairing, learnable rotation, phase-anchor learning, and residual phase refinement each improve quantization quality. We further deploy RPFQ-ViT image-classification models on native iOS and Android runtime stacks; with 2-bit packed weights, model size shrinks by roughly $5.4$-$7.1\\times$ relative to FP32 and end-to-end on-device latency drops by $1.4$-$1.6\\times$. All ImageNet results trained in our codebase use a matched 300-epoch recipe and are reported as mean accuracies over three independent runs. These results show that RPFQ-ViT provides a favorable trade-off among accuracy, compression, and practical mobile deployment for extremely low-bit ViTs.",
+      "authors": [
+        "Mengyuan Fan",
+        "Bokai Huang",
+        "JiaMing Pan",
+        "Xiaokun Yuan",
+        "Peizhuang Cong",
+        "Zhewen Tan",
+        "Tong Yang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-10-03T11:48:01+00:00",
+      "link": "https://arxiv.org/pdf/2610.04457v1",
+      "tags": [
+        "keyword:wbv",
+        "query:wbv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "extremely low-bit weight quantization with codebooks for ViTs",
+      "llm_evidence_cn": "面向ViT的极低比特码本量化",
+      "llm_evidence": "面向ViT的极低比特码本量化",
+      "canonical_evidence": "面向ViT的极低比特码本量化",
+      "llm_tldr_en": "RPFQ-ViT tackles severe accuracy loss in extremely low-bit weight quantization of Vision Transformers by quantizing paired channels in 2D phase planes, so low-bit codes preserve projection directions better than conventional real-valued scalar codebooks.",
+      "llm_tldr_cn": "视觉Transformer在极低比特权重量化下常出现严重精度下降，原因是传统实值标量码本难以匹配投影的方向几何。本文提出RPFQ-ViT，将成对通道在二维相位平面上量化，使低比特码更好地保持投影方向，并用轻量缩放恢复幅度。作为可直接替换的量化模块，它缓解了极低比特下的精度损失。该工作为ViT极低比特向量量化与码本设计提供了新思路。",
+      "llm_tldr": "视觉Transformer在极低比特权重量化下常出现严重精度下降，原因是传统实值标量码本难以匹配投影的方向几何。本文提出RPFQ-ViT，将成对通道在二维相位平面上量化，使低比特码更好地保持投影方向，并用轻量缩放恢复幅度。作为可直接替换的量化模块，它缓解了极低比特下的精度损失。该工作为ViT极低比特向量量化与码本设计提供了新思路。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2610.08164v1",
+      "source": "arxiv",
+      "title": "Align, Then Correct: Training-Free Two-Stage Low-Rank Compensation for Extremely Quantized Large Language Models",
+      "abstract": "Low-rank quantization error compensation (LQEC) recovers the accuracy lost under aggressive weight quantization by attaching a closed-form rank-$r$ adapter beside each frozen quantized weight, without any training. We show that existing compensators are limited by two shared simplifications. They calibrate symmetrically, evaluating the full-precision and compensated weights on the same activation, which yields a compensation target that is inherently high-rank -- so a fixed rank budget captures only a small fraction of it. And they minimize only the second-order term of the loss, although the compensated model is not stationary: a first-order descent direction larger than the applied compensation itself remains in every layer, and no reconstruction objective can absorb it. We propose a two-stage closed-form framework that removes both simplifications. Stage 1 aligns each layer's output with the full-precision model under a Fisher-weighted asymmetric objective, concentrating the rank budget on a rank-compressible target. Stage 2 re-measures statistics on the compensated model and applies a rank-constrained natural-gradient step that absorbs the remaining first-order signal. Every adapter is the result of a single truncated SVD; backward passes serve only to collect statistics. At 2 bits under QuIP#, our method reduces WikiText-2 perplexity from 12.43 to 10.26 on Qwen3-8B and from 21.11 to 13.22 on Qwen3-4B. On the held-out C4 corpus, it recovers 51% and 84% of the gap to FP16, versus 31% and 63% for the strongest baseline, with consistent gains in the seven-task zero-shot average, at higher bit-widths, and under a distinct quantizer.",
+      "authors": [
+        "Seobin Song",
+        "Geonho Lee",
+        "Janghwan Lee",
+        "Jungwook Choi"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-10-06T11:16:37+00:00",
+      "link": "https://arxiv.org/pdf/2610.08164v1",
+      "tags": [
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "extremely quantized LLM weight quantization with low-rank error compensation",
+      "llm_evidence_cn": "极低比特量化大模型的低秩误差补偿",
+      "llm_evidence": "极低比特量化大模型的低秩误差补偿",
+      "canonical_evidence": "极低比特量化大模型的低秩误差补偿",
+      "llm_tldr_en": "Existing low-rank compensators for extremely quantized LLMs use symmetric calibration and only minimize the second-order loss term. This work proposes a training-free two-stage align-then-correct scheme that improves accuracy under aggressive weight quantization.",
+      "llm_tldr_cn": "针对极低比特权重量化后精度严重下降的问题，现有低秩误差补偿方法采用对称校准且只优化二阶损失项，导致补偿目标本质高秩、固定秩预算难以充分捕获。本文提出无需训练的两阶段先对齐后校正框架，先消除校准偏差再补偿一阶下降方向。实验表明该方法在极端量化设置下显著恢复模型精度，为超低比特LLM部署提供了更有效的误差补偿范式。",
+      "llm_tldr": "针对极低比特权重量化后精度严重下降的问题，现有低秩误差补偿方法采用对称校准且只优化二阶损失项，导致补偿目标本质高秩、固定秩预算难以充分捕获。本文提出无需训练的两阶段先对齐后校正框架，先消除校准偏差再补偿一阶下降方向。实验表明该方法在极端量化设置下显著恢复模型精度，为超低比特LLM部署提供了更有效的误差补偿范式。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2610.00983v1",
+      "source": "arxiv",
+      "title": "The Devil Is in the Reconstruction Loss Scale: Rethinking Optimization in LLM Quantization",
+      "abstract": "Post-training quantization (PTQ) methods typically use sequential quantization that partitions a pre-trained LLM into a series of units (e.g., transformer blocks), with one unit quantized at each stage. State-of-the-art PTQ methods are predominantly learning-based, optimizing auxiliary quantization parameters (e.g., scaling factors, rotation matrices, clipping thresholds, and adapters) via gradient descent to minimize a reconstruction loss. A common practice is to use mean squared error (MSE) as the reconstruction loss function, yet its induced optimization behavior remains largely unexplored. In this work, we take a holistic view of sequential quantization and systematically investigate how optimization evolves from the first quantization stage to the last, aiming for a deep understanding of optimization in learning-based PTQ schemes. Through extensive empirical studies spanning representative learning-based PTQ methods, LLM families, model scales, architectures, quantization settings and various tasks, we consistently uncover Optimization Imbalance: reconstruction loss magnitudes vary dramatically across stages, accompanied by highly uneven gradient magnitudes and parameter updates under MSE. We term the cross-stage range of loss magnitudes the reconstruction loss scale, and reveal that MSE translates the unexpectedly large reconstruction loss scale into highly uneven gradient magnitudes, which in turn lead to uneven optimization strength across quantization stages. This finding suggests a general principle for improving learning-based PTQ: optimization strength across stages should be decoupled from the reconstruction loss scale. Theoretically, we show that root mean squared error (RMSE) variants defined at the sample, channel, token, and element levels naturally realize this principle through implicit gradient normalization, outperforming MSE significantly as a drop-in replacement.",
+      "authors": [
+        "Chao Li",
+        "Shigeng Wang",
+        "Anbang Yao"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-10-01T03:19:52+00:00",
+      "link": "https://arxiv.org/pdf/2610.00983v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "optimization of quantization parameters and reconstruction loss in LLM quantization",
+      "llm_evidence_cn": "大模型量化中量化参数与重构损失的优化",
+      "llm_evidence": "大模型量化中量化参数与重构损失的优化",
+      "canonical_evidence": "大模型量化中量化参数与重构损失的优化",
+      "llm_tldr_en": "This work studies how optimization evolves in sequential LLM post-training quantization and shows that the scale of the MSE reconstruction loss critically shapes learning-based quantization.",
+      "llm_tldr_cn": "现有LLM后训练量化多为基于学习的方法，通过梯度下降优化缩放因子、旋转矩阵、裁剪阈值等辅助参数以最小化重构损失，但常用的MSE损失其优化行为仍不清楚。本文从序列量化整体视角系统研究优化如何从首层开始演化，并分析重构损失尺度的影响。研究揭示损失尺度对量化优化至关重要，为改进学习式后训练量化提供了新认识。",
+      "llm_tldr": "现有LLM后训练量化多为基于学习的方法，通过梯度下降优化缩放因子、旋转矩阵、裁剪阈值等辅助参数以最小化重构损失，但常用的MSE损失其优化行为仍不清楚。本文从序列量化整体视角系统研究优化如何从首层开始演化，并分析重构损失尺度的影响。研究揭示损失尺度对量化优化至关重要，为改进学习式后训练量化提供了新认识。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.02666v1",
+      "source": "arxiv",
+      "title": "CHASE-VLA: Post-Training Quantization Framework for Vision-Language-Action Models with Chunk-Aware Scale Estimation",
+      "abstract": "Vision-Language-Action (VLA) models map visual observations and language instructions to continuous robot actions, but a diffusion-based action expert (AE) poses a key challenge for low-bit post-training quantization (PTQ). The AE is repeatedly invoked across denoising steps and policy queries, where fixed calibration scales can be mismatched with activation ranges that vary with denoising progress and intended motion. We propose CHASE-VLA, a chunk-aware PTQ method that exploits a VLA-specific signal readily available from the policy: the generated action chunk, including its unexecuted future suffix. Rather than relying only on static scale matching for AE layers, CHASE-VLA combines the previously generated chunk as causal action context with denoising step group information to adapt AE activation scales. This enables W4A4 quantization of both MLP and attention projections in the repeated AE without modifying the pretrained policy. On LIBERO, CHASE-VLA achieves 97.3% average success rate on $π_{0.5}$ when both MLP and attention projections in the AE are quantized to W4A4, restoring FP16-level performance. CHASE-VLA also reduces the weight storage of the quantized AE linear layers by 73.4% and their single-chunk memory traffic by 70.9% and 71.2% on $π_{0.5}$ and GR00T N1.6, respectively, with a predictor overhead of at most 1.26% of the saved storage.",
+      "authors": [
+        "Jin Hyun",
+        "Jung Gyu Min",
+        "Gyuhyun Jung",
+        "Youngjoo Lee"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-10-02T01:34:55+00:00",
+      "link": "https://arxiv.org/pdf/2610.02666v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "low-bit post-training quantization with chunk-aware scale estimation",
+      "llm_evidence_cn": "块感知尺度估计的低比特训练后量化",
+      "llm_evidence": "块感知尺度估计的低比特训练后量化",
+      "canonical_evidence": "块感知尺度估计的低比特训练后量化",
+      "llm_tldr_en": "CHASE-VLA addresses low-bit post-training quantization for Vision-Language-Action models by using generated action chunks to estimate per-layer scales, mitigating scale mismatch across denoising steps and preserving action quality.",
+      "llm_tldr_cn": "针对视觉-语言-动作模型中扩散动作专家在去噪各步激活范围变化大、固定校准尺度易失配的问题，本文提出块感知训练后量化方法CHASE-VLA，利用策略生成的动作块（含未执行后缀）动态估计量化尺度。实验表明该方法能缓解尺度失配并在低比特下保持动作质量，为VLA模型高效低比特部署提供方案。",
+      "llm_tldr": "针对视觉-语言-动作模型中扩散动作专家在去噪各步激活范围变化大、固定校准尺度易失配的问题，本文提出块感知训练后量化方法CHASE-VLA，利用策略生成的动作块（含未执行后缀）动态估计量化尺度。实验表明该方法能缓解尺度失配并在低比特下保持动作质量，为VLA模型高效低比特部署提供方案。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "3 bit SQ",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.05265v1",
+      "source": "arxiv",
+      "title": "Loopy: Low-Bit Quantization Framework for Looped Language Models",
+      "abstract": "Looped language models provide a parameter-efficient way to scale iterative test-time computation by repeatedly executing a shared recurrent core. Post-training quantization (PTQ) can reduce the memory footprint and inference cost of looped language models, but errors introduced by a quantized shared core affect subsequent cores. Among PTQ methods, channel scaling and orthogonal rotations preserve the floating-point computation while producing representations with different quantization quality. We find that quantization configuration candidate rankings can change with recurrent depth, motivating configuration selection at the target deployment depth. However, evaluating every candidate over the full calibration set at this depth is costly. We therefore propose Loopy, a PTQ framework that formulates shared-core quantization through a recurrent-depth-aware objective, selecting shared low-bit representations by their final prediction loss at the target deployment depth. Channel scaling and orthogonal rotations parameterize the candidate representations. To approximately solve this selection problem efficiently, Loopy progressively allocates calibration windows to promising candidates while preserving complete target-depth execution, using only forward evaluations. Across eight settings, Loopy achieves the state-of-the-art results among different baselines. On Ouro-1.4B under W4A4, Loopy reduces LAMBADA perplexity by 36.5% relative to SpinQuant. Our code is available at https://github.com/Shameless0817/Loopy-review.git.",
+      "authors": [
+        "Zeyu LI",
+        "Yipu ZHANG",
+        "Jintao Chen",
+        "Xin LI",
+        "Wei ZHANG"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-10-04T14:35:37+00:00",
+      "link": "https://arxiv.org/pdf/2610.05265v1",
+      "tags": [
+        "keyword:MoE-Quant",
+        "keyword:wbv",
+        "query:MoE-Quant",
+        "query:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "low-bit post-training quantization framework for looped language models",
+      "llm_evidence_cn": "面向循环语言模型的低比特量化框架",
+      "llm_evidence": "面向循环语言模型的低比特量化框架",
+      "canonical_evidence": "面向循环语言模型的低比特量化框架",
+      "llm_tldr_en": "Loopy addresses the compounded quantization error in looped language models, where a shared quantized recurrent core affects later iterations, by selecting quantization configurations at the target recurrent depth instead of over the full calibration set.",
+      "llm_tldr_cn": "循环语言模型通过重复执行共享递归核来扩展测试时计算，但共享核的量化误差会随循环深度逐层累积。本文提出Loopy低比特后训练量化框架，发现量化配置候选排序会随循环深度变化，因而在目标部署深度进行配置选择，并设计高效流程降低标定成本。实验表明该方法在保持精度的同时降低循环模型的内存与推理开销。它为循环结构的低比特量化配置选择提供了实用思路。",
+      "llm_tldr": "循环语言模型通过重复执行共享递归核来扩展测试时计算，但共享核的量化误差会随循环深度逐层累积。本文提出Loopy低比特后训练量化框架，发现量化配置候选排序会随循环深度变化，因而在目标部署深度进行配置选择，并设计高效流程降低标定成本。实验表明该方法在保持精度的同时降低循环模型的内存与推理开销。它为循环结构的低比特量化配置选择提供了实用思路。",
+      "llm_tags": [
+        "query:wbv:composite"
+      ],
+      "matched_query_tag": "query:wbv:composite",
+      "matched_query_text": "Papers central to 极低比特VQ, especially work that connects or combines: w; l; s; p; Codebook/LUT; 2 bit VQ; 3 bit SQ; papers provide SoTA/advanced results.",
+      "matched_requirement_id": "req-composite-wbv",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.05979v1",
+      "source": "arxiv",
+      "title": "From Identification to Discovery: Holistic RF Fingerprinting via Learning-Aided Quantization",
+      "abstract": "Radio frequency fingerprint identification (RFFI) enables device identification and authentication by exploiting transmitter-specific hardware impairments embedded in received RF signals. Existing RFFI methods are typically designed for a specific operating regime, such as closed-set identification, open-set recognition (OSR), or discovery of new devices, and often treat these tasks as separate algorithmic components. In this paper, we propose a holistic RFFI framework that jointly supports closed-set identification, OSR, and novel class discovery (NCD) within a single expandable architecture. The proposed method formulates RFFI as vector quantization in a learned latent feature space, where registered devices are represented by labeled codewords. This representation enables closed-set identification through codeword assignment, OSR through uncertainty measures induced by the codebook geometry, and NCD by using the latent representations and open-set uncertainty of rejected samples to organize them into new device identities. We further develop a multi-stage training procedure that combines supervised representation learning, latent-space refinement, codebook initialization, and vector-quantization-aware optimization. Experimental results on LoRa and WiFi RFFI datasets demonstrate that the proposed framework achieves accurate identification of registered devices, reliable detection of unseen transmitters, and effective discovery and registration of new device classes, highlighting the benefits of coupling the different RFFI tasks.",
+      "authors": [
+        "Omer Hazan",
+        "Gil Paryanti",
+        "Nir Shlezinger"
+      ],
+      "primary_category": "eess.SP",
+      "categories": [
+        "eess.SP"
+      ],
+      "published": "2026-10-05T08:32:30+00:00",
+      "link": "https://arxiv.org/pdf/2610.05979v1",
+      "tags": [
+        "keyword:wbv"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "formulates RF fingerprinting as vector quantization over a learned latent codebook",
+      "llm_evidence_cn": "以学习到的矢量量化码本表示已注册设备",
+      "llm_evidence": "以学习到的矢量量化码本表示已注册设备",
+      "canonical_evidence": "以学习到的矢量量化码本表示已注册设备",
+      "llm_tldr_en": "RF fingerprinting tasks (closed-set ID, open-set recognition, novel class discovery) are unified in one expandable framework by casting recognition as vector quantization over a learned latent codebook.",
+      "llm_tldr_cn": "现有射频指纹识别方法通常只针对闭集识别、开集识别或新设备发现中的单一场景，把不同任务当作彼此独立的算法模块处理。本文提出整体式RFFI框架，将识别任务统一建模为学习到的隐特征空间中的矢量量化，用码本表示已注册设备并在同一可扩展结构中支持新类别发现。该设计使闭集识别、开集识别与新类发现共享同一量化表征，验证了码本式量化在跨任务识别中的可行性，也为统一表征学习提供了思路。",
+      "llm_tldr": "现有射频指纹识别方法通常只针对闭集识别、开集识别或新设备发现中的单一场景，把不同任务当作彼此独立的算法模块处理。本文提出整体式RFFI框架，将识别任务统一建模为学习到的隐特征空间中的矢量量化，用码本表示已注册设备并在同一可扩展结构中支持新类别发现。该设计使闭集识别、开集识别与新类发现共享同一量化表征，验证了码本式量化在跨任务识别中的可行性，也为统一表征学习提供了思路。",
+      "llm_tags": [
+        "query:wbv"
+      ],
+      "matched_query_tag": "query:wbv",
+      "matched_query_text": "Codebook/LUT",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

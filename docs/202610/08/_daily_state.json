@@ -1,0 +1,169 @@
+{
+  "date": "20261008",
+  "date_label": "",
+  "generated_at": "2026-10-08 00:11:24 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2610.07767v1",
+      "route": "202610/08/2610.07767v1-trace-rollout-guided-quantization-aware-training-for-fp4-reinforcement-learning-of-moe-language-models",
+      "title": "TRACE: Rollout-Guided Quantization-Aware Training for FP4 Reinforcement Learning of MoE Language Models",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 10.0,
+      "evidence": "面向MoE语言模型强化学习的FP4量化框架",
+      "first_seen_at": "2026-10-08 00:11:24 UTC",
+      "updated_at": "2026-10-08 00:11:24 UTC"
+    },
+    {
+      "paper_id": "2610.00432v1",
+      "route": "202610/08/2610.00432v1-xor-trellis-ultra-low-complexity-dequantization-and-curvature-aware-hadamard-free-llm-quantization",
+      "title": "XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "超低比特LLM权重量化，无需大码本的网格编码量化",
+      "first_seen_at": "2026-10-08 00:11:24 UTC",
+      "updated_at": "2026-10-08 00:11:24 UTC"
+    },
+    {
+      "paper_id": "2610.02241v1",
+      "route": "202610/08/2610.02241v1-hardware-native-joint-sparse-quantization-for-trillion-scale-mixture-of-experts",
+      "title": "Hardware-Native Joint Sparse-Quantization for Trillion-Scale Mixture-of-Experts",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "moe-quant"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "万亿级MoE的联合稀疏量化",
+      "first_seen_at": "2026-10-08 00:11:24 UTC",
+      "updated_at": "2026-10-08 00:11:24 UTC"
+    },
+    {
+      "paper_id": "2610.03027v1",
+      "route": "202610/08/2610.03027v1-tailoring-the-quantization-space-for-1-bit-kv-cache-compression",
+      "title": "Tailoring the Quantization Space for 1-Bit KV Cache Compression",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向1比特KV缓存压缩的向量量化码本",
+      "first_seen_at": "2026-10-08 00:11:24 UTC",
+      "updated_at": "2026-10-08 00:11:24 UTC"
+    },
+    {
+      "paper_id": "2610.04457v1",
+      "route": "202610/08/2610.04457v1-rpfq-vit-rotated-phase-frame-quantization-for-extremely-low-bit-weights-in-vision-transformers",
+      "title": "RPFQ-ViT: Rotated Phase-Frame Quantization for Extremely Low-Bit Weights in Vision Transformers",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向ViT的极低比特码本量化",
+      "first_seen_at": "2026-10-08 00:11:24 UTC",
+      "updated_at": "2026-10-08 00:11:24 UTC"
+    },
+    {
+      "paper_id": "2610.08164v1",
+      "route": "202610/08/2610.08164v1-align-then-correct-training-free-two-stage-low-rank-compensation-for-extremely-quantized-large-language-models",
+      "title": "Align, Then Correct: Training-Free Two-Stage Low-Rank Compensation for Extremely Quantized Large Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "极低比特量化大模型的低秩误差补偿",
+      "first_seen_at": "2026-10-08 00:11:24 UTC",
+      "updated_at": "2026-10-08 00:11:24 UTC"
+    },
+    {
+      "paper_id": "2610.00983v1",
+      "route": "202610/08/2610.00983v1-the-devil-is-in-the-reconstruction-loss-scale-rethinking-optimization-in-llm-quantization",
+      "title": "The Devil Is in the Reconstruction Loss Scale: Rethinking Optimization in LLM Quantization",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "大模型量化中量化参数与重构损失的优化",
+      "first_seen_at": "2026-10-08 00:11:24 UTC",
+      "updated_at": "2026-10-08 00:11:24 UTC"
+    },
+    {
+      "paper_id": "2610.02666v1",
+      "route": "202610/08/2610.02666v1-chase-vla-post-training-quantization-framework-for-vision-language-action-models-with-chunk-aware-scale-estimation",
+      "title": "CHASE-VLA: Post-Training Quantization Framework for Vision-Language-Action Models with Chunk-Aware Scale Estimation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "块感知尺度估计的低比特训练后量化",
+      "first_seen_at": "2026-10-08 00:11:24 UTC",
+      "updated_at": "2026-10-08 00:11:24 UTC"
+    },
+    {
+      "paper_id": "2610.05265v1",
+      "route": "202610/08/2610.05265v1-loopy-low-bit-quantization-framework-for-looped-language-models",
+      "title": "Loopy: Low-Bit Quantization Framework for Looped Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向循环语言模型的低比特量化框架",
+      "first_seen_at": "2026-10-08 00:11:24 UTC",
+      "updated_at": "2026-10-08 00:11:24 UTC"
+    },
+    {
+      "paper_id": "2610.05979v1",
+      "route": "202610/08/2610.05979v1-from-identification-to-discovery-holistic-rf-fingerprinting-via-learning-aided-quantization",
+      "title": "From Identification to Discovery: Holistic RF Fingerprinting via Learning-Aided Quantization",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "以学习到的矢量量化码本表示已注册设备",
+      "first_seen_at": "2026-10-08 00:11:24 UTC",
+      "updated_at": "2026-10-08 00:11:24 UTC"
+    }
+  ]
+}

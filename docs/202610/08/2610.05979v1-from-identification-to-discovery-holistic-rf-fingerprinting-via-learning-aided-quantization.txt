@@ -1,0 +1,727 @@
+Title: From Identification to Discovery: Holistic RF Fingerprinting via Learning-Aided Quantization
+
+URL Source: https://arxiv.org/pdf/2610.05979v1
+
+Published Time: Tue, 06 Oct 2026 02:34:04 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+# From Identification to Discovery: Holistic RF Fingerprinting via Learning-Aided Quantization 
+
+Omer Hazan, Gil Paryanti, and Nir Shlezinger 
+
+Abstract —Radio frequency fingerprint identification (RFFI) enables device identification and authentication by exploiting transmitter-specific hardware impairments embedded in received RF signals. Existing RFFI methods are typically designed for a specific operating regime, such as closed-set identification, open-set recognition (OSR), or discovery of new devices, and often treat these tasks as separate algorithmic components. In this paper, we propose a holistic RFFI framework that jointly supports closed-set identification, OSR, and novel class discovery (NCD) within a single expandable architecture. The proposed method formulates RFFI as vector quantization in a learned latent feature space, where registered devices are represented by labeled codewords. This representation enables closed-set identification through codeword assignment, OSR through uncertainty measures induced by the codebook geometry, and NCD by using the latent representations and open-set uncertainty of rejected samples to organize them into new device identities. We further develop a multi-stage training procedure that combines supervised representation learning, latent-space refinement, codebook initialization, and vector-quantization-aware optimization. Experimental results on LoRa and WiFi RFFI datasets demonstrate that the proposed framework achieves accurate identification of registered devices, reliable detection of unseen trans-mitters, and effective discovery and registration of new device classes, highlighting the benefits of coupling the different RFFI tasks. 
+
+I. I NTRODUCTION 
+
+Wireless devices are increasingly deployed in dense, heterogeneous, and dynamic environments, ranging from Internet-of-Things networks and industrial monitoring systems to critical communication and sensing infrastructures. This growing reliance on wireless connectivity creates a need for reliable mechanisms for identifying and authenticating transmitters based on their emitted signals [2]. Conventional device identification is typically carried out by decoding the transmitted packet and extracting identifiers embedded in protocol headers. While effective in controlled settings, this approach requires access to the decoded content and assumes compatibility with the employed communica-tion protocol. These requirements may be difficult to satisfy in the presence of encryption, proprietary or heterogeneous protocols, limited receiver resources, or non-cooperative transmissions [3]. Radio frequency fingerprint identification (RFFI) provides an alternative identification paradigm that operates directly on the received physical-layer signal [4]. Rather than relying on explicit identifiers encoded in the packet payload or headers, RFFI exploits device-dependent patterns that are inherently embedded 
+
+Parts of this work were presented in the 2026 IEEE International Workshop on Signal Processing and AI for Wireless Communications (SPAWC) as the paper [1]. O. Hazan and N. Shlezinger are with the ECE School, Ben-Gurion University of the Negev, Be’er-Sheva, Israel (e-mails: hazanom@post.bgu.ac.il; nirshl@bgu.ac.il). G. Paryanti is with Elbit Systems (email: Gil.Paryanti@elbitsystems.com). The work was supported by the European Research Council (ERC) under the ERC starting grant nr. 101163973 (FLAIR). 
+
+in the analog waveform [5], [6]. These patterns arise from unavoidable hardware imperfections in the transmitter chain, such as oscillator offsets, in-phase/quadrature (IQ) imbalance, phase noise, nonlinearities, and leakage effects. Since these impairments depend on manufacturing variations and circuit-level properties, they induce RF signatures that are characteristic of individual transmitters [7]. Consequently, RFFI enables passive and non-cooperative device identification, authentication, and monitoring directly from the observed RF signal [8]. The capabilities required from an RFFI system depend on the relation between the devices observed during deployment and those available during system design. This gives rise to three complementary tasks. The first is closed-set identification ,where every received signal is assumed to originate from one of the registered devices observed during training. In this case, RFFI reduces to a supervised classification problem over a fixed device set. The second task is open-set recognition (OSR) , which relaxes this assumption by requiring the system to recognize when an incoming signal is inconsistent with all registered devices and should therefore be rejected as originating from an unknown transmitter. The third task is novel class discovery (NCD) , where signals attributed to unknown transmitters are further organized into previously unseen device identities. When these capabilities are considered jointly, the resulting setting is often referred to as generalized category discovery (GCD) or open-world recognition [9]: the system must identify registered devices, detect signals from novel devices, and incorporate the discovered devices into its identification model. Early RFFI methods relied primarily on manually designed signal descriptors. These approaches exploit the observation that transmitter-specific hardware impairments manifest themselves in measurable RF attributes, such as IQ offset [10], phase-related features [11], IQ imbalance [12], and error vector magnitude [13]. Such handcrafted features are typically provided to classical machine learning classifiers, yielding interpretable identification mechanisms that are directly tied to physical transmitter impairments. Related statistic-based methods instead characterize devices using global properties of the received signal, such as sample moments and other distributional statistics [14]. While these methods highlight the physical origin of RF fingerprints, their performance depends strongly on the chosen features and on the ability of these features to remain discriminative under changing channels, protocols, and acquisition conditions. In recent years, deep learning (DL)-based RFFI has become the dominant paradigm. Deep neural networks (DNNs), mostly convolutional neural networks (CNNs) [15], [16] or recurrent ar-chitectures [17], have been applied directly to raw IQ samples or arXiv:2610.05979v1 [eess.SP] 5 Oct 2026 to time-frequency representations, enabling automatic extraction of discriminative RF features. These methods have substantially improved closed-set identification accuracy, especially when sufficient labeled data are available for the devices of interest. Beyond closed-set classification, DL representations have also been used for few-shot, incremental, and open-set variants of specific emitter identification and RFFI [18]–[25]. Nevertheless, many of these approaches are designed around a particular oper-ating regime, such as identifying a fixed set of devices, detecting unknown devices, or adapting to a small number of new classes. Several recent works have explicitly considered OSR and discovery-oriented RFFI using latent representations learned by neural networks. For OSR, self-supervised or contrastive representation learning has been combined with distance-based anomaly detection in the latent space [16], [26]. Other approaches use probabilistic or prototype-based modeling, including Gaussian prototypes and Mahalanobis-distance-based detection [21], multi-task prototype learning [27], and siamese comparison for open-set category prediction [28]. Additional mechanisms include confidence thresholding with feature enhancement [29] and generative adversarial learning for synthesizing outlier-like signals [22], [30]. For NCD and related discovery settings, latent features extracted by neural networks are commonly clustered to organize samples from previously unseen devices into new classes [21], [31], [32]. To date, existing RFFI pipelines usually treat closed-set identification, OSR, and NCD as separate algorithmic com-ponents. A representation is first learned for classification, a rejection rule is then introduced to detect unknown devices, and clustering or model update procedures are subsequently applied to the rejected samples. This separation leads to two main limitations: (i) methods optimized for closed-set identification do not necessarily provide a representation that can be expanded naturally once new device classes are discovered. Incorporating a new class may therefore require retraining, modifying the classifier, or introducing an additional post-processing mechanism; (ii ) information accumulated in one task is rarely exploited by the next. In particular, OSR often produces uncertainty or deviation measures that reflect how an incoming signal differs from the registered-device distribution, yet these measures are typically used only for binary rejection and are not leveraged to guide the discovery of new device identities. In this paper, we propose a holistic RFFI framework that treats closed-set identification, OSR, and NCD as coupled components of a single open-world identification system. The key idea is to replace the conventional view of RFFI as classification over a fixed set of devices with a representation-based formulation in which devices are described by a learned and expandable set of codewords. The codeword structure supports closed-set identification of registered devices, provides a mechanism for registering newly discovered devices by expanding the codebook, and induces uncertainty measures for detecting signals that do not conform to the registered-device set. The latter is not treated merely as a binary rejection decision; rather, it is used to guide the subsequent NCD stage, thereby coupling detection of unknown devices with their organization into novel device identities. The proposed framework is inspired by recent developments in DL-aided task-based vector quantization [33], [34]. Specifically, we formulate RFFI as vector quantization in a learned latent feature space. A neural feature extractor maps the received signal and informative handcrafted features (HCFs) into a latent representation, which is then associated with a learned codebook. Registered devices are represented by labeled codewords. OSR is performed by evaluating how well the latent representation conforms to the geometry and density structure induced by the registered-device codebook. Samples identified as unknown are then processed by the NCD module, which uses both their latent representations and their open-set uncertainty information to dis-cover new device classes and augment the codebook accordingly. Our main contributions are summarized as follows:  
+
+> •
+
+We introduce a holistic formulation of open-world RFFI that jointly accounts for closed-set identification, OSR, and NCD. Unlike conventional pipelines that treat these tasks as separate stages, the proposed formulation explicitly transfers information from one task to the next, with particular emphasis on using OSR-derived uncertainty to guide novel class discovery.  
+
+> •
+
+We develop a concrete RFFI algorithm based on learned latent representations and codebook-based decision rules. The algorithm combines feature extraction, closed-set identification, open-set scoring, uncertainty-aware buffering of rejected samples, and NCD into a single operational pipeline. The codebook is updated as new device classes are discovered, allowing the identification system to expand without redesigning the overall architecture.  
+
+> •
+
+We propose a detailed multi-stage training procedure for learning the feature extractor and the initial codebook. The training pipeline combines supervised learning, representation refinement, codebook initialization, and vector-quantization-aware optimization, yielding latent fea-tures that are both discriminative for registered devices and suitable for subsequent open-set recognition and discovery.  
+
+> •
+
+We provide an extensive experimental study on LoRa [16] and WiFi [35] RFFI datasets. The experiments systemati-cally evaluate closed-set identification, OSR, and NCD, and demonstrate the benefit of the proposed holistic design. In particular, the results show that the learned vector-quantized representation supports accurate identification of registered devices, reliable detection of unseen transmitters, and effective discovery and incorporation of new device classes. The rest of this paper is organized as follows. Section II presents the system model and reviews relevant preliminaries. Sec-tion III introduces the proposed method. Section IV presents our experimental study, and Section V provides concluding remarks. II. S YSTEM MODEL AND PRELIMINARIES 
+
+A. Signal Model 
+
+RFFI aims to identify and authenticate wireless transmitters by exploiting device-specific characteristics that are embedded in their emitted RF signals. These characteristics originate from inevitable hardware imperfections in the analog transmit chain, such as oscillator offsets, IQ imbalance, nonlinearities, and leakage effects. Since such impairments depend on manufacturing variations and circuit-level properties, they induce transmitter-dependent distortions that can serve as RF fingerprints. To formulate RFFI, consider a set of wireless transmitters, where the signal emitted by transmitter i is affected by a device-specific transformation. Let s(t) denote the intended baseband signal at time t, and let Fi(·) represent the transformation induced by the hardware chain of transmitter i. The received signal associated with transmitter i is modeled as 
+
+y(t; i) = h(t) ∗ Fi(s(t)) + n(t) (1) where h(t) is the impulse response of the wireless propagation channel, n(t) denotes additive noise, and ∗ is the convolution operator. Accordingly, the mapping Fi(·) captures the transmitter-dependent RF fingerprint, while h(t) and n(t)
+
+represent effects that are not unique to the device and may vary across time, locations, or acquisition conditions. 
+
+B. Problem Formulation 
+
+Given a set of received signal snapshots y(t; i)Tt=1 , the objective of RFFI is to infer the identity of the transmitting device. In practical deployments, however, the set of devices encountered during operation is not necessarily identical to the set of devices available during system design. Consequently, a complete RFFI system must not only identify previously registered devices, but also recognize when a transmission originates from an unseen device and, eventually, incorporate newly encountered devices into its identification model. To formalize this setting, let I denote the set of registered devices known during system design. RFFI tasks include: 
+
+Closed-set identification: The most common RFFI setting assumes that every received signal originates from one of the registered devices in I. In this case, the goal is to estimate the transmitter identity according to the mapping 
+
+ˆi = f CSC 
+
+> I
+
+ {y(t; i)}Tt=1 
+
+ ∈ I (2) Closed-set identification therefore reduces RFFI to a multi-class classification problem over the registered device set. 
+
+Open-set recognition (OSR): In many scenarios, received signals may originate from devices that are not included in I.The objective of OSR is to determine whether a received signal is consistent with the registered-device distribution or should instead be regarded as originating from an unseen device. We represent the output of the OSR module as 
+
+ˆP( i ∈ I ) = f OSR 
+
+> I
+
+ {y(t; i)}Tt=1 
+
+ ∈ [0 , 1] . (3) A low value of ˆP( i ∈ I ) indicates that the observed signal is unlikely to have originated from any registered device. 
+
+Novel class discovery (NCD): Once samples from unseen devices have been identified, the next challenge is to discover the underlying device identities without access to their labels. Let y(t; it) denote a collection of measurements satisfying 
+
+it /∈ I for all t. The objective of NCD is to partition these measurements into groups corresponding to previously unseen devices and to register the discovered device classes. Denoting 
+
+Fig. 1: Illustration of the three RFFI tasks: closed-set identification, open-set recognition, and novel class discovery. the set of discovered devices by bInew , the registration process updates the known device set according to 
+
+I ← I ∪ bInew . (4) 
+
+Generalized category discovery (GCD): The combination of OSR and NCD gives rise to the more general GCD setting. In GCD, the system is not provided with prior knowledge regarding which samples originate from registered devices and which belong to unseen devices. Instead, it must simultaneously identify registered devices, detect samples associated with novel devices, and organize these samples into new device classes. Consequently, GCD represents the open-world formulation of RFFI. Our goal is to design a holistic RFFI algorithm that carries out all of the above tasks. As GCD combines OSR and NCD, we focus on a design that jointly carries out the first three tasks. For design purposes, we assume access to labeled data corresponding to measurements from the devices in I. This dataset is denoted by 
+
+D =
+
+ny(j)(t) Tt=1 , i (j)o|D| 
+
+> j=1
+
+, i(j) ∈ I . (5) 
+
+C. Preliminaries 
+
+Our proposed holistic methodology detailed in Section III is based on tools in vector quantization and its combination with DL. We thus briefly review these necessary preliminaries. 
+
+1) Vector Quantization: The proposed methodology relies on data-driven vector quantization. A quantizer with input dimension d is defined by a finite codebook Q ⊂ Rd, such that each input vector x ∈ Rd is mapped into a B-bit representation 
+
+Q(x) ∈ Q , where B = log 2 |Q| . This mapping is typically performed by selecting the nearest codeword in Q [36, Ch. 23]. When d > 1, this process is referred to as vector quantization, in contrast to scalar quantization, where d = 1 . Rate-distortion theory shows that, under appropriate assumptions, vector quantization can achieve lower distortion than scalar quantization for a given bit budget [36]. A classical method for learning the codebook Q from data is the Linde–Buzo–Gray (LBG) algorithm, in which the codewords are iteratively updated as centroids of clustered data points [37]. 
+
+2) DL-Aided Vector Quantization: Recent DL-based methods have demonstrated the ability to learn multivariate quantized representations from data. A representative example is the vector-quantized variational autoencoder (VQ-VAE) [38]. In a VQ-VAE, an input vector x is first mapped by a DNN encoder into a latent representation xe = fe(x). The latent representation is then decomposed into M vectors of size d, denoted by {xe
+
+> m
+
+}Mm=1 , and each vector is quantized by selecting the closest codeword in Q:
+
+qm = arg min 
+
+> q∈Q
+
+∥xe 
+
+> m
+
+− q∥2. (6) The full quantized representation is therefore 
+
+q = Q(xe) = [ q1, . . . , qM ] ∈ Q M , (7) and is represented using M · B bits. A decoder then maps the quantized representation into the output ˆx = fd(q).To jointly train the encoder, decoder, and codebook, the VQ-VAE commonly uses a three-term loss function [38]: 
+
+Ltot (x) = L(x; ˆ x) + ∥sg ( xe) − q∥22
+
++ β ∥xe − sg ( q)∥22 , (8) where sg( ·) is the stop-gradient operator, L(x; ˆ x) is atask-dependent reconstruction or prediction loss, and β > 0
+
+is a hyperparameter. Alternative loss functions have also been proposed to improve codebook utilization [39] and to support remote inference [40]. Nevertheless, the loss in (8) remains a common training objective for DNN-aided vector quantizers [41]. 
+
+3) Density-Based Clustering: Density-based clustering identifies clusters as densely populated regions separated by sparse regions. In Density-Based Spatial Clustering of Applications with Noise (DBSCAN) [42], the ε-neighborhood of a sample z is defined as 
+
+Nε(z) = {z′ : ∥z − z′∥2 ≤ ε} . (9) A sample is termed a core point if |N ε(z)| ≥ mmin , where 
+
+mmin is the minimum neighborhood size. Clusters are formed by connecting density-reachable core points and their neighboring samples, while samples that are not associated with a sufficiently dense region are labeled as noise. Hierarchical Density-Based Spatial Clustering of Applications with Noise (HDBSCAN) extends this principle by constructing a hierarchy of density-based clusterings rather than relying on a single neighborhood radius [43]. For a selected neighborhood size mmin , the core distance of z is defined as the Euclidean distance to its mmin th nearest neighbor: 
+
+dcore (z) = z − z(mmin ) 2 , (10) where z(mmin ) denotes the mmin th nearest neighbor of z.For two samples za and zb, let dab = ∥za − zb∥2. Their mutual-reachability distance is 
+
+dmr (za, zb) = max {dcore (za), d core (zb), d ab } . (11) Thus, samples in sparse regions are effectively separated by larger distances. HDBSCAN constructs a hierarchy using these distances and extracts persistent dense regions as clusters, while retaining insufficiently supported samples as noise. III. H OLISTIC RF F INGERPRINTING METHOD 
+
+The proposed method is designed to realize RFFI as an adaptive open-world identification system, rather than as a collection of separate modules for closed-set classification, OSR, and NCD. To enable such coupling, we formulate RFFI through a learned vector-quantized latent representation . The received signal is mapped into a discriminative feature space, in which registered devices are represented by labeled codewords. This representation is compact, informative, and expandable: closed-set identification is carried out by assigning a sample to the device associated with its closest codeword; OSR is performed by evaluating the relation between the sample and the codebook geometry; and newly discovered devices can be incorporated by augmenting the codebook, without redesigning the feature extractor or retraining the entire identification architecture. The holistic aspect of the proposed framework follows from the way information flows between the different RFFI tasks. The codebook learned for registered devices defines the closed-set identification rule and induces uncertainty measures for open-set recognition. Thus, the proposed method, whose operation and training procedure are detailed in Subsections III-A-III-B, respectively, couples OSR and NCD within a single adaptive RFFI pipeline, where the output of one task informs the next. 
+
+A. RFFI Algorithm 
+
+Our proposed RFFI algorithm operates on a sequence of received IQ snapshots denoted by {y(t)}Tt=1 , and is designed to jointly perform closed-set identification, OSR, and NCD. The algorithm, illustrated in Fig. 2, is composed of three stages: 
+
+feature extraction , OSR score computation , and decision making .The first stage maps the received signal into a continuous latent representation. The second evaluates the conformity of this representation with the registered device set, represented by a discrete latent space. Finally, the resulting latent representation and continuous OSR score are jointly used for identification, rogue-device detection, and new-device discovery. 
+
+1) Feature Extraction: The first stage maps the received signal into a continuous latent representation through two parallel feature-extraction branches. The first branch extracts HCFs directly from the received signal. These features capture device-dependent RF impairments and include local oscillator leakage (LO leakage), amplitude mismatch, and carrier frequency offset (CFO). Denoting the resulting feature vector by h, it is processed by a multi-layer perceptron (MLP) denoted by f hcf  
+
+> θ
+
+(·).The second branch processes the received signal representation using a CNN. The input to this branch can be the raw IQ Fig. 2: Block diagram of the proposed holistic RFFI algorithm. signal or signal-specific pre-processing (e.g., a spectrogram). We denote this signal-processing branch by f sig  
+
+> θ
+
+(·).The outputs of the two branches are concatenated and processed by an additional trainable layer into the representation 
+
+z = f fc 
+
+> θ
+
+h 
+
+f sig 
+
+> θ
+
+ {y(t; i)}Tt=1 
+
+ , f hcf  
+
+> θ
+
+(h)
+
+i 
+
+∈ Rd, (12) where d is the latent dimension. Accordingly, θ accommodates the trainable parameters of the CNN, the MLP applied to the HCFs, and the fusion layer. The latent vector z serves as a con-tinuous representation of the device-specific signal characteristics and is provided to the subsequent OSR score computation stage. 
+
+2) OSR Score Computation: Rogue-device detection in RFFI is an instance of the standard OSR problem in classification. While closed-set identification assigns each received signal to one of the registered devices, the open-set mechanism must determine whether the corresponding IQ data is consistent with the data observed from the registered set. A signal that does not conform to this known-device representation is rejected and regarded as originating from a rogue device. To characterize the regions occupied by registered devices in the continuous latent space, we apply DBSCAN, reviewed in Subsection II-C3, to the representations produced by the feature extractor. Let 
+
+ZI =
+
+n
+
+z(j) = fθ
+
+
+
+{y(j)(t)}Tt=1 
+
+o |D| 
+
+> j=1
+
+(13) denote the latent representations of the registered-device dataset. The DBSCAN parameters ε and mmin are selected through a grid search over registered-device data. The search is restricted to configurations for which the number of discovered clusters equals the number of registered devices: 
+
+Nclust (DBSCAN ( ZI ; ε, m min )) = |I| . (14) Among the parameter pairs satisfying (14), we select the configuration that provides the highest coverage of registered-device samples and, consequently, the lowest rejection rate. After fitting DBSCAN using the selected parameters, we retain its set of core points, denoted by 
+
+CI = Core (DBSCAN ( ZI ; ε⋆, m ⋆
+
+> min
+
+)) . (15) For an incoming signal with latent representation z, we define the continuous open-set uncertainty score as its Euclidean distance from the closest registered-device core point: 
+
+rI (z) = min 
+
+> c∈C I
+
+∥z − c∥2 . (16) A small value of rI (z) indicates proximity to a well-supported registered-device region, whereas a large value indicates stronger deviation from the registered set. 
+
+3) Decision Making: The first two stages associate each received signal with the pair (z, r I (z)) , consisting of its continuous latent representation and its deviation from the registered-device regions. The decision stage uses this pair both for the instantaneous identification decision and, when the signal is rejected, for subsequent novel-class discovery. This retention of the continuous OSR information is central to the holistic nature of the proposed approach. We first determine whether the signal is consistent with the reg-istered device set by comparing its OSR score with a threshold τ :
+
+ˆo(z) = 1 {rI (z) > τ } , (17) where 1{·} is the indicator function. Thus, ˆo(z) = 0 indicates a registered-device decision and ˆo(z) = 1 indicates a rogue-device decision. The threshold τ is calibrated using registered-device data, such that the open-set detector does not require examples from devices that may be encountered only after deployment. When ˆo(z) = 0, identification is performed using the learned vector-quantized representation. Let Q = {qk}Pk=1 
+
+denote the codebook representing the registered devices, and let Label( k) ∈ I denote the device associated with the kth codeword. The estimated identity is 
+
+f CSC 
+
+> I
+
+
+
+y(t)Tt=1 
+
+
+
+= Label arg min 
+
+> k∈1,...,P
+
+|z − qk|22
+
+!
+
+. (18) Since multiple codewords can be associated with a single device, this representation can accommodate intra-device variability while retaining a simple nearest-codeword identification rule. When ˆo(z) = 1, the latent representation is instead retained for NCD, together with its continuous open-set score. Accordingly, over a discovery interval we accumulate 
+
+B =
+
+n 
+
+z(j), r (j)
+
+: r(j) = rI
+
+
+
+z(j)
+
+> τ 
+
+o
+
+. (19) Note that B may contain both samples from genuinely unseen devices and registered-device samples that were erroneously rejected. A conventional sequential approach would discard the values r(j) after the binary decision in (17) and cluster all rejected samples equally. Here, we exploit these scores as information transferred from OSR to NCD. Specifically, we propose open-set-recognition-weighted clustering (OSRWC) , which uses the magnitude of r(j) as a soft indication of how strongly the jth rejected sample departs Fig. 3: Illustration of OSRWC. High-confidence rogue samples receive more jittered copies, increasing their local density for HDBSCAN, while borderline false positives receive fewer copies. from the registered-device distribution, as illustrated in Fig. 3. We partition the interval (τ, ∞) according to score quantiles 
+
+τ = γ0 < γ 1 < · · · < γ L = ∞, and associate the intervals with nondecreasing integer weights 1 ≤ ρ1 ≤ · · · ≤ ρL. The weight assigned to a rejected sample is 
+
+w(j) = ρℓ, γℓ−1 < r (j) ≤ γℓ. (20) Thus, samples lying only slightly beyond the rejection boundary have limited influence, whereas samples with stronger evidence of being outside the registered-device regions have larger weights. We transfer these weights to the density-based discovery stage through local replication. In particular, we construct 
+
+eZR = [
+
+> (z(j),r (j))∈B
+
+n
+
+z(j) + ηj,m 
+
+ow(j)
+
+> m=1
+
+, (21) with ηj,m ∼ N  0, σ 2jit I, where σ2jit is chosen sufficiently small such that the replicas remain in the immediate neighborhood of the original sample. The small perturbation avoids coincident points while preserving their location in the latent space. This construction provides the mechanism through which information obtained in OSR affects NCD. As reviewed in Subsection II-C3, the density structure used by HDBSCAN depends on local core distances and mutual-reachability distances. Increasing the local multiplicity around a high-confidence rogue sample reduces its effective core distance and consequently strengthens the corresponding dense region. Hence, samples that strongly deviate from the registered-device distribution contribute more strongly to the formation of persistent novel-device clusters, whereas borderline rejections remain more likely to be treated as noise. This is precisely the information that would be lost if OSR were reduced to the binary decision (17) before performing NCD. We apply HDBSCAN to eZR, yielding an estimated number 
+
+bKnew of novel devices. The cluster labels of the replicated points are projected back to each original sample by majority voting over its non-noise replicas; an original sample whose replicas are all labeled as noise remains unassigned. Denoting the resulting label of z(j) by bc(j), the latent samples associated with discovered device ℓ are 
+
+Zℓ =
+
+n
+
+z(j) : bc(j) = ℓ
+
+o
+
+, ℓ = 1 , . . . , bKnew . (22) Finally, the newly discovered devices are incorporated into the same representation used for closed-set identification. For every 
+
+Zℓ, the LBG algorithm is applied to obtain a codebook Q⋆ℓ ,which is assigned a new device identifier inew  
+
+> ℓ
+
+. The registered-device set and codebook are then expanded according to 
+
+I ← I ∪ 
+
+n
+
+inew 1 , . . . , i new 
+
+> bKnew
+
+o
+
+, Q ← Q ∪ 
+
+> bKnew
+
+[
+
+> ℓ=1
+
+Q⋆ℓ . (23) In addition, the newly registered samples are incorporated into the registered latent set ZI , and the OSR model of Subsection III-A2 is updated accordingly. Thus, discovery feeds back into both subsequent closed-set identification and OSR, while the feature extractor fθ (·) remains unchanged. 
+
+4) Algorithm Summary: The complete procedure is summarized in Algorithm 1. During regular operation, each received signal is mapped into the latent space and assigned an open-set score. Samples consistent with the registered set are identified through the labeled codebook, whereas rejected samples and their continuous OSR scores are accumulated for discovery. Consequently, OSR serves two purposes: it determines which samples should not be assigned to an existing device, and it provides side information regarding the reliability of these rejected samples for NCD. Once a discovery episode is triggered, OSRWC transfers this information to HDBSCAN; the resulting novel classes are then used to expand the codebook and the registered-device density model. The algorithm thus forms a closed adaptive loop in which information flows from identification to OSR, from OSR to NCD, and from NCD back to future identification and open-set decisions. Algorithm 1: Holistic RFFI 
+
+Init: Feature extractor fθ ; registered set I; codebook Q;registered latent set ZI ; OSR model (CI , τ ); OSRWC parameters γℓ, ρ ℓLℓ=1 , σ jit ; HDBSCAN parameters.  
+
+> 1
+
+Initialize discovery buffer B ← ∅ ; 
+
+> 2
+
+foreach received signal y(t)Tt=1 do  
+
+> 3
+
+Extract z ← fθ
+
+
+
+y(t)Tt=1 
+
+
+
+; 
+
+> 4
+
+Compute r ← rI (z) using (16);  
+
+> 5
+
+if r ≤ τ then  
+
+> 6
+
+Find k⋆ ← arg min k ∥z − qk∥22; 
+
+> 7
+
+Identify device as Label( k⋆); 
+
+> 8
+
+else  
+
+> 9
+
+Declare device as unknown;  
+
+> 10
+
+Store latent and uncertainty: B ← B ∪ { (z, r )}; 
+
+> 11
+
+if the discovery criterion is satisfied then  
+
+> 12
+
+Construct eZR from B using (20)-(21);  
+
+> 13
+
+Cluster eZR using HDBSCAN and project labels;  
+
+> 14
+
+for ℓ = 1 , . . . , bKnew do  
+
+> 15
+
+Form discovered cluster Zℓ; 
+
+> 16
+
+Obtain Q⋆ℓ ← LBG( Zℓ); 
+
+> 17
+
+Assign a new device label inew  
+
+> ℓ
+
+; 
+
+> 18
+
+Expand I and Q using (23);  
+
+> 19
+
+Add discovered samples to ZI ; 
+
+> 20
+
+Update (CI , τ ) via OSR fitting (Subsec. III-A2);  
+
+> 21
+
+B ← ∅ ;
+
+B. Training Algorithm 
+
+Our training procedure separates the learning of a reusable RF representation from the registration of the devices encountered in a particular deployment. It therefore consists of two phases. First, we pre-train the feature extractor to produce a device-discriminative latent representation that is also compatible with vector quantization. Then, during enrollment , the feature extractor is frozen and the codebook and OSR model are fitted to the actual registered-device set. This separation is particularly useful in the open-world setting considered here, since changing the registered set does not require retraining the feature extractor. To distinguish these phases, let Dpre denote the labeled dataset used for representation pretraining, with corresponding device set Ipre , and let Den denote the labeled enrollment data associated with the registered set I. The two datasets may correspond to the same devices, but this is not required. 
+
+1) Representation Pretraining: Pretraining is carried out in four successive stages. The stages gradually transition from learning a discriminative continuous representation to optimizing this representation for its eventual vector-quantized use. 
+
+Stage 1 (Contrastive representation learning): We first train the feature extractor fθ (·) using supervised contrastive learning [44]. For each training signal, two augmented views are generated using RF-domain transformations, including random phase rotation, circular time shifting, additive noise, and amplitude scaling. The latter captures variations in received signal strength due to the propagation channel. A temporary projection head pξ(·) is applied to the resulting latent vectors, and the standard supervised contrastive objective is minimized such that representations originating from the same transmitter are attracted while those associated with different transmitters are separated. The projection head is discarded after this stage. Consequently, the output of Stage 1 is a feature extractor whose continuous latent space exhibits compact device-specific regions and separation between different devices. 
+
+Stage 2 (Classifier fitting): We next freeze θ and train an auxiliary classifier gϕ(·) over the continuous latent representation using the cross-entropy objective 
+
+LCE = 1
+
+|D pre |
+
+> |D pre |
+
+X
+
+> j=1
+
+ℓCE 
+
+
+
+gϕ
+
+
+
+fθ
+
+
+
+y(j)(t)Tt=1 
+
+ 
+
+, i (j)
+
+. (24) This stage provides a task-oriented classifier for the latent representation while preserving the geometry obtained through contrastive learning. The classifier is auxiliary: its role is to guide the subsequent quantization-aware optimization rather than to constitute the final identification rule. 
+
+Stage 3: Codebook initialization We next initialize an auxiliary pretraining codebook Qpre from the continuous latent representations of Dpre . Specifically, the frozen feature extractor is applied to all pretraining samples, and the resulting latent vectors are quantized using the LBG algorithm reviewed in Subsection II-C1. Initializing the codewords from the learned latent distribution avoids jointly optimizing the feature extractor and an initially unstructured codebook. 
+
+Stage 4: Quantization-aware refinement Finally, the feature extractor, auxiliary codebook, and classifier are jointly refined. For a latent representation z = fθ ({y(t)}Tt=1 ), let q denote its nearest codeword in Qpre . We employ the VQ-VAE-based objective introduced in (8), with the task-dependent term instantiated by device-classification cross entropy: 
+
+Lpre =ℓCE (gϕ(q), i ) + ∥sg( z) − q∥22
+
++ β ∥z − sg( q)∥22 . (25) This final stage adapts the continuous representation and the discrete codebook to one another, such that quantization preserves the device-discriminative structure established in the preceding stages. After pretraining, the auxiliary classifier and codebook need not be retained; the principal output is the feature extractor 
+
+fθ (·), which has been trained to produce representations suitable for device discrimination and vector quantization. 
+
+2) Device Enrollment: The pre-trained representation is adapted to the registered-device set I through enrollment. Unlike representation pretraining, enrollment modifies only lightweight components of the system and leaves fθ (·) fixed. Consequently, the registered-device set can be changed or expanded without retraining the feature extractor. The enrollment samples in Den are first mapped into the continuous latent space, yielding 
+
+ZI =
+
+n
+
+fθ
+
+
+
+{y(j)(t)}Tt=1 
+
+o |D en |
+
+> j=1
+
+. (26) The operational codebook Q is initialized by applying LBG to 
+
+ZI . We then introduce a temporary classifier whose output di-mension is |I| and jointly refine this classifier and the codewords using the same quantization-aware objective as in (25), while keeping θ fixed. Thus, the codebook is adapted to the enrolled devices without altering the common latent representation. Once refinement is completed, each codeword is associated with a registered device according to 
+
+Label( k) = arg max 
+
+> i∈I
+
+[gϕ (qk)] i , k = 1 , . . . , |Q| . (27) The temporary classifier is then discarded, such that subsequent closed-set identification relies solely on the rule in (18). Finally, the enrollment representations ZI are used to fit the density-based OSR model of Subsection III-A2. This yields the registered-device core set CI and the rejection threshold τ .Enrollment therefore produces all deployment-specific quantities required by Algorithm 1: the labeled codebook Q, the registered latent set ZI , and the OSR model (CI , τ ).
+
+3) Training Summary: The complete training and enrollment procedure is summarized in Algorithm 2. The multi-stage construction serves two complementary purposes. Contrastive learning first establishes a discriminative continuous geometry, while quantization-aware refinement adapts this geometry to the discrete representation required by the proposed identification mechanism. Enrollment then decouples this representation from the particular registered-device set by fitting only the codebook and OSR model to the deployment-specific devices. 
+
+Algorithm 2: Training and Enrollment 
+
+Init: Pretraining and enroll Dpre , Den ; codebook size P .
+
+Representation pretraining:  
+
+> 1
+
+Train fθ and pξ via contrastive learning on Dpre ; 
+
+> 2
+
+Train auxiliary classifier gϕ using (24);  
+
+> 3
+
+Apply LBG to latent representations to initialize Qpre ; 
+
+> 4
+
+Jointly refine fθ , Qpre , and gϕ using (25); 
+
+Device enrollment:  
+
+> 5
+
+Freeze fθ and extract ZI from Den ; 
+
+> 6
+
+Initialize Q ← LBG( ZI ); 
+
+> 7
+
+Jointly refine Q and a temporary classifier using (25);  
+
+> 8
+
+Assign each codeword a device label using (27);  
+
+> 9
+
+Fit the OSR model (CI , τ ) from ZI ; 
+
+> 10
+
+return fθ , Q, ZI , (CI , τ );
+
+C. Discussion 
+
+Holistic Open-World RFFI: Our framework is tailored to open-world RFFI by coupling the identification tasks through a shared and expandable representation. Casting closed-set identification as vector quantization allows registered devices to be represented by codewords, with newly discovered devices incorporated by augmenting the codebook. The enrollment procedure further decouples representation learning from the registered-device population, enabling the same latent representation to be reused as the device set evolves. Beyond this structural coupling, our approach transfers information between tasks: the continuous OSR score is retained after the rejection decision and exploited by OSRWC to guide NCD, assigning greater influence to samples that more strongly deviate from the registered-device distribution. Finally, the density-based formulation is well suited to open-world operation, since the OSR model is fitted using registered-device data, while HDBSCAN does not require prior knowledge of the number of unseen devices and can leave insufficiently supported samples unassigned. Our framework thus addresses the key challenges motivating our holistic formulation: it supports expansion of the registered-device set and exploits information produced by one RFFI task to improve the subsequent task. 
+
+Computational Complexity: The computational cost is dominated by the neural feature extractor. For an input frame of 256 IQ samples (as in Section IV), the complete pipeline requires approximately 180 .5 MFLOPs per frame, of which more than 99 .9% are associated with the convolutional feature extractor. The HCF branch, feature fusion, codeword comparison, and density-based OSR introduce only a small additional cost. In particular, increasing the codebook size from P = 32 to 
+
+P = 256 increases the complexity only from 180 .46 MFLOPs to 180 .51 MFLOPs per frame. Thus, expanding the registered devices through codebook augmentation has negligible impact on online inference complexity and does not require additional CNN inference or retraining. The more involved HDBSCAN and OSRWC operations are executed only when a discovery is triggered and are thus outside the continuous per-frame processing path; in the evaluated WiSig configuration, OSRWC incurs approximately 87 .4 MFLOPs per discovery episode. 
+
+Possible Extensions: The proposed design admits several natural extensions. The vector-quantized representation can incorporate alternative codebook-learning and quantization-aware training strategies, while the density-based OSR stage can be generalized to alternative distance or density measures better suited to particular channel conditions. Likewise, the proposed transfer of OSR information to NCD through OSRWC represents one mechanism for coupling the two tasks; future work may consider clustering methods that incorporate the continuous open-set confidence directly. Finally, continual adaptation of the feature extractor could complement the present codebook-level expansion when long-term changes in propagation conditions or device characteristics substantially alter the learned latent representation. IV. E XPERIMENTAL STUDY 
+
+We empirically evaluate our RFFI framework on two RF datasets 1. Our study is designed to assess whetter: (i) the learned vector-quantized representation preserves accurate identification of registered devices; (ii ) our density-based OSR mechanism reliably detects unseen transmitters; (iii ) transferring the OSR in-formation to the discovery stage improves NCD; and (iv ) newly discovered devices can be incorporated while preserving identifi-cation and open-set capabilities. We additionally evaluate robust-ness to signal degradation and isolate the contribution of the pro-posed cross-task information transfer through an ablation study.         
+
+> 1The code and hyperparameters used can be found at https://github.com/omer-hazan/RFFI-with-GCD-via-VQVAE
+
+A. Experimental Setup 1) Datasets: We distinguish between the data used for representation pretraining and those used for enrollment. Let Ipre 
+
+denote the devices used to train the feature extractor, and I be the subsequently enrolled device set used to construct the codebook and fit the registered-device OSR model. The two sets need not coincide. We further denote by IR a set of unseen devices used for open-set evaluation, and by ID ⊆ I R the devices presented to the discovery stage. Samples used for discovery are separated from those used to evaluate the system after registration. 
+
+LoRa: We use the LoRa RFFI dataset [16], following the enrollment and rogue-device evaluation protocol of [45] where applicable. The feature extractor is pre-trained using 30 devices, indexed 0–29 , with 1000 packets from each device; these packets are divided into 90% training and 10% validation subsets. The enrolled set contains 10 disjoint devices, indexed 
+
+30 –39 , while devices 40 –44 constitute the unseen-device pool. This setting evaluates the ability to reuse a representation learned from one transmitter population for a different registered-device population. For each enrolled device, packets 0–99 are used for enrollment, while packets 100 –299 are retained for closed-set and OSR evaluation. For each unseen device, packets 0–99 are used for OSR and discovery, whereas packets 100 –199 are held out for evaluating the system after device registration. 
+
+WiSig: We additionally use the ManyTx configuration of the WiSig dataset [35]. The setting follows the anomaly-recognition protocol of [46] where applicable and extends it to NCD and registration. The feature extractor is pre-trained using 50 
+
+transmitters, with 72 packets selected from each device and divided into 80% , 10% , and 10% subsets for training, validation, and testing, respectively. Ten of these devices are subsequently enrolled, such that, unlike the LoRa setting, the registered devices have already been observed during representation pretraining. For each enrolled transmitter, 70% of the available packets are used for codebook construction, quantization-aware enrollment, and fitting the registered-device density model, while the remaining 30% are retained for evaluation. The unseen transmitters are similarly divided between samples used for OSR/discovery and held-out samples used after registration. 
+
+2) Compared Algorithms: We compare the proposed frame-work with five representative approaches: (i) The method of Shen et al. [45] (which supports only closed-set identification and OSR and is thus not used for evaluating NCD); (ii ) The ART framework of [46]; (iii ) The GCD algorithm of [31]; (iv )
+
+OpenGCD [47]; and (v) OpenNCD [48]. While (i) − (ii ) are designed specifically for RFFI, benchmarks (iii )−(v) were orig-inally designed for image data, and were retrained for RF signals. 
+
+3) Performance Measures: Closed-set identification is eval-uated using classification accuracy. For OSR, we report the area under curve (AUC), which evaluates discrimination inde-pendently of a particular operating threshold. At the calibrated threshold, we additionally report the numbers of true positives, false positives, true negatives, and false negatives, where unseen-device samples constitute the positive class. NCD is evaluated using the percentage of held-out samples from discovered devices     
+
+> (a) CFO -Device A
+> (b) CFO -Device B
+> (c) Amp. imbal-ance - Device A
+> (d) Amp. imbal-ance - Device B
+> (e) Phase imbal-ance - Device A
+> (f) Phase imbal-ance - Device B
+> (g) LO leakage - Device A
+> (h) LO leakage - Device B
+
+Fig. 4: Histogram comparison for four HCFs. Each row compares two devices (A and B) for a specific parameter.            
+
+> 2345678910 90 95 100
+> Number of enrolled devices Accuracy (%) Proposed ART Shen et al. GCD OpenGCD OpenNCD
+
+Fig. 5: Closed-set identification accuracy vs. |I| , LoRa. that are correctly associated with their registered identity, referred to as new-device accuracy . We also examine the effect of system expansion by comparing closed-set identification accuracy before and after newly discovered devices are incorporated. Where applicable, clustering quality is quantified using the adjusted Rand index (ARI), while post-discovery OSR can be evaluated against devices in IR \I D that remain unseen after the discovery episode. 
+
+B. LoRa Evaluation 
+
+We first consider the LoRa dataset. Unless otherwise stated, the setting contains ten enrolled and five unseen devices. 
+
+1) HCF Evaluation: We begin by examining four hardware-related signal features considered as candidate inputs to the HCF branch: CFO, amplitude imbalance, phase imbalance, and local-oscillator leakage. Their empirical distributions indicate that CFO, amplitude imbalance, and local-oscillator leakage exhibit transmitter-dependent behavior, whereas phase imbalance shows substantial overlap between devices. We therefore retain the for-mer three features in the subsequent experiments. Representative examples are shown in Fig. 4, where device-specific distributions are clearly visible for CFO in contrast to phase imbalance. 
+
+2) Identification and OSR: We first verify that our holistic design preserves the conventional RFFI capabilities of closed-set identification and OSR. With all ten devices enrolled, our method achieves a closed-set accuracy of 97 .9% , matching Shen et al. [45] and exceeding OpenGCD [47], which achieves 97 .2% .ART [46], GCD [31], and OpenNCD [48] achieve higher accuracies of 99 .7% , 99 .9% , and 99 .9% , respectively. As shown 1 2 3 4 50.60.81
+
+> Number of rogue devices AUC
+> Proposed Shen et al. ART GCD OpenGCD OpenNCD
+
+Fig. 6: OSR AUC vs. |I R|, LoRa. in Fig. 5, across the enrolled-device sweep, our method maintains an accuracy between 97 .9% and 100% , consistently matching or exceeding Shen et al. These results indicate that the expandable codebook representation incurs only a modest cost, if any. We next consider OSR with ten enrolled and five unseen devices. As reported in Table I, our density-based score achieves the highest AUC among the evaluated methods at 0.9947 ,compared with 0.9531 for [45], 0.9436 for [46], 0.9417 for [31], 
+
+0.8929 for [47], and 0.7948 for [48]. At the selected threshold, our method correctly rejects 490 of the 500 unseen-device samples while accepting 959 of the 1000 legitimate samples. Although the methods of [31] and [48] produce no false-positive rejections at their respective operating thresholds, they detect only 145 and 207 unseen-device samples, respectively. Moreover, Fig. 6 shows that we maintain an AUC between 0.9934 and 
+
+0.9967 throughout the rogue-device sweep, indicating consistent separation between enrolled and unseen devices. 
+
+3) Generalized Category Discovery: We next evaluate the complete open-world operation, where rejected signals are clustered, newly discovered devices are registered, and subsequent packets are classified using the expanded system. With five unseen devices, the proposed method correctly associates 81 .8% of the held-out samples with their newly registered identities, compared with 80 .6% for [47], 57 .7% 
+
+for [46], 29 .4% for [31], and 18 .6% for [48], as summarized in Table II. Fig. 7 shows that the proposed method leads in three of the four discovery settings, while the method of [31] performs best with three unseen devices. We note that the benefit is not limited to the discovery stage itself. After incorporating the new devices, the proposed method achieves the highest total accuracy at 91 .1% , compared with 86 .1% for the closest comparator [47]. Its accuracy on previously enrolled devices decreases from 
+
+97 .9% to 95 .8% . Although the methods of [31] and [48] preserve higher enrolled-device accuracies, their lower new-device TABLE I: LoRa OSR with ten enrolled and five rogue devices.                                       
+
+> Method AUC TP FP TN FN Proposed 0.9947 490 41 959 10 ART [46] 0.9436 496 172 828 4
+> Shen et al. [45] 0.9531 436 90 910 64 GCD [31] 0.9417 145 01000 355 OpenGCD [47] 0.8929 337 70 930 163 OpenNCD [48] 0.7948 207 01000 293
+> 2345010 20 30 40 50 60 70 80 90 100
+> Number of rogue devices Mapped rogue samples (%)  Proposed ART GCD OpenGCD OpenNCD
+
+Fig. 7: Percentage of held-out LoRa rogue samples mapped to newly discovered devices vs. |I R|.      
+
+> 12345670.75 0.80.85 0.90.95 1
+> Number of rogue transmitters AUC  Proposed Shen et al. ART GCD OpenGCD OpenNCD
+
+Fig. 8: OSR AUC vs. |I R|, WiSig. accuracies limit overall performance. Thus, the expandable codebook supports discovery and registration while largely preserving identification accuracy on previously enrolled devices. 
+
+C. WiFi Evaluation 
+
+We next evaluate the framework on WiSig, a complementary setting whose conditions differ substantially from LoRa. 
+
+1) Identification and OSR: The proposed method attains perfect pre-discovery closed-set accuracy in the considered WiSig setting. With ten enrolled and seven rogue transmitters, Table III reports an AUC of 0.9972 , compared with 1.0000 for [31] and 0.9968 for [47]. The remaining methods [45], [46], [48] achieve lower AUC values between 0.8615 and 0.9633 . At the calibrated threshold, all 175 unseen-device samples are correctly rejected, while only nine of the 150 legitimate samples are incorrectly rejected. Fig. 8 further shows that the proposed score remains close to unit AUC throughout the rogue-device sweep. TABLE II: LoRa discovery performance, |I R| = 5 . The arrow denotes pre-discovery accuracy on the enrolled devices to post-discovery accuracy over all enrolled and rogue test samples; in brackets, post-discovery accuracy on the enrolled devices only.                            
+
+> Method New-device accuracy Total accuracy (enrolled) Proposed 81.8% 97 .9% →91 .1% (95 .8%)
+> ART [46] 57.7% 99 .8% →76 .3% (88 .7%)
+> GCD [31] 29.4% 99 .7% →76 .3% (99 .7%)
+> OpenGCD [47] 80.6% 97 .2% →86 .1% (88 .9%)
+> OpenNCD [48] 18.6% 100 .0%→72 .9% (100 .0%) 234567010 20 30 40 50 60 70 80 90 100
+> Number of rogue transmitters Mapped rogue samples (%)  Proposed ART GCD OpenGCD OpenNCD
+
+Fig. 9: Percentage of held-out WiSig rogue samples mapped to newly discovered transmitters vs. |I R|.
+
+2) Generalized Category Discovery: The WiSig results further highlight the benefit of our framework after open-set rejection. With seven rogue transmitters, the proposed method achieves a new-device accuracy of 90 .3% , compared with 78 .3% for [31], 
+
+50 .9% for [46], 49 .7% for [47], and 40 .0% for [48], as summa-rized in Table IV. Fig. 9 shows that its accuracy remains between 
+
+84 .0% and 94 .7% throughout the evaluated multi-device discov-ery settings. Following registration, our method achieves the high-est total accuracy at 92 .6% , compared with 88 .3% for the closest comparator [31]. Its accuracy on previously enrolled devices decreases from 100 .0% to 95 .3% . Together with the LoRa results, this shows that the quantized representation supports device-set expansion without retraining the common feature extractor. 
+
+3) Robustness to Noise: We next evaluate the complete pipeline under Gaussian noise added to the evaluation signals (feature-extractor training and enrollment remain unchanged). We consider signal-to-noise ratio (SNR) values from 30 to 12 dB. As shown in Fig. 10, our method maintains an OSR AUC above 0.97 
+
+throughout the evaluated range. Although some baselines achieve slightly higher AUC, this advantage does not translate into improved discovery. At 12 dB, the proposed method trails [31] and [48] by 0.0167 and 0.0172 in AUC, respectively, yet its new-device accuracy of 66 .2% exceeds theirs by 24 .7 and 12 .9 per-TABLE III: WiSig OSR with |I| = 10 and |I R| = 7 .                                   
+
+> Method AUC TP FP TN FN Proposed 0.9972 175 9141 0
+> ART [46] 0.8615 44 11 139 131 Shen et al. [45] 0.9633 147 1149 28 GCD [31] 1.0000 160 0150 15 OpenGCD [47] 0.9968 160 0150 15 OpenNCD [48] 0.9572 134 2148 41
+
+TABLE IV: WiSig discovery performance, |I R| = 7 . The arrow denotes pre-discovery accuracy on the enrolled devices to post-discovery accuracy over all enrolled and rogue test samples; in brackets, post-discovery accuracy on the enrolled devices only.                       
+
+> Method New-device accuracy Total accuracy (enrolled) Proposed 90.3% 100 .0% →92 .6% (95 .3%)
+> ART [46] 50.9% 100 .0% →65 .3% (82 .0%)
+> GCD [31] 78.3% 100 .0% →88 .3% (100 .0%)
+> OpenGCD [47] 49.7% 100 .0% →72 .6% (99 .3%)
+> OpenNCD [48] 40.0% 100 .0% →67 .1% (98 .7%) 12 15 20 25 30 0.60.70.80.91
+> SNR (dB) AUC  Proposed ART Shen et al. GCD OpenGCD OpenNCD
+
+Fig. 10: WiSig OSR AUC vs. evaluation SNR. 
+
+> 12 15 20 25 30 020 40 60 80 100
+> SNR (dB) New-device accuracy (%)  Proposed ART GCD OpenGCD OpenNCD
+
+Fig. 11: WiSig new-device accuracy vs. evaluation SNR. centage points. Moreover, Fig. 11 shows that the proposed method achieves the highest mean new-device accuracy at every evaluated SNR. For the complete open-world task, this substantial accuracy advantage outweighs the modest shortfall in detection AUC. Table V further shows that our method consistently achieves the highest total post-discovery accuracy. Even at 12 dB SNR, it attains 77 .3% , compared with 73 .3% for [48] and 68 .2% for [31], while maintaining 90 .3% accuracy on previously enrolled devices. The discovery stage of [46] fails in this setting. Thus, our frame-work retains its overall identification advantage after registering newly discovered devices, even under substantial noise. 
+
+D. Holistic Information-Transfer Ablation 
+
+Finally, we evaluate the key holistic component of our method: transferring the OSR score to NCD. We compare the method with TABLE V: WiSig discovery performance vs. SNR. Each cell: pre-discovery accuracy on the enrolled devices → post-discovery ac-curacy over all enrolled and rogue test samples; in brackets, post-discovery accuracy on the enrolled devices only. † NCD failed.             
+
+> SNR (dB) Proposed ART [46] GCD [31] OpenGCD [47] OpenNCD [48] 30 100.0 →91.2
+> (94.8) 100.0 →66.3 (93.1) 100.0 →90.0 (100.0) 100.0 →69.4 (99.2) 98.7 →71.8 (92.5) 25 100.0 →91.8
+> (95.1) 100.0 →68.3 (93.9) 100.0 →89.7 (100.0) 100.0 →70.1 (99.5) 100.0 →71.3 (95.3) 20 100.0 →86.9
+> (96.1) 100.0 →62.3 (90.3) 100.0 →86.6 (100.0) 99.9 →57.7 (98.7) 99.7 →70.2 (89.5) 15 98.0 →85.6
+> (94.3) 99.9 →52.3 (89.2) 100.0 →82.7 (100.0) 99.6 →63.6 (97.5) 98.5 →71.9 (87.2) 12 93.3 →77.3
+> (90.3) 99.1 →†99.9 →68.2 (99.5) 99.2 →55.9 (92.1) 99.7 →73.3 (96.7) 234580 85 90 95
+> Number of rogue devices New-device accuracy (%)
+> With OSRWC Without OSRWC
+
+(a) LoRa       
+
+> 23456740 50 60 70 80 90 100
+> Number of rogue transmitters New-device accuracy (%)
+> With OSRWC Without OSRWC
+
+(b) WiSig 
+
+Fig. 12: OSRWC effect on new-device accuracy vs. |I R|.a configuration in which OSRWC is disabled. Thus, both variants use the same feature representation, the same registered-device model, the same binary open-set decision, and the same density-based discovery mechanism; they differ in whether the OSR score is retained. Fig. 12 reports new-device accuracy on both datasets. On LoRa, the largest gain occurs with four rogue devices, where transferring the OSR information increases accuracy from 82 .8% 
+
+to 93% ; with five devices, the improvement is from 79 .2% to 
+
+81 .8% . On WiSig, the effect becomes particularly pronounced in challenging multi-device settings. With six rogue transmitters, the unweighted discovery procedure attains only 40% new-device ac-curacy, whereas OSRWC achieves 90% . With seven rogue trans-mitters, the corresponding improvement is from 88% to 90 .3% .The effect extends beyond discovery assignments. Fig. 13 shows the resulting post-discovery closed-set accuracy. While the two configurations are comparable in the easier settings, OSRWC substantially improves the system whenever unweighted clustering fails to provide sufficient support for one or more unseen-device regions. For example, on WiSig it increases post-discovery accuracy from 90 .7% to 95 .3% with four rogue transmitters and from 92 .0% to 95 .3% with seven. These results demonstrate the benefit of the holistic formulation: information generated during OSR can improve the subsequent discovery task and the expanded identification system. We further examine the contribution of OSRWC under channel degradation in Figs. 14–15. At high SNR, both configurations achieve comparable rogue-device mapping accuracy, as information transfer is not essential when the latent clusters are well separated. As the SNR decreases, the advantage of OSRWC becomes pronounced. At 15 dB, OSRWC achieves a mapping accuracy of 78 .1% and an ARI of 0.7905 , compared with only     
+
+> 234594 94 .595 95 .596
+> Number of rogue devices Post-NCD accuracy (%)
+> With OSRWC Without OSRWC
+
+(a) LoRa       
+
+> 23456789 90 91 92 93 94 95 96
+> Number of rogue transmitters Post-NCD accuracy (%)
+> With OSRWC Without OSRWC
+
+(b) WiSig 
+
+Fig. 13: OSRWC effect on post-discovery identification vs. |I R|.
+
+> 5810 12 15 20 25 30 020 40 60 80 100
+> SNR (dB) Rogue mapping accuracy (%)  With OSRWC Without OSRWC
+
+Fig. 14: OSRWC effect on rogue accuracy vs. SNR, WiSig. 
+
+36 .0% and 0.4873 , respectively, without information sharing. The gap persists at lower SNR: at 10 dB, OSRWC still maps 
+
+50 .5% of the rogue samples with an ARI of 0.6734 , whereas the unweighted configuration reaches only 25 .3% mapping accuracy and an ARI of 0.3793 . At 8 and 5 dB, the unweighted discovery stage fails to form any clusters at all. These results indicate that transferring the continuous OSR score is particularly valuable when noise weakens the separation of unseen-device samples. V. C ONCLUSIONS 
+
+We proposed a holistic open-world RFFI framework that unifies closed-set identification, OSR, and NCD through an expandable vector-quantized latent representation. By transferring open-set information to the discovery stage and incorporating newly identified devices through codebook expansion, our approach couples the different RFFI tasks without requiring retraining. Experiments on LoRa and WiSig demonstrate accurate identification and open-set detection with effective discovery and registration of unseen devices. 5810 12 15 20 25 30 0.20.40.60.81
+
+SNR (dB) ARI 
+
+> With OSRWC Without OSRWC
+
+Fig. 15: OSRWC effect on ARI vs. SNR, WiSig. Without OSRWC no clusters are discovered at 8 and 5 dB. REFERENCES [1] O. Hazan, G. Paryanti, and N. Shlezinger, “RF fingerprint identification with generalized class discovery via learning-aided vector quantization,” in Proc. IEEE SPAWC , 2026. [2] C. Saadouni et al. , “Identification techniques in the internet of things: Survey, taxonomy and research frontier,” IEEE Commun. Surveys Tuts. ,vol. 28, pp. 593–632, 2025. [3] J. Zhang, G. Shen, W. Saad, and K. Chowdhury, “Radio frequency fingerprint identification for device authentication in the internet of things,” 
+
+IEEE Commun. Mag. , vol. 61, no. 10, pp. 110–115, 2023. [4] J. Zhang et al. , “Radio frequency fingerprint identification for narrowband systems, modelling and classification,” IEEE Trans. Inf. Forensics Security ,vol. 16, pp. 3974–3987, 2021. [5] Q. Xu, R. Zheng, W. Saad, and Z. Han, “Device fingerprinting in wireless networks: Challenges and opportunities,” IEEE Commun. Surveys Tuts. ,vol. 18, no. 1, pp. 94–104, 2015. [6] L. Peng, A. Hu, J. Zhang, Y. Jiang, J. Yu, and Y. Yan, “Design of a hybrid RF fingerprint extraction and device classification scheme,” IEEE Internet Things J. , vol. 6, no. 1, pp. 349–360, 2018. [7] T. Jian et al. , “Radio frequency fingerprinting on the edge,” IEEE Trans. Mobile Comput. , vol. 21, no. 11, pp. 4078–4093, 2021. [8] S. Abbas et al. , “Radio frequency fingerprinting techniques for device iden-tification: a survey,” Int. J. Inf. Secur. , vol. 23, no. 2, pp. 1389–1427, 2024. [9] Z. He, Y. Liu, and K. Han, “Category discovery: An open-world perspective,” arXiv preprint arXiv:2509.22542 , 2025. [10] V. Brik, S. Banerjee, M. Gruteser, and S. Oh, “Wireless device identification with radiometric signatures,” in ACM MobiCom , 2008. [11] J. Hall, M. Barbeau, and E. Kranakis, “Detection of transient in radio frequency fingerprinting using signal phase,” Wireless and Optical Communications , vol. 9, p. 13, 2003. [12] Y. Huang et al. , “Radio frequency fingerprint extraction of radio emitter based on I/Q imbalance,” Procedia Comput. Sci , vol. 107, pp. 472–477, 2017. [13] A. Candore, O. Kocabas, and F. Koushanfar, “Robust stable radiometric fingerprinting for wireless devices,” in IEEE HOST , 2009. [14] H. Patel, “Non-parametric feature generation for RF-fingerprinting on ZigBee devices,” in IEEE CISDA , 2015. [15] K. Sankhe et al. , “ORACLE: Optimized radio classification through convolutional neural networks,” in Proc. IEEE INFOCOM , 2019. [16] G. Shen, J. Zhang, A. Marshall, L. Peng, and X. Wang, “Radio frequency fingerprint identification for LoRa using deep learning,” IEEE J. Sel. Areas Commun. , vol. 39, no. 8, pp. 2604–2616, 2021. [17] Y. Hu, Y. Fu, and Y. Chen, “A lightweight LSTM-based open-set RF fingerprinting identification for edge deployment,” Scientific Reports ,vol. 15, no. 1, p. 41568, 2025. [18] Y. Wang et al. , “Few-shot specific emitter identification via deep metric ensemble learning,” IEEE Internet Things J. , vol. 9, no. 24, pp. 24 980–24 994, 2022. [19] Z. Wu, F. Wang, and B. He, “Specific emitter identification via contrastive learning,” IEEE Commun. Lett. , vol. 27, no. 4, pp. 1160–1164, 2023. [20] Z. Yao et al. , “Few-shot specific emitter identification using asymmetric masked auto-encoder,” IEEE Commun. Lett. , vol. 27, no. 10, pp. 2657–2661, 2023. [21] C. Liu et al. , “Overcoming data limitations: A few-shot specific emitter identification method using self-supervised learning and adversarial aug-mentation,” IEEE Trans. Inf. Forensics Security , vol. 19, pp. 500–513, 2023. [22] L. Guo, C. Liu, Y. Liu, Y. Lin, and G. Gui, “Toward open-set specific emitter identification using auxiliary classifier generative adversarial network and openmax,” IEEE Trans. on Cogn. Commun. Netw. , vol. 10, no. 6, pp. 2019–2028, 2024. [23] T. Zhang et al. , “An open-set few-shot class incremental learning framework for specific emitter identification,” IEEE Trans. on Cogn. Commun. Netw. , vol. 12, pp. 602–616, 2025. [24] D. Li, X. Chen, S. Hong, J. Qi, and H. Sun, “FSCIL-SEI: Few-shot class-incremental learning approach for specific emitter identification,” 
+
+IEEE Trans. Instrum. Meas. , vol. 74, 2025. [25] W. Xie, H. Wang, Z. Shen, X. Li, Z. Liu, and H. Jiang, “A novel radio fre-quency fingerprint identification scheme for few-shot open-set recognition,” 
+
+IEEE Internet Things J. , vol. 12, no. 13, pp. 25 691–25 706, 2025. [26] A. Cao, Y. Luo, and D. Klabjan, “Open-set recognition with Gaussian mixture variational autoencoders,” in Proceedings of the AAAI Conference on Artificial Intelligence , vol. 35, no. 8, 2021, pp. 6877–6884. [27] Z. Ma, S. Fang, and Y. Fan, “Open-set radio frequency fingerprint identification method based on multi-task prototype learning,” Sensors ,vol. 25, no. 17, p. 5415, 2025. [28] D. Cai et al. , “Open set RF fingerprinting identification: A joint prediction and siamese comparison framework,” in Proc. IEEE ICC , 2025. [29] M. Luo, X. Liu, X. Di, and H. Qi, “Radio frequency fingerprint recognition method based on feature enhancement and selective channel-spatial kernel,” 
+
+Computer Networks , p. 111574, 2025. [30] S. Karunaratne, S. Hanna, and D. Cabric, “Open set RF fingerprinting using generative outlier augmentation,” in IEEE GLOBECOM , 2021. [31] S. Vaze, K. Han, A. Vedaldi, and A. Zisserman, “Generalized category discovery,” in IEEE CVPR , 2022. [32] X. Wen, B. Zhao, and X. Qi, “Parametric classification for generalized category discovery: A baseline study,” in IEEE ICCV , 2023. [33] E. Fishel, M. Malka, S. Ginzach, and N. Shlezinger, “Remote inference over dynamic links via adaptive rate deep task-oriented vector quantization,” 
+
+IEEE Trans. Signal Process. , vol. 73, pp. 3557–3571, 2025. [34] J. Chen et al. , “Information compression in the AI era: Recent advances and future challenges,” IEEE J. Sel. Areas Commun. , vol. 43, no. 7, pp. 2333–2348, 2025. [35] S. Hanna, S. Karunaratne, and D. Cabric, “WiSig: A large-scale WiFi signal dataset for receiver and channel agnostic RF fingerprinting,” IEEE Access , vol. 10, pp. 22 808–22 818, 2022. [36] Y. Polyanskiy and Y. Wu, “Lecture notes on information theory,” Lecture Notes for 6.441 (MIT) and STAT 664 (Yale) , 2012-2017. [37] Y. Linde, A. Buzo, and R. Gray, “An algorithm for vector quantizer design,” IEEE Trans. Commun. , vol. 28, no. 1, pp. 84–95, 1980. [38] A. Van Den Oord and O. Vinyals, “Neural discrete representation learning,” 
+
+Advances in Neural Information Processing Systems , vol. 30, 2017. [39] C. Fifty et al. , “Restructuring vector quantization with the rotation trick,” in International Conference on Learning Representations (ICLR) , 2025. [40] M. Malka, E. Farhan, H. Morgenstern, and N. Shlezinger, “Decentralized low-latency collaborative inference via ensembles on the edge,” IEEE Trans. Wireless Commun. , vol. 24, no. 1, pp. 598–614, 2025. [41] M. Huang et al. , “Towards accurate image coding: Improved autoregressive image generation with dynamic vector quantization,” in IEEE CVPR , 2023. [42] M. Ester et al. , “A density-based algorithm for discovering clusters in large spatial databases with noise,” KDD , 1996. [43] R. J. G. Campello, D. Moulavi, and J. Sander, “Density-based clustering based on hierarchical density estimates,” in Advances in Knowledge Discovery and Data Mining . Springer, 2013, pp. 160–172. [44] P. Khosla, P. Teterwak, C. Wang, A. Sarna, Y. Tian, P. Isola, A. Maschinot, C. Liu, and D. Krishnan, “Supervised contrastive learning,” in Advances in Neural Information Processing Systems , vol. 33, 2020, pp. 18 661–18 673. [45] G. Shen, J. Zhang, A. Marshall, and J. R. Cavallaro, “Towards scalable and channel-robust radio frequency fingerprint identification for LoRa,” 
+
+IEEE Trans. Inf. Forensics Security , vol. 17, pp. 774–787, 2022. [46] T. Zhao, S. Sarkar, Y. Tian, and D. Cabric, “Anomaly transmitter recognition and tracking,” in IEEE International Symposium on Dynamic Spectrum Access Networks (DySPAN) , 2024, pp. 357–364. [47] F. Gao, W. Zhong, Z. Cao, X. Peng, and Z. Li, “OpenGCD: Assisting open world recognition with generalized category discovery,” arXiv preprint arXiv:2308.06926 , 2023. [48] J. Liu, Y. Wang, T. Zhang, Y. Fan, Q. Yang, and J. Shao, “Open-world semi-supervised novel class discovery,” arXiv preprint arXiv:2305.13095 , 2023.
