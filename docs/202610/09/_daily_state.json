@@ -1,0 +1,201 @@
+{
+  "date": "20261009",
+  "date_label": "",
+  "generated_at": "2026-10-09 00:10:17 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2610.09202v1",
+      "route": "202610/09/2610.09202v1-few-bits-one-law-toward-w2a4kv2",
+      "title": "Few Bits, One Law: Toward W2A4KV2",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 10.0,
+      "evidence": "权重/激活/KV 极低比特量化与冻结高斯码本",
+      "first_seen_at": "2026-10-09 00:10:17 UTC",
+      "updated_at": "2026-10-09 00:10:17 UTC"
+    },
+    {
+      "paper_id": "2610.00432v1",
+      "route": "202610/09/2610.00432v1-xor-trellis-ultra-low-complexity-dequantization-and-curvature-aware-hadamard-free-llm-quantization",
+      "title": "XOR-Trellis: Ultra-Low-Complexity Dequantization and Curvature-Aware Hadamard-Free LLM Quantization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "网格编码量化避免超大码本，超低比特，硬件高效反量化",
+      "first_seen_at": "2026-10-09 00:10:17 UTC",
+      "updated_at": "2026-10-09 00:10:17 UTC"
+    },
+    {
+      "paper_id": "2610.03027v1",
+      "route": "202610/09/2610.03027v1-tailoring-the-quantization-space-for-1-bit-kv-cache-compression",
+      "title": "Tailoring the Quantization Space for 1-Bit KV Cache Compression",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "1比特向量量化码本定制压缩KV缓存",
+      "first_seen_at": "2026-10-09 00:10:17 UTC",
+      "updated_at": "2026-10-09 00:10:17 UTC"
+    },
+    {
+      "paper_id": "2610.09212v1",
+      "route": "202610/09/2610.09212v1-curvetq-rotation-free-trellis-quantization-of-llm-weights-via-curvature-weighted-search",
+      "title": "CurveTQ: Rotation-Free Trellis Quantization of LLM Weights via Curvature-Weighted Search",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "两比特LLM权重量化，网格/格码编码，曲率加权Viterbi搜索",
+      "first_seen_at": "2026-10-09 00:10:17 UTC",
+      "updated_at": "2026-10-09 00:10:17 UTC"
+    },
+    {
+      "paper_id": "2610.04457v1",
+      "route": "202610/09/2610.04457v1-rpfq-vit-rotated-phase-frame-quantization-for-extremely-low-bit-weights-in-vision-transformers",
+      "title": "RPFQ-ViT: Rotated Phase-Frame Quantization for Extremely Low-Bit Weights in Vision Transformers",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "极低比特量化与码本方向几何匹配",
+      "first_seen_at": "2026-10-09 00:10:17 UTC",
+      "updated_at": "2026-10-09 00:10:17 UTC"
+    },
+    {
+      "paper_id": "2610.09827v1",
+      "route": "202610/09/2610.09827v1-dual-qk-sharp-queries-and-flat-keys-for-prunable-2-bit-kv-caches",
+      "title": "Dual-QK: Sharp Queries and Flat Keys for Prunable 2-bit KV Caches",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向2比特KV缓存量化的旋转量化与查询通道剪枝",
+      "first_seen_at": "2026-10-09 00:10:17 UTC",
+      "updated_at": "2026-10-09 00:10:17 UTC"
+    },
+    {
+      "paper_id": "2610.07904v1",
+      "route": "202610/09/2610.07904v1-apexquant-data-free-elastic-quantization-by-residual-re-isotropization",
+      "title": "ApexQuant: Data-Free Elastic Quantization by Residual Re-Isotropization",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "标量、E8与网格矢量量化阶段的残差重量化",
+      "first_seen_at": "2026-10-09 00:10:17 UTC",
+      "updated_at": "2026-10-09 00:10:17 UTC"
+    },
+    {
+      "paper_id": "2610.00930v1",
+      "route": "202610/09/2610.00930v1-joint-branch-space-transform-coding-for-diffusion-activation-quantization-with-classifier-free-guidance",
+      "title": "Joint Branch-Space Transform Coding for Diffusion Activation Quantization with Classifier-Free Guidance",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "固定比特预算下的低比特激活量化与编码基",
+      "first_seen_at": "2026-10-09 00:10:17 UTC",
+      "updated_at": "2026-10-09 00:10:17 UTC"
+    },
+    {
+      "paper_id": "2610.00983v1",
+      "route": "202610/09/2610.00983v1-the-devil-is-in-the-reconstruction-loss-scale-rethinking-optimization-in-llm-quantization",
+      "title": "The Devil Is in the Reconstruction Loss Scale: Rethinking Optimization in LLM Quantization",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "LLM训练后量化中的重建损失优化",
+      "first_seen_at": "2026-10-09 00:10:17 UTC",
+      "updated_at": "2026-10-09 00:10:17 UTC"
+    },
+    {
+      "paper_id": "2610.07121v1",
+      "route": "202610/09/2610.07121v1-soloq-calibration-free-quantization-for-diffusion-language-models",
+      "title": "SoloQ: Calibration-Free Quantization for Diffusion Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "扩散语言模型的低比特权重-激活量化",
+      "first_seen_at": "2026-10-09 00:10:17 UTC",
+      "updated_at": "2026-10-09 00:10:17 UTC"
+    },
+    {
+      "paper_id": "2610.08164v1",
+      "route": "202610/09/2610.08164v1-align-then-correct-training-free-two-stage-low-rank-compensation-for-extremely-quantized-large-language-models",
+      "title": "Align, Then Correct: Training-Free Two-Stage Low-Rank Compensation for Extremely Quantized Large Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向极低比特量化大模型的免训练低秩补偿",
+      "first_seen_at": "2026-10-09 00:10:17 UTC",
+      "updated_at": "2026-10-09 00:10:17 UTC"
+    },
+    {
+      "paper_id": "2610.09969v1",
+      "route": "202610/09/2610.09969v1-tr-ptq-high-accuracy-integer-only-transformer-post-training-quantization-via-taylor-region-reformulation",
+      "title": "TR-PTQ: High-Accuracy Integer-Only Transformer Post Training Quantization via Taylor Region Reformulation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wbv"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "纯整数Transformer训练后量化，低比特部署",
+      "first_seen_at": "2026-10-09 00:10:17 UTC",
+      "updated_at": "2026-10-09 00:10:17 UTC"
+    }
+  ]
+}
